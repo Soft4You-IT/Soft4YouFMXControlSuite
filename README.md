@@ -1,0 +1,399 @@
+# THTMLEditor — Soft4You FMX HTML Editor
+
+WYSIWYG HTML editor component for Delphi FireMonkey (FMX). 100% native Delphi — no WebBrowser and no COM/OLE dependencies. The only third-party dependency is [Skia4Delphi](https://github.com/skia4delphi/skia4delphi), used to render SVG images.
+
+Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on Windows with Delphi 13 (RAD Studio 22.0); the minimum Delphi version is the one required by Skia4Delphi.
+
+---
+
+## Repository layout
+
+| Folder | Content |
+|---|---|
+| `Sources` | All component units (`.pas`) |
+| `Packages` | Runtime and design-time packages, project group |
+| `Demo` | Sample FMX application |
+| `Docs` | Additional documentation (`Architecture.md`) |
+
+---
+
+## Requirements
+
+- Delphi with FireMonkey (FMX).
+- [Skia4Delphi](https://github.com/skia4delphi/skia4delphi) (MIT license), installed in the IDE. The runtime package requires `Skia.Package.FMX` and `Skia.Package.RTL`.
+
+---
+
+## License
+
+Released under the **Mozilla Public License 2.0** (MPL-2.0) — see [LICENSE](LICENSE).
+
+MPL-2.0 is a file-level copyleft license:
+
+- you may use the component, unmodified or modified, in open source and closed source applications, commercial or not;
+- if you modify the source files of this component and distribute the result (in source or binary form), you must make the source of your modified files available under the MPL-2.0, so that improvements flow back to the original component;
+- your own files that merely use the component are not affected and may stay under any license.
+
+Original author: **Carlo Marona (Soft4You)** — project started in 2026.
+
+---
+
+## Architecture
+
+| Layer | Class | Unit |
+|---|---|---|
+| Document model | `THTMLDocument` / `THTMLParagraph` / `THTMLRun` | `Soft4You.HTML.Document` |
+| Types & styles | `THTMLTextStyle`, `THTMLBlockType`, `TDocPos`, `TLayoutFrag` | `Soft4You.HTML.Types` |
+| HTML parser | `THTMLParser` | `Soft4You.HTML.Parser` |
+| HTML generator | `THTMLGenerator` | `Soft4You.HTML.Generator` |
+| Layout engine | `TLayoutEngine` | `Soft4You.FMX.Controls.HTMLEditor` |
+| Editor control | `THTMLEditor` | `Soft4You.FMX.Controls.HTMLEditor` |
+| Clipboard (HTML) | `THTMLClipboard` | `Soft4You.FMX.Clipboard.Html` |
+| Emoji catalogue | `TEmojiData` | `Soft4You.Unicode.EmojiData` |
+
+---
+
+## Installation
+
+0. Install Skia4Delphi (see [Requirements](#requirements)).
+1. Open `Packages\S4YFMXHTMLEditor.dpk` (runtime package) and **Build** it.
+2. Open `Packages\S4YFMXHTMLEditorD.dpk` (design-time package, registers the component and the HTML property editor) and **Build** and **Install** it.
+3. `THTMLEditor` appears in the Tool Palette under the registered category.
+4. Add the `Sources` folder to the Delphi library path (needed to compile the Demo and your own projects).
+5. Add `Soft4You.FMX.Controls.HTMLEditor` to the `uses` clause of any unit that references the component programmatically.
+
+---
+
+## Quick Start
+
+```delphi
+uses
+  Soft4You.FMX.Controls.HTMLEditor, Soft4You.HTML.Types;
+
+// Set content
+HTMLEditor.HTML := '<p>Hello <b>world</b>!</p>';
+
+// Read back
+ShowMessage(HTMLEditor.HTML);
+
+// Full document (with <!DOCTYPE html> wrapper)
+Memo1.Text := HTMLEditor.FullHTML;
+
+// React to state changes (update toolbar buttons)
+procedure TfrmMain.HTMLEditorStateChange(Sender: TObject; const State: TEditorState);
+begin
+  btnBold.IsPressed        := State.IsBold;
+  btnItalic.IsPressed      := State.IsItalic;
+  btnOutdent.Enabled       := State.CanOutdent;
+  cbFont.Text              := State.FontName;
+  pnlFontColor.Color       := State.FontColor;
+  pnlHighlight.Color       := State.BackgroundColor;
+end;
+```
+
+---
+
+## Supported HTML
+
+### Block elements
+
+| Tag | Description |
+|---|---|
+| `<p>` | Paragraph |
+| `<h1>` … `<h6>` | Headings |
+| `<blockquote>` | Indented quote |
+| `<ul>` / `<ol>` / `<li>` | Unordered and ordered lists |
+| `<hr>` | Horizontal rule |
+| `<img>` | Block-level image |
+| `<table>` / `<tr>` / `<td>` / `<th>` | Tables |
+| `<pre>` | Preformatted text |
+
+### Inline elements
+
+| Tag / attribute | Description |
+|---|---|
+| `<b>`, `<strong>` | Bold |
+| `<i>`, `<em>` | Italic |
+| `<u>` | Underline |
+| `<s>`, `<del>`, `<strike>` | Strikethrough |
+| `<sup>` | Superscript |
+| `<sub>` | Subscript |
+| `<span style="…">` | Inline style override |
+| `<font face="…" size="…" color="…">` | Legacy font tag |
+| `<a href="…">` | Hyperlink |
+| `<br>` | Line break within paragraph |
+| `<code>` | Inline code (rendered as preformatted) |
+
+### CSS properties (inline style)
+
+`font-family`, `font-size` (pt/px/em/%), `font-weight`, `font-style`, `text-decoration`, `color`, `background-color`, `text-align`
+
+### HTML entities
+
+`&amp;` `&lt;` `&gt;` `&quot;` `&apos;` `&nbsp;` `&copy;` `&reg;` `&trade;` `&mdash;` `&ndash;` `&hellip;` `&#N;` `&#xN;`
+
+---
+
+## Properties
+
+### Published (Object Inspector)
+
+| Property | Type | Default | Description |
+|---|---|---|---|
+| `HTML` | `string` | `''` | HTML content of the document body (fragment, no doctype) |
+| `BackgroundColor` | `TAlphaColor` | `claWhite` | Editor canvas background color |
+| `Font` | `TFont` | platform default | Default font for new text |
+| `Lang` | `string` | `''` | Document language attribute (used in `FullHTML` export) |
+| `LineSpacing` | `Single` | `1.0` | Line-height multiplier (1.0 = natural height, 1.5 = 1.5× line spacing) |
+| `ParagraphSpacing` | `Single` | `6.0` | Extra vertical space in px added between block elements |
+| `PlaceholderAppearance` | `TPlaceholderAppearance` | — | Visual style of placeholder chips |
+| `PlaceholderPrefix` | `string` | `''` | Prefix that identifies a placeholder run in raw text |
+| `PlaceholderSuffix` | `string` | `''` | Suffix that identifies a placeholder run in raw text |
+| `PrettyHTML` | `Boolean` | `False` | Emit indented HTML from the generator |
+| `ReadOnly` | `Boolean` | `False` | Disables all editing; selection and link clicks still work |
+| `ShowBorder` | `Boolean` | `True` | Draws a 1px border around the control |
+| `Title` | `string` | `''` | Document title (used in `FullHTML` export) |
+
+### Runtime-only
+
+| Property | Type | Description |
+|---|---|---|
+| `CurrentRun` | `THTMLRun` | Run under the caret, or `nil` |
+| `FullHTML` | `string` | Full `<!DOCTYPE html>…</html>` document; writable (replaces content and extracts `Title`/`Lang`) |
+| `HasSelection` | `Boolean` | `True` when text is selected |
+| `Placeholders` | `TList<THTMLRun>` | All placeholder runs in the document (O(1) cache, read-only) |
+| `State` | `TEditorState` | Snapshot of formatting state at the caret position |
+
+---
+
+## TEditorState record
+
+Returned by the `State` property and passed to `OnStateChange`.
+
+```delphi
+TEditorState = record
+  Alignment: THTMLAlignment;       // haLeft, haCenter, haRight, haJustify
+  BackgroundColor: TAlphaColor;    // per-character background (highlight) color at caret
+  CanOutdent: Boolean;             // True when Outdent would have effect
+  FontColor: TAlphaColor;          // per-character font color at caret
+  FontName: string;
+  FontSize: Single;                // pt
+  HasSelection: Boolean;
+  ImageAlt: string;                   // alt text of image at caret ('' if not an image)
+  ImageHeight: Integer;               // pixel height of image at caret (0 if not an image)
+  ImageSrc: string;                   // src of image at caret ('' if not an image)
+  ImageWidth: Integer;                // pixel width of image at caret (0 if not an image)
+  IndentLevel: Integer;               // indent level of the paragraph at caret (0 = no indent)
+  IsBold, IsItalic, IsUnderline, IsStrikeOut: Boolean;
+  IsImage: Boolean;                   // True when caret is on an image run
+  IsOrderedList, IsUnorderedList: Boolean;
+  IsSubscript, IsSuperscript: Boolean;
+  LineNumber: Integer;                // 1-based visual line in the rendered document (0 = no layout)
+  ColumnNumber: Integer;              // 1-based character position within the visual line (0 = no layout)
+  LinkURL: string;                    // URL of the link at caret ('' if not a link)
+  ParagraphFormat: TParagraphFormat;  // pfBodyText, pfParagraph, pfH1..pfH6, pfPre
+end;
+```
+
+---
+
+## Methods
+
+### Formatting
+
+| Method | Description |
+|---|---|
+| `ToggleBold` | Toggle bold on selection or at caret |
+| `ToggleItalic` | Toggle italic |
+| `ToggleUnderline` | Toggle underline |
+| `ToggleStrikeOut` | Toggle strikethrough |
+| `ToggleSuperscript` | Toggle superscript |
+| `ToggleSubscript` | Toggle subscript |
+| `IncreaseFontSize` | Increase font size one step |
+| `DecreaseFontSize` | Decrease font size one step |
+| `SetCurrentFontName(Name)` | Apply font family to selection or caret |
+| `SetCurrentFontSize(Size)` | Apply font size (pt) to selection or caret |
+| `SetCurrentFontColor(Color)` | Apply text color to selection or caret |
+| `SetCurrentBackgroundColor(Color)` | Apply per-character background (highlight) color to selection or caret |
+| `ClearFormatting` | Remove all inline styles from selection |
+| `AlignLeft` / `AlignCenter` / `AlignRight` / `AlignJustify` | Set paragraph alignment |
+| `SetCurrentParagraphFormat(AFormat)` | Set block type: `pfBodyText`, `pfParagraph`, `pfH1`…`pfH6`, `pfPre` |
+| `SetHeading(Level)` | Set heading level 0–6 (0 = paragraph) — legacy shorthand |
+| `ToggleOrderedList` | Toggle numbered list |
+| `ToggleUnorderedList` | Toggle bullet list |
+| `Indent` | Increase indent level (blockquote or list nesting) |
+| `Outdent` | Decrease indent level; enabled only when `State.CanOutdent = True` |
+
+### Insertion
+
+| Method | Description |
+|---|---|
+| `InsertLink(URL, Text)` | Insert `Text` as a new hyperlink run at the caret (requires non-empty URL and Text) |
+| `UpdateLink(URL)` | Set `URL` on the selection, or on the link run at the caret when there is no selection; `URL = ''` removes the link |
+| `RemoveLink` | Remove the hyperlink URL from the selection (text is kept) |
+| `GetLinkAtCaret` | Return the URL of the link run at the caret, or `''` if not a link |
+| `InsertText(S)` | Insert plain text at caret |
+| `InsertHTML(HTML)` | Parse and insert an HTML fragment at caret |
+| `InsertHorizontalRule([Color, Thickness])` | Insert a horizontal rule |
+| `InsertImage(Src[, Width, Height, Alt])` | Insert a block-level image |
+| `InsertInlineImage(Src[, Width, Height, Alt])` | Insert an inline image (as a run inside a paragraph) |
+| `UpdateImage(Src[, Width, Height, Alt])` | Replace the image under the caret (use `State.IsImage` to check) |
+| `InsertTable([Rows, Cols])` | Insert an empty table (default 2×2) |
+| `InsertTableRow` | Insert a new row after the row containing the caret |
+| `DeleteTableRow` | Delete the row containing the caret |
+| `InsertTableColumn` | Insert a new column after the column containing the caret |
+| `DeleteTableColumn` | Delete the column containing the caret |
+| `InsertPlaceholder(RawText[, DisplayName])` | Insert a non-editable placeholder chip |
+| `UpdatePlaceholder(NewRawText[, NewDisplayName])` | Replace the placeholder under the caret |
+| `ReloadImages` | Re-fetch all images from their source paths/URLs |
+
+### Editing
+
+| Method | Description |
+|---|---|
+| `SelectAll` | Select the entire document |
+| `ClearSelection` | Deselect all — removes the selection without altering content |
+| `Undo` | Undo last change (up to 100 levels) |
+| `Redo` | Redo last undone change |
+| `Cut` | Cut selection to clipboard (CF_HTML + CF_UNICODETEXT on Windows) |
+| `Copy` | Copy selection to clipboard |
+| `Paste` | Paste from clipboard (HTML-aware) |
+| `PasteAsPlainText` | Paste from clipboard stripping all formatting (`Ctrl+Shift+V`) |
+
+### Navigation
+
+| Method | Description |
+|---|---|
+| `ScrollToParagraph(Index)` | Scroll the document so that paragraph at `Index` is visible at the top |
+| `ScrollToDocPos(Pos)` | Scroll to make a specific `TDocPos` position visible |
+
+### Document info
+
+| Method / Property | Description |
+|---|---|
+| `CharCount` | Total number of text characters in the document (images and placeholders excluded) |
+| `WordCount` | Number of words (whitespace-delimited) in the document |
+| `SelText` | Plain text of the current selection (`''` when no selection) |
+| `SelHTML` | HTML fragment of the current selection (`''` when no selection) |
+
+### Search
+
+| Method | Description |
+|---|---|
+| `FindNext(Text[, CaseSensitive])` | Select the next occurrence of `Text` from the caret; wraps around; returns `False` when not found |
+| `FindPrev(Text[, CaseSensitive])` | Select the previous occurrence; wraps around; returns `False` when not found |
+| `ReplaceAll(FindText, ReplaceText[, CaseSensitive])` | Replace all occurrences in the document; returns the count of replacements |
+
+Search highlights the match via the normal selection. Each successive `FindNext` / `FindPrev` call starts from the end / start of the current selection, enabling repeated stepping. `ReplaceAll` is a single undoable operation.
+
+---
+
+## Events
+
+| Event | Signature | Description |
+|---|---|---|
+| `OnChange` | `TNotifyEvent` | Fired after every content change |
+| `OnDrawListMarker` | `procedure(Sender; Canvas; const Bounds; IndentLevel: Integer; var Handled)` | Custom drawing of a list bullet; set `Handled=True` to suppress default rendering |
+| `OnDrawPlaceholder` | `procedure(Sender; Canvas; const Bounds; const RawText; var Handled)` | Custom rendering of placeholder chips |
+| `OnGetListMarker` | `procedure(Sender; IndentLevel: Integer; var Marker: string; var Handled)` | Return a text character (e.g. `•`, `◦`) to use as bullet; takes priority over `OnDrawListMarker` |
+| `OnGetPlaceholderLabel` | `procedure(Sender; const RawText: string; var DisplayLabel: string)` | Map raw placeholder text to a display label |
+| `OnLinkClick` | `procedure(Sender; const URL, LinkText: string)` | User clicked a hyperlink |
+| `OnLinkHover` | `procedure(Sender; const URL: string; var Cursor: TCursor)` | Mouse entered/left a link |
+| `OnLoadImage` | `procedure(Sender; const ASrc: string; var ABitmap: TBitmap; AContext: TImageLoadContext)` | Custom image loading — assign a `TBitmap` to override default file/URL loading |
+| `OnStateChange` | `procedure(Sender; const State: TEditorState)` | Fired when caret moves or selection changes — use to update toolbar |
+
+---
+
+## List behaviour
+
+- **Base indent level** (`IndentLevel = 0`): items are visually indented from the left margin (same as browser default — approximately 40 px of text offset with a 20 px marker area).
+- **Nested lists** (`Indent` / `Outdent`): each level adds one indent step. `State.CanOutdent` is `False` at level 0.
+- **Bullet cycling** (unordered lists, default): the marker shape cycles with `IndentLevel mod 3` — filled disc (0), open circle (1), filled square (2+).
+- **Custom markers**: use `OnGetListMarker` to return a text character, or `OnDrawListMarker` for full canvas control. `OnGetListMarker` takes priority.
+
+---
+
+## Keyboard Shortcuts
+
+| Key | Action |
+|---|---|
+| `Ctrl+B` | Toggle bold |
+| `Ctrl+I` | Toggle italic |
+| `Ctrl+U` | Toggle underline |
+| `Ctrl+Z` | Undo |
+| `Ctrl+Y` | Redo |
+| `Ctrl+A` | Select all |
+| `Ctrl+C` | Copy |
+| `Ctrl+X` | Cut |
+| `Ctrl+V` | Paste |
+| `Ctrl+Shift+V` | Paste as plain text (strips formatting) |
+| `Ctrl+Home` / `Ctrl+End` | Move to document start/end |
+| `Shift+arrows` | Extend selection |
+| `Ctrl+Shift+Home/End` | Extend selection to start/end |
+| `Home` / `End` | Move to line start/end |
+| `Arrow keys` | Character/line navigation; up/down navigate table rows |
+| `Enter` | Insert paragraph break |
+| `Shift+Enter` | Insert line break (`<br>`) |
+| `Backspace` / `Delete` | Delete character or selection |
+| `Ctrl+Backspace` | Delete word left |
+
+Mouse: single click places caret, double-click selects word, triple-click selects paragraph. Clicking on an image selects it. Drag to extend selection with auto-scroll near edges.
+
+---
+
+## TPlaceholderAppearance
+
+Configure via Object Inspector or code:
+
+```delphi
+HTMLEditor.PlaceholderAppearance.FillColor        := $FFE8F0FE;
+HTMLEditor.PlaceholderAppearance.TextColor        := $FF1A73E8;
+HTMLEditor.PlaceholderAppearance.BorderColor      := $FF1A73E8;
+HTMLEditor.PlaceholderAppearance.BorderRadius     := 4;
+HTMLEditor.PlaceholderAppearance.HorizontalPadding := 6;
+HTMLEditor.PlaceholderAppearance.VerticalPadding  := 2;
+HTMLEditor.PlaceholderAppearance.Bold             := True;
+```
+
+A placeholder is inserted as a run with `IsPlaceholder = True`. Its raw text is `PlaceholderPrefix + RawText + PlaceholderSuffix`. Use `OnGetPlaceholderLabel` to display a human-readable label instead of the raw text.
+
+All placeholder runs are accessible at O(1) via the `Placeholders` property (a `TList<THTMLRun>` kept in sync with every edit operation).
+
+---
+
+## Performance Notes
+
+- **Layout cache**: `TLayoutEngine` caches text measurements (`MeasureStr`) in a `TDictionary`. The cache is cleared on every `SetHTML` call. Subsequent layouts (resize, keypress) are near-instant for typical documents.
+- **Render cache**: the control renders to an off-screen `TBitmap` and blits it to the canvas on FMX-initiated repaints. Only changes that affect visual output trigger a re-render.
+- **Emoji / color fonts**: the first `SetHTML` call on a document containing emoji is slower due to DirectWrite color-font fallback (Windows). Subsequent layout operations on the same document are fast thanks to the measurement cache.
+- **Image cache**: images are loaded once per `src` value and cached in an internal `TObjectDictionary`. Orphaned entries (deleted images) are retained to support undo and shared `src` values; the cache is cleared only on `SetHTML` or destruction.
+- **Placeholder cache**: `FPlaceholders: TList<THTMLRun>` is kept in sync incrementally on every edit. Accessing `Editor.Placeholders` is O(1) — no document scan needed.
+
+---
+
+## Known Limitations
+
+- **Tab key in tables**: FMX intercepts `Tab` at the form level before it reaches the control. Navigation between table cells with `Tab` / `Shift+Tab` is not available; use the arrow keys instead.
+- **CSS subset**: only the inline CSS properties listed above are supported. External stylesheets and CSS classes are ignored.
+- **Nested lists**: supported for import (indent levels preserved), but the generator emits each `<li>` wrapped in its own `<ul>`/`<ol>` rather than a true nested structure.
+- **RTF clipboard**: only plain text and HTML clipboard formats are supported. RTF is not read or written.
+- **macOS / iOS / Android clipboard**: CF_HTML is a Windows-only format. On other platforms the HTML fragment is placed on the clipboard as plain text; round-trip within the same editor instance works via `LooksLikeHTML` detection.
+
+---
+
+## Demo
+
+The `Demo` folder contains a sample FMX application (`Demo\Project1.dproj`, also part of the project group in `Packages`) with a complete toolbar, emoji picker, placeholder and color dialogs. Install the component package first.
+
+---
+
+## AI-assisted development
+
+This component was designed and directed by Carlo Marona (Soft4You) and developed with the assistance of [Claude](https://www.anthropic.com/claude) (Anthropic), used through Claude Code.
+
+---
+
+## Credits
+
+- [Skia4Delphi](https://github.com/skia4delphi/skia4delphi) — MIT license, SVG rendering.
+- Demo toolbar icons: [Google Material Symbols](https://fonts.google.com/icons) — Apache License 2.0.

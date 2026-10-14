@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+			<title>Il mio documento</title>
+		</head>
+		<body>
+			<h1>Titolo H1 — Editor di testo HTML</h1>
+			<h2>Titolo H2 – Formattazione inline</h2>
+			<p>Testo normale. <b>Grassetto</b>, <i>corsivo</i>, <u>sottolineato</u>, <s>barrato</s>. Combinazioni: <b>
+					<i>grassetto corsivo</i>
+				</b>, <b>
+					<u>grassetto sottolineato</u>
+				</b>, <i>
+					<u>corsivo sottolineato</u>
+				</i>, <b>
+					<i>
+						<u>
+							<s>tutto insieme</s>
+						</u>
+					</i>
+				</b>.</p>
+			<h2>Titolo H2 – Apice e pedice</h2>
+			<p>Formula chimica: H<sub>2</sub>O. Potenza: E = mc<sup>2</sup>. Nota a piè di pagina<sup>1</sup>.
+Coordinate<sub>x,y</sub>.</p>
+			<h2>Titolo H2 – Colori e dimensioni</h2>
+			<p>
+				<span style="color:#cc0000;">Testo rosso</span>, <span style="color:#007700;">testo verde</span>, <span style="color:#0000cc;">testo blu</span>. <span style="background-color:#ffff00;">Evidenziato in giallo</span>. <span style="color:#ffffff;background-color:#000000;">Bianco su nero</span>.</p>
+			<p>
+				<span style="font-size:8pt;">Testo 8pt</span>, <span style="font-size:10pt;">testo 10pt</span>, testo normale,
+				<span style="font-size:16pt;">testo 16pt</span>, <span style="font-size:24pt;">testo 24pt</span>.</p>
+			<p>
+				<span style="font-family:Georgia;">Testo in Georgia</span>. <span style="font-family:Courier New;">Testo in Courier New</span>. <span style="font-family:Arial;">Testo in Arial</span>.</p>
+			<h2>Titolo H2 – Allineamento</h2>
+			<p style="text-align:left;">Paragrafo allineato a sinistra. Lorem ipsum dolor sit amet.</p>
+			<p style="text-align:center;">Paragrafo centrato. Lorem ipsum dolor sit amet.</p>
+			<p style="text-align:right;">Paragrafo allineato a destra. Lorem ipsum dolor sit amet.</p>
+			<p style="text-align:justify;">Paragrafo giustificato. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+			<h2>Titolo H2 – Intestazioni H3-H6</h2>
+			<h3>Intestazione H3</h3>
+			<h4>Intestazione H4</h4>
+			<h5>Intestazione H5</h5>
+			<h6>Intestazione H6</h6>
+			<h2>Titolo H2 – Liste</h2>
+			<ul>
+				<li>Primo elemento non ordinato</li>
+				<li>Secondo elemento con <b>grassetto</b> e <i>corsivo</i>
+				</li>
+				<li>Terzo elemento con <span style="color:#cc0000;">testo colorato</span>
+				</li>
+			</ul>
+			<ol>
+				<li>Primo elemento ordinato</li>
+				<li>Secondo elemento ordinato</li>
+				<li>Terzo elemento ordinato con <u>sottolineatura</u>
+				</li>
+			</ol>
+			<h2>Titolo H2 – Citazione</h2>
+			<blockquote>Questo è un testo in blockquote, rientrato rispetto al paragrafo normale. Può contenere <b>formattazione
+inline</b> come qualsiasi altro blocco.</blockquote>
+			<p>Testo normale dopo il blockquote.</p>
+			<h2>Titolo H2 – Collegamento ipertestuale</h2>
+			<p>Visita il sito <a href="https://www.embarcadero.com">Embarcadero</a> per ulteriori informazioni. Anche <b>
+					<a href="https://www.delphi-praxis.net">link in grassetto</a>
+				</b> e <a href="https://example.com">
+					<span style="color:#cc0000;">link colorato</span></a>.</p>
+			<h2>Titolo H2 – Entità HTML</h2>
+			<p>Simboli speciali: &amp; (ampersand), &lt; (minore), &gt; (maggiore), &quot; (virgolette). Spazio non-breaking:&nbsp;&nbsp;&nbsp;tre spazi. Carattere Unicode: &#8364; (euro), &#x2665; (cuore).</p>
+			<h2>Titolo H2 – A capo forzato</h2>
+			<p>Prima riga.<br>Seconda riga nello stesso paragrafo.<br>Terza riga con <b>grassetto</b> dopo il break.</p>
+					<h2>Separatori orizzontali</h2>
+					<p>HR standard:</p>
+					<hr/>
+					<p>HR rossa da 3px:</p>
+					<hr style="color:#CC2200;height:3px;"/>
+					<p>HR blu da 2px:</p>
+					<hr style="color:#0044CC;height:2px;"/>
+					<h2>Immagini</h2>
+					<p>Immagine con dimensioni esplicite da attributo (path inesistente → placeholder con alt):</p>
+					<img src="..\..\Test\logo.png" width="200" height="80" alt="Logo aziendale"/>
+					<p>Immagine con dimensioni da CSS:</p>
+					<img src="..\..\Test\photo.jpg" style="width:225px;height:225px;" alt="Foto prodotto"/>
+					<p>Immagine centrata tramite align:</p>
+					<img src="..\..\Test\banner.png" width="450" height="112" alt="Banner centrato" align="center"/>
+					<p>Immagine allineata a destra:</p>
+					<img src="..\..\Test\icon.png" width="64" height="64" alt="Icona" align="right"/>
+					<p>Immagine senza dimensioni (usa dimensioni naturali del file, o placeholder 100px se non trovata):</p>
+					<img src="..\..\Test\big_image.jpg" alt="Immagine senza width/height"/>
+					<!-- data URI inline: SVG reso via Skia4Delphi -->
+					<p>Immagine inline data URI – SVG URL-encoded (atteso: rettangolo blu 160×60):</p>
+					<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%234a90d9'/%3E%3C/svg%3E" width="160" height="60" alt="SVG inline blu"/>
+					<p>Immagine inline data URI – SVG base64 (atteso: rettangolo verde 120×50):</p>
+					<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMyMjg4MDAiLz48L3N2Zz4=" width="120" height="50" alt="SVG inline verde"/>
+					<!-- GIF base64: formato raster opaco (1×1 rosso), l'editor decodifica e mostra il pixel scalato a 48x48 -->
+					<p>Immagine inline data URI – GIF 1×1 base64 rosso (atteso: immagine raster rossa 48×48):</p>
+					<img src="data:image/gif;base64,R0lGODlhAQABAIAAAP8AAAAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" width="48" height="48" alt="GIF 1×1 base64 rosso"/>
+					<h2>Immagini remote (AutoLoadRemoteImages)</h2>
+					<p>Immagine remota con dimensioni esplicite (300x100):</p>
+					<img src="https://picsum.photos/300/100" width="300" height="100" alt="Foto remota 300x100"/>
+					<p>Immagine remota senza dimensioni (placeholder 200x120 se AutoLoadRemoteImages=False):</p>
+					<img src="https://picsum.photos/seed/test/250/150" alt="Foto remota senza dimensioni"/>
+					<h2>Placeholder</h2>
+				<p>Lettera con campi variabili: Gentile {{:nome}} {{:cognome}}, la informiamo che il suo ordine n. {{:numero_ordine}} del {{:data_ordine}} è stato spedito.</p>
+				<p>Placeholder all'inizio del paragrafo: {{:titolo}} — seguito da testo normale e poi {{:firma}} in coda.</p>
+				<p>Placeholder con formattazione mista: prezzo <b>{{:importo}}</b> euro, scadenza <i>{{:data_scadenza}}</i>, riferimento <u>{{:codice_pratica}}</u>.</p>
+				<p>Paragrafo con solo placeholder: {{:destinatario}}</p>
+				<p>Più placeholder consecutivi senza testo intermedio: {{:via}} {{:numero_civico}}, {{:citta}} ({{:provincia}}) — {{:cap}}</p>
+				<h2>Tabelle</h2>
+					<p>Tabella 3×3 con intestazioni <code>&lt;th&gt;</code> nella prima riga:</p>
+					<table border="1" style="border-collapse:collapse;width:100%">
+						<thead>
+							<tr>
+								<th style="padding:4px;">Prodotto</th>
+								<th style="padding:4px;">Quantità</th>
+								<th style="padding:4px;">Prezzo</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td style="padding:4px;"><b>Mele</b></td>
+								<td style="padding:4px;text-align:center;">12</td>
+								<td style="padding:4px;text-align:right;"><span style="color:#007700;">€ 2,40</span></td>
+							</tr>
+							<tr>
+								<td style="padding:4px;"><i>Pere</i></td>
+								<td style="padding:4px;text-align:center;">8</td>
+								<td style="padding:4px;text-align:right;"><span style="color:#007700;">€ 3,20</span></td>
+							</tr>
+							<tr>
+								<td style="padding:4px;"><b><i>Banane</i></b></td>
+								<td style="padding:4px;text-align:center;">20</td>
+								<td style="padding:4px;text-align:right;"><span style="color:#cc0000;"><b>€ 5,00</b></span></td>
+							</tr>
+						</tbody>
+					</table>
+					<p>Tabella 2×4 senza intestazioni, con testo misto:</p>
+					<table border="1" style="border-collapse:collapse;width:100%">
+						<tr>
+							<td style="padding:4px;">Nome</td>
+							<td style="padding:4px;">Mario Rossi</td>
+						</tr>
+						<tr>
+							<td style="padding:4px;">Email</td>
+							<td style="padding:4px;"><span style="color:#0000cc;">mario@example.com</span></td>
+						</tr>
+						<tr>
+							<td style="padding:4px;">Telefono</td>
+							<td style="padding:4px;"><b>+39 02 1234567</b></td>
+						</tr>
+						<tr>
+							<td style="padding:4px;">Note</td>
+							<td style="padding:4px;">Testo con <b>grassetto</b>, <i>corsivo</i> e <u>sottolineato</u></td>
+						</tr>
+					</table>
+					<h2>Emoji</h2>
+					<p>Emoji di base (BMP, U+1F300–U+1F5FF non BMP ma comunemente supportate): 😀 😁 😂 🤣 😎 😍 🥳 🤔 😴 😡</p>
+					<p>Natura e cibo: 🌍 🌈 ☀️ 🌙 ⭐ 🍕 🍔 🍣 🍷 ☕</p>
+					<p>Persone e gesti: 👋 👍 👎 👏 🙌 🤝 💪 🫶 👀 🫡</p>
+					<p>Oggetti e simboli: 📱 💻 🖥️ ⌨️ 🖱️ 📷 🎵 🎮 🚀 ✈️</p>
+					<p>Emoji con formattazione mista: <b>grassetto 🔥 e ancora grassetto</b>, <i>corsivo 🌊</i>, <span style="color:#cc0000;">rosso ❤️</span>, <span style="color:#007700;">verde 🍀</span>.</p>
+					<p>Sequenza lunga: 😀😃😄😁😆😅😂🤣🥲☺️😊😇🙂🙃😉😌😍🥰😘😗😙😚😋😛😝😜🤪🤨🧐🤓😎🥸🤩🥳</p>
+					<p>Emoji con varianti di presentazione: ✔️ ✖️ ℹ️ ⚠️ 🔴 🟡 🟢 ⬛ ⬜ 🟥 🟧 🟨 🟩 🟦 🟪</p>
+					<p>Emoji nelle entità HTML (numeric): &#x1F600; &#x1F680; &#x2764;&#xFE0F; &#x1F4A9;</p>
+					<p style="text-align:center;">
+						<b>Fine del testo di prova</b> — <i>tutti i tag verificati</i> 🎉
+					</p>
+				</body>
+			</html>

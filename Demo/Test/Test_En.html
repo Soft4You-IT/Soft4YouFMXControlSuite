@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>My Document</title>
+</head>
+<body>
+<h1>H1 Heading — HTML Text Editor</h1>
+<h2>H2 Heading — Inline Formatting</h2>
+<p>Plain text. <b>Bold</b>, <i>Italic</i>, <u>Underline</u>, <s>Strikethrough</s>. Combinations: <b>
+<i>bold italics</i>
+</b>, <b>
+<u>bold underline</u>
+</b>, <i>
+<u>italic underline</u>
+</i>, <b>
+<i>
+<u>
+<s>all together</s>
+</u>
+</i>
+</b>.</p>
+<h2>H2 Title – Superscript and Subscript</h2>
+<p>Chemical formula: H<sub>2</sub>. Power: E = mc<sup>2</sup>. Footnote <sup>1</sup>.
+<sub>x,y</sub> coordinates.</p>
+<h2>H2 Heading – Colors and Sizes</h2>
+<p>
+<span style="color:#cc0000;">Red text</span>, <span style="color:#007700;">Green text</span>, <span style="color:#0000cc;">Blue text</span>. <span style="background-color:#ffff00;">Highlighted in yellow</span>. <span style="color:#ffffff;background-color:#000000;">White on black</span>.</p> 
+<p> 
+<span style="font-size:8pt;">8pt text</span>, <span style="font-size:10pt;">10pt text</span>, plain text, 
+<span style="font-size:16pt;">16pt text</span>, <span style="font-size:24pt;">24pt text</span>.</p> 
+<p> 
+<span style="font-family:Georgia;">Text in Georgia</span>. <span style="font-family:Courier New;">Text in Courier New</span>. <span style="font-family:Arial;">Text in Arial</span>.</p> 
+<h2>Title H2 – Alignment</h2> 
+<p style="text-align:left;">Paragraph aligned left. Lorem ipsum dolor sit amet.</p> 
+<p style="text-align:center;">Centered paragraph. Lorem ipsum dolor sit amet.</p> 
+<p style="text-align:right;">Paragraph aligned right. Lorem ipsum dolor sit amet.</p> 
+<p style="text-align:justify;">Justified paragraph. Lorem ipsum dolor sit amet, consectetur adipiscing elit. But do they moderately injure time, so that labor and pain may be greatly expended.</p>
+<h2>H2 Title – H3-H6 Headings</h2>
+<h3>H3 Heading</h3>
+<h4>H4 Heading</h4>
+<h5>H5 Heading</h5>
+<h6>H6 Heading</h6>
+<h2>H2 Title – Lists</h2>
+<ul>
+<li>First element, unordered</li>
+<li>Second element with <b>bold</b> and <i>italics</i>
+</li>
+<li>Third element with <span style="color:#cc0000;">colored text</span>
+</li>
+</ul>
+<ol>
+<li>First element, ordered</li>
+<li>Second element, ordered</li>
+<li>Third element ordered with <u>underline</u>
+</li>
+</ol>
+<h2>H2 Heading – Quotation</h2>
+<blockquote>This is blockquote text, indented from the normal paragraph. It can contain <b>inline formatting</b> like any other block.</blockquote>
+<p>Normal text after the blockquote.</p>
+<h2>H2 Heading – Hyperlink</h2>
+<p>Visit <a href="https://www.embarcadero.com">Embarcadero</a> for more information. Also <b>
+<a href="https://www.delphi-praxis.net">bold link</a>
+</b> and <a href="https://example.com">
+<span style="color:#cc0000;">colored link</span></a>.</p>
+<h2>H2 Title – HTML Entity</h2>
+<p>Special symbols: &amp; (ampersand), &lt; (less than), &gt; (greater than), &quot; (quotation mark). Non-breaking space:&nbsp;&nbsp;&nbsp;three spaces. Unicode character: &#8364; (euro), &#x2665; (heart).</p>
+<h2>H2 Title – Wrap Text</h2>
+<p>First line.<br>Second line in the same paragraph.<br>Third line with <b>bold</b> after the break.</p>
+<h2>Horizontal Separators</h2>
+<p>Standard HR:</p>
+<hr/>
+<p>3px red HR:</p>
+<hr style="color:#CC2200;height:3px;"/>
+<p>2px blue HR:</p>
+<hr style="color:#0044CC;height:2px;"/>
+<h2>Images</h2>
+<p>Image with explicit dimensions from attribute (non-existent path → placeholder with alt):</p>
+<img src="..\..\Test\logo.png" width="200" height="80" alt="Company Logo"/>
+<p>Image sized by CSS:</p>
+<img src="..\..\Test\photo.jpg" style="width:225px;height:225px;" alt="Product Photo"/>
+<p>Image centered via align:</p>
+<img src="..\..\Test\banner.png" width="450" ​​height="112" alt="Centered Banner" align="center"/>
+<p>Image aligned right:</p>
+<img src="..\..\Test\icon.png" width="64" height="64" alt="Icon" align="right"/>
+<p>Image without dimensions (uses natural file size, or 100px placeholder if not found):</p>
+<img src="..\..\Test\big_image.jpg" alt="Image without width/height"/>
+<!-- data URI inline: SVG is not a raster format, the editor displays the placeholder with the alt text -->
+<p>Image inline data URI – SVG URL-encoded (expected: placeholder with alt):</p> 
+<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='60'%3E%3Crect width='160' height='60' fill='%234a90d9' rx='4'/%3E%3C/svg%3E" width="160" height="60" alt="SVG inline blue"/> 
+<p>Image inline data URI – SVG basee64 (expected: placeholder with alt):</p> 
+<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='50'%3E%3Crect width='120' height='50' fill='%23228800' rx='4'/%3E%3Ctext x='60' y='32' font-family='Arial' font-size='14' fill='white' text-anchor='middle'%3EINLINE%3C/text%3E%3C/svg%3E" width="120" height="50" alt="Green inline SVG with text"/> 
+<!-- GIF base64: raster format, the editor decodes and displays the pixel scaled to 48x48 -->
+<p>Inline image data URI – GIF 1×1 base64 (expected: 48×48 raster image):</p>
+<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" width="48" height="48" alt="GIF 1×1 base64 transparent"/>
+<h2>Placeholder</h2>
+<p>Letter with variable fields: Dear {{:name}} {{:surname}}, we inform you that your order no. {{:order_number}} of {{:order_date}} has been shipped.</p>
+<p>Placeholder at the beginning of the paragraph: {{:title}} — followed by plain text and then {{:signature}} at the end.</p>
+<p>Placeholder with mixed formatting: price <b>{{:amount}}</b> euros, expiration date <i>{{:expiration_date}}</i>, reference <u>{{:procedure_code}}</u>.</p>
+<p>Paragraph with only placeholder: {{:recipient}}</p>
+<p>Multiple consecutive placeholders without intervening text: {{:street}} {{:house_number}}, {{:city}} ({{:province}}) — {{:zip}}</p>
+<h2>Tables</h2>
+<p>3×3 Table with <code>&lt;th&gt;</code> headers on the first line:</p> 
+<table border="1" style="border-collapse:collapse;width:100%"> 
+<thead> 
+<tr> 
+<th style="padding:4px;">Product</th> 
+<th style="padding:4px;">Quantity</th> 
+<th style="padding:4px;">Price</th> 
+</tr> 
+</thead> 
+<tbody> 
+<tr> 
+<td style="padding:4px;"><b>Apples</b></td> 
+<td style="padding:4px;text-align:center;">12</td> 
+<td style="padding:4px;text-align:right;"><span style="color:#007700;">€2.40</span></td> 
+</tr> 
+<tr> 
+<td style="padding:4px;"><i>Pears</i></td> 
+<td style="padding:4px;text-align:center;">8</td> 
+<td style="padding:4px;text-align:right;"><span style="color:#007700;">€3.20</span></td> 
+</tr> 
+<tr> 
+<td style="padding:4px;"><b><i>Bananas</i></b></td> 
+<td style="padding:4px;text-align:center;">20</td> 
+<td style="padding:4px;text-align:right;"><span style="color:#cc0000;"><b>€5.00</b></span></td> 
+</tr> 
+</tbody> 
+</table> 
+<p>2×4 table without headers, with mixed text:</p> 
+<table border="1" style="border-collapse:collapse;width:100%"> 
+<tr> 
+<td style="padding:4px;">Name</td> 
+<td style="padding:4px;">Mario Rossi</td> 
+</tr> 
+<tr> 
+<td style="padding:4px;">Email</td> 
+<td style="padding:4px;"><span style="color:#0000cc;">mario@example.com</span></td> 
+</tr> 
+<tr> 
+<td style="padding:4px;">Phone</td> 
+<td style="padding:4px;"><b>+39 02 1234567</b></td> 
+</tr> 
+<tr> 
+<td style="padding:4px;">Notes</td> 
+<td style="padding:4px;">Text <b>bold</b>, <i>italics</i>, and <u>underline</u></td>
+</tr>
+</table>
+<h2>Emoji</h2>
+<p>Basic Emoji (BMP, U+1F300–U+1F5FF non-BMP but commonly supported): 😀 😁 😂 🤣 😎 😍 🥳 🤔 😴 😡</p>
+<p>Nature and Food: 🌍 🌈 ☀️ 🌙 ⭐ 🍕 🍔 🍣 🍷 ☕</p>
+<p>People and Gestures: 👋 👍 👎 👏 🙌 🤝 💪 🫶 👀 🫡</p>
+<p>Objects and symbols: 📱 💻 🖥️ ⌨️ 🖱️ 📷 🎵 🎮 🚀 ✈️</p>
+<p>Emojis with mixed formatting: <b>bold 🔥 and bold again</b>, <i>italic 🌊</i>, <span style="color:#cc0000;">red ❤️</span>, <span style="color:#007700;">green 🍀</span>.</p>
+<p>Long sequence: 😀😃😄😁😆😅😂🤣🥲☺️😊😇🙂🙃😉😌😍🥰😘😗😙😚😋😛😝😜🤪🤨🧐🤓😎🥸🤩🥳</p>
+<p>Emojis with presentation variations: ✔️ ✖️ ℹ️ ⚠️ 🔴 🟡 🟢 ⬛ ⬜ 🟥 🟧 🟨 🟩 🟦 🟪</p>
+<p>Emojis in HTML entity (numeric): &#x1F600; &#x1F680; &#x2764;&#xFE0F; &#x1F4A9;</p>
+<p style="text-align:center;">
+<b>End of test text</b> — <i>all tags matched</i> 🎉
+</p>
+</body>
+</html>

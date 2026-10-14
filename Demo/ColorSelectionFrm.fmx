@@ -1,0 +1,96 @@
+object ColorSelection: TColorSelection
+  Left = 0
+  Top = 0
+  BorderIcons = [biSystemMenu]
+  BorderStyle = Single
+  Caption = 'Form1'
+  ClientHeight = 237
+  ClientWidth = 387
+  Position = MainFormCenter
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object Panel1: TPanel
+    Align = Bottom
+    Position.Y = 189.000000000000000000
+    Size.Width = 387.000000000000000000
+    Size.Height = 48.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object btnOk: TButton
+      Anchors = [akTop, akRight]
+      ModalResult = 1
+      Position.X = 291.000000000000000000
+      Position.Y = 13.000000000000000000
+      TabOrder = 0
+      Text = 'Ok'
+    end
+    object btnCancel: TButton
+      Anchors = [akTop, akRight]
+      ModalResult = 2
+      Position.X = 195.000000000000000000
+      Position.Y = 13.000000000000000000
+      TabOrder = 1
+      Text = 'Cancel'
+    end
+  end
+  object Layout1: TLayout
+    Align = Client
+    Padding.Left = 8.000000000000000000
+    Padding.Top = 8.000000000000000000
+    Padding.Right = 8.000000000000000000
+    Padding.Bottom = 8.000000000000000000
+    Size.Width = 387.000000000000000000
+    Size.Height = 189.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object edHTMLColor: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      TabOrder = 1
+      Position.X = 208.000000000000000000
+      Position.Y = 29.000000000000000000
+      OnChange = edHTMLColorChange
+    end
+    object Label1: TLabel
+      Position.X = 208.000000000000000000
+      Position.Y = 8.000000000000000000
+      Text = 'HTML color'
+      TabOrder = 0
+    end
+    object Layout2: TLayout
+      Align = Left
+      Position.X = 8.000000000000000000
+      Position.Y = 8.000000000000000000
+      Size.Width = 185.000000000000000000
+      Size.Height = 173.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      object csColorSelector: TColorPanel
+        Align = Client
+        Color = claWhite
+        ColorBox = boxColorPreview
+        Size.Width = 185.000000000000000000
+        Size.Height = 128.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        UseAlpha = False
+        OnChange = csColorSelectorChange
+      end
+      object boxColorPreview: TColorBox
+        Align = Bottom
+        Color = claWhite
+        Margins.Left = 8.000000000000000000
+        Margins.Top = 8.000000000000000000
+        Margins.Right = 8.000000000000000000
+        Margins.Bottom = 8.000000000000000000
+        Position.X = 8.000000000000000000
+        Position.Y = 136.000000000000000000
+        Size.Width = 169.000000000000000000
+        Size.Height = 29.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+      end
+    end
+  end
+end

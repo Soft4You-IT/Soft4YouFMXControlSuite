@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{0CD6E8A8-38D7-4708-A5A8-799C00E283B8}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="S4YFMXHTMLEditor.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="S4YFMXHTMLEditorD.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\Demo\Project1.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="S4YFMXHTMLEditor">
+        <MSBuild Projects="S4YFMXHTMLEditor.dproj"/>
+    </Target>
+    <Target Name="S4YFMXHTMLEditor:Clean">
+        <MSBuild Projects="S4YFMXHTMLEditor.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YFMXHTMLEditor:Make">
+        <MSBuild Projects="S4YFMXHTMLEditor.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="S4YFMXHTMLEditorD">
+        <MSBuild Projects="S4YFMXHTMLEditorD.dproj"/>
+    </Target>
+    <Target Name="S4YFMXHTMLEditorD:Clean">
+        <MSBuild Projects="S4YFMXHTMLEditorD.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YFMXHTMLEditorD:Make">
+        <MSBuild Projects="S4YFMXHTMLEditorD.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Project1">
+        <MSBuild Projects="..\Demo\Project1.dproj"/>
+    </Target>
+    <Target Name="Project1:Clean">
+        <MSBuild Projects="..\Demo\Project1.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Project1:Make">
+        <MSBuild Projects="..\Demo\Project1.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="S4YFMXHTMLEditor;S4YFMXHTMLEditorD;Project1"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="S4YFMXHTMLEditor:Clean;S4YFMXHTMLEditorD:Clean;Project1:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="S4YFMXHTMLEditor:Make;S4YFMXHTMLEditorD:Make;Project1:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
