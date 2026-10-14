@@ -2,7 +2,7 @@
 
 WYSIWYG HTML editor component for Delphi FireMonkey (FMX). 100% native Delphi — no WebBrowser and no COM/OLE dependencies. The only third-party dependency is [Skia4Delphi](https://github.com/skia4delphi/skia4delphi), used to render SVG images.
 
-Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on Windows with Delphi 13 (RAD Studio 22.0); the minimum Delphi version is the one required by Skia4Delphi.
+Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on Windows with Delphi 11.3 (RAD Studio 22.0); the minimum Delphi version is the one required by Skia4Delphi.
 
 ---
 
@@ -383,7 +383,7 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 
 ## Demo
 
-The `Demo` folder contains a sample FMX application (`Demo\Project1.dproj`, also part of the project group in `Packages`) with a complete toolbar, emoji picker, placeholder and color dialogs. Install the component package first.
+The `Demo` folder contains a sample FMX application (`Demo\S4YHTMLEditorDemo.dproj`, also part of the project group in `Packages`) with a complete toolbar, emoji picker, placeholder and color dialogs. Install the component package first.
 
 ---
 

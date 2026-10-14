@@ -1,4 +1,4 @@
-program Project1;
+program S4YHTMLEditorDemo;
 
 uses
   System.StartUpCopy,
