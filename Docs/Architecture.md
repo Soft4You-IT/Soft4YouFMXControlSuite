@@ -35,9 +35,9 @@ Un paragrafo **vuoto** è rappresentato con `Runs.Count = 0` — non da un run c
 La posizione del cursore è un `TS4YDocPos` con tre interi:
 
 ```
-ParaIdx  →  indice del paragrafo
-RunIdx   →  indice del run dentro quel paragrafo
-CharIdx  →  posizione all'interno di Run.Text (0 = prima del primo char)
+ParagraphIndex  →  indice del paragrafo
+RunIndex   →  indice del run dentro quel paragrafo
+CharIndex  →  posizione all'interno di Run.Text (0 = prima del primo char)
 ```
 
 ### Run speciali
@@ -46,7 +46,7 @@ CharIdx  →  posizione all'interno di Run.Text (0 = prima del primo char)
 
 | Flag | Significato |
 |---|---|
-| `IsImage` | Run è un'immagine inline (ha `ImageSrc`, `ImageWidth`, `ImageHeight`) |
+| `IsImage` | Run è un'immagine inline (ha `ImageSource`, `ImageWidth`, `ImageHeight`) |
 | `IsPlaceholder` | Run è un chip non modificabile (ha `RawText`, `DisplayName`) |
 | `IsLineBreak` | Run rappresenta un `<br>` |
 
@@ -91,7 +91,7 @@ Il `+2` fissa: 1 unità di margine sinistro + 1 unità per l'area del marcatore 
 
 ### Caso speciale — paragrafo vuoto (`Runs.Count = 0`)
 
-Il loop non ha nulla da iterare. Il codice crea esplicitamente un fragment placeholder con `W=0` e `CharStart=CharEnd=0`, necessario affinché `DocPosToXY` possa trovare la posizione del cursore in un paragrafo senza testo.
+Il loop non ha nulla da iterare. Il codice crea esplicitamente un fragment placeholder con `W=0` e `CharStart=CharEnd=0`, necessario affinché `DocumentPositionToXY` possa trovare la posizione del cursore in un paragrafo senza testo.
 
 ```pascal
 // Empty paragraph – still needs at least one empty fragment for caret
@@ -101,7 +101,7 @@ if Para.Runs.Count = 0 then begin
 end;
 ```
 
-> **Nota critica:** un run con `Text=''` (Runs.Count = 1 ma testo vuoto) NON entra nel caso speciale. Il loop `while Rest <> ''` non itera mai, `LineFrags` rimane vuoto, e `FlushLine` viene saltato. Il risultato è zero fragment per quel paragrafo, rendendo `DocPosToXY` incapace di trovare la posizione del cursore. Un paragrafo vuoto deve sempre avere `Runs.Count = 0`.
+> **Nota critica:** un run con `Text=''` (Runs.Count = 1 ma testo vuoto) NON entra nel caso speciale. Il loop `while Rest <> ''` non itera mai, `LineFrags` rimane vuoto, e `FlushLine` viene saltato. Il risultato è zero fragment per quel paragrafo, rendendo `DocumentPositionToXY` incapace di trovare la posizione del cursore. Un paragrafo vuoto deve sempre avere `Runs.Count = 0`.
 
 ### Quando viene ricalcolato il layout
 
@@ -162,7 +162,7 @@ KeyDown → InsertChar(Ch)
            ├─ se lo stile del run non corrisponde: splitta il run e ne crea uno nuovo
            ├─ altrimenti: inserisce il carattere nella stringa del run corrente
            ├─ NormalizeRuns: fonde run adiacenti con lo stesso stile
-           ├─ ricalcola FCaretPos usando un offset assoluto (invariante a NormalizeRuns)
+           ├─ ricalcola FCaretPosition usando un offset assoluto (invariante a NormalizeRuns)
            └─ DoLayout → Changed → Repaint
 ```
 
@@ -173,7 +173,7 @@ KeyDown → InsertChar(Ch)
 | `vkBack` | `DeleteBack`: cancella il char prima del cursore; se a inizio paragrafo, fonde con il paragrafo precedente (`MergeWithPrev`) |
 | `vkDelete` | `DeleteFwd`: cancella il char dopo il cursore |
 | `vkReturn` | `InsertParagraphBreak`: divide il paragrafo corrente in due |
-| `←→↑↓` | `SetCaretPos` con `PrevDocPos/NextDocPos/LineAbove/LineBelow` |
+| `←→↑↓` | `SetCaretPosition` con `PreviousDocumentPosition/NextDocumentPosition/LineAbove/LineBelow` |
 | `Home/End` | inizio/fine riga o documento (con Ctrl) |
 | `Ctrl+Z/Y` | Undo/Redo (snapshot dell'intero documento) |
 | `Ctrl+B/I/U` | toggle grassetto/corsivo/sottolineato sulla selezione |
@@ -185,28 +185,28 @@ KeyDown → InsertChar(Ch)
 2. Crea un nuovo `TS4YHTMLParagraph` copiando BlockType/Alignment/IndentLevel
 3. Sposta tutti i run **dopo** il cursore nel nuovo paragrafo
 4. Il vecchio paragrafo viene normalizzato (`NormalizeRuns`) — se non rimane nulla, `Runs.Count` sarà 0
-5. `DoLayout` viene chiamato **prima** di `SetCaretPos`, così `FFrags` contiene già il fragment placeholder del nuovo paragrafo vuoto
-6. `SetCaretPos(NewParaIdx, 0, 0)` sposta il cursore all'inizio della nuova riga
+5. `DoLayout` viene chiamato **prima** di `SetCaretPosition`, così `FFrags` contiene già il fragment placeholder del nuovo paragrafo vuoto
+6. `SetCaretPosition(NewParaIdx, 0, 0)` sposta il cursore all'inizio della nuova riga
 
 ---
 
 ## 5. Caret: dal documento allo schermo
 
-Il caret non ha coordinate native — le sue coordinate pixel vengono calcolate on-demand da `DocPosToXY`:
+Il caret non ha coordinate native — le sue coordinate pixel vengono calcolate on-demand da `DocumentPositionToXY`:
 
 ```
-DocPosToXY(FCaretPos)
-  → cerca in FFrags il fragment che contiene (ParaIdx, RunIdx, CharIdx)
+DocumentPositionToXY(FCaretPosition)
+  → cerca in FFrags il fragment che contiene (ParagraphIndex, RunIndex, CharIndex)
   → misura con MeasureCharOffset la distanza in pixel dall'inizio del fragment
   → ritorna X = ContentLeft + F.X + offset
              Y = ContentTop + F.Y
              H = altezza della riga
 ```
 
-`UpdateCaretXY` chiama `DocPosToXY` e salva il risultato in `FCaretScreenX/Y/H`. Questi vengono usati da `PaintCaret` ad ogni ridisegno.
+`UpdateCaretXY` chiama `DocumentPositionToXY` e salva il risultato in `FCaretScreenX/Y/H`. Questi vengono usati da `PaintCaret` ad ogni ridisegno.
 
-`SetCaretPos` è il punto unico di accesso per spostare il cursore:
-- aggiorna `FCaretPos`
+`SetCaretPosition` è il punto unico di accesso per spostare il cursore:
+- aggiorna `FCaretPosition`
 - resetta il blink (toggle `False/True` del timer — necessario perché Delphi non resetta l'intervallo se `Enabled` è già `True`)
 - chiama `UpdateCaretXY`
 - chiama `EnsureCaretVisible` (scroll se il cursore è fuori viewport)

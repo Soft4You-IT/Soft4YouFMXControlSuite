@@ -68,7 +68,7 @@ type
     BackgroundColor: TAlphaColor; // claNull = transparent
     LinkURL: string;
     procedure Init;
-    function EqualsFormat(const O: TS4YHTMLTextStyle): Boolean;
+    function EqualsFormat(const AOther: TS4YHTMLTextStyle): Boolean;
   end;
 
   // ===========================================================================
@@ -91,13 +91,13 @@ type
   // ===========================================================================
 
   TS4YDocPos = record
-    ParaIdx: Integer; // -1 = invalid
-    RunIdx: Integer;
-    CharIdx: Integer; // 0 = before first char of run
+    ParagraphIndex: Integer; // -1 = invalid
+    RunIndex: Integer;
+    CharIndex: Integer; // 0 = before first char of run
     class function Invalid: TS4YDocPos; static; inline;
-    class function At(P, R, C: Integer): TS4YDocPos; static; inline;
+    class function At(AParagraphIndex, ARunIndex, ACharIndex: Integer): TS4YDocPos; static; inline;
     function IsValid: Boolean; inline;
-    function Equals(const O: TS4YDocPos): Boolean; inline;
+    function Equals(const AOther: TS4YDocPos): Boolean; inline;
   end;
 
   // ===========================================================================
@@ -105,14 +105,14 @@ type
   // ===========================================================================
 
   TS4YLayoutFrag = record
-    ParaIdx: Integer;
-    RunIdx: Integer;
+    ParagraphIndex: Integer;
+    RunIndex: Integer;
     CharStart: Integer; // inclusive, within Run.Text
     CharEnd: Integer;   // exclusive
     X, Y: Single;
     W, H: Single;
     Ascent: Single;    // distance from top of line-box to baseline
-    LineIdx: Integer;
+    LineIndex: Integer;
     IsSpace: Boolean;        // trailing space that can be omitted at EOL
     IsHR: Boolean;
     IsImage: Boolean;
@@ -123,11 +123,11 @@ type
     Y: Single;
     H: Single;      // line-box height
     Ascent: Single; // max ascent in line
-    ParaIdx: Integer;
+    ParagraphIndex: Integer;
     IsFirst: Boolean;
     IsLast: Boolean;
-    FragStart: Integer; // index into FFrags array
-    FragCount: Integer;
+    FragmentStart: Integer; // index into FFrags array
+    FragmentCount: Integer;
     // Table cell geometry -- only valid when Para.BlockType = btTableCell
     CellX: Single;    // left edge of this cell
     CellW: Single;    // width of this cell
@@ -151,9 +151,9 @@ function FontSizePresets: TArray<TS4YFontSizePreset>;
 // Helpers
 // ===========================================================================
 
-function DarkenColor(C: TAlphaColor; AFactor: Single = 0.65): TAlphaColor;
-function TrimS(const S: string): string; inline;
-function StartsWithCI(const S, Prefix: string): Boolean; inline;
+function DarkenColor(AColor: TAlphaColor; AFactor: Single = 0.65): TAlphaColor;
+function TrimS(const AText: string): string; inline;
+function StartsWithCI(const AText, APrefix: string): Boolean; inline;
 
 implementation
 
@@ -161,13 +161,13 @@ implementation
 // DarkenColor
 // -----------------------------------------------------------------------------
 
-function DarkenColor(C: TAlphaColor; AFactor: Single): TAlphaColor;
+function DarkenColor(AColor: TAlphaColor; AFactor: Single): TAlphaColor;
 var
   LR, LG, LB: Integer;
 begin
-  LR := Round(TAlphaColorRec(C).R * AFactor);
-  LG := Round(TAlphaColorRec(C).G * AFactor);
-  LB := Round(TAlphaColorRec(C).B * AFactor);
+  LR := Round(TAlphaColorRec(AColor).R * AFactor);
+  LG := Round(TAlphaColorRec(AColor).G * AFactor);
+  LB := Round(TAlphaColorRec(AColor).B * AFactor);
   if LR > 255 then
     LR := 255;
   if LG > 255 then
@@ -181,14 +181,14 @@ end;
 // Helpers
 // -----------------------------------------------------------------------------
 
-function TrimS(const S: string): string;
+function TrimS(const AText: string): string;
 begin
-  Result := S.Trim;
+  Result := AText.Trim;
 end;
 
-function StartsWithCI(const S, Prefix: string): Boolean;
+function StartsWithCI(const AText, APrefix: string): Boolean;
 begin
-  Result := S.ToLower.StartsWith(Prefix.ToLower);
+  Result := AText.ToLower.StartsWith(APrefix.ToLower);
 end;
 
 // -----------------------------------------------------------------------------
@@ -251,13 +251,13 @@ begin
   LinkURL := '';
 end;
 
-function TS4YHTMLTextStyle.EqualsFormat(const O: TS4YHTMLTextStyle): Boolean;
+function TS4YHTMLTextStyle.EqualsFormat(const AOther: TS4YHTMLTextStyle): Boolean;
 begin
-  Result := (FontName = O.FontName) and (Abs(FontSize - O.FontSize) < 0.01) and
-    (Bold = O.Bold) and (Italic = O.Italic) and (Underline = O.Underline) and
-    (StrikeOut = O.StrikeOut) and (Superscript = O.Superscript) and
-    (Subscript = O.Subscript) and (Color = O.Color) and (BackgroundColor = O.BackgroundColor) and
-    (LinkURL = O.LinkURL);
+  Result := (FontName = AOther.FontName) and (Abs(FontSize - AOther.FontSize) < 0.01) and
+    (Bold = AOther.Bold) and (Italic = AOther.Italic) and (Underline = AOther.Underline) and
+    (StrikeOut = AOther.StrikeOut) and (Superscript = AOther.Superscript) and
+    (Subscript = AOther.Subscript) and (Color = AOther.Color) and (BackgroundColor = AOther.BackgroundColor) and
+    (LinkURL = AOther.LinkURL);
 end;
 
 // -----------------------------------------------------------------------------
@@ -266,26 +266,26 @@ end;
 
 class function TS4YDocPos.Invalid: TS4YDocPos;
 begin
-  Result.ParaIdx := -1;
-  Result.RunIdx := 0;
-  Result.CharIdx := 0;
+  Result.ParagraphIndex := -1;
+  Result.RunIndex := 0;
+  Result.CharIndex := 0;
 end;
 
-class function TS4YDocPos.At(P, R, C: Integer): TS4YDocPos;
+class function TS4YDocPos.At(AParagraphIndex, ARunIndex, ACharIndex: Integer): TS4YDocPos;
 begin
-  Result.ParaIdx := P;
-  Result.RunIdx := R;
-  Result.CharIdx := C;
+  Result.ParagraphIndex := AParagraphIndex;
+  Result.RunIndex := ARunIndex;
+  Result.CharIndex := ACharIndex;
 end;
 
 function TS4YDocPos.IsValid: Boolean;
 begin
-  Result := ParaIdx >= 0;
+  Result := ParagraphIndex >= 0;
 end;
 
-function TS4YDocPos.Equals(const O: TS4YDocPos): Boolean;
+function TS4YDocPos.Equals(const AOther: TS4YDocPos): Boolean;
 begin
-  Result := (ParaIdx = O.ParaIdx) and (RunIdx = O.RunIdx) and (CharIdx = O.CharIdx);
+  Result := (ParagraphIndex = AOther.ParagraphIndex) and (RunIndex = AOther.RunIndex) and (CharIndex = AOther.CharIndex);
 end;
 
 end.

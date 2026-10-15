@@ -75,26 +75,26 @@ const
   S_HTML_PRE  = '<html><body>'#13#10'<!--StartFragment-->';
   S_HTML_POST = '<!--EndFragment-->'#13#10'</body></html>';
 var
-  LHeaderLen: Integer;
+  LHeaderLength: Integer;
   LPreBytes:  RawByteString;
-  LFragBytes: RawByteString;
+  LFragmentBytes: RawByteString;
   LPostBytes: RawByteString;
   LStartHTML: Integer;
-  LStartFrag: Integer;
-  LEndFrag:   Integer;
+  LStartFragment: Integer;
+  LEndFragment:   Integer;
   LEndHTML:   Integer;
 begin
-  LHeaderLen := Length(RawByteString(Format(C_HEADER, [0, 0, 0, 0])));
+  LHeaderLength := Length(RawByteString(Format(C_HEADER, [0, 0, 0, 0])));
   LPreBytes  := UTF8Encode(S_HTML_PRE);
-  LFragBytes := UTF8Encode(AFragment);
+  LFragmentBytes := UTF8Encode(AFragment);
   LPostBytes := UTF8Encode(S_HTML_POST);
-  LStartHTML := LHeaderLen;
-  LStartFrag := LStartHTML + Length(LPreBytes);
-  LEndFrag   := LStartFrag + Length(LFragBytes);
-  LEndHTML   := LEndFrag   + Length(LPostBytes);
+  LStartHTML := LHeaderLength;
+  LStartFragment := LStartHTML + Length(LPreBytes);
+  LEndFragment   := LStartFragment + Length(LFragmentBytes);
+  LEndHTML   := LEndFragment   + Length(LPostBytes);
   Result :=
-    RawByteString(Format(C_HEADER, [LStartHTML, LEndHTML, LStartFrag, LEndFrag])) +
-    LPreBytes + LFragBytes + LPostBytes;
+    RawByteString(Format(C_HEADER, [LStartHTML, LEndHTML, LStartFragment, LEndFragment])) +
+    LPreBytes + LFragmentBytes + LPostBytes;
 end;
 
 class procedure TS4YHTMLClipboard.SetHTML(const AFragment, APlainText: string);
@@ -102,7 +102,7 @@ var
   LCFHtml: UINT;
   LData:   RawByteString;
   LHMem:   HGLOBAL;
-  LPtr:    Pointer;
+  LPointer:    Pointer;
 begin
   LCFHtml := RegisterClipboardFormat('HTML Format');
   if not OpenClipboard(0) then
@@ -114,11 +114,11 @@ begin
     LHMem := GlobalAlloc(GMEM_MOVEABLE, NativeUInt(Length(LData)) + 1);
     if LHMem <> 0 then
     begin
-      LPtr := GlobalLock(LHMem);
-      if LPtr <> nil then
+      LPointer := GlobalLock(LHMem);
+      if LPointer <> nil then
       begin
-        Move(LData[Low(LData)], LPtr^, Length(LData));
-        PByte(PByte(LPtr) + NativeUInt(Length(LData)))^ := 0;
+        Move(LData[Low(LData)], LPointer^, Length(LData));
+        PByte(PByte(LPointer) + NativeUInt(Length(LData)))^ := 0;
         GlobalUnlock(LHMem);
         SetClipboardData(LCFHtml, LHMem);
       end;
@@ -127,12 +127,12 @@ begin
     LHMem := GlobalAlloc(GMEM_MOVEABLE, NativeUInt(Length(APlainText) + 1) * SizeOf(WideChar));
     if LHMem <> 0 then
     begin
-      LPtr := GlobalLock(LHMem);
-      if LPtr <> nil then
+      LPointer := GlobalLock(LHMem);
+      if LPointer <> nil then
       begin
         if Length(APlainText) > 0 then
-          Move(APlainText[Low(APlainText)], LPtr^, Length(APlainText) * SizeOf(WideChar));
-        PWideChar(PWideChar(LPtr) + Length(APlainText))^ := #0;
+          Move(APlainText[Low(APlainText)], LPointer^, Length(APlainText) * SizeOf(WideChar));
+        PWideChar(PWideChar(LPointer) + Length(APlainText))^ := #0;
         GlobalUnlock(LHMem);
         SetClipboardData(CF_UNICODETEXT, LHMem);
       end;
@@ -146,13 +146,13 @@ class function TS4YHTMLClipboard.GetHTML(out AFragment: string): Boolean;
 var
   LCFHtml:    UINT;
   LHMem:      HGLOBAL;
-  LPtr:       Pointer;
+  LPointer:       Pointer;
   LSize:      NativeUInt;
   LRaw:       RawByteString;
   LFull:      string;
   LLower:     string;
-  LStartFrag: Integer;
-  LEndFrag:   Integer;
+  LStartFragment: Integer;
+  LEndFragment:   Integer;
 begin
   Result   := False;
   AFragment := '';
@@ -165,13 +165,13 @@ begin
     LHMem := GetClipboardData(LCFHtml);
     if LHMem = 0 then
       Exit;
-    LPtr := GlobalLock(LHMem);
-    if LPtr = nil then
+    LPointer := GlobalLock(LHMem);
+    if LPointer = nil then
       Exit;
     try
       LSize := GlobalSize(LHMem);
       SetLength(LRaw, LSize);
-      Move(LPtr^, LRaw[Low(LRaw)], LSize);
+      Move(LPointer^, LRaw[Low(LRaw)], LSize);
     finally
       GlobalUnlock(LHMem);
     end;
@@ -180,12 +180,12 @@ begin
   end;
   LFull      := UTF8ToString(LRaw);
   LLower     := LFull.ToLower;
-  LStartFrag := LLower.IndexOf('<!--startfragment-->');
-  LEndFrag   := LLower.IndexOf('<!--endfragment-->');
-  if (LStartFrag >= 0) and (LEndFrag > LStartFrag) then
+  LStartFragment := LLower.IndexOf('<!--startfragment-->');
+  LEndFragment   := LLower.IndexOf('<!--endfragment-->');
+  if (LStartFragment >= 0) and (LEndFragment > LStartFragment) then
   begin
-    Inc(LStartFrag, Length('<!--startfragment-->'));
-    AFragment := LFull.Substring(LStartFrag, LEndFrag - LStartFrag).Trim;
+    Inc(LStartFragment, Length('<!--startfragment-->'));
+    AFragment := LFull.Substring(LStartFragment, LEndFragment - LStartFragment).Trim;
     Result := AFragment <> '';
   end;
 end;

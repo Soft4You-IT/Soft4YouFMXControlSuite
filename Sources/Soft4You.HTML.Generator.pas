@@ -33,7 +33,7 @@ type
     FPlaceholderStyle: TS4YPlaceholderGenStyle;
     function HtmlEncode(const AText: string): string;
     function ColorToHex(AColor: TAlphaColor): string;
-    function StyleDiff(const Cur, Base: TS4YHTMLTextStyle): string;
+    function StyleDiff(const ACurrentStyle, ABaseStyle: TS4YHTMLTextStyle): string;
   public
     function Generate(ADocument: TS4YHTMLDocument): string;
 
@@ -57,22 +57,22 @@ begin
   Result := Format('#%.2x%.2x%.2x', [TAlphaColorRec(AColor).R, TAlphaColorRec(AColor).G, TAlphaColorRec(AColor).B]);
 end;
 
-function TS4YHTMLGenerator.StyleDiff(const Cur, Base: TS4YHTMLTextStyle): string;
+function TS4YHTMLGenerator.StyleDiff(const ACurrentStyle, ABaseStyle: TS4YHTMLTextStyle): string;
 var
   LStringBuilder: TStringBuilder;
 begin
   LStringBuilder := TStringBuilder.Create;
   try
-    if Cur.FontName <> Base.FontName then
-      LStringBuilder.Append('font-family:' + Cur.FontName + ';');
-    if Abs(Cur.FontSize - Base.FontSize) > 0.01 then
-      LStringBuilder.Append(Format('font-size:%.0fpt;', [Cur.FontSize]));
+    if ACurrentStyle.FontName <> ABaseStyle.FontName then
+      LStringBuilder.Append('font-family:' + ACurrentStyle.FontName + ';');
+    if Abs(ACurrentStyle.FontSize - ABaseStyle.FontSize) > 0.01 then
+      LStringBuilder.Append(Format('font-size:%.0fpt;', [ACurrentStyle.FontSize]));
     // Bold, italic, underline, strikeout are emitted as semantic tags
     // (<b><i><u><s>) by the caller -- skip them here.
-    if (Cur.Color <> Base.Color) and (Cur.Color <> claNull) then
-      LStringBuilder.Append('color:' + ColorToHex(Cur.Color) + ';');
-    if (Cur.BackgroundColor <> Base.BackgroundColor) and (Cur.BackgroundColor <> claNull) then
-      LStringBuilder.Append('background-color:' + ColorToHex(Cur.BackgroundColor) + ';');
+    if (ACurrentStyle.Color <> ABaseStyle.Color) and (ACurrentStyle.Color <> claNull) then
+      LStringBuilder.Append('color:' + ColorToHex(ACurrentStyle.Color) + ';');
+    if (ACurrentStyle.BackgroundColor <> ABaseStyle.BackgroundColor) and (ACurrentStyle.BackgroundColor <> claNull) then
+      LStringBuilder.Append('background-color:' + ColorToHex(ACurrentStyle.BackgroundColor) + ';');
     Result := LStringBuilder.ToString;
   finally
     LStringBuilder.Free;
@@ -88,7 +88,7 @@ var
   LOpenTag, LCloseTag, LCSS: string;
   LAlignCSS: string;
   LIndent: string;
-  LStyleAttr: string;
+  LStyleAttribute: string;
   LNewLine: string;
   LIsLink: Boolean;
   LParagraphIndex: Integer;
@@ -98,9 +98,9 @@ var
   LChipBold: Boolean;
   LChipCSS: string;
 
-  procedure EmitRuns(APara: TS4YHTMLParagraph);
+  procedure EmitRuns(AParagraph: TS4YHTMLParagraph);
   begin
-    for var LEmitRun in APara.Runs do
+    for var LEmitRun in AParagraph.Runs do
     begin
       if LEmitRun.IsPlaceholder then
       begin
@@ -141,8 +141,8 @@ var
       else if LEmitRun.IsImage then
       begin
         LStringBuilder.Append('<img');
-        if LEmitRun.ImageSrc <> '' then
-          LStringBuilder.Append(' src="' + LEmitRun.ImageSrc + '"');
+        if LEmitRun.ImageSource <> '' then
+          LStringBuilder.Append(' src="' + LEmitRun.ImageSource + '"');
         if LEmitRun.ImageWidth > 0 then
           LStringBuilder.Append(' width="' + IntToStr(LEmitRun.ImageWidth) + '"');
         if LEmitRun.ImageHeight > 0 then
@@ -243,7 +243,7 @@ var
     LTableID: Integer;
     LCols: Integer;
     LRow: Integer;
-    LMaxRow: Integer;
+    LMaximumRow: Integer;
     LCol: Integer;
     LCell: TS4YHTMLParagraph;
     LCellTag: string;
@@ -254,18 +254,18 @@ var
     LCols := ADocument.Paragraphs[AFirstPI].TableCols;
     if LCols < 1 then
       LCols := 1;
-    LMaxRow := 0;
+    LMaximumRow := 0;
     LScanIndex := AFirstPI;
     while (LScanIndex < ADocument.Paragraphs.Count) and
           (ADocument.Paragraphs[LScanIndex].BlockType = btTableCell) and
           (ADocument.Paragraphs[LScanIndex].TableID = LTableID) do
     begin
-      if ADocument.Paragraphs[LScanIndex].TableRow > LMaxRow then
-        LMaxRow := ADocument.Paragraphs[LScanIndex].TableRow;
+      if ADocument.Paragraphs[LScanIndex].TableRow > LMaximumRow then
+        LMaximumRow := ADocument.Paragraphs[LScanIndex].TableRow;
       Inc(LScanIndex);
     end;
     LStringBuilder.Append('<table border="1" style="border-collapse:collapse;width:100%">' + LNewLine);
-    for LRow := 0 to LMaxRow do
+    for LRow := 0 to LMaximumRow do
     begin
       if FPretty then
         LStringBuilder.Append('  ');
@@ -336,13 +336,13 @@ begin
 
       if LParagraph.BlockType = btHR then
       begin
-        LStyleAttr := '';
+        LStyleAttribute := '';
         if LParagraph.HRColor <> claNull then
-          LStyleAttr := LStyleAttr + 'color:' + ColorToHex(LParagraph.HRColor) + ';';
+          LStyleAttribute := LStyleAttribute + 'color:' + ColorToHex(LParagraph.HRColor) + ';';
         if LParagraph.HRThickness > 0 then
-          LStyleAttr := LStyleAttr + Format('height:%.0fpx;', [LParagraph.HRThickness]);
-        if LStyleAttr <> '' then
-          LStringBuilder.Append('<hr style="' + LStyleAttr + '"/>' + LNewLine)
+          LStyleAttribute := LStyleAttribute + Format('height:%.0fpx;', [LParagraph.HRThickness]);
+        if LStyleAttribute <> '' then
+          LStringBuilder.Append('<hr style="' + LStyleAttribute + '"/>' + LNewLine)
         else
           LStringBuilder.Append('<hr/>' + LNewLine);
         Inc(LParagraphIndex);
@@ -350,8 +350,8 @@ begin
       else if LParagraph.BlockType = btImage then
       begin
         LStringBuilder.Append('<img');
-        if LParagraph.ImageSrc <> '' then
-          LStringBuilder.Append(' src="' + LParagraph.ImageSrc + '"');
+        if LParagraph.ImageSource <> '' then
+          LStringBuilder.Append(' src="' + LParagraph.ImageSource + '"');
         if LParagraph.ImageWidth > 0 then
           LStringBuilder.Append(' width="' + IntToStr(LParagraph.ImageWidth) + '"');
         if LParagraph.ImageHeight > 0 then
@@ -418,49 +418,49 @@ begin
         if LParagraph.IndentLevel > 0 then
           LIndent := Format('margin-left:%dpx;', [LParagraph.IndentLevel * 24]);
 
-        LStyleAttr := '';
+        LStyleAttribute := '';
         if (LAlignCSS <> '') or (LIndent <> '') then
-          LStyleAttr := ' style="' + LAlignCSS + LIndent + '"';
+          LStyleAttribute := ' style="' + LAlignCSS + LIndent + '"';
 
         case LParagraph.BlockType of
           btH1:
             begin
-              LOpenTag := '<h1' + LStyleAttr + '>';
+              LOpenTag := '<h1' + LStyleAttribute + '>';
               LCloseTag := '</h1>';
             end;
           btH2:
             begin
-              LOpenTag := '<h2' + LStyleAttr + '>';
+              LOpenTag := '<h2' + LStyleAttribute + '>';
               LCloseTag := '</h2>';
             end;
           btH3:
             begin
-              LOpenTag := '<h3' + LStyleAttr + '>';
+              LOpenTag := '<h3' + LStyleAttribute + '>';
               LCloseTag := '</h3>';
             end;
           btH4:
             begin
-              LOpenTag := '<h4' + LStyleAttr + '>';
+              LOpenTag := '<h4' + LStyleAttribute + '>';
               LCloseTag := '</h4>';
             end;
           btH5:
             begin
-              LOpenTag := '<h5' + LStyleAttr + '>';
+              LOpenTag := '<h5' + LStyleAttribute + '>';
               LCloseTag := '</h5>';
             end;
           btH6:
             begin
-              LOpenTag := '<h6' + LStyleAttr + '>';
+              LOpenTag := '<h6' + LStyleAttribute + '>';
               LCloseTag := '</h6>';
             end;
           btBlockquote:
             begin
-              LOpenTag := '<blockquote' + LStyleAttr + '>';
+              LOpenTag := '<blockquote' + LStyleAttribute + '>';
               LCloseTag := '</blockquote>';
             end;
         else
           begin
-            LOpenTag := '<p' + LStyleAttr + '>';
+            LOpenTag := '<p' + LStyleAttribute + '>';
             LCloseTag := '</p>';
           end;
         end;

@@ -30,7 +30,7 @@ type
     FDisplayText: string;
     FImageAlt: string;
     FImageHeight: Integer;
-    FImageSrc: string;
+    FImageSource: string;
     FImageWidth: Integer;
     FIsImage: Boolean;
     FIsLineBreak: Boolean;
@@ -46,7 +46,7 @@ type
     property DisplayText: string read FDisplayText write FDisplayText;
     property ImageAlt: string read FImageAlt write FImageAlt;
     property ImageHeight: Integer read FImageHeight write FImageHeight;
-    property ImageSrc: string read FImageSrc write FImageSrc;
+    property ImageSource: string read FImageSource write FImageSource;
     property ImageWidth: Integer read FImageWidth write FImageWidth;
     property IsImage: Boolean read FIsImage write FIsImage;
     property IsLineBreak: Boolean read FIsLineBreak write FIsLineBreak;
@@ -69,7 +69,7 @@ type
     FListIndex: Integer;    // 1-based counter for <ol>
     FHRColor: TAlphaColor;  // claNull = use default
     FHRThickness: Single;   // 0 = use default
-    FImageSrc: string;
+    FImageSource: string;
     FImageAlt: string;
     FImageWidth: Integer;   // 0 = natural width from bitmap
     FImageHeight: Integer;  // 0 = natural height from bitmap
@@ -93,7 +93,7 @@ type
     property HRThickness: Single read FHRThickness write FHRThickness;   // 0 = use default
     property ImageAlt: string read FImageAlt write FImageAlt;
     property ImageHeight: Integer read FImageHeight write FImageHeight;  // 0 = natural height from bitmap
-    property ImageSrc: string read FImageSrc write FImageSrc;
+    property ImageSource: string read FImageSource write FImageSource;
     property ImageWidth: Integer read FImageWidth write FImageWidth;   // 0 = natural width from bitmap
     property IndentLevel: Integer read FIndentLevel write FIndentLevel;  // 0..N  (blockquote / list nesting)
     property IsHeader: Boolean read FIsHeader write FIsHeader;     // <th> -- rendered bold + center
@@ -153,7 +153,7 @@ begin
   Result.DisplayText := DisplayText;
   Result.ImageAlt := ImageAlt;
   Result.ImageHeight := ImageHeight;
-  Result.ImageSrc := ImageSrc;
+  Result.ImageSource := ImageSource;
   Result.ImageWidth := ImageWidth;
   Result.IsImage := IsImage;
   Result.IsLineBreak := IsLineBreak;
@@ -192,7 +192,7 @@ begin
   Result.ListIndex := ListIndex;
   Result.HRColor := HRColor;
   Result.HRThickness := HRThickness;
-  Result.ImageSrc := ImageSrc;
+  Result.ImageSource := ImageSource;
   Result.ImageAlt := ImageAlt;
   Result.ImageWidth := ImageWidth;
   Result.ImageHeight := ImageHeight;

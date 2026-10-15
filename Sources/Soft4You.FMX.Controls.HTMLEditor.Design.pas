@@ -63,8 +63,8 @@ var
   LForm: TForm;
   LMemo: TMemo;
   LPanel: TPanel;
-  LBtnOk: TButton;
-  LBtnCancel: TButton;
+  LButtonOk: TButton;
+  LButtonCancel: TButton;
 begin
   LForm := TForm.CreateNew(nil);
   try
@@ -79,27 +79,27 @@ begin
     LPanel.Height     := C_PANEL_H;
     LPanel.BevelOuter := bvNone;
 
-    LBtnCancel             := TButton.Create(LPanel);
-    LBtnCancel.Parent      := LPanel;
-    LBtnCancel.Caption     := 'Annulla';
-    LBtnCancel.ModalResult := mrCancel;
-    LBtnCancel.Cancel      := True;
-    LBtnCancel.Width       := C_BTN_W;
-    LBtnCancel.Height      := C_BTN_H;
-    LBtnCancel.Anchors     := [akRight, akTop];
-    LBtnCancel.Left        := C_DLG_W - C_BTN_W - C_MARGIN;
-    LBtnCancel.Top         := (C_PANEL_H - C_BTN_H) div 2;
+    LButtonCancel             := TButton.Create(LPanel);
+    LButtonCancel.Parent      := LPanel;
+    LButtonCancel.Caption     := 'Annulla';
+    LButtonCancel.ModalResult := mrCancel;
+    LButtonCancel.Cancel      := True;
+    LButtonCancel.Width       := C_BTN_W;
+    LButtonCancel.Height      := C_BTN_H;
+    LButtonCancel.Anchors     := [akRight, akTop];
+    LButtonCancel.Left        := C_DLG_W - C_BTN_W - C_MARGIN;
+    LButtonCancel.Top         := (C_PANEL_H - C_BTN_H) div 2;
 
-    LBtnOk             := TButton.Create(LPanel);
-    LBtnOk.Parent      := LPanel;
-    LBtnOk.Caption     := 'OK';
-    LBtnOk.ModalResult := mrOk;
-    LBtnOk.Default     := True;
-    LBtnOk.Width       := C_BTN_W;
-    LBtnOk.Height      := C_BTN_H;
-    LBtnOk.Anchors     := [akRight, akTop];
-    LBtnOk.Left        := C_DLG_W - (C_BTN_W + C_MARGIN) * 2;
-    LBtnOk.Top         := LBtnCancel.Top;
+    LButtonOk             := TButton.Create(LPanel);
+    LButtonOk.Parent      := LPanel;
+    LButtonOk.Caption     := 'OK';
+    LButtonOk.ModalResult := mrOk;
+    LButtonOk.Default     := True;
+    LButtonOk.Width       := C_BTN_W;
+    LButtonOk.Height      := C_BTN_H;
+    LButtonOk.Anchors     := [akRight, akTop];
+    LButtonOk.Left        := C_DLG_W - (C_BTN_W + C_MARGIN) * 2;
+    LButtonOk.Top         := LButtonCancel.Top;
 
     LMemo            := TMemo.Create(LForm);
     LMemo.Parent     := LForm;

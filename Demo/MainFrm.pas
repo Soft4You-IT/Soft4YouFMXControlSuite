@@ -583,7 +583,7 @@ begin
   if Assigned(LRun) then
   begin
     if LRun.IsImage then
-      LText := LRun.ImageSrc
+      LText := LRun.ImageSource
     else if LRun.IsPlaceholder then
       LText := LRun.DisplayText
   end;

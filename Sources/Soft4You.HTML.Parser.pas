@@ -35,7 +35,7 @@ type
     FInput: string;
     FPosition: Integer;
     FLength: Integer;
-    FDoc: TS4YHTMLDocument;
+    FDocument: TS4YHTMLDocument;
     FStyleStack: TList<TS4YHTMLTextStyle>;
     FBorderColorStack: TList<TAlphaColor>;
     FCurrentParagraph: TS4YHTMLParagraph;
@@ -55,14 +55,14 @@ type
     procedure SkipUntil(const AText: string);
     function ReadTag(out ATagName, AAttributes: string; out IsClose, IsSelf: Boolean): Boolean;
     function ReadTextNode: string;
-    function GetAttr(const AAttributes, AName: string): string;
+    function GetAttribute(const AAttributes, AName: string): string;
     function ExtractCSSValue(const ACSS, AProp: string): string;
     function ParseColor(const AText: string): TAlphaColor;
     function ParseFontSize(const AText: string; ABaseSize: Single): Single;
     procedure ParseInlineStyle(const ACSS: string; var ATextStyle: TS4YHTMLTextStyle);
     function ExtractBorderColor(const ACSS: string): TAlphaColor;
-    procedure FlushPara;
-    procedure EnsurePara(ABlockType: TS4YHTMLBlockType = btBodyText);
+    procedure FlushParagraph;
+    procedure EnsureParagraph(ABlockType: TS4YHTMLBlockType = btBodyText);
     procedure PushStyle(const ATextStyle: TS4YHTMLTextStyle; ABorderColor: TAlphaColor = claNull);
     procedure PopStyle;
     function TopStyle: TS4YHTMLTextStyle;
@@ -225,7 +225,7 @@ begin
   end;
 end;
 
-function TS4YHTMLParser.GetAttr(const AAttributes, AName: string): string;
+function TS4YHTMLParser.GetAttribute(const AAttributes, AName: string): string;
 var
   LScanPosition, LValueEnd, LAttributeLength: Integer;
   LQuoteChar: Char;
@@ -426,11 +426,11 @@ begin
   end;
 end;
 
-procedure TS4YHTMLParser.FlushPara;
+procedure TS4YHTMLParser.FlushParagraph;
 begin
-  if (FCurrentParagraph <> nil) and (not FCurrentParagraph.IsEmpty or (FDoc.Paragraphs.Count = 0)) then
+  if (FCurrentParagraph <> nil) and (not FCurrentParagraph.IsEmpty or (FDocument.Paragraphs.Count = 0)) then
   begin
-    FDoc.Paragraphs.Add(FCurrentParagraph);
+    FDocument.Paragraphs.Add(FCurrentParagraph);
     FCurrentParagraph := nil;
   end
   else if FCurrentParagraph <> nil then
@@ -440,7 +440,7 @@ begin
   end;
 end;
 
-procedure TS4YHTMLParser.EnsurePara(ABlockType: TS4YHTMLBlockType);
+procedure TS4YHTMLParser.EnsureParagraph(ABlockType: TS4YHTMLBlockType);
 begin
   if FCurrentParagraph = nil then
   begin
@@ -462,7 +462,7 @@ var
 begin
   if AText = '' then
     Exit;
-  EnsurePara;
+  EnsureParagraph;
   LTextStyle := TopStyle;
   LBorderColor := TopBorderColor;
   if (FCurrentParagraph.Runs.Count > 0) and FCurrentParagraph.Runs.Last.Style.EqualsFormat(LTextStyle) and
@@ -493,7 +493,7 @@ var
   LFaceAttribute: string;
   LSizeAttribute: string;
   LColorAttribute: string;
-  I: Integer;
+  LIndex: Integer;
   LPixelSize: Integer;
   LColor: TAlphaColor;
 begin
@@ -519,13 +519,13 @@ begin
   if ATag = 'p' then
   begin
     if IsClose then
-      FlushPara
+      FlushParagraph
     else
     begin
-      FlushPara;
+      FlushParagraph;
       FCurrentParagraph := TS4YHTMLParagraph.Create;
       FCurrentParagraph.BlockType := btParagraph;
-      LParagraphStyle := GetAttr(AAttributes, 'style');
+      LParagraphStyle := GetAttribute(AAttributes, 'style');
       if LParagraphStyle <> '' then
       begin
         LStyleLower := LParagraphStyle.ToLower;
@@ -536,7 +536,7 @@ begin
         else if LStyleLower.Contains('justify') then
           FCurrentParagraph.Alignment := haJustify;
       end;
-      LAlignAttribute := GetAttr(AAttributes, 'align').ToLower;
+      LAlignAttribute := GetAttribute(AAttributes, 'align').ToLower;
       if LAlignAttribute = 'center' then
         FCurrentParagraph.Alignment := haCenter
       else if LAlignAttribute = 'right' then
@@ -551,8 +551,8 @@ begin
   begin
     if IsClose then
       Exit;
-    LStyleAttribute := GetAttr(AAttributes, 'style');
-    LPixelSize := StrToIntDef(GetAttr(AAttributes, 'width').Trim, 0);
+    LStyleAttribute := GetAttribute(AAttributes, 'style');
+    LPixelSize := StrToIntDef(GetAttribute(AAttributes, 'width').Trim, 0);
     if (LPixelSize = 0) and (LStyleAttribute <> '') then
     begin
       LSizeAttribute := ExtractCSSValue(LStyleAttribute.ToLower, 'width');
@@ -560,7 +560,7 @@ begin
         LPixelSize := StrToIntDef(LSizeAttribute.Replace('px', '').Replace('pt', '').Trim, 0);
     end;
     var LImageWidth := LPixelSize;
-    LPixelSize := StrToIntDef(GetAttr(AAttributes, 'height').Trim, 0);
+    LPixelSize := StrToIntDef(GetAttribute(AAttributes, 'height').Trim, 0);
     if (LPixelSize = 0) and (LStyleAttribute <> '') then
     begin
       LSizeAttribute := ExtractCSSValue(LStyleAttribute.ToLower, 'height');
@@ -568,9 +568,9 @@ begin
         LPixelSize := StrToIntDef(LSizeAttribute.Replace('px', '').Replace('pt', '').Trim, 0);
     end;
     var LImageHeight := LPixelSize;
-    var LImageSource := GetAttr(AAttributes, 'src');
-    var LImageAltText := GetAttr(AAttributes, 'alt');
-    LAlignAttribute := GetAttr(AAttributes, 'align').ToLower;
+    var LImageSource := GetAttribute(AAttributes, 'src');
+    var LImageAltText := GetAttribute(AAttributes, 'alt');
+    LAlignAttribute := GetAttribute(AAttributes, 'align').ToLower;
     if (LAlignAttribute = '') and (LStyleAttribute <> '') then
     begin
       LStyleLower := ExtractCSSValue(LStyleAttribute.ToLower, 'text-align');
@@ -578,7 +578,7 @@ begin
         LAlignAttribute := LStyleLower;
     end;
     var LParagraphWasNil := FCurrentParagraph = nil;
-    EnsurePara;
+    EnsureParagraph;
     if LParagraphWasNil and (LAlignAttribute <> '') then
     begin
       if LAlignAttribute = 'center' then
@@ -590,7 +590,7 @@ begin
     end;
     var LImageRun := TS4YHTMLRun.Create;
     LImageRun.IsImage := True;
-    LImageRun.ImageSrc := LImageSource;
+    LImageRun.ImageSource := LImageSource;
     LImageRun.ImageAlt := LImageAltText;
     LImageRun.ImageWidth := LImageWidth;
     LImageRun.ImageHeight := LImageHeight;
@@ -604,7 +604,7 @@ begin
   begin
     if IsClose then
       Exit;
-    EnsurePara;
+    EnsureParagraph;
     LLineBreakRun := TS4YHTMLRun.Create;
     LLineBreakRun.IsLineBreak := True;
     FCurrentParagraph.Runs.Add(LLineBreakRun);
@@ -615,20 +615,20 @@ begin
   begin
     if IsClose then
       Exit;
-    FlushPara;
+    FlushParagraph;
     LHorizontalRuleParagraph := TS4YHTMLParagraph.Create;
     LHorizontalRuleParagraph.BlockType := btHR;
-    LColorAttribute := GetAttr(AAttributes, 'color');
+    LColorAttribute := GetAttribute(AAttributes, 'color');
     if LColorAttribute <> '' then
       LHorizontalRuleParagraph.HRColor := ParseColor(LColorAttribute);
-    LSizeAttribute := GetAttr(AAttributes, 'size');
+    LSizeAttribute := GetAttribute(AAttributes, 'size');
     if LSizeAttribute <> '' then
     begin
       LPixelSize := StrToIntDef(LSizeAttribute.Trim, 0);
       if LPixelSize > 0 then
         LHorizontalRuleParagraph.HRThickness := LPixelSize;
     end;
-    LStyleAttribute := GetAttr(AAttributes, 'style');
+    LStyleAttribute := GetAttribute(AAttributes, 'style');
     if LStyleAttribute <> '' then
     begin
       LStyleLower := LStyleAttribute.ToLower;
@@ -649,7 +649,7 @@ begin
           LHorizontalRuleParagraph.HRThickness := LPixelSize;
       end;
     end;
-    FDoc.Paragraphs.Add(LHorizontalRuleParagraph);
+    FDocument.Paragraphs.Add(LHorizontalRuleParagraph);
     Exit;
   end;
 
@@ -666,10 +666,10 @@ begin
       '6': LBlockType := btH6;
     end;
     if IsClose then
-      FlushPara
+      FlushParagraph
     else
     begin
-      FlushPara;
+      FlushParagraph;
       FCurrentParagraph := TS4YHTMLParagraph.Create;
       FCurrentParagraph.BlockType := LBlockType;
     end;
@@ -680,14 +680,14 @@ begin
   begin
     if IsClose then
     begin
-      FlushPara;
+      FlushParagraph;
       Dec(FListDepth);
     end
     else
     begin
-      FlushPara;
+      FlushParagraph;
       Inc(FListDepth);
-      EnsurePara(btBlockquote);
+      EnsureParagraph(btBlockquote);
       FCurrentParagraph.IndentLevel := FListDepth;
     end;
     Exit;
@@ -722,10 +722,10 @@ begin
   if ATag = 'li' then
   begin
     if IsClose then
-      FlushPara
+      FlushParagraph
     else
     begin
-      FlushPara;
+      FlushParagraph;
       FCurrentParagraph := TS4YHTMLParagraph.Create;
       FCurrentParagraph.BlockType := btLI;
       FCurrentParagraph.IndentLevel := FListDepth - 1;
@@ -743,12 +743,12 @@ begin
   begin
     if IsClose then
     begin
-      FlushPara;
+      FlushParagraph;
       FInPreformatted := False;
     end
     else
     begin
-      FlushPara;
+      FlushParagraph;
       FCurrentParagraph := TS4YHTMLParagraph.Create;
       FCurrentParagraph.BlockType := btPre;
       FInPreformatted := True;
@@ -760,14 +760,14 @@ begin
   begin
     if IsClose then
     begin
-      FlushPara;
+      FlushParagraph;
       FDivAlignment := haLeft;
     end
     else
     begin
-      FlushPara;
+      FlushParagraph;
       FDivAlignment := haLeft;
-      LStyleAttribute := GetAttr(AAttributes, 'style');
+      LStyleAttribute := GetAttribute(AAttributes, 'style');
       if LStyleAttribute <> '' then
       begin
         LStyleLower := ExtractCSSValue(LStyleAttribute.ToLower, 'text-align');
@@ -786,16 +786,16 @@ begin
   begin
     if IsClose then
     begin
-      FlushPara;
-      for I := 0 to FDoc.Paragraphs.Count - 1 do
-        if (FDoc.Paragraphs[I].BlockType = btTableCell) and
-           (FDoc.Paragraphs[I].TableID = FTableID) then
-          FDoc.Paragraphs[I].TableCols := FTableColumns;
+      FlushParagraph;
+      for LIndex := 0 to FDocument.Paragraphs.Count - 1 do
+        if (FDocument.Paragraphs[LIndex].BlockType = btTableCell) and
+           (FDocument.Paragraphs[LIndex].TableID = FTableID) then
+          FDocument.Paragraphs[LIndex].TableCols := FTableColumns;
       FInTable := False;
     end
     else
     begin
-      FlushPara;
+      FlushParagraph;
       FTableID := NextTableID;
       FTableRow := -1;
       FTableColumn := 0;
@@ -809,13 +809,13 @@ begin
   begin
     if IsClose then
     begin
-      FlushPara;
+      FlushParagraph;
       if FTableColumn > FTableColumns then
         FTableColumns := FTableColumn;
     end
     else
     begin
-      FlushPara;
+      FlushParagraph;
       Inc(FTableRow);
       FTableColumn := 0;
     end;
@@ -826,13 +826,13 @@ begin
   begin
     if IsClose then
     begin
-      FlushPara;
+      FlushParagraph;
       if ATag = 'th' then
         PopStyle;
     end
     else
     begin
-      FlushPara;
+      FlushParagraph;
       FCurrentParagraph := TS4YHTMLParagraph.Create;
       FCurrentParagraph.BlockType := btTableCell;
       FCurrentParagraph.TableID := FTableID;
@@ -995,7 +995,7 @@ begin
       PopStyle
     else
     begin
-      LLinkURL := GetAttr(AAttributes, 'href');
+      LLinkURL := GetAttribute(AAttributes, 'href');
       LTextStyle.Underline := True;
       LTextStyle.Color := $FF0000EE;
       LTextStyle.LinkURL := LLinkURL;
@@ -1010,7 +1010,7 @@ begin
       PopStyle
     else
     begin
-      LStyleAttribute := GetAttr(AAttributes, 'style');
+      LStyleAttribute := GetAttribute(AAttributes, 'style');
       if LStyleAttribute <> '' then
         ParseInlineStyle(LStyleAttribute, LTextStyle);
       PushStyle(LTextStyle, ExtractBorderColor(LStyleAttribute));
@@ -1024,10 +1024,10 @@ begin
       PopStyle
     else
     begin
-      LFaceAttribute := GetAttr(AAttributes, 'face');
-      LSizeAttribute := GetAttr(AAttributes, 'size');
-      LColorAttribute := GetAttr(AAttributes, 'color');
-      LStyleAttribute := GetAttr(AAttributes, 'style');
+      LFaceAttribute := GetAttribute(AAttributes, 'face');
+      LSizeAttribute := GetAttribute(AAttributes, 'size');
+      LColorAttribute := GetAttribute(AAttributes, 'color');
+      LStyleAttribute := GetAttribute(AAttributes, 'style');
       if LFaceAttribute <> '' then
         LTextStyle.FontName := LFaceAttribute;
       if LSizeAttribute <> '' then
@@ -1140,12 +1140,12 @@ var
   LBaseStyle: TS4YHTMLTextStyle;
   LParagraph: TS4YHTMLParagraph;
   LPreformattedParts: TArray<string>;
-  I: Integer;
+  LIndex: Integer;
 begin
   FInput := AHTML;
   FLength := Length(AHTML);
   FPosition := Low(AHTML);
-  FDoc := TS4YHTMLDocument.Create;
+  FDocument := TS4YHTMLDocument.Create;
   FStyleStack := TList<TS4YHTMLTextStyle>.Create;
   FBorderColorStack := TList<TAlphaColor>.Create;
   FCurrentParagraph := nil;
@@ -1177,13 +1177,13 @@ begin
         begin
           LTextNode := LTextNode.Replace(#13#10, #10).Replace(#13, #10);
           LPreformattedParts := LTextNode.Split([#10]);
-          for I := 0 to High(LPreformattedParts) do
+          for LIndex := 0 to High(LPreformattedParts) do
           begin
-            if LPreformattedParts[I] <> '' then
-              AddTextRun(LPreformattedParts[I]);
-            if I < High(LPreformattedParts) then
+            if LPreformattedParts[LIndex] <> '' then
+              AddTextRun(LPreformattedParts[LIndex]);
+            if LIndex < High(LPreformattedParts) then
             begin
-              FlushPara;
+              FlushParagraph;
               FCurrentParagraph := TS4YHTMLParagraph.Create;
               FCurrentParagraph.BlockType := btPre;
             end;
@@ -1200,17 +1200,17 @@ begin
       end;
     end;
 
-    FlushPara;
+    FlushParagraph;
 
-    if FDoc.Paragraphs.Count = 0 then
+    if FDocument.Paragraphs.Count = 0 then
     begin
       LParagraph := TS4YHTMLParagraph.Create;
       LParagraph.BlockType := btParagraph;
-      FDoc.Paragraphs.Add(LParagraph);
+      FDocument.Paragraphs.Add(LParagraph);
     end;
 
-    Result := FDoc;
-    FDoc := nil;
+    Result := FDocument;
+    FDocument := nil;
   finally
     FStyleStack.Free;
     FBorderColorStack.Free;

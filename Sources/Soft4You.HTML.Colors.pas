@@ -129,7 +129,7 @@ end;
 
 procedure BuildColorTable;
 var
-  LIdx: Integer;
+  LIndex: Integer;
   LPair: TPair<string, TAlphaColor>;
 begin
   GColorLookup := TDictionary<string, TAlphaColor>.Create(160);
@@ -285,12 +285,12 @@ begin
   GColorLookup.Add('yellowgreen',          TAlphaColor($FF9ACD32));
 
   SetLength(GNamedColors, GColorLookup.Count);
-  LIdx := 0;
+  LIndex := 0;
   for LPair in GColorLookup do
   begin
-    GNamedColors[LIdx].Name := LPair.Key;
-    GNamedColors[LIdx].Color := LPair.Value;
-    Inc(LIdx);
+    GNamedColors[LIndex].Name := LPair.Key;
+    GNamedColors[LIndex].Color := LPair.Value;
+    Inc(LIndex);
   end;
   TArray.Sort<TS4YHTMLNamedColor>(GNamedColors,
     TComparer<TS4YHTMLNamedColor>.Construct(

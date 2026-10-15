@@ -143,7 +143,7 @@ end;
 | `HTML` | `string` | `''` | HTML content of the document body (fragment, no doctype) |
 | `BackgroundColor` | `TAlphaColor` | `claWhite` | Editor canvas background color |
 | `Font` | `TFont` | platform default | Default font for new text |
-| `Lang` | `string` | `''` | Document language attribute (used in `FullHTML` export) |
+| `Language` | `string` | `''` | Document language attribute (used in `FullHTML` export) |
 | `LineSpacing` | `Single` | `1.0` | Line-height multiplier (1.0 = natural height, 1.5 = 1.5× line spacing) |
 | `ParagraphSpacing` | `Single` | `6.0` | Extra vertical space in px added between block elements |
 | `PlaceholderAppearance` | `TS4YPlaceholderAppearance` | — | Visual style of placeholder chips |
@@ -159,7 +159,7 @@ end;
 | Property | Type | Description |
 |---|---|---|
 | `CurrentRun` | `TS4YHTMLRun` | Run under the caret, or `nil` |
-| `FullHTML` | `string` | Full `<!DOCTYPE html>…</html>` document; writable (replaces content and extracts `Title`/`Lang`) |
+| `FullHTML` | `string` | Full `<!DOCTYPE html>…</html>` document; writable (replaces content and extracts `Title`/`Language`) |
 | `HasSelection` | `Boolean` | `True` when text is selected |
 | `Placeholders` | `TList<TS4YHTMLRun>` | All placeholder runs in the document (O(1) cache, read-only) |
 | `State` | `TS4YEditorState` | Snapshot of formatting state at the caret position |
@@ -181,7 +181,7 @@ TS4YEditorState = record
   HasSelection: Boolean;
   ImageAlt: string;                   // alt text of image at caret ('' if not an image)
   ImageHeight: Integer;               // pixel height of image at caret (0 if not an image)
-  ImageSrc: string;                   // src of image at caret ('' if not an image)
+  ImageSource: string;                   // src of image at caret ('' if not an image)
   ImageWidth: Integer;                // pixel width of image at caret (0 if not an image)
   IndentLevel: Integer;               // indent level of the paragraph at caret (0 = no indent)
   IsBold, IsItalic, IsUnderline, IsStrikeOut: Boolean;
@@ -265,7 +265,7 @@ end;
 | Method | Description |
 |---|---|
 | `ScrollToParagraph(Index)` | Scroll the document so that paragraph at `Index` is visible at the top |
-| `ScrollToDocPos(Pos)` | Scroll to make a specific `TS4YDocPos` position visible |
+| `ScrollToDocumentPosition(Pos)` | Scroll to make a specific `TS4YDocPos` position visible |
 
 ### Document info
 
@@ -281,10 +281,10 @@ end;
 | Method | Description |
 |---|---|
 | `FindNext(Text[, CaseSensitive])` | Select the next occurrence of `Text` from the caret; wraps around; returns `False` when not found |
-| `FindPrev(Text[, CaseSensitive])` | Select the previous occurrence; wraps around; returns `False` when not found |
+| `FindPrevious(Text[, CaseSensitive])` | Select the previous occurrence; wraps around; returns `False` when not found |
 | `ReplaceAll(FindText, ReplaceText[, CaseSensitive])` | Replace all occurrences in the document; returns the count of replacements |
 
-Search highlights the match via the normal selection. Each successive `FindNext` / `FindPrev` call starts from the end / start of the current selection, enabling repeated stepping. `ReplaceAll` is a single undoable operation.
+Search highlights the match via the normal selection. Each successive `FindNext` / `FindPrevious` call starts from the end / start of the current selection, enabling repeated stepping. `ReplaceAll` is a single undoable operation.
 
 ---
 
@@ -299,7 +299,7 @@ Search highlights the match via the normal selection. Each successive `FindNext`
 | `OnGetPlaceholderLabel` | `procedure(Sender; const RawText: string; var DisplayLabel: string)` | Map raw placeholder text to a display label |
 | `OnLinkClick` | `procedure(Sender; const URL, LinkText: string)` | User clicked a hyperlink |
 | `OnLinkHover` | `procedure(Sender; const URL: string; var Cursor: TCursor)` | Mouse entered/left a link |
-| `OnLoadImage` | `procedure(Sender; const ASrc: string; var ABitmap: TBitmap; AContext: TS4YImageLoadContext)` | Custom image loading — assign a `TBitmap` to override default file/URL loading |
+| `OnLoadImage` | `procedure(Sender; const ASource: string; var ABitmap: TBitmap; AContext: TS4YImageLoadContext)` | Custom image loading — assign a `TBitmap` to override default file/URL loading |
 | `OnStateChange` | `procedure(Sender; const State: TS4YEditorState)` | Fired when caret moves or selection changes — use to update toolbar |
 
 ---
