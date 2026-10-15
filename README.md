@@ -2,7 +2,7 @@
 
 WYSIWYG HTML editor component for Delphi FireMonkey (FMX). 100% native Delphi — no WebBrowser and no COM/OLE dependencies. The only third-party dependency is [Skia4Delphi](https://github.com/skia4delphi/skia4delphi), used to render SVG images.
 
-Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on Windows with Delphi 11.3 (RAD Studio 22.0); the minimum Delphi version is the one required by Skia4Delphi.
+Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on Windows with Delphi 11.3 (RAD Studio 22.0).
 
 ---
 
@@ -19,7 +19,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 
 ## Requirements
 
-- Delphi with FireMonkey (FMX).
+- Delphi 11 Alexandria or newer with FireMonkey (FMX) for Windows, macOS and iOS; Delphi 12 Athens or newer for Android. These limits come from Skia4Delphi's platform support.
 - [Skia4Delphi](https://github.com/skia4delphi/skia4delphi) (MIT license), installed in the IDE. The runtime package requires `Skia.Package.FMX` and `Skia.Package.RTL`.
 
 ---
