@@ -477,11 +477,16 @@ type
     procedure SaveUndo;
     procedure SetCaretPos(const P: TDocPos; ExtendSel: Boolean);
 
+    // Table navigation
+    function DoTableTab(AShift: TShiftState): Boolean;
+    function IsTableCellOf(AParaIdx, ATableID: Integer): Boolean;
+
     procedure Paint; override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Single); override;
     procedure MouseMove(Shift: TShiftState; X, Y: Single); override;
     procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Single); override;
     procedure MouseWheel(Shift: TShiftState; WheelDelta: Integer; var Handled: Boolean); override;
+    procedure DialogKey(var Key: Word; Shift: TShiftState); override;
     procedure KeyDown(var Key: Word; var KeyChar: System.WideChar; Shift: TShiftState); override;
     procedure DoEnter; override;
     procedure DoExit; override;
@@ -4051,76 +4056,101 @@ end;
 
 // -- Keyboard ------------------------------------------------------------------
 
+procedure THTMLEditor.DialogKey(var Key: Word; Shift: TShiftState);
+begin
+  // FMX handles Tab (focus cycling) in the form before the focused control's
+  // KeyDown: Tab inside a table cell must be taken here. IsFocused guards
+  // against the form also offering DialogKey to non-focused controls.
+  if (Key = vkTab) and IsFocused and DoTableTab(Shift) then
+  begin
+    Key := 0;
+    Exit;
+  end;
+  inherited;
+end;
+
+function THTMLEditor.IsTableCellOf(AParaIdx, ATableID: Integer): Boolean;
+begin
+  Result := (AParaIdx >= 0) and (AParaIdx < FDoc.Paragraphs.Count) and
+    (FDoc.Paragraphs[AParaIdx].BlockType = btTableCell) and
+    (FDoc.Paragraphs[AParaIdx].TableID = ATableID);
+end;
+
+// Moves the caret to the next/previous table cell. Returns False when Tab must
+// keep its normal meaning (focus change): caret outside a table, Ctrl/Alt
+// combinations, Shift+Tab in the first cell, Tab in the last cell when read-only.
+function THTMLEditor.DoTableTab(AShift: TShiftState): Boolean;
+var
+  LCurPara: THTMLParagraph;
+  LNewCell: THTMLParagraph;
+  LTargetIdx: Integer;
+  LTableID: Integer;
+  LTableCols: Integer;
+  LNewRow: Integer;
+begin
+  Result := False;
+  if not FCaretPos.IsValid or (FCaretPos.ParaIdx >= FDoc.Paragraphs.Count) then
+    Exit;
+  if (AShift * [ssCtrl, ssAlt, ssCommand]) <> [] then
+    Exit;
+  LCurPara := FDoc.Paragraphs[FCaretPos.ParaIdx];
+  if LCurPara.BlockType <> btTableCell then
+    Exit;
+  LTableID := LCurPara.TableID;
+
+  if ssShift in AShift then
+  begin
+    LTargetIdx := FCaretPos.ParaIdx - 1;
+    if not IsTableCellOf(LTargetIdx, LTableID) then
+      Exit;
+    ClearSelection;
+    SetCaretPos(TDocPos.At(LTargetIdx, 0, 0), False);
+    Result := True;
+    Exit;
+  end;
+
+  LTargetIdx := FCaretPos.ParaIdx + 1;
+  if IsTableCellOf(LTargetIdx, LTableID) then
+  begin
+    ClearSelection;
+    SetCaretPos(TDocPos.At(LTargetIdx, 0, 0), False);
+    Result := True;
+    Exit;
+  end;
+
+  // Last cell: Tab appends a new row
+  if FReadOnly then
+    Exit;
+  ClearSelection;
+  SaveUndo;
+  LTableCols := LCurPara.TableCols;
+  LNewRow := 0;
+  for var I := 0 to FDoc.Paragraphs.Count - 1 do
+    if IsTableCellOf(I, LTableID) and (FDoc.Paragraphs[I].TableRow > LNewRow) then
+      LNewRow := FDoc.Paragraphs[I].TableRow;
+  Inc(LNewRow);
+  for var I := 0 to LTableCols - 1 do
+  begin
+    LNewCell := THTMLParagraph.Create;
+    LNewCell.BlockType := btTableCell;
+    LNewCell.TableID := LTableID;
+    LNewCell.TableRow := LNewRow;
+    LNewCell.TableCol := I;
+    LNewCell.TableCols := LTableCols;
+    FDoc.Paragraphs.Insert(LTargetIdx + I, LNewCell);
+  end;
+  DoLayout;
+  DoChanged;
+  SetCaretPos(TDocPos.At(LTargetIdx, 0, 0), False);
+  Result := True;
+end;
+
 procedure THTMLEditor.KeyDown(var Key: Word; var KeyChar: System.WideChar; Shift: TShiftState);
 var
   LExtend: Boolean;
-  LCurPara: THTMLParagraph;
   LNextParaIdx: Integer;
-  LNewRow: Integer;
-  LTableID: Integer;
-  LTableCols: Integer;
-  LNewCell: THTMLParagraph;
   LNewCaretPos: TDocPos;
 begin
-  // Tab in table cells must be consumed BEFORE inherited: FMX handles Tab for
-  // focus cycling in inherited KeyDown; setting Key := 0 first prevents that.
-  if (Key = vkTab) and FCaretPos.IsValid and (FCaretPos.ParaIdx < FDoc.Paragraphs.Count) then
-  begin
-    LCurPara := FDoc.Paragraphs[FCaretPos.ParaIdx];
-    if LCurPara.BlockType = btTableCell then
-    begin
-      Key := 0;
-      ClearSelection;
-      if ssShift in Shift then
-      begin
-        if FCaretPos.ParaIdx > 0 then
-        begin
-          LNextParaIdx := FCaretPos.ParaIdx - 1;
-          if (FDoc.Paragraphs[LNextParaIdx].BlockType = btTableCell) and
-             (FDoc.Paragraphs[LNextParaIdx].TableID = LCurPara.TableID) then
-            SetCaretPos(TDocPos.At(LNextParaIdx, 0, 0), False);
-        end;
-      end
-      else
-      begin
-        LNextParaIdx := FCaretPos.ParaIdx + 1;
-        if (LNextParaIdx < FDoc.Paragraphs.Count) and
-           (FDoc.Paragraphs[LNextParaIdx].BlockType = btTableCell) and
-           (FDoc.Paragraphs[LNextParaIdx].TableID = LCurPara.TableID) then
-          SetCaretPos(TDocPos.At(LNextParaIdx, 0, 0), False)
-        else if not FReadOnly then
-        begin
-          SaveUndo;
-          LTableID := LCurPara.TableID;
-          LTableCols := LCurPara.TableCols;
-          LNewRow := 0;
-          for var I := 0 to FDoc.Paragraphs.Count - 1 do
-            if (FDoc.Paragraphs[I].BlockType = btTableCell) and
-               (FDoc.Paragraphs[I].TableID = LTableID) then
-              if FDoc.Paragraphs[I].TableRow > LNewRow then
-                LNewRow := FDoc.Paragraphs[I].TableRow;
-          Inc(LNewRow);
-          LNextParaIdx := FCaretPos.ParaIdx + 1;
-          for var I := 0 to LTableCols - 1 do
-          begin
-            LNewCell := THTMLParagraph.Create;
-            LNewCell.BlockType := btTableCell;
-            LNewCell.TableID := LTableID;
-            LNewCell.TableRow := LNewRow;
-            LNewCell.TableCol := I;
-            LNewCell.TableCols := LTableCols;
-            FDoc.Paragraphs.Insert(LNextParaIdx + I, LNewCell);
-          end;
-          DoLayout;
-          DoChanged;
-          SetCaretPos(TDocPos.At(LNextParaIdx, 0, 0), False);
-        end;
-      end;
-      inherited;
-      Exit;
-    end;
-  end;
-
   inherited;
   LExtend := ssShift in Shift;
 
