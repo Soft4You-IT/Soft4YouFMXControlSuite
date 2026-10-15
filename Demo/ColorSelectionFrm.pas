@@ -96,18 +96,18 @@ end;
 
 class function TColorSelection.Execute(var AColor: TAlphacolor): boolean;
 var
-  LDlg: TColorSelection;
+  LDialog: TColorSelection;
 begin
-  LDlg := TColorSelection.Create(nil);
+  LDialog := TColorSelection.Create(nil);
 
   try
-    LDLg.SelectedColor := AColor;
+    LDialog.SelectedColor := AColor;
 
-    Result := LDlg.ShowModal = mrOk;
+    Result := LDialog.ShowModal = mrOk;
 
-    AColor := Ldlg.SelectedColor;
+    AColor := LDialog.SelectedColor;
   finally
-    LDlg.Free;
+    LDialog.Free;
   end;
 end;
 

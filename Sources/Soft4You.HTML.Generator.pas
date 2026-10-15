@@ -196,12 +196,12 @@ var
 
   procedure EmitListBlock(ABaseLevel: Integer);
   var
-    LLI: TS4YHTMLParagraph;
+    LListItem: TS4YHTMLParagraph;
     LListTag: string;
     LFirstOrdered: Boolean;
   begin
-    LLI := ADocument.Paragraphs[LParagraphIndex];
-    LFirstOrdered := LLI.ListOrdered;
+    LListItem := ADocument.Paragraphs[LParagraphIndex];
+    LFirstOrdered := LListItem.ListOrdered;
     if LFirstOrdered then
       LListTag := 'ol'
     else
@@ -211,19 +211,19 @@ var
           (ADocument.Paragraphs[LParagraphIndex].BlockType = btLI) and
           (ADocument.Paragraphs[LParagraphIndex].IndentLevel >= ABaseLevel) do
     begin
-      LLI := ADocument.Paragraphs[LParagraphIndex];
+      LListItem := ADocument.Paragraphs[LParagraphIndex];
       // Item jumps deeper without a parent li -- open sub-list at its actual level
-      if LLI.IndentLevel > ABaseLevel then
+      if LListItem.IndentLevel > ABaseLevel then
       begin
-        EmitListBlock(LLI.IndentLevel);
+        EmitListBlock(LListItem.IndentLevel);
         Continue;
       end;
       // Different list type at same level -- end this list; outer loop starts a new one
-      if LLI.ListOrdered <> LFirstOrdered then
+      if LListItem.ListOrdered <> LFirstOrdered then
         Break;
       // Emit list item
       LStringBuilder.Append('<li>');
-      EmitRuns(LLI);
+      EmitRuns(LListItem);
       Inc(LParagraphIndex);
       // If next items are deeper, nest a sub-list inside this <li>
       if (LParagraphIndex < ADocument.Paragraphs.Count) and

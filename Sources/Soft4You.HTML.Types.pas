@@ -110,7 +110,7 @@ type
     CharStart: Integer; // inclusive, within Run.Text
     CharEnd: Integer;   // exclusive
     X, Y: Single;
-    W, H: Single;
+    Width, Height: Single;
     Ascent: Single;    // distance from top of line-box to baseline
     LineIndex: Integer;
     IsSpace: Boolean;        // trailing space that can be omitted at EOL
@@ -121,7 +121,7 @@ type
 
   TS4YLayoutLine = record
     Y: Single;
-    H: Single;      // line-box height
+    Height: Single; // line-box height
     Ascent: Single; // max ascent in line
     ParagraphIndex: Integer;
     IsFirst: Boolean;
@@ -130,8 +130,8 @@ type
     FragmentCount: Integer;
     // Table cell geometry -- only valid when Para.BlockType = btTableCell
     CellX: Single;    // left edge of this cell
-    CellW: Single;    // width of this cell
-    CellRowH: Single; // total height of this cell's row (for border rect)
+    CellWidth: Single;    // width of this cell
+    CellRowHeight: Single; // total height of this cell's row (for border rect)
     CellRowY: Single; // top Y of this cell's row (for border rect)
   end;
 

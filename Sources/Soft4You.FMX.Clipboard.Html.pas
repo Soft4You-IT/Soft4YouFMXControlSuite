@@ -53,8 +53,8 @@ uses
 function LooksLikeHTML(const AText: string): Boolean;
 begin
   Result := False;
-  for var LI := 1 to AText.Length - 1 do
-    if (AText[LI] = '<') and (AText[LI + 1].IsLetter or (AText[LI + 1] = '/') or (AText[LI + 1] = '!')) then
+  for var LIndex := 1 to AText.Length - 1 do
+    if (AText[LIndex] = '<') and (AText[LIndex + 1].IsLetter or (AText[LIndex + 1] = '/') or (AText[LIndex + 1] = '!')) then
       Exit(True);
 end;
 
@@ -101,7 +101,7 @@ class procedure TS4YHTMLClipboard.SetHTML(const AFragment, APlainText: string);
 var
   LCFHtml: UINT;
   LData:   RawByteString;
-  LHMem:   HGLOBAL;
+  LGlobalMemory:   HGLOBAL;
   LPointer:    Pointer;
 begin
   LCFHtml := RegisterClipboardFormat('HTML Format');
@@ -111,30 +111,30 @@ begin
     EmptyClipboard;
     // CF_HTML (UTF-8 with byte-offset header)
     LData := BuildCFHTML(AFragment);
-    LHMem := GlobalAlloc(GMEM_MOVEABLE, NativeUInt(Length(LData)) + 1);
-    if LHMem <> 0 then
+    LGlobalMemory := GlobalAlloc(GMEM_MOVEABLE, NativeUInt(Length(LData)) + 1);
+    if LGlobalMemory <> 0 then
     begin
-      LPointer := GlobalLock(LHMem);
+      LPointer := GlobalLock(LGlobalMemory);
       if LPointer <> nil then
       begin
         Move(LData[Low(LData)], LPointer^, Length(LData));
         PByte(PByte(LPointer) + NativeUInt(Length(LData)))^ := 0;
-        GlobalUnlock(LHMem);
-        SetClipboardData(LCFHtml, LHMem);
+        GlobalUnlock(LGlobalMemory);
+        SetClipboardData(LCFHtml, LGlobalMemory);
       end;
     end;
     // CF_UNICODETEXT (plain text fallback for apps that don't read CF_HTML)
-    LHMem := GlobalAlloc(GMEM_MOVEABLE, NativeUInt(Length(APlainText) + 1) * SizeOf(WideChar));
-    if LHMem <> 0 then
+    LGlobalMemory := GlobalAlloc(GMEM_MOVEABLE, NativeUInt(Length(APlainText) + 1) * SizeOf(WideChar));
+    if LGlobalMemory <> 0 then
     begin
-      LPointer := GlobalLock(LHMem);
+      LPointer := GlobalLock(LGlobalMemory);
       if LPointer <> nil then
       begin
         if Length(APlainText) > 0 then
           Move(APlainText[Low(APlainText)], LPointer^, Length(APlainText) * SizeOf(WideChar));
         PWideChar(PWideChar(LPointer) + Length(APlainText))^ := #0;
-        GlobalUnlock(LHMem);
-        SetClipboardData(CF_UNICODETEXT, LHMem);
+        GlobalUnlock(LGlobalMemory);
+        SetClipboardData(CF_UNICODETEXT, LGlobalMemory);
       end;
     end;
   finally
@@ -145,7 +145,7 @@ end;
 class function TS4YHTMLClipboard.GetHTML(out AFragment: string): Boolean;
 var
   LCFHtml:    UINT;
-  LHMem:      HGLOBAL;
+  LGlobalMemory:      HGLOBAL;
   LPointer:       Pointer;
   LSize:      NativeUInt;
   LRaw:       RawByteString;
@@ -162,18 +162,18 @@ begin
   if not OpenClipboard(0) then
     Exit;
   try
-    LHMem := GetClipboardData(LCFHtml);
-    if LHMem = 0 then
+    LGlobalMemory := GetClipboardData(LCFHtml);
+    if LGlobalMemory = 0 then
       Exit;
-    LPointer := GlobalLock(LHMem);
+    LPointer := GlobalLock(LGlobalMemory);
     if LPointer = nil then
       Exit;
     try
-      LSize := GlobalSize(LHMem);
+      LSize := GlobalSize(LGlobalMemory);
       SetLength(LRaw, LSize);
       Move(LPointer^, LRaw[Low(LRaw)], LSize);
     finally
-      GlobalUnlock(LHMem);
+      GlobalUnlock(LGlobalMemory);
     end;
   finally
     CloseClipboard;
@@ -201,23 +201,23 @@ end;
 
 class procedure TS4YHTMLClipboard.SetHTML(const AFragment, APlainText: string);
 var
-  LSvc: IFMXClipboardService;
+  LClipboardService: IFMXClipboardService;
 begin
-  if TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, LSvc) then
-    LSvc.SetClipboard(AFragment);
+  if TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, LClipboardService) then
+    LClipboardService.SetClipboard(AFragment);
 end;
 
 class function TS4YHTMLClipboard.GetHTML(out AFragment: string): Boolean;
 var
-  LSvc: IFMXClipboardService;
+  LClipboardService: IFMXClipboardService;
   LV:   TValue;
   LS:   string;
 begin
   Result    := False;
   AFragment := '';
-  if not TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, LSvc) then
+  if not TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, LClipboardService) then
     Exit;
-  LV := LSvc.GetClipboard;
+  LV := LClipboardService.GetClipboard;
   if LV.IsEmpty then
     Exit;
   LS := LV.ToString;
@@ -230,13 +230,13 @@ end;
 
 class function TS4YHTMLClipboard.HasImage: Boolean;
 var
-  LSvc: IFMXClipboardService;
+  LClipboardService: IFMXClipboardService;
   LValue: TValue;
 begin
   Result := False;
-  if not TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, LSvc) then
+  if not TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, LClipboardService) then
     Exit;
-  LValue := LSvc.GetClipboard;
+  LValue := LClipboardService.GetClipboard;
   Result := not LValue.IsEmpty and not LValue.IsType<string>;
 end;
 
