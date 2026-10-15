@@ -332,7 +332,8 @@ Search highlights the match via the normal selection. Each successive `FindNext`
 | `Ctrl+Shift+Home/End` | Extend selection to start/end |
 | `Home` / `End` | Move to line start/end |
 | `Arrow keys` | Character/line navigation; up/down navigate table rows |
-| `Enter` | Insert paragraph break |
+| `Tab` / `Shift+Tab` | In a table: next / previous cell (`Tab` in the last cell appends a row). Elsewhere: normal focus change |
+| `Enter` | Insert paragraph break (inside a table cell: line break) |
 | `Shift+Enter` | Insert line break (`<br>`) |
 | `Backspace` / `Delete` | Delete character or selection |
 | `Ctrl+Backspace` | Delete word left |
@@ -373,9 +374,11 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 
 ## Known Limitations
 
-- **Tab key in tables**: FMX intercepts `Tab` at the form level before it reaches the control. Navigation between table cells with `Tab` / `Shift+Tab` is not available; use the arrow keys instead.
+- **Image paths**: `src` values are used as-is. A file path is loaded exactly as written: absolute paths work, while relative paths are resolved against the process working directory (often, but not always, the executable folder), **not** against the HTML document. `file://` URLs are not supported. Remote images (`http://`, `https://`) are loaded only when `AutoLoadRemoteImages` is enabled; `data:` URIs (base64 raster images and SVG) are supported. To resolve document-relative paths, supply the bitmap yourself in `OnLoadImage`.
+- **Tables**: `colspan` and `rowspan` are ignored on import, so merged cells lose their structure. Each cell is a single paragraph; `Enter` inserts a line break.
+- **IME**: input composition (CJK pre-edit text) is not supported, so the control is not usable with Chinese, Japanese or Korean input methods.
+- **Accessibility**: no VoiceOver / TalkBack support.
 - **CSS subset**: only the inline CSS properties listed above are supported. External stylesheets and CSS classes are ignored.
-- **Nested lists**: supported for import (indent levels preserved), but the generator emits each `<li>` wrapped in its own `<ul>`/`<ol>` rather than a true nested structure.
 - **RTF clipboard**: only plain text and HTML clipboard formats are supported. RTF is not read or written.
 - **macOS / iOS / Android clipboard**: CF_HTML is a Windows-only format. On other platforms the HTML fragment is placed on the clipboard as plain text; round-trip within the same editor instance works via `LooksLikeHTML` detection.
 
