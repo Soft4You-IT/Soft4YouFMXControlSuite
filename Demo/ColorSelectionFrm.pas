@@ -38,9 +38,9 @@ type
     function GetSelectedColor: TAlphaColor;
     procedure SetSelectedColor(const Value: TAlphaColor);
   public
-    constructor Create(AOwner: TComponent); override;
-
     class function Execute(var AColor: TAlphacolor): boolean;
+
+    constructor Create(AOwner: TComponent); override;
 
     property SelectedColor: TAlphaColor read GetSelectedColor write SetSelectedColor;
   end;

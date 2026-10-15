@@ -172,12 +172,19 @@ type
   // ===========================================================================
 
   TS4YUndoEntry = class
-    Doc: TS4YHTMLDocument;
-    CaretPos: TS4YDocPos;
-    SelStart: TS4YDocPos;
-    SelEnd: TS4YDocPos;
+  private
+    FCaretPos: TS4YDocPos;
+    FDoc: TS4YHTMLDocument;
+    FSelEnd: TS4YDocPos;
+    FSelStart: TS4YDocPos;
+  public
     constructor Create(ADoc: TS4YHTMLDocument; const ACaret, ASS, ASE: TS4YDocPos);
     destructor Destroy; override;
+
+    property CaretPos: TS4YDocPos read FCaretPos write FCaretPos;
+    property Doc: TS4YHTMLDocument read FDoc write FDoc;
+    property SelEnd: TS4YDocPos read FSelEnd write FSelEnd;
+    property SelStart: TS4YDocPos read FSelStart write FSelStart;
   end;
 
   // ===========================================================================
@@ -244,13 +251,13 @@ type
     procedure Assign(Source: TPersistent); override;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   published
-    property FillColor: TAlphaColor read FFillColor write SetFillColor;
-    property TextColor: TAlphaColor read FTextColor write SetTextColor;
+    property Bold: Boolean read FBold write SetBold;
     property BorderColor: TAlphaColor read FBorderColor write SetBorderColor;
     property BorderRadius: Single read FBorderRadius write SetBorderRadius;
+    property FillColor: TAlphaColor read FFillColor write SetFillColor;
     property HorizontalPadding: Single read FHorizontalPadding write SetHorizontalPadding;
+    property TextColor: TAlphaColor read FTextColor write SetTextColor;
     property VerticalPadding: Single read FVerticalPadding write SetVerticalPadding;
-    property Bold: Boolean read FBold write SetBold;
   end;
 
   // ===========================================================================
@@ -572,32 +579,34 @@ type
     property State: TS4YEditorState read GetState;
 
   published
+    property Align;
+    property Anchors;
+    property AutoLoadRemoteImages: Boolean read FAutoLoadRemoteImages write FAutoLoadRemoteImages default True;
     property BackgroundColor: TAlphaColor read FBackgroundColor write SetBackgroundColor default claWhite;
-    property FontColor: TAlphaColor read FFontColor write SetFontColor default claBlack;
     property Font: TFont read FFont write SetFont;
+    property FontColor: TAlphaColor read FFontColor write SetFontColor default claBlack;
+    property Height;
     property HTML: string read GetHTML write SetHTML;
     property Lang: string read FLang write FLang;
     property LineSpacing: Single read FLineSpacing write SetLineSpacing;
+    property Margins;
+    property Opacity;
+    property Padding;
     property ParagraphSpacing: Single read FParagraphSpacing write SetParagraphSpacing;
     property PlaceholderAppearance: TS4YPlaceholderAppearance read FPlaceholderAppearance write FPlaceholderAppearance;
     property PlaceholderPrefix: string read FPlaceholderPrefix write SetPlaceholderPrefix;
     property PlaceholderSuffix: string read FPlaceholderSuffix write SetPlaceholderSuffix;
+    property Position;
     property PrettyHTML: Boolean read FPrettyHTML write FPrettyHTML default False;
-    property AutoLoadRemoteImages: Boolean read FAutoLoadRemoteImages write FAutoLoadRemoteImages default True;
     property ReadOnly: Boolean read FReadOnly write SetReadOnly default False;
     property ShowBorder: Boolean read FShowBorder write FShowBorder default True;
-    property Title: string read FTitle write FTitle;
-    property Align;
-    property Anchors;
-    property Height;
-    property Margins;
-    property Opacity;
-    property Padding;
-    property Position;
     property Size;
+    property Title: string read FTitle write FTitle;
     property Visible;
     property Width;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
+    property OnClick;
+    property OnDblClick;
     property OnDrawListMarker: TS4YDrawListMarkerEvent read FOnDrawListMarker write FOnDrawListMarker;
     property OnDrawPlaceholder: TS4YDrawPlaceholderEvent read FOnDrawPlaceholder write FOnDrawPlaceholder;
     property OnGetListMarker: TS4YGetListMarkerEvent read FOnGetListMarker write FOnGetListMarker;
@@ -605,10 +614,8 @@ type
     property OnLinkClick: TS4YLinkClickEvent read FOnLinkClick write FOnLinkClick;
     property OnLinkHover: TS4YLinkHoverEvent read FOnLinkHover write FOnLinkHover;
     property OnLoadImage: TS4YLoadImageEvent read FOnLoadImage write FOnLoadImage;
-    property OnStateChange: TS4YEditorStateEvent read FOnStateChange write FOnStateChange;
     property OnResize;
-    property OnClick;
-    property OnDblClick;
+    property OnStateChange: TS4YEditorStateEvent read FOnStateChange write FOnStateChange;
   end;
 
 implementation
@@ -637,15 +644,15 @@ end;
 constructor TS4YUndoEntry.Create(ADoc: TS4YHTMLDocument; const ACaret, ASS, ASE: TS4YDocPos);
 begin
   inherited Create;
-  Doc := ADoc;
-  CaretPos := ACaret;
-  SelStart := ASS;
-  SelEnd := ASE;
+  FDoc := ADoc;
+  FCaretPos := ACaret;
+  FSelStart := ASS;
+  FSelEnd := ASE;
 end;
 
 destructor TS4YUndoEntry.Destroy;
 begin
-  Doc.Free;
+  FDoc.Free;
   inherited;
 end;
 
