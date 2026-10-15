@@ -30,14 +30,14 @@ type
   TS4YHTMLGenerator = class
   private
     FPretty: Boolean;
-    FPlaceholderStyle: TS4YPlaceholderGenStyle;
+    FPlaceholderStyle: TS4YPlaceholderGeneratorStyle;
     function HtmlEncode(const AText: string): string;
     function ColorToHex(AColor: TAlphaColor): string;
     function StyleDiff(const ACurrentStyle, ABaseStyle: TS4YHTMLTextStyle): string;
   public
     function Generate(ADocument: TS4YHTMLDocument): string;
 
-    property PlaceholderStyle: TS4YPlaceholderGenStyle read FPlaceholderStyle write FPlaceholderStyle;
+    property PlaceholderStyle: TS4YPlaceholderGeneratorStyle read FPlaceholderStyle write FPlaceholderStyle;
     property Pretty: Boolean read FPretty write FPretty;
   end;
 

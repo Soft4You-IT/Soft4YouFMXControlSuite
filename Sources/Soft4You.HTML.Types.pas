@@ -75,7 +75,7 @@ type
   // Placeholder generation style (passed from TS4YHTMLEditor to TS4YHTMLGenerator)
   // ===========================================================================
 
-  TS4YPlaceholderGenStyle = record
+  TS4YPlaceholderGeneratorStyle = record
     FillColor: TAlphaColor;
     TextColor: TAlphaColor;
     BorderColor: TAlphaColor;
@@ -90,21 +90,21 @@ type
   // Caret position  (paragraph / run / char index)
   // ===========================================================================
 
-  TS4YDocPos = record
+  TS4YDocumentPosition = record
     ParagraphIndex: Integer; // -1 = invalid
     RunIndex: Integer;
     CharIndex: Integer; // 0 = before first char of run
-    class function Invalid: TS4YDocPos; static; inline;
-    class function At(AParagraphIndex, ARunIndex, ACharIndex: Integer): TS4YDocPos; static; inline;
+    class function Invalid: TS4YDocumentPosition; static; inline;
+    class function At(AParagraphIndex, ARunIndex, ACharIndex: Integer): TS4YDocumentPosition; static; inline;
     function IsValid: Boolean; inline;
-    function Equals(const AOther: TS4YDocPos): Boolean; inline;
+    function Equals(const AOther: TS4YDocumentPosition): Boolean; inline;
   end;
 
   // ===========================================================================
   // Layout types  (produced by TS4YLayoutEngine)
   // ===========================================================================
 
-  TS4YLayoutFrag = record
+  TS4YLayoutFragment = record
     ParagraphIndex: Integer;
     RunIndex: Integer;
     CharStart: Integer; // inclusive, within Run.Text
@@ -218,10 +218,10 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// TS4YPlaceholderGenStyle
+// TS4YPlaceholderGeneratorStyle
 // -----------------------------------------------------------------------------
 
-procedure TS4YPlaceholderGenStyle.Init;
+procedure TS4YPlaceholderGeneratorStyle.Init;
 begin
   FillColor := claNull;
   TextColor := claNull;
@@ -261,29 +261,29 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// TS4YDocPos
+// TS4YDocumentPosition
 // -----------------------------------------------------------------------------
 
-class function TS4YDocPos.Invalid: TS4YDocPos;
+class function TS4YDocumentPosition.Invalid: TS4YDocumentPosition;
 begin
   Result.ParagraphIndex := -1;
   Result.RunIndex := 0;
   Result.CharIndex := 0;
 end;
 
-class function TS4YDocPos.At(AParagraphIndex, ARunIndex, ACharIndex: Integer): TS4YDocPos;
+class function TS4YDocumentPosition.At(AParagraphIndex, ARunIndex, ACharIndex: Integer): TS4YDocumentPosition;
 begin
   Result.ParagraphIndex := AParagraphIndex;
   Result.RunIndex := ARunIndex;
   Result.CharIndex := ACharIndex;
 end;
 
-function TS4YDocPos.IsValid: Boolean;
+function TS4YDocumentPosition.IsValid: Boolean;
 begin
   Result := ParagraphIndex >= 0;
 end;
 
-function TS4YDocPos.Equals(const AOther: TS4YDocPos): Boolean;
+function TS4YDocumentPosition.Equals(const AOther: TS4YDocumentPosition): Boolean;
 begin
   Result := (ParagraphIndex = AOther.ParagraphIndex) and (RunIndex = AOther.RunIndex) and (CharIndex = AOther.CharIndex);
 end;

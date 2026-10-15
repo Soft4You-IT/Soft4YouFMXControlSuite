@@ -43,7 +43,7 @@ Original author: **Carlo Marona (Soft4You)** — project started in 2026.
 | Layer | Class | Unit |
 |---|---|---|
 | Document model | `TS4YHTMLDocument` / `TS4YHTMLParagraph` / `TS4YHTMLRun` | `Soft4You.HTML.Document` |
-| Types & styles | `TS4YHTMLTextStyle`, `TS4YHTMLBlockType`, `TS4YDocPos`, `TS4YLayoutFrag` | `Soft4You.HTML.Types` |
+| Types & styles | `TS4YHTMLTextStyle`, `TS4YHTMLBlockType`, `TS4YDocumentPosition`, `TS4YLayoutFragment` | `Soft4You.HTML.Types` |
 | HTML parser | `TS4YHTMLParser` | `Soft4You.HTML.Parser` |
 | HTML generator | `TS4YHTMLGenerator` | `Soft4You.HTML.Generator` |
 | Layout engine | `TS4YLayoutEngine` | `Soft4You.FMX.Controls.HTMLEditor` |
@@ -265,7 +265,7 @@ end;
 | Method | Description |
 |---|---|
 | `ScrollToParagraph(Index)` | Scroll the document so that paragraph at `Index` is visible at the top |
-| `ScrollToDocumentPosition(Pos)` | Scroll to make a specific `TS4YDocPos` position visible |
+| `ScrollToDocumentPosition(Pos)` | Scroll to make a specific `TS4YDocumentPosition` position visible |
 
 ### Document info
 

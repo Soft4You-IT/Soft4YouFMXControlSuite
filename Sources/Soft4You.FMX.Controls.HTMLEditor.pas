@@ -146,16 +146,16 @@ type
     function EffectiveSize(ATextStyle: TS4YHTMLTextStyle): Single;
     function HeadingSize(ABlockType: TS4YHTMLBlockType): Single;
     procedure LayoutParagraph(AParagraph: TS4YHTMLParagraph; AParagraphIndex: Integer; AAvailableWidth, AStartY: Single;
-      var ALines: TArray<TS4YLayoutLine>; var AFragments: TArray<TS4YLayoutFrag>; var AY: Single);
+      var ALines: TArray<TS4YLayoutLine>; var AFragments: TArray<TS4YLayoutFragment>; var AY: Single);
     procedure LayoutTable(ADocument: TS4YHTMLDocument; AFirstParagraphIndex: Integer; AAvailableWidth: Single;
-      var ALines: TArray<TS4YLayoutLine>; var AFragments: TArray<TS4YLayoutFrag>; var AY: Single;
+      var ALines: TArray<TS4YLayoutLine>; var AFragments: TArray<TS4YLayoutFragment>; var AY: Single;
       out ANextParagraphIndex: Integer);
   public
     constructor Create;
     destructor Destroy; override;
     procedure ClearMeasureCache;
     procedure DoLayout(ADocument: TS4YHTMLDocument; AAvailableWidth: Single; out ALines: TArray<TS4YLayoutLine>;
-      out AFragments: TArray<TS4YLayoutFrag>; out ATotalHeight: Single);
+      out AFragments: TArray<TS4YLayoutFragment>; out ATotalHeight: Single);
     function MeasureCharOffset(const AText: string; ACharIndex: Integer; ATextStyle: TS4YHTMLTextStyle): Single;
     function CharAtX(const AText: string; AX: Single; ATextStyle: TS4YHTMLTextStyle): Integer;
     property LineSpacing: Single read FLineSpacing write FLineSpacing;
@@ -173,18 +173,18 @@ type
 
   TS4YUndoEntry = class
   private
-    FCaretPosition: TS4YDocPos;
+    FCaretPosition: TS4YDocumentPosition;
     FDocument: TS4YHTMLDocument;
-    FSelectionEnd: TS4YDocPos;
-    FSelectionStart: TS4YDocPos;
+    FSelectionEnd: TS4YDocumentPosition;
+    FSelectionStart: TS4YDocumentPosition;
   public
-    constructor Create(ADocument: TS4YHTMLDocument; const ACaret, ASS, ASE: TS4YDocPos);
+    constructor Create(ADocument: TS4YHTMLDocument; const ACaret, ASelectionStart, ASelectionEnd: TS4YDocumentPosition);
     destructor Destroy; override;
 
-    property CaretPosition: TS4YDocPos read FCaretPosition write FCaretPosition;
+    property CaretPosition: TS4YDocumentPosition read FCaretPosition write FCaretPosition;
     property Document: TS4YHTMLDocument read FDocument write FDocument;
-    property SelEnd: TS4YDocPos read FSelectionEnd write FSelectionEnd;
-    property SelStart: TS4YDocPos read FSelectionStart write FSelectionStart;
+    property SelEnd: TS4YDocumentPosition read FSelectionEnd write FSelectionEnd;
+    property SelStart: TS4YDocumentPosition read FSelectionStart write FSelectionStart;
   end;
 
   // ===========================================================================
@@ -269,7 +269,7 @@ type
     FDocument: TS4YHTMLDocument;
     FLayoutEngine: TS4YLayoutEngine;
     FLines: TArray<TS4YLayoutLine>;
-    FFrags: TArray<TS4YLayoutFrag>;
+    FFrags: TArray<TS4YLayoutFragment>;
     FTotalHeight: Single;
     FScrollY: Single;
     // Scrollbar - created at runtime only (not at design-time)
@@ -277,9 +277,9 @@ type
     FScrollBarMaximum: Single; // max scroll offset = ContentH - ViewH
     FScrollBarVisible: Boolean; // whether the scrollbar is currently visible
     FSyncing: Boolean; // guard: avoid OnScrollChange loop
-    FCaretPosition: TS4YDocPos;
-    FSelectionStart: TS4YDocPos;
-    FSelectionEnd: TS4YDocPos;
+    FCaretPosition: TS4YDocumentPosition;
+    FSelectionStart: TS4YDocumentPosition;
+    FSelectionEnd: TS4YDocumentPosition;
     FHasSelection: Boolean;
     FCaretOn: Boolean; // visible blink state
     FCaretTimer: TTimer;
@@ -291,7 +291,7 @@ type
     FCaretScreenY: Single;
     FCaretScreenH: Single;
     FDragging: Boolean;
-    FMouseDownPosition: TS4YDocPos;
+    FMouseDownPosition: TS4YDocumentPosition;
     FClickSeq: Integer; // consecutive click count (1=single, 2=double, 3=triple)
     FLastClickTime: TDateTime; // time of last click for triple-click detection
     FLastClickPt: TPointF; // position of last click
@@ -338,8 +338,8 @@ type
 
     // Painting helpers
     procedure PaintHorizontalRule(ACanvas: TCanvas; AY, AWidth, AX: Single; AParagraph: TS4YHTMLParagraph);
-    procedure PaintImage(ACanvas: TCanvas; const AFragment: TS4YLayoutFrag; AParagraph: TS4YHTMLParagraph);
-    procedure PaintImageRun(ACanvas: TCanvas; const AFragment: TS4YLayoutFrag; ARun: TS4YHTMLRun);
+    procedure PaintImage(ACanvas: TCanvas; const AFragment: TS4YLayoutFragment; AParagraph: TS4YHTMLParagraph);
+    procedure PaintImageRun(ACanvas: TCanvas; const AFragment: TS4YLayoutFragment; ARun: TS4YHTMLRun);
     procedure PaintSelection(ACanvas: TCanvas);
     procedure PaintTableCellBorders(ACanvas: TCanvas);
 
@@ -357,28 +357,28 @@ type
     procedure PrepareImageDimensions;
 
     // Position helpers (run-structure-independent)
-    function DocumentPositionToAbsChar(const APosition: TS4YDocPos): Integer;
-    function AbsCharToDocumentPosition(AParagraphIndex, AAbsChar: Integer; PreferRight: Boolean = False): TS4YDocPos;
+    function DocumentPositionToAbsChar(const APosition: TS4YDocumentPosition): Integer;
+    function AbsCharToDocumentPosition(AParagraphIndex, AAbsChar: Integer; PreferRight: Boolean = False): TS4YDocumentPosition;
 
     // Caret & navigation
     procedure UpdateCaretXY;
-    function HitTest(AX, AY: Single): TS4YDocPos;
+    function HitTest(AX, AY: Single): TS4YDocumentPosition;
     function LinkURLAt(AX, AY: Single): string;
-    function LinkTextForURL(const APosition: TS4YDocPos; const AURL: string): string;
-    function DocumentPositionToXY(const APosition: TS4YDocPos; out AX, AY, AHeight: Single): Boolean;
+    function LinkTextForURL(const APosition: TS4YDocumentPosition; const AURL: string): string;
+    function DocumentPositionToXY(const APosition: TS4YDocumentPosition; out AX, AY, AHeight: Single): Boolean;
     function FragmentIndexAt(AParagraphIndex, ARunIndex, ACharIndex: Integer): Integer;
-    function NextDocumentPosition(const APosition: TS4YDocPos): TS4YDocPos;
-    function PreviousDocumentPosition(const APosition: TS4YDocPos): TS4YDocPos;
-    function LineAbove(const APosition: TS4YDocPos): TS4YDocPos;
-    function LineBelow(const APosition: TS4YDocPos): TS4YDocPos;
-    function LineStart(const APosition: TS4YDocPos): TS4YDocPos;
-    function LineEnd(const APosition: TS4YDocPos): TS4YDocPos;
-    function DocumentStart: TS4YDocPos;
-    function DocumentEnd: TS4YDocPos;
-    function WordRight(const APosition: TS4YDocPos): TS4YDocPos;
-    function WordLeft(const APosition: TS4YDocPos): TS4YDocPos;
-    function PositionCompare(const ALeft, ARight: TS4YDocPos): Integer;
-    procedure GetSelectionRange(out AStartPosition, AEndPosition: TS4YDocPos);
+    function NextDocumentPosition(const APosition: TS4YDocumentPosition): TS4YDocumentPosition;
+    function PreviousDocumentPosition(const APosition: TS4YDocumentPosition): TS4YDocumentPosition;
+    function LineAbove(const APosition: TS4YDocumentPosition): TS4YDocumentPosition;
+    function LineBelow(const APosition: TS4YDocumentPosition): TS4YDocumentPosition;
+    function LineStart(const APosition: TS4YDocumentPosition): TS4YDocumentPosition;
+    function LineEnd(const APosition: TS4YDocumentPosition): TS4YDocumentPosition;
+    function DocumentStart: TS4YDocumentPosition;
+    function DocumentEnd: TS4YDocumentPosition;
+    function WordRight(const APosition: TS4YDocumentPosition): TS4YDocumentPosition;
+    function WordLeft(const APosition: TS4YDocumentPosition): TS4YDocumentPosition;
+    function PositionCompare(const ALeft, ARight: TS4YDocumentPosition): Integer;
+    procedure GetSelectionRange(out AStartPosition, AEndPosition: TS4YDocumentPosition);
     procedure GetListBlockRange(out AFirst, ALast: Integer);
     procedure RenumberListBlock(AFirst, ALast: Integer);
 
@@ -398,7 +398,7 @@ type
 
     // Search helpers
     function ParagraphSearchText(AParagraphIndex: Integer): string;
-    procedure SelectRange(const AStart, AEnd: TS4YDocPos);
+    procedure SelectRange(const AStart, AEnd: TS4YDocumentPosition);
 
     // Style helpers
     procedure ApplyFormatToSelection(ABold, AItalic, AUnderline, AStrikeOut, ASuperscript, ASubscript: Integer; // -1=no DoChange, 0=off, 1=on
@@ -438,12 +438,12 @@ type
     procedure RebuildPlaceholderList;
     function GetPlaceholderLabel(const ARawText: string): string;
     function GetCurrentRun: TS4YHTMLRun;
-    procedure PaintPlaceholderFragment(ACanvas: TCanvas; const AFragment: TS4YLayoutFrag);
+    procedure PaintPlaceholderFragment(ACanvas: TCanvas; const AFragment: TS4YLayoutFragment);
 
     // Word / line selection
-    function CharAtPosition(const APosition: TS4YDocPos): Char;
-    procedure SelectWordAt(const APosition: TS4YDocPos);
-    procedure SelectParagraphAt(const APosition: TS4YDocPos);
+    function CharAtPosition(const APosition: TS4YDocumentPosition): Char;
+    procedure SelectWordAt(const APosition: TS4YDocumentPosition);
+    procedure SelectParagraphAt(const APosition: TS4YDocumentPosition);
 
     // Context menu
     procedure BuildContextMenu;
@@ -470,7 +470,7 @@ type
     procedure PaintBackground(ACanvas: TCanvas);
     procedure PaintBorder(ACanvas: TCanvas);
     procedure PaintCaret(ACanvas: TCanvas);
-    procedure PaintFragment(ACanvas: TCanvas; const AFragment: TS4YLayoutFrag);
+    procedure PaintFragment(ACanvas: TCanvas; const AFragment: TS4YLayoutFragment);
 
     // State & style
     function GetState: TS4YEditorState;
@@ -479,7 +479,7 @@ type
     // Editing support
     procedure EnsureCaretVisible;
     procedure SaveUndo;
-    procedure SetCaretPosition(const APosition: TS4YDocPos; ExtendSel: Boolean);
+    procedure SetCaretPosition(const APosition: TS4YDocumentPosition; ExtendSel: Boolean);
 
     // Table navigation
     function DoTableTab(AShift: TShiftState): Boolean;
@@ -556,7 +556,7 @@ type
 
     // -- Navigation ---------------------------------------------------------
     procedure ScrollToParagraph(AIndex: Integer);
-    procedure ScrollToDocumentPosition(const APosition: TS4YDocPos);
+    procedure ScrollToDocumentPosition(const APosition: TS4YDocumentPosition);
 
     // -- Document info -------------------------------------------------------
     function CharCount: Integer;
@@ -641,13 +641,13 @@ end;
 // TS4YUndoEntry
 // -----------------------------------------------------------------------------
 
-constructor TS4YUndoEntry.Create(ADocument: TS4YHTMLDocument; const ACaret, ASS, ASE: TS4YDocPos);
+constructor TS4YUndoEntry.Create(ADocument: TS4YHTMLDocument; const ACaret, ASelectionStart, ASelectionEnd: TS4YDocumentPosition);
 begin
   inherited Create;
   FDocument := ADocument;
   FCaretPosition := ACaret;
-  FSelectionStart := ASS;
-  FSelectionEnd := ASE;
+  FSelectionStart := ASelectionStart;
+  FSelectionEnd := ASelectionEnd;
 end;
 
 destructor TS4YUndoEntry.Destroy;
@@ -875,17 +875,17 @@ end;
 
 function TS4YLayoutEngine.MeasureCharOffset(const AText: string; ACharIndex: Integer; ATextStyle: TS4YHTMLTextStyle): Single;
 var
-  LSub: string;
+  LSubstring: string;
 begin
   if (ACharIndex <= 0) or (AText = '') then
     Exit(0);
-  LSub := AText.Substring(0, Min(ACharIndex, AText.Length));
-  Result := MeasureStr(LSub, ATextStyle).Width;
+  LSubstring := AText.Substring(0, Min(ACharIndex, AText.Length));
+  Result := MeasureStr(LSubstring, ATextStyle).Width;
 end;
 
 function TS4YLayoutEngine.CharAtX(const AText: string; AX: Single; ATextStyle: TS4YHTMLTextStyle): Integer;
 var
-  LLow, LHigh, LMid: Integer;
+  LLow, LHigh, LMiddle: Integer;
   LWidth: Single;
   LWidth0: Single;
   LWidth1: Single;
@@ -898,12 +898,12 @@ begin
   LHigh := AText.Length;
   while LLow < LHigh do
   begin
-    LMid := (LLow + LHigh + 1) div 2;
-    LWidth := MeasureStr(AText.Substring(0, LMid), ATextStyle).Width;
+    LMiddle := (LLow + LHigh + 1) div 2;
+    LWidth := MeasureStr(AText.Substring(0, LMiddle), ATextStyle).Width;
     if LWidth <= AX then
-      LLow := LMid
+      LLow := LMiddle
     else
-      LHigh := LMid - 1;
+      LHigh := LMiddle - 1;
   end;
   // Snap to nearer side
   if LLow < AText.Length then
@@ -917,13 +917,13 @@ begin
 end;
 
 procedure TS4YLayoutEngine.LayoutParagraph(AParagraph: TS4YHTMLParagraph; AParagraphIndex: Integer; AAvailableWidth, AStartY: Single;
-  var ALines: TArray<TS4YLayoutLine>; var AFragments: TArray<TS4YLayoutFrag>; var AY: Single);
+  var ALines: TArray<TS4YLayoutLine>; var AFragments: TArray<TS4YLayoutFragment>; var AY: Single);
 
-  procedure FlushLine(var ALineFrags: TArray<TS4YLayoutFrag>; ALineW, ALineH, ALineAsc: Single;
+  procedure FlushLine(var ALineFrags: TArray<TS4YLayoutFragment>; ALineW, ALineH, ALineAsc: Single;
     IsFirst, IsLast: Boolean);
   var
     LLine: TS4YLayoutLine;
-    LFragment: TS4YLayoutFrag;
+    LFragment: TS4YLayoutFragment;
     LXOffset: Single;
     LExtraX: Single;
     LIndentX: Single;
@@ -1012,25 +1012,25 @@ var
   LTextStyle: TS4YHTMLTextStyle;
   LWord, LRest: string;
   LWSize: TSizeF;
-  LLineFrags: TArray<TS4YLayoutFrag>;
+  LLineFrags: TArray<TS4YLayoutFragment>;
   LLineW: Single;
   LLineH: Single;
   LLineAsc: Single;
   LIsFirstLine: Boolean;
-  LFragment: TS4YLayoutFrag;
+  LFragment: TS4YLayoutFragment;
   LSeparatorIndex: Integer;
   LEffAvail: Single;
-  LHF: TS4YLayoutFrag;
+  LHF: TS4YLayoutFragment;
   LHLn: TS4YLayoutLine;
   LES: TS4YHTMLTextStyle;
   LEH: Single;
-  LEF: TS4YLayoutFrag;
+  LEmptyFragment: TS4YLayoutFragment;
   LHS: Single;
   LBH: Single;
   LLastRI2: Integer;
   LES2: TS4YHTMLTextStyle;
   LEH2: Single;
-  LEF3: TS4YLayoutFrag;
+  LEmptyFragment3: TS4YLayoutFragment;
   LLabelText: string;
   LPhTS: TS4YHTMLTextStyle;
   LTSize: TSizeF;
@@ -1051,7 +1051,7 @@ begin
 
   if AParagraph.BlockType = btHR then
   begin
-    LHF := Default(TS4YLayoutFrag);
+    LHF := Default(TS4YLayoutFragment);
     LHF.ParagraphIndex := AParagraphIndex;
     LHF.RunIndex := -1;
     LHF.CharStart := 0;
@@ -1096,7 +1096,7 @@ begin
     else
       LImageX := LIndentX;
     end;
-    LHF := Default(TS4YLayoutFrag);
+    LHF := Default(TS4YLayoutFragment);
     LHF.ParagraphIndex := AParagraphIndex;
     LHF.RunIndex := -1;
     LHF.CharStart := 0;
@@ -1138,19 +1138,19 @@ begin
   begin
     LES.Init;
     LEH := MeasureStr(' ', LES).Height;
-    LEF := Default(TS4YLayoutFrag);
-    LEF.ParagraphIndex := AParagraphIndex;
-    LEF.RunIndex := 0;
-    LEF.CharStart := 0;
-    LEF.CharEnd := 0;
-    LEF.X := LIndentX;
-    LEF.Y := AY;
-    LEF.W := 0;
-    LEF.H := LEH;
-    LEF.Ascent := LEH * 0.75;
-    LEF.LineIndex := Length(ALines);
+    LEmptyFragment := Default(TS4YLayoutFragment);
+    LEmptyFragment.ParagraphIndex := AParagraphIndex;
+    LEmptyFragment.RunIndex := 0;
+    LEmptyFragment.CharStart := 0;
+    LEmptyFragment.CharEnd := 0;
+    LEmptyFragment.X := LIndentX;
+    LEmptyFragment.Y := AY;
+    LEmptyFragment.W := 0;
+    LEmptyFragment.H := LEH;
+    LEmptyFragment.Ascent := LEH * 0.75;
+    LEmptyFragment.LineIndex := Length(ALines);
     SetLength(LLineFrags, 1);
-    LLineFrags[0] := LEF;
+    LLineFrags[0] := LEmptyFragment;
     FlushLine(LLineFrags, 0, LEH, LEH * 0.75, True, True);
     Exit;
   end;
@@ -1205,7 +1205,7 @@ begin
         LLineH := 0;
         LLineAsc := 0;
       end;
-      LFragment := Default(TS4YLayoutFrag);
+      LFragment := Default(TS4YLayoutFragment);
       LFragment.ParagraphIndex := AParagraphIndex;
       LFragment.RunIndex := LRunIndex;
       LFragment.CharStart := 0;
@@ -1239,7 +1239,7 @@ begin
         LLineH := 0;
         LLineAsc := 0;
       end;
-      LFragment := Default(TS4YLayoutFrag);
+      LFragment := Default(TS4YLayoutFragment);
       LFragment.ParagraphIndex := AParagraphIndex;
       LFragment.RunIndex := LRunIndex;
       LFragment.CharStart := 0;
@@ -1322,51 +1322,51 @@ begin
     if AParagraph.Runs.Count > 0 then
       LES2 := AParagraph.Runs[LLastRI2].Style;
     LEH2 := MeasureStr(' ', LES2).Height;
-    LEF3 := Default(TS4YLayoutFrag);
-    LEF3.ParagraphIndex := AParagraphIndex;
-    LEF3.RunIndex := LLastRI2;
-    LEF3.CharStart := 0;
-    LEF3.CharEnd := 0;
-    LEF3.X := LIndentX;
-    LEF3.Y := AY;
-    LEF3.W := 0;
-    LEF3.H := LEH2;
-    LEF3.Ascent := LEH2 * 0.75;
+    LEmptyFragment3 := Default(TS4YLayoutFragment);
+    LEmptyFragment3.ParagraphIndex := AParagraphIndex;
+    LEmptyFragment3.RunIndex := LLastRI2;
+    LEmptyFragment3.CharStart := 0;
+    LEmptyFragment3.CharEnd := 0;
+    LEmptyFragment3.X := LIndentX;
+    LEmptyFragment3.Y := AY;
+    LEmptyFragment3.W := 0;
+    LEmptyFragment3.H := LEH2;
+    LEmptyFragment3.Ascent := LEH2 * 0.75;
     SetLength(LLineFrags, 1);
-    LLineFrags[0] := LEF3;
+    LLineFrags[0] := LEmptyFragment3;
     FlushLine(LLineFrags, 0, LEH2, LEH2 * 0.75, LIsFirstLine, True);
   end;
 end;
 
 procedure TS4YLayoutEngine.LayoutTable(ADocument: TS4YHTMLDocument; AFirstParagraphIndex: Integer;
-  AAvailableWidth: Single; var ALines: TArray<TS4YLayoutLine>; var AFragments: TArray<TS4YLayoutFrag>;
+  AAvailableWidth: Single; var ALines: TArray<TS4YLayoutLine>; var AFragments: TArray<TS4YLayoutFragment>;
   var AY: Single; out ANextParagraphIndex: Integer);
 var
   LTableID: Integer;
   LCols: Integer;
   LLastPI: Integer;
   LMaximumRow: Integer;
-  LPI: Integer;
+  LParagraphIndex: Integer;
   LParagraph: TS4YHTMLParagraph;
   LCellW: Single;
   LCellPad: Single;
   LRow: Integer;
   LCol: Integer;
-  LCellPI: Integer;
+  LCellParagraphIndex: Integer;
   LRowStartY: Single;
   LRowH: Single;
   LCellLocalLines: array of TArray<TS4YLayoutLine>;
-  LCellLocalFrags: array of TArray<TS4YLayoutFrag>;
+  LCellLocalFrags: array of TArray<TS4YLayoutFragment>;
   LCellHeights: array of Single;
   LLocalLines: TArray<TS4YLayoutLine>;
-  LLocalFrags: TArray<TS4YLayoutFrag>;
+  LLocalFrags: TArray<TS4YLayoutFragment>;
   LLocalY: Single;
   LGlobalFragmentOffset: Integer;
   LGlobalLineOffset: Integer;
   LXOffset: Single;
   LYOffset: Single;
   LLine: TS4YLayoutLine;
-  LFragment: TS4YLayoutFrag;
+  LFragment: TS4YLayoutFragment;
   LIndex: integer;
 begin
   LTableID := ADocument.Paragraphs[AFirstParagraphIndex].TableID;
@@ -1379,18 +1379,18 @@ begin
   // Find last para index of this table and max row
   LLastPI := AFirstParagraphIndex;
   LMaximumRow := 0;
-  LPI := AFirstParagraphIndex;
-  while LPI < ADocument.Paragraphs.Count do
+  LParagraphIndex := AFirstParagraphIndex;
+  while LParagraphIndex < ADocument.Paragraphs.Count do
   begin
-    LParagraph := ADocument.Paragraphs[LPI];
+    LParagraph := ADocument.Paragraphs[LParagraphIndex];
     if (LParagraph.BlockType <> btTableCell) or (LParagraph.TableID <> LTableID) then
-      LPI := ADocument.Paragraphs.Count // exit condition
+      LParagraphIndex := ADocument.Paragraphs.Count // exit condition
     else
     begin
-      LLastPI := LPI;
+      LLastPI := LParagraphIndex;
       if LParagraph.TableRow > LMaximumRow then
         LMaximumRow := LParagraph.TableRow;
-      Inc(LPI);
+      Inc(LParagraphIndex);
     end;
   end;
 
@@ -1412,22 +1412,22 @@ begin
       LCellLocalFrags[LCol] := nil;
       LCellHeights[LCol] := 0;
       // Find the para for (LRow, LCol)
-      LCellPI := -1;
-      LPI := AFirstParagraphIndex;
-      while (LPI <= LLastPI) and (LCellPI < 0) do
+      LCellParagraphIndex := -1;
+      LParagraphIndex := AFirstParagraphIndex;
+      while (LParagraphIndex <= LLastPI) and (LCellParagraphIndex < 0) do
       begin
-        LParagraph := ADocument.Paragraphs[LPI];
+        LParagraph := ADocument.Paragraphs[LParagraphIndex];
         if (LParagraph.TableID = LTableID) and (LParagraph.TableRow = LRow) and (LParagraph.TableCol = LCol) then
-          LCellPI := LPI
+          LCellParagraphIndex := LParagraphIndex
         else
-          Inc(LPI);
+          Inc(LParagraphIndex);
       end;
-      if LCellPI >= 0 then
+      if LCellParagraphIndex >= 0 then
       begin
         LLocalLines := nil;
         LLocalFrags := nil;
         LLocalY := 0;
-        LayoutParagraph(ADocument.Paragraphs[LCellPI], LCellPI,
+        LayoutParagraph(ADocument.Paragraphs[LCellParagraphIndex], LCellParagraphIndex,
           LCellW - 2 * LCellPad, 0, LLocalLines, LLocalFrags, LLocalY);
         LCellLocalLines[LCol] := LLocalLines;
         LCellLocalFrags[LCol] := LLocalFrags;
@@ -1483,7 +1483,7 @@ begin
 end;
 
 procedure TS4YLayoutEngine.DoLayout(ADocument: TS4YHTMLDocument; AAvailableWidth: Single; out ALines: TArray<TS4YLayoutLine>;
-  out AFragments: TArray<TS4YLayoutFrag>; out ATotalHeight: Single);
+  out AFragments: TArray<TS4YLayoutFragment>; out ATotalHeight: Single);
 var
   LYPosition: Single;
   LParagraph: TS4YHTMLParagraph;
@@ -1542,9 +1542,9 @@ begin
   FBackgroundColor := claWhite;
   FFontColor := claBlack;
   FShowBorder := True;
-  FCaretPosition := TS4YDocPos.Invalid;
-  FSelectionStart := TS4YDocPos.Invalid;
-  FSelectionEnd := TS4YDocPos.Invalid;
+  FCaretPosition := TS4YDocumentPosition.Invalid;
+  FSelectionStart := TS4YDocumentPosition.Invalid;
+  FSelectionEnd := TS4YDocumentPosition.Invalid;
   FInsertStyle.Init;
 
   // Default font - exposed as a published property so the developer can
@@ -1592,7 +1592,7 @@ begin
   LParagraph := TS4YHTMLParagraph.Create;
   LParagraph.BlockType := btBodyText;
   FDocument.Paragraphs.Add(LParagraph);
-  FCaretPosition := TS4YDocPos.At(0, 0, 0);
+  FCaretPosition := TS4YDocumentPosition.At(0, 0, 0);
 
   Width := 400;
   Height := 300;
@@ -2263,7 +2263,7 @@ begin
   InvalidateRender;
 end;
 
-procedure TS4YHTMLEditor.PaintImage(ACanvas: TCanvas; const AFragment: TS4YLayoutFrag; AParagraph: TS4YHTMLParagraph);
+procedure TS4YHTMLEditor.PaintImage(ACanvas: TCanvas; const AFragment: TS4YLayoutFragment; AParagraph: TS4YHTMLParagraph);
 const
   C_IMG_PLACEHOLDER_BG = $FFD8D8D8;
   C_IMG_PLACEHOLDER_BORDER = $FFA0A0A0;
@@ -2271,9 +2271,9 @@ var
   LBitmap: TBitmap;
   LDestinationRectangle: TRectF;
   LSourceRectangle: TRectF;
-  LSelS: TS4YDocPos;
-  LSelE: TS4YDocPos;
-  LFPos: TS4YDocPos;
+  LSelectionStart: TS4YDocumentPosition;
+  LSelectionEnd: TS4YDocumentPosition;
+  LFragmentPosition: TS4YDocumentPosition;
 begin
   LDestinationRectangle := TRectF.Create(
     AFragment.X + ContentLeft, AFragment.Y + ContentTop,
@@ -2303,9 +2303,9 @@ begin
   end;
   if FHasSelection then
   begin
-    GetSelectionRange(LSelS, LSelE);
-    LFPos := TS4YDocPos.At(AFragment.ParagraphIndex, 0, 0);
-    if (PositionCompare(LSelS, LFPos) <= 0) and (PositionCompare(LSelE, LFPos) > 0) then
+    GetSelectionRange(LSelectionStart, LSelectionEnd);
+    LFragmentPosition := TS4YDocumentPosition.At(AFragment.ParagraphIndex, 0, 0);
+    if (PositionCompare(LSelectionStart, LFragmentPosition) <= 0) and (PositionCompare(LSelectionEnd, LFragmentPosition) > 0) then
     begin
       ACanvas.Fill.Kind := TBrushKind.Solid;
       ACanvas.Fill.Color := C_DEFAULT_SELECTION_COLOR;
@@ -2316,10 +2316,10 @@ end;
 
 procedure TS4YHTMLEditor.PaintSelection(ACanvas: TCanvas);
 var
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
-  LFragment: TS4YLayoutFrag;
-  LFStart: TS4YDocPos;
-  LFEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
+  LFragment: TS4YLayoutFragment;
+  LFStart: TS4YDocumentPosition;
+  LFEnd: TS4YDocumentPosition;
   LCS: Integer;
   LCE: Integer;
   LParagraph: TS4YHTMLParagraph;
@@ -2346,7 +2346,7 @@ begin
     LFragment := FFrags[I];
     if LFragment.IsHR then
     begin
-      LFStart := TS4YDocPos.At(LFragment.ParagraphIndex, 0, 0);
+      LFStart := TS4YDocumentPosition.At(LFragment.ParagraphIndex, 0, 0);
       if (PositionCompare(LSelectionStart, LFStart) <= 0) and (PositionCompare(LSelectionEnd, LFStart) > 0) then
       begin
         LX0 := ContentLeft + LFragment.X;
@@ -2357,8 +2357,8 @@ begin
     end
     else if (not LFragment.IsImage) and (not LFragment.IsPlaceholder) then
     begin
-      LFStart := TS4YDocPos.At(LFragment.ParagraphIndex, LFragment.RunIndex, LFragment.CharStart);
-      LFEnd := TS4YDocPos.At(LFragment.ParagraphIndex, LFragment.RunIndex, LFragment.CharEnd);
+      LFStart := TS4YDocumentPosition.At(LFragment.ParagraphIndex, LFragment.RunIndex, LFragment.CharStart);
+      LFEnd := TS4YDocumentPosition.At(LFragment.ParagraphIndex, LFragment.RunIndex, LFragment.CharEnd);
       if (PositionCompare(LFStart, LSelectionEnd) < 0) and (PositionCompare(LFEnd, LSelectionStart) > 0) then
       begin
         LCS := Max(LFragment.CharStart, IfThen((LFragment.ParagraphIndex = LSelectionStart.ParagraphIndex) and (LFragment.RunIndex = LSelectionStart.RunIndex), LSelectionStart.CharIndex,
@@ -2400,7 +2400,7 @@ begin
   end;
 end;
 
-procedure TS4YHTMLEditor.PaintImageRun(ACanvas: TCanvas; const AFragment: TS4YLayoutFrag; ARun: TS4YHTMLRun);
+procedure TS4YHTMLEditor.PaintImageRun(ACanvas: TCanvas; const AFragment: TS4YLayoutFragment; ARun: TS4YHTMLRun);
 const
   C_IMG_PLACEHOLDER_BG = $FFD8D8D8;
   C_IMG_PLACEHOLDER_BORDER = $FFA0A0A0;
@@ -2408,9 +2408,9 @@ var
   LBitmap: TBitmap;
   LDestinationRectangle: TRectF;
   LSourceRectangle: TRectF;
-  LSelS: TS4YDocPos;
-  LSelE: TS4YDocPos;
-  LFPos: TS4YDocPos;
+  LSelectionStart: TS4YDocumentPosition;
+  LSelectionEnd: TS4YDocumentPosition;
+  LFragmentPosition: TS4YDocumentPosition;
 begin
   LDestinationRectangle := TRectF.Create(
     AFragment.X + ContentLeft, AFragment.Y + ContentTop,
@@ -2440,9 +2440,9 @@ begin
   end;
   if FHasSelection then
   begin
-    GetSelectionRange(LSelS, LSelE);
-    LFPos := TS4YDocPos.At(AFragment.ParagraphIndex, AFragment.RunIndex, 0);
-    if (PositionCompare(LSelS, LFPos) <= 0) and (PositionCompare(LSelE, LFPos) > 0) then
+    GetSelectionRange(LSelectionStart, LSelectionEnd);
+    LFragmentPosition := TS4YDocumentPosition.At(AFragment.ParagraphIndex, AFragment.RunIndex, 0);
+    if (PositionCompare(LSelectionStart, LFragmentPosition) <= 0) and (PositionCompare(LSelectionEnd, LFragmentPosition) > 0) then
     begin
       ACanvas.Fill.Kind := TBrushKind.Solid;
       ACanvas.Fill.Color := C_DEFAULT_SELECTION_COLOR;
@@ -2451,7 +2451,7 @@ begin
   end;
 end;
 
-procedure TS4YHTMLEditor.PaintFragment(ACanvas: TCanvas; const AFragment: TS4YLayoutFrag);
+procedure TS4YHTMLEditor.PaintFragment(ACanvas: TCanvas; const AFragment: TS4YLayoutFragment);
 var
   LParagraph: TS4YHTMLParagraph;
   LRun: TS4YHTMLRun;
@@ -2551,7 +2551,7 @@ begin
   end;
 end;
 
-procedure TS4YHTMLEditor.PaintPlaceholderFragment(ACanvas: TCanvas; const AFragment: TS4YLayoutFrag);
+procedure TS4YHTMLEditor.PaintPlaceholderFragment(ACanvas: TCanvas; const AFragment: TS4YLayoutFragment);
 var
   LParagraph: TS4YHTMLParagraph;
   LRun: TS4YHTMLRun;
@@ -2562,9 +2562,9 @@ var
   LLayout: TTextLayout;
   LTextStyle: TS4YHTMLTextStyle;
   LCorners: TCorners;
-  LSelS: TS4YDocPos;
-  LSelE: TS4YDocPos;
-  LFPos: TS4YDocPos;
+  LSelectionStart: TS4YDocumentPosition;
+  LSelectionEnd: TS4YDocumentPosition;
+  LFragmentPosition: TS4YDocumentPosition;
   LIsCurrent: Boolean;
   LEffectiveFillColor: TAlphaColor;
   LBorderColor: TAlphaColor;
@@ -2645,9 +2645,9 @@ begin
   // Selection overlay
   if FHasSelection then
   begin
-    GetSelectionRange(LSelS, LSelE);
-    LFPos := TS4YDocPos.At(AFragment.ParagraphIndex, AFragment.RunIndex, 0);
-    if (PositionCompare(LSelS, LFPos) <= 0) and (PositionCompare(LSelE, LFPos) > 0) then
+    GetSelectionRange(LSelectionStart, LSelectionEnd);
+    LFragmentPosition := TS4YDocumentPosition.At(AFragment.ParagraphIndex, AFragment.RunIndex, 0);
+    if (PositionCompare(LSelectionStart, LFragmentPosition) <= 0) and (PositionCompare(LSelectionEnd, LFragmentPosition) > 0) then
     begin
       ACanvas.Fill.Kind := TBrushKind.Solid;
       ACanvas.Fill.Color := C_DEFAULT_SELECTION_COLOR;
@@ -2704,15 +2704,15 @@ begin
   end;
 end;
 
-function TS4YHTMLEditor.DocumentPositionToXY(const APosition: TS4YDocPos; out AX, AY, AHeight: Single): Boolean;
+function TS4YHTMLEditor.DocumentPositionToXY(const APosition: TS4YDocumentPosition; out AX, AY, AHeight: Single): Boolean;
 var
   LParagraph: TS4YHTMLParagraph;
-  LFragment: TS4YLayoutFrag;
+  LFragment: TS4YLayoutFragment;
   LTextStyle: TS4YHTMLTextStyle;
   LHS: Single;
   LOfs: Single;
   LLastFound: Boolean;
-  LFragment2: TS4YLayoutFrag;
+  LFragment2: TS4YLayoutFragment;
 begin
   Result := False;
   AX := ContentLeft;
@@ -2836,21 +2836,21 @@ begin
   InvalidateRender;
 end;
 
-function TS4YHTMLEditor.HitTest(AX, AY: Single): TS4YDocPos;
+function TS4YHTMLEditor.HitTest(AX, AY: Single): TS4YDocumentPosition;
 var
   DocX, DocY: Single;
   LBestLineY: Single;
   LLine: TS4YLayoutLine;
   LDistance, LDistanceX: Single;
-  LFragment: TS4YLayoutFrag;
-  LBestFragment: TS4YLayoutFrag;
+  LFragment: TS4YLayoutFragment;
+  LBestFragment: TS4YLayoutFragment;
   LBestFragmentIndex: Integer;
   LBestDist: Single;
   LPara2: TS4YHTMLParagraph;
   LRun2: TS4YHTMLRun;
   LTextStyle: TS4YHTMLTextStyle;
   LHS: Single;
-  LFragSub: string;
+  LFragmentSubstring: string;
   LCI: Integer;
   LClickedCellParagraphIndex: Integer;
 begin
@@ -2928,22 +2928,22 @@ begin
     if LBestFragment.IsImage and (LBestFragment.RunIndex >= 0) then
     begin
       if DocX - LBestFragment.X >= LBestFragment.W / 2 then
-        Result := TS4YDocPos.At(LBestFragment.ParagraphIndex, LBestFragment.RunIndex, 1)
+        Result := TS4YDocumentPosition.At(LBestFragment.ParagraphIndex, LBestFragment.RunIndex, 1)
       else
-        Result := TS4YDocPos.At(LBestFragment.ParagraphIndex, LBestFragment.RunIndex, 0);
+        Result := TS4YDocumentPosition.At(LBestFragment.ParagraphIndex, LBestFragment.RunIndex, 0);
     end
     else
     begin
       if (DocX - LBestFragment.X >= LBestFragment.W / 2) and (LBestFragment.ParagraphIndex + 1 < FDocument.Paragraphs.Count) then
-        Result := TS4YDocPos.At(LBestFragment.ParagraphIndex + 1, 0, 0)
+        Result := TS4YDocumentPosition.At(LBestFragment.ParagraphIndex + 1, 0, 0)
       else
-        Result := TS4YDocPos.At(LBestFragment.ParagraphIndex, 0, 0);
+        Result := TS4YDocumentPosition.At(LBestFragment.ParagraphIndex, 0, 0);
     end;
     Exit;
   end;
   if (LBestFragment.RunIndex < 0) or (LBestFragment.RunIndex >= LPara2.Runs.Count) then
   begin
-    Result := TS4YDocPos.At(LBestFragment.ParagraphIndex, 0, 0);
+    Result := TS4YDocumentPosition.At(LBestFragment.ParagraphIndex, 0, 0);
     Exit;
   end;
 
@@ -2952,9 +2952,9 @@ begin
   if LBestFragment.IsPlaceholder or LRun2.IsPlaceholder then
   begin
     if DocX - LBestFragment.X < LBestFragment.W / 2 then
-      Result := TS4YDocPos.At(LBestFragment.ParagraphIndex, LBestFragment.RunIndex, 0)
+      Result := TS4YDocumentPosition.At(LBestFragment.ParagraphIndex, LBestFragment.RunIndex, 0)
     else
-      Result := TS4YDocPos.At(LBestFragment.ParagraphIndex, LBestFragment.RunIndex, LRun2.Text.Length);
+      Result := TS4YDocumentPosition.At(LBestFragment.ParagraphIndex, LBestFragment.RunIndex, LRun2.Text.Length);
     Exit;
   end;
 
@@ -2966,14 +2966,14 @@ begin
     LTextStyle.Bold := True;
   end;
 
-  LFragSub := LRun2.Text.Substring(LBestFragment.CharStart, LBestFragment.CharEnd - LBestFragment.CharStart);
-  LCI := FLayoutEngine.CharAtX(LFragSub, DocX - LBestFragment.X, LTextStyle);
-  Result := TS4YDocPos.At(LBestFragment.ParagraphIndex, LBestFragment.RunIndex, LBestFragment.CharStart + LCI);
+  LFragmentSubstring := LRun2.Text.Substring(LBestFragment.CharStart, LBestFragment.CharEnd - LBestFragment.CharStart);
+  LCI := FLayoutEngine.CharAtX(LFragmentSubstring, DocX - LBestFragment.X, LTextStyle);
+  Result := TS4YDocumentPosition.At(LBestFragment.ParagraphIndex, LBestFragment.RunIndex, LBestFragment.CharStart + LCI);
 end;
 
 function TS4YHTMLEditor.LinkURLAt(AX, AY: Single): string;
 var
-  LHitPosition: TS4YDocPos;
+  LHitPosition: TS4YDocumentPosition;
   LParagraph: TS4YHTMLParagraph;
 begin
   Result := '';
@@ -2989,7 +2989,7 @@ begin
     Result := LParagraph.Runs[LHitPosition.RunIndex].Style.LinkURL;
 end;
 
-function TS4YHTMLEditor.LinkTextForURL(const APosition: TS4YDocPos; const AURL: string): string;
+function TS4YHTMLEditor.LinkTextForURL(const APosition: TS4YDocumentPosition; const AURL: string): string;
 var
   LStringBuilder: TStringBuilder;
   LParagraph: TS4YHTMLParagraph;
@@ -3015,7 +3015,7 @@ begin
   end;
 end;
 
-procedure TS4YHTMLEditor.SetCaretPosition(const APosition: TS4YDocPos; ExtendSel: Boolean);
+procedure TS4YHTMLEditor.SetCaretPosition(const APosition: TS4YDocumentPosition; ExtendSel: Boolean);
 begin
   if ExtendSel then
   begin
@@ -3032,8 +3032,8 @@ begin
   else
   begin
     FHasSelection := False;
-    FSelectionStart := TS4YDocPos.Invalid;
-    FSelectionEnd := TS4YDocPos.Invalid;
+    FSelectionStart := TS4YDocumentPosition.Invalid;
+    FSelectionEnd := TS4YDocumentPosition.Invalid;
   end;
   FCaretPosition := APosition;
   FCaretOn := True;
@@ -3070,7 +3070,7 @@ begin
   Result := -1;
 end;
 
-function TS4YHTMLEditor.PositionCompare(const ALeft, ARight: TS4YDocPos): Integer;
+function TS4YHTMLEditor.PositionCompare(const ALeft, ARight: TS4YDocumentPosition): Integer;
 begin
   if ALeft.ParagraphIndex <> ARight.ParagraphIndex then
     Exit(Sign(ALeft.ParagraphIndex - ARight.ParagraphIndex));
@@ -3079,7 +3079,7 @@ begin
   Result := Sign(ALeft.CharIndex - ARight.CharIndex);
 end;
 
-procedure TS4YHTMLEditor.GetSelectionRange(out AStartPosition, AEndPosition: TS4YDocPos);
+procedure TS4YHTMLEditor.GetSelectionRange(out AStartPosition, AEndPosition: TS4YDocumentPosition);
 begin
   if PositionCompare(FSelectionStart, FSelectionEnd) <= 0 then
   begin
@@ -3097,7 +3097,7 @@ end;
 // Used when there is no active selection and the caret sits on a list item.
 procedure TS4YHTMLEditor.GetListBlockRange(out AFirst, ALast: Integer);
 var
-  LPI: Integer;
+  LParagraphIndex: Integer;
   LOrdered: Boolean;
 begin
   AFirst := FCaretPosition.ParagraphIndex;
@@ -3107,19 +3107,19 @@ begin
   if FDocument.Paragraphs[AFirst].BlockType <> btLI then
     Exit;
   LOrdered := FDocument.Paragraphs[AFirst].ListOrdered;
-  LPI := AFirst - 1;
-  while (LPI >= 0) and (FDocument.Paragraphs[LPI].BlockType = btLI) and
-        (FDocument.Paragraphs[LPI].ListOrdered = LOrdered) do
+  LParagraphIndex := AFirst - 1;
+  while (LParagraphIndex >= 0) and (FDocument.Paragraphs[LParagraphIndex].BlockType = btLI) and
+        (FDocument.Paragraphs[LParagraphIndex].ListOrdered = LOrdered) do
   begin
-    AFirst := LPI;
-    Dec(LPI);
+    AFirst := LParagraphIndex;
+    Dec(LParagraphIndex);
   end;
-  LPI := ALast + 1;
-  while (LPI < FDocument.Paragraphs.Count) and (FDocument.Paragraphs[LPI].BlockType = btLI) and
-        (FDocument.Paragraphs[LPI].ListOrdered = LOrdered) do
+  LParagraphIndex := ALast + 1;
+  while (LParagraphIndex < FDocument.Paragraphs.Count) and (FDocument.Paragraphs[LParagraphIndex].BlockType = btLI) and
+        (FDocument.Paragraphs[LParagraphIndex].ListOrdered = LOrdered) do
   begin
-    ALast := LPI;
-    Inc(LPI);
+    ALast := LParagraphIndex;
+    Inc(LParagraphIndex);
   end;
 end;
 
@@ -3154,34 +3154,34 @@ end;
 procedure TS4YHTMLEditor.ClearSelection;
 begin
   FHasSelection := False;
-  FSelectionStart := TS4YDocPos.Invalid;
-  FSelectionEnd := TS4YDocPos.Invalid;
+  FSelectionStart := TS4YDocumentPosition.Invalid;
+  FSelectionEnd := TS4YDocumentPosition.Invalid;
 end;
 
-function TS4YHTMLEditor.DocumentStart: TS4YDocPos;
+function TS4YHTMLEditor.DocumentStart: TS4YDocumentPosition;
 begin
   if FDocument.Paragraphs.Count = 0 then
-    Exit(TS4YDocPos.Invalid);
-  Result := TS4YDocPos.At(0, 0, 0);
+    Exit(TS4YDocumentPosition.Invalid);
+  Result := TS4YDocumentPosition.At(0, 0, 0);
 end;
 
-function TS4YHTMLEditor.DocumentEnd: TS4YDocPos;
+function TS4YHTMLEditor.DocumentEnd: TS4YDocumentPosition;
 var
   LLastPI: Integer;
   LParagraph: TS4YHTMLParagraph;
   LLastRI: Integer;
 begin
   if FDocument.Paragraphs.Count = 0 then
-    Exit(TS4YDocPos.Invalid);
+    Exit(TS4YDocumentPosition.Invalid);
   LLastPI := FDocument.Paragraphs.Count - 1;
   LParagraph := FDocument.Paragraphs[LLastPI];
   if LParagraph.Runs.Count = 0 then
-    Exit(TS4YDocPos.At(LLastPI, 0, 0));
+    Exit(TS4YDocumentPosition.At(LLastPI, 0, 0));
   LLastRI := LParagraph.Runs.Count - 1;
-  Exit(TS4YDocPos.At(LLastPI, LLastRI, LParagraph.Runs[LLastRI].Text.Length));
+  Exit(TS4YDocumentPosition.At(LLastPI, LLastRI, LParagraph.Runs[LLastRI].Text.Length));
 end;
 
-function TS4YHTMLEditor.NextDocumentPosition(const APosition: TS4YDocPos): TS4YDocPos;
+function TS4YHTMLEditor.NextDocumentPosition(const APosition: TS4YDocumentPosition): TS4YDocumentPosition;
 var
   LParagraph: TS4YHTMLParagraph;
   LRun: TS4YHTMLRun;
@@ -3189,14 +3189,14 @@ var
   LRightIndex: Integer;
 begin
   if not APosition.IsValid then
-    Exit(TS4YDocPos.Invalid);
+    Exit(TS4YDocumentPosition.Invalid);
   if APosition.ParagraphIndex >= FDocument.Paragraphs.Count then
     Exit(APosition);
   LParagraph := FDocument.Paragraphs[APosition.ParagraphIndex];
   if LParagraph.Runs.Count = 0 then
   begin
     if APosition.ParagraphIndex + 1 < FDocument.Paragraphs.Count then
-      Exit(TS4YDocPos.At(APosition.ParagraphIndex + 1, 0, 0))
+      Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex + 1, 0, 0))
     else
       Exit(APosition);
   end;
@@ -3210,11 +3210,11 @@ begin
     else
       LRightIndex := LRun.Text.Length;
     if APosition.CharIndex < LRightIndex then
-      Exit(TS4YDocPos.At(APosition.ParagraphIndex, APosition.RunIndex, LRightIndex));
+      Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex, APosition.RunIndex, LRightIndex));
     if APosition.RunIndex + 1 < LParagraph.Runs.Count then
-      Exit(TS4YDocPos.At(APosition.ParagraphIndex, APosition.RunIndex + 1, 0));
+      Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex, APosition.RunIndex + 1, 0));
     if APosition.ParagraphIndex + 1 < FDocument.Paragraphs.Count then
-      Exit(TS4YDocPos.At(APosition.ParagraphIndex + 1, 0, 0));
+      Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex + 1, 0, 0));
     Exit(APosition);
   end
   else if APosition.CharIndex < LRun.Text.Length then
@@ -3228,18 +3228,18 @@ begin
     // Skip the phantom position at end of text run: (textRun, textRun.Length)
     // is visually identical to (nextRun, 0) for any run type.
     if (LNextCharIndex >= LRun.Text.Length) and (APosition.RunIndex + 1 < LParagraph.Runs.Count) then
-      Exit(TS4YDocPos.At(APosition.ParagraphIndex, APosition.RunIndex + 1, 0))
+      Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex, APosition.RunIndex + 1, 0))
     else
-      Exit(TS4YDocPos.At(APosition.ParagraphIndex, APosition.RunIndex, LNextCharIndex));
+      Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex, APosition.RunIndex, LNextCharIndex));
   end;
   if APosition.RunIndex + 1 < LParagraph.Runs.Count then
-    Exit(TS4YDocPos.At(APosition.ParagraphIndex, APosition.RunIndex + 1, 0));
+    Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex, APosition.RunIndex + 1, 0));
   if APosition.ParagraphIndex + 1 < FDocument.Paragraphs.Count then
-    Exit(TS4YDocPos.At(APosition.ParagraphIndex + 1, 0, 0));
+    Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex + 1, 0, 0));
   Result := APosition;
 end;
 
-function TS4YHTMLEditor.PreviousDocumentPosition(const APosition: TS4YDocPos): TS4YDocPos;
+function TS4YHTMLEditor.PreviousDocumentPosition(const APosition: TS4YDocumentPosition): TS4YDocumentPosition;
 var
   LParagraph: TS4YHTMLParagraph;
   LPreviousParagraph: TS4YHTMLParagraph;
@@ -3249,7 +3249,7 @@ var
   LPreviousRightIndex: Integer;
 begin
   if not APosition.IsValid then
-    Exit(TS4YDocPos.Invalid);
+    Exit(TS4YDocumentPosition.Invalid);
   if APosition.ParagraphIndex >= FDocument.Paragraphs.Count then
     Exit(APosition);
   LParagraph := FDocument.Paragraphs[APosition.ParagraphIndex];
@@ -3261,16 +3261,16 @@ begin
       if LCurrentRun.IsPlaceholder or LCurrentRun.IsImage then
       begin
         if APosition.CharIndex > 0 then
-          Exit(TS4YDocPos.At(APosition.ParagraphIndex, APosition.RunIndex, 0));
+          Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex, APosition.RunIndex, 0));
       end
       else if APosition.CharIndex > 0 then
       begin
         if (APosition.CharIndex > 1) and
            LCurrentRun.Text[APosition.CharIndex].IsLowSurrogate and
            LCurrentRun.Text[APosition.CharIndex - 1].IsHighSurrogate then
-          Exit(TS4YDocPos.At(APosition.ParagraphIndex, APosition.RunIndex, APosition.CharIndex - 2))
+          Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex, APosition.RunIndex, APosition.CharIndex - 2))
         else
-          Exit(TS4YDocPos.At(APosition.ParagraphIndex, APosition.RunIndex, APosition.CharIndex - 1));
+          Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex, APosition.RunIndex, APosition.CharIndex - 1));
       end;
     end;
   end;
@@ -3283,17 +3283,17 @@ begin
         LPreviousRightIndex := 1
       else
         LPreviousRightIndex := LPreviousRun.Text.Length;
-      Exit(TS4YDocPos.At(APosition.ParagraphIndex, APosition.RunIndex - 1, LPreviousRightIndex));
+      Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex, APosition.RunIndex - 1, LPreviousRightIndex));
     end
     else
       // Skip the phantom (prevRun, prevRun.Length) -- visually identical to (curRun, 0).
-      Exit(PreviousDocumentPosition(TS4YDocPos.At(APosition.ParagraphIndex, APosition.RunIndex - 1, LPreviousRun.Text.Length)));
+      Exit(PreviousDocumentPosition(TS4YDocumentPosition.At(APosition.ParagraphIndex, APosition.RunIndex - 1, LPreviousRun.Text.Length)));
   end;
   if APosition.ParagraphIndex > 0 then
   begin
     LPreviousParagraph := FDocument.Paragraphs[APosition.ParagraphIndex - 1];
     if LPreviousParagraph.Runs.Count = 0 then
-      Exit(TS4YDocPos.At(APosition.ParagraphIndex - 1, 0, 0));
+      Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex - 1, 0, 0));
     LRI := LPreviousParagraph.Runs.Count - 1;
     if LPreviousParagraph.Runs[LRI].IsPlaceholder or LPreviousParagraph.Runs[LRI].IsImage then
     begin
@@ -3301,15 +3301,15 @@ begin
         LPreviousRightIndex := 1
       else
         LPreviousRightIndex := LPreviousParagraph.Runs[LRI].Text.Length;
-      Exit(TS4YDocPos.At(APosition.ParagraphIndex - 1, LRI, LPreviousRightIndex));
+      Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex - 1, LRI, LPreviousRightIndex));
     end
     else
-      Exit(TS4YDocPos.At(APosition.ParagraphIndex - 1, LRI, LPreviousParagraph.Runs[LRI].Text.Length));
+      Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex - 1, LRI, LPreviousParagraph.Runs[LRI].Text.Length));
   end;
   Result := APosition;
 end;
 
-function TS4YHTMLEditor.LineStart(const APosition: TS4YDocPos): TS4YDocPos;
+function TS4YHTMLEditor.LineStart(const APosition: TS4YDocumentPosition): TS4YDocumentPosition;
 var
   LFragmentIndex: Integer;
   LLineIndex: Integer;
@@ -3324,11 +3324,11 @@ begin
   LLine := FLines[LLineIndex];
   for var I := LLine.FragmentStart to LLine.FragmentStart + LLine.FragmentCount - 1 do
     if not FFrags[I].IsHR and (not FFrags[I].IsImage or (FFrags[I].RunIndex >= 0)) then
-      Exit(TS4YDocPos.At(FFrags[I].ParagraphIndex, FFrags[I].RunIndex, FFrags[I].CharStart));
+      Exit(TS4YDocumentPosition.At(FFrags[I].ParagraphIndex, FFrags[I].RunIndex, FFrags[I].CharStart));
   Result := APosition;
 end;
 
-function TS4YHTMLEditor.LineEnd(const APosition: TS4YDocPos): TS4YDocPos;
+function TS4YHTMLEditor.LineEnd(const APosition: TS4YDocumentPosition): TS4YDocumentPosition;
 var
   LFragmentIndex: Integer;
   LLineIndex: Integer;
@@ -3343,11 +3343,11 @@ begin
   LLine := FLines[LLineIndex];
   for var I := LLine.FragmentStart + LLine.FragmentCount - 1 downto LLine.FragmentStart do
     if not FFrags[I].IsHR and (not FFrags[I].IsImage or (FFrags[I].RunIndex >= 0)) then
-      Exit(TS4YDocPos.At(FFrags[I].ParagraphIndex, FFrags[I].RunIndex, FFrags[I].CharEnd));
+      Exit(TS4YDocumentPosition.At(FFrags[I].ParagraphIndex, FFrags[I].RunIndex, FFrags[I].CharEnd));
   Result := APosition;
 end;
 
-function TS4YHTMLEditor.LineAbove(const APosition: TS4YDocPos): TS4YDocPos;
+function TS4YHTMLEditor.LineAbove(const APosition: TS4YDocumentPosition): TS4YDocumentPosition;
 var
   LFragmentIndex: Integer;
   LLineIndex: Integer;
@@ -3451,7 +3451,7 @@ begin
   Result := HitTest(ContentLeft + LDocumentX, ContentTop + LLineY);
 end;
 
-function TS4YHTMLEditor.LineBelow(const APosition: TS4YDocPos): TS4YDocPos;
+function TS4YHTMLEditor.LineBelow(const APosition: TS4YDocumentPosition): TS4YDocumentPosition;
 var
   LFragmentIndex: Integer;
   LLineIndex: Integer;
@@ -3560,11 +3560,11 @@ begin
   Result := HitTest(ContentLeft + LDocumentX, ContentTop + LLineY);
 end;
 
-function TS4YHTMLEditor.WordRight(const APosition: TS4YDocPos): TS4YDocPos;
+function TS4YHTMLEditor.WordRight(const APosition: TS4YDocumentPosition): TS4YDocumentPosition;
 var
-  LCurrent: TS4YDocPos;
+  LCurrent: TS4YDocumentPosition;
   LParagraph: TS4YHTMLParagraph;
-  LNext: TS4YDocPos;
+  LNext: TS4YDocumentPosition;
 begin
   LCurrent := APosition;
   while PositionCompare(LCurrent, DocumentEnd) < 0 do
@@ -3600,10 +3600,10 @@ begin
   Result := LCurrent;
 end;
 
-function TS4YHTMLEditor.WordLeft(const APosition: TS4YDocPos): TS4YDocPos;
+function TS4YHTMLEditor.WordLeft(const APosition: TS4YDocumentPosition): TS4YDocumentPosition;
 var
-  LCurrent: TS4YDocPos;
-  LPrevious: TS4YDocPos;
+  LCurrent: TS4YDocumentPosition;
+  LPrevious: TS4YDocumentPosition;
   LParagraph: TS4YHTMLParagraph;
   LCharacter: String;
 begin
@@ -3645,7 +3645,7 @@ end;
 
 procedure TS4YHTMLEditor.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Single);
 var
-  LHitPosition: TS4YDocPos;
+  LHitPosition: TS4YDocumentPosition;
   LElapsedMs: Int64;
   LDist2: Single;
   LSavedScrollY: Single;
@@ -3723,7 +3723,7 @@ begin
 end;
 
 // Returns the character to the right of caret position P (#0 if none / not text).
-function TS4YHTMLEditor.CharAtPosition(const APosition: TS4YDocPos): Char;
+function TS4YHTMLEditor.CharAtPosition(const APosition: TS4YDocumentPosition): Char;
 var
   LParagraph: TS4YHTMLParagraph;
   LRun: TS4YHTMLRun;
@@ -3740,14 +3740,14 @@ begin
   Result := LRun.Text.Chars[APosition.CharIndex];
 end;
 
-procedure TS4YHTMLEditor.SelectWordAt(const APosition: TS4YDocPos);
+procedure TS4YHTMLEditor.SelectWordAt(const APosition: TS4YDocumentPosition);
 var
   LParagraph: TS4YHTMLParagraph;
-  LWS, LWE: TS4YDocPos;
-  LCurrent: TS4YDocPos;
+  LWS, LWE: TS4YDocumentPosition;
+  LCurrent: TS4YDocumentPosition;
   LRun: TS4YHTMLRun;
-  LAnchor: TS4YDocPos;
-  LPL: TS4YDocPos;
+  LAnchor: TS4YDocumentPosition;
+  LPL: TS4YDocumentPosition;
 begin
   if not APosition.IsValid or (APosition.ParagraphIndex >= FDocument.Paragraphs.Count) then
     Exit;
@@ -3757,8 +3757,8 @@ begin
      (LParagraph.Runs[APosition.RunIndex].IsPlaceholder or LParagraph.Runs[APosition.RunIndex].IsImage) then
   begin
     LRun := LParagraph.Runs[APosition.RunIndex];
-    FSelectionStart := TS4YDocPos.At(APosition.ParagraphIndex, APosition.RunIndex, 0);
-    FSelectionEnd := TS4YDocPos.At(APosition.ParagraphIndex, APosition.RunIndex, LRun.Text.Length);
+    FSelectionStart := TS4YDocumentPosition.At(APosition.ParagraphIndex, APosition.RunIndex, 0);
+    FSelectionEnd := TS4YDocumentPosition.At(APosition.ParagraphIndex, APosition.RunIndex, LRun.Text.Length);
     FHasSelection := True;
     FCaretPosition := FSelectionEnd;
     FCaretOn := True;
@@ -3813,23 +3813,23 @@ begin
   DoNotifyState;
 end;
 
-procedure TS4YHTMLEditor.SelectParagraphAt(const APosition: TS4YDocPos);
+procedure TS4YHTMLEditor.SelectParagraphAt(const APosition: TS4YDocumentPosition);
 var
   LParagraph: TS4YHTMLParagraph;
-  LWS, LWE: TS4YDocPos;
+  LWS, LWE: TS4YDocumentPosition;
   LRI: Integer;
 begin
   if not APosition.IsValid or (APosition.ParagraphIndex >= FDocument.Paragraphs.Count) then
     Exit;
   LParagraph := FDocument.Paragraphs[APosition.ParagraphIndex];
 
-  LWS := TS4YDocPos.At(APosition.ParagraphIndex, 0, 0);
+  LWS := TS4YDocumentPosition.At(APosition.ParagraphIndex, 0, 0);
   LWE := LWS;
   LRI := LParagraph.Runs.Count - 1;
   while (LRI >= 0) and LParagraph.Runs[LRI].IsLineBreak do
     Dec(LRI);
   if LRI >= 0 then
-    LWE := TS4YDocPos.At(APosition.ParagraphIndex, LRI, LParagraph.Runs[LRI].Text.Length);
+    LWE := TS4YDocumentPosition.At(APosition.ParagraphIndex, LRI, LParagraph.Runs[LRI].Text.Length);
 
   if PositionCompare(LWS, LWE) = 0 then
   begin
@@ -3955,7 +3955,7 @@ end;
 function TS4YHTMLEditor.ShowContextMenu(const ScreenPosition: TPointF): Boolean;
 var
   LLocalPt: TPointF;
-  LHitPosition: TS4YDocPos;
+  LHitPosition: TS4YDocumentPosition;
   LParagraph: TS4YHTMLParagraph;
   LIsAtom: Boolean;
 begin
@@ -3985,7 +3985,7 @@ end;
 
 procedure TS4YHTMLEditor.MouseMove(Shift: TShiftState; X, Y: Single);
 var
-  LHitPosition: TS4YDocPos;
+  LHitPosition: TS4YDocumentPosition;
   LURL: String;
   LNewCursor: TCursor;
   LScrollStep: Single;
@@ -4110,7 +4110,7 @@ begin
     if not IsTableCellOf(LTargetIndex, LTableID) then
       Exit;
     ClearSelection;
-    SetCaretPosition(TS4YDocPos.At(LTargetIndex, 0, 0), False);
+    SetCaretPosition(TS4YDocumentPosition.At(LTargetIndex, 0, 0), False);
     Result := True;
     Exit;
   end;
@@ -4119,7 +4119,7 @@ begin
   if IsTableCellOf(LTargetIndex, LTableID) then
   begin
     ClearSelection;
-    SetCaretPosition(TS4YDocPos.At(LTargetIndex, 0, 0), False);
+    SetCaretPosition(TS4YDocumentPosition.At(LTargetIndex, 0, 0), False);
     Result := True;
     Exit;
   end;
@@ -4147,7 +4147,7 @@ begin
   end;
   DoLayout;
   DoChanged;
-  SetCaretPosition(TS4YDocPos.At(LTargetIndex, 0, 0), False);
+  SetCaretPosition(TS4YDocumentPosition.At(LTargetIndex, 0, 0), False);
   Result := True;
 end;
 
@@ -4155,7 +4155,7 @@ procedure TS4YHTMLEditor.KeyDown(var Key: Word; var KeyChar: System.WideChar; Sh
 var
   LExtend: Boolean;
   LNextParagraphIndex: Integer;
-  LNewCaretPosition: TS4YDocPos;
+  LNewCaretPosition: TS4YDocumentPosition;
 begin
   inherited;
   LExtend := ssShift in Shift;
@@ -4283,7 +4283,7 @@ begin
           FDocument.Paragraphs.Delete(LNextParagraphIndex);
           EnsureValidDocument;
           FCaretAtImageRight := False;
-          FCaretPosition := TS4YDocPos.At(Min(LNextParagraphIndex, FDocument.Paragraphs.Count - 1), 0, 0);
+          FCaretPosition := TS4YDocumentPosition.At(Min(LNextParagraphIndex, FDocument.Paragraphs.Count - 1), 0, 0);
           DoLayout;
           DoChanged;
           InvalidateRender;
@@ -4494,9 +4494,9 @@ var
   LRI: Integer;
   LNewR: TS4YHTMLRun;
   LNewR2: TS4YHTMLRun;
-  LSegIdx3: Integer;
-  LSegOfs3: Integer;
-  LCurSeg3: Integer;
+  LSegmentIndex3: Integer;
+  LSegmentOffset3: Integer;
+  LCurrentSegment3: Integer;
   LAcc3: Integer;
   LRI2: Integer;
   LFound3: Boolean;
@@ -4577,23 +4577,23 @@ begin
     end;
   end;
 
-  LSegIdx3 := 0;
-  LSegOfs3 := FCaretPosition.CharIndex;
+  LSegmentIndex3 := 0;
+  LSegmentOffset3 := FCaretPosition.CharIndex;
   for var LRI3 := 0 to FCaretPosition.RunIndex - 1 do
     if LRI3 < LParagraph.Runs.Count then
     begin
       if LParagraph.Runs[LRI3].IsLineBreak or LParagraph.Runs[LRI3].IsPlaceholder or LParagraph.Runs[LRI3].IsImage then
       begin
-        Inc(LSegIdx3);
-        LSegOfs3 := FCaretPosition.CharIndex;
+        Inc(LSegmentIndex3);
+        LSegmentOffset3 := FCaretPosition.CharIndex;
       end
       else
-        Inc(LSegOfs3, LParagraph.Runs[LRI3].Text.Length);
+        Inc(LSegmentOffset3, LParagraph.Runs[LRI3].Text.Length);
     end;
 
   NormalizeRuns(FCaretPosition.ParagraphIndex);
 
-  LCurSeg3 := 0;
+  LCurrentSegment3 := 0;
   LAcc3 := 0;
   FCaretPosition.RunIndex := 0;
   FCaretPosition.CharIndex := 0;
@@ -4603,20 +4603,20 @@ begin
   begin
     if LParagraph.Runs[LRI2].IsLineBreak or LParagraph.Runs[LRI2].IsPlaceholder or LParagraph.Runs[LRI2].IsImage then
     begin
-      if LCurSeg3 = LSegIdx3 then
+      if LCurrentSegment3 = LSegmentIndex3 then
         LFound3 := True
       else
       begin
-        Inc(LCurSeg3);
+        Inc(LCurrentSegment3);
         LAcc3 := 0;
       end;
     end
-    else if LCurSeg3 = LSegIdx3 then
+    else if LCurrentSegment3 = LSegmentIndex3 then
     begin
-      if LSegOfs3 <= LAcc3 + LParagraph.Runs[LRI2].Text.Length then
+      if LSegmentOffset3 <= LAcc3 + LParagraph.Runs[LRI2].Text.Length then
       begin
         FCaretPosition.RunIndex := LRI2;
-        FCaretPosition.CharIndex := LSegOfs3 - LAcc3;
+        FCaretPosition.CharIndex := LSegmentOffset3 - LAcc3;
         LFound3 := True;
       end
       else
@@ -4670,7 +4670,7 @@ var
   LRun: TS4YHTMLRun;
   LRI: Integer;
   LCI: Integer;
-  LPrevCI: Integer;
+  LPreviousCharIndex: Integer;
   LStep: Integer;
   LFirst, LLast: Integer;
 begin
@@ -4774,7 +4774,7 @@ begin
       LNewCI := LParagraph.Runs[LNewRI].Text.Length;
     end;
     NormalizeRuns(FCaretPosition.ParagraphIndex);
-    FCaretPosition := TS4YDocPos.At(FCaretPosition.ParagraphIndex, LNewRI, LNewCI);
+    FCaretPosition := TS4YDocumentPosition.At(FCaretPosition.ParagraphIndex, LNewRI, LNewCI);
     DoLayout;
     DoChanged;
     InvalidateRender;
@@ -4783,10 +4783,10 @@ begin
   else if LRun.IsLineBreak then
   begin
     LParagraph.Runs.Delete(LRI);
-    LPrevCI := 0;
+    LPreviousCharIndex := 0;
     if LRI > 0 then
-      LPrevCI := LParagraph.Runs[LRI - 1].Text.Length;
-    FCaretPosition := TS4YDocPos.At(FCaretPosition.ParagraphIndex, Max(0, LRI - 1), LPrevCI);
+      LPreviousCharIndex := LParagraph.Runs[LRI - 1].Text.Length;
+    FCaretPosition := TS4YDocumentPosition.At(FCaretPosition.ParagraphIndex, Max(0, LRI - 1), LPreviousCharIndex);
   end
   else
   begin
@@ -4842,7 +4842,7 @@ begin
       FPlaceholders.Remove(LRun);
     LParagraph.Runs.Delete(LRI);
     var LNewRI2 := Min(LRI, Max(0, LParagraph.Runs.Count - 1));
-    FCaretPosition := TS4YDocPos.At(FCaretPosition.ParagraphIndex, LNewRI2, 0);
+    FCaretPosition := TS4YDocumentPosition.At(FCaretPosition.ParagraphIndex, LNewRI2, 0);
     NormalizeRuns(FCaretPosition.ParagraphIndex);
     DoLayout;
     DoChanged;
@@ -4854,7 +4854,7 @@ begin
     LParagraph.Runs.Delete(LRI);
     if LRI >= LParagraph.Runs.Count then
       LRI := Max(0, LParagraph.Runs.Count - 1);
-    FCaretPosition := TS4YDocPos.At(FCaretPosition.ParagraphIndex, LRI, 0);
+    FCaretPosition := TS4YDocumentPosition.At(FCaretPosition.ParagraphIndex, LRI, 0);
   end
   else if LCI >= LRun.Text.Length then
   begin
@@ -4895,7 +4895,7 @@ end;
 
 procedure TS4YHTMLEditor.DeleteSelection;
 var
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
   LSI, LEI: Integer;
   LSRI, LERI, LSCI, LECI: Integer;
   LRun: TS4YHTMLRun;
@@ -4904,10 +4904,10 @@ var
   LDelFrom: Integer;
   LDelTo: Integer;
   LNewRI: Integer;
-  LMaxCI: Integer;
-  LParaS: TS4YHTMLParagraph;
+  LMaximumCharIndex: Integer;
+  LStartParagraph: TS4YHTMLParagraph;
   LSRunFrom: Integer;
-  LParaE: TS4YHTMLParagraph;
+  LEndParagraph: TS4YHTMLParagraph;
 begin
   if not FHasSelection then
     Exit;
@@ -4949,45 +4949,45 @@ begin
         LParagraph.Runs.Delete(I);
     NormalizeRuns(LSI);
     LNewRI := Min(LSRI, Max(0, LParagraph.Runs.Count - 1));
-    LMaxCI := 0;
+    LMaximumCharIndex := 0;
     if LParagraph.Runs.Count > 0 then
-      LMaxCI := LParagraph.Runs[Min(LSRI, LParagraph.Runs.Count - 1)].Text.Length;
-    FCaretPosition := TS4YDocPos.At(LSI, LNewRI, Min(LSCI, LMaxCI));
+      LMaximumCharIndex := LParagraph.Runs[Min(LSRI, LParagraph.Runs.Count - 1)].Text.Length;
+    FCaretPosition := TS4YDocumentPosition.At(LSI, LNewRI, Min(LSCI, LMaximumCharIndex));
   end
   else
   begin
-    LParaS := FDocument.Paragraphs[LSI];
+    LStartParagraph := FDocument.Paragraphs[LSI];
     SplitRunAt(LSI, LSRI, LSCI);
     LSRunFrom := IfThen(LSCI > 0, LSRI + 1, LSRI);
-    for var I := LParaS.Runs.Count - 1 downto LSRunFrom do
-      LParaS.Runs.Delete(I);
+    for var I := LStartParagraph.Runs.Count - 1 downto LSRunFrom do
+      LStartParagraph.Runs.Delete(I);
 
-    LParaE := FDocument.Paragraphs[LEI];
+    LEndParagraph := FDocument.Paragraphs[LEI];
     SplitRunAt(LEI, LERI, LECI);
-    for var I := Min(LERI, LParaE.Runs.Count - 1) downto 0 do
-      LParaE.Runs.Delete(I);
+    for var I := Min(LERI, LEndParagraph.Runs.Count - 1) downto 0 do
+      LEndParagraph.Runs.Delete(I);
 
-    while LParaE.Runs.Count > 0 do
+    while LEndParagraph.Runs.Count > 0 do
     begin
-      LRun := LParaE.Runs[0];
-      LParaE.Runs.Extract(LRun);
-      LParaS.Runs.Add(LRun);
+      LRun := LEndParagraph.Runs[0];
+      LEndParagraph.Runs.Extract(LRun);
+      LStartParagraph.Runs.Add(LRun);
     end;
 
     for var I := LEI downto LSI + 1 do
       FDocument.Paragraphs.Delete(I);
 
     NormalizeRuns(LSI);
-    if LParaS.IsEmpty then
+    if LStartParagraph.IsEmpty then
     begin
-      LParaS.BlockType := btBodyText;
-      LParaS.IndentLevel := 0;
+      LStartParagraph.BlockType := btBodyText;
+      LStartParagraph.IndentLevel := 0;
     end;
-    FCaretPosition := TS4YDocPos.At(LSI, Min(LSRI, Max(0, LParaS.Runs.Count - 1)), LSCI);
-    if FCaretPosition.RunIndex >= LParaS.Runs.Count then
-      FCaretPosition.RunIndex := Max(0, LParaS.Runs.Count - 1);
-    if LParaS.Runs.Count > 0 then
-      FCaretPosition.CharIndex := Min(FCaretPosition.CharIndex, LParaS.Runs[FCaretPosition.RunIndex].Text.Length)
+    FCaretPosition := TS4YDocumentPosition.At(LSI, Min(LSRI, Max(0, LStartParagraph.Runs.Count - 1)), LSCI);
+    if FCaretPosition.RunIndex >= LStartParagraph.Runs.Count then
+      FCaretPosition.RunIndex := Max(0, LStartParagraph.Runs.Count - 1);
+    if LStartParagraph.Runs.Count > 0 then
+      FCaretPosition.CharIndex := Min(FCaretPosition.CharIndex, LStartParagraph.Runs[FCaretPosition.RunIndex].Text.Length)
     else
       FCaretPosition.CharIndex := 0;
   end;
@@ -5002,10 +5002,10 @@ end;
 
 function TS4YHTMLEditor.GetSelectionHTML: string;
 var
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
   LTempDocument: TS4YHTMLDocument;
   LGenerator: TS4YHTMLGenerator;
-  LPI: Integer;
+  LParagraphIndex: Integer;
   LFirstParagraph: TS4YHTMLParagraph;
   LLastParagraph: TS4YHTMLParagraph;
 begin
@@ -5018,8 +5018,8 @@ begin
   LTempDocument := TS4YHTMLDocument.Create;
   LGenerator := TS4YHTMLGenerator.Create;
   try
-    for LPI := LSelectionStart.ParagraphIndex to LSelectionEnd.ParagraphIndex do
-      LTempDocument.Paragraphs.Add(FDocument.Paragraphs[LPI].Clone);
+    for LParagraphIndex := LSelectionStart.ParagraphIndex to LSelectionEnd.ParagraphIndex do
+      LTempDocument.Paragraphs.Add(FDocument.Paragraphs[LParagraphIndex].Clone);
     // Trim end of last paragraph (skip non-text blocks -- they have no runs)
     LLastParagraph := LTempDocument.Paragraphs.Last;
     if not (LLastParagraph.BlockType in [btHR, btImage]) then
@@ -5056,8 +5056,8 @@ end;
 
 function TS4YHTMLEditor.GetSelectionText: string;
 var
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
-  LPI, LRI, LCI: Integer;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
+  LParagraphIndex, LRI, LCI: Integer;
   LParagraph: TS4YHTMLParagraph;
   LRun: TS4YHTMLRun;
   LEndCI: Integer;
@@ -5066,25 +5066,25 @@ begin
   if not FHasSelection then
     Exit;
   GetSelectionRange(LSelectionStart, LSelectionEnd);
-  LPI := LSelectionStart.ParagraphIndex;
+  LParagraphIndex := LSelectionStart.ParagraphIndex;
   LRI := LSelectionStart.RunIndex;
   LCI := LSelectionStart.CharIndex;
-  while PositionCompare(TS4YDocPos.At(LPI, LRI, LCI), LSelectionEnd) < 0 do
+  while PositionCompare(TS4YDocumentPosition.At(LParagraphIndex, LRI, LCI), LSelectionEnd) < 0 do
   begin
-    if LPI >= FDocument.Paragraphs.Count then
+    if LParagraphIndex >= FDocument.Paragraphs.Count then
       Break;
-    LParagraph := FDocument.Paragraphs[LPI];
+    LParagraph := FDocument.Paragraphs[LParagraphIndex];
     if LRI >= LParagraph.Runs.Count then
     begin
       Result := Result + sLineBreak;
-      Inc(LPI);
+      Inc(LParagraphIndex);
       LRI := 0;
       LCI := 0;
     end
     else
     begin
       LRun := LParagraph.Runs[LRI];
-      LEndCI := IfThen((LPI = LSelectionEnd.ParagraphIndex) and (LRI = LSelectionEnd.RunIndex), LSelectionEnd.CharIndex, LRun.Text.Length);
+      LEndCI := IfThen((LParagraphIndex = LSelectionEnd.ParagraphIndex) and (LRI = LSelectionEnd.RunIndex), LSelectionEnd.CharIndex, LRun.Text.Length);
       if LRun.IsLineBreak then
         Result := Result + sLineBreak
       else
@@ -5097,9 +5097,9 @@ begin
       end;
       if LRI >= LParagraph.Runs.Count then
       begin
-        if LPI < LSelectionEnd.ParagraphIndex then
+        if LParagraphIndex < LSelectionEnd.ParagraphIndex then
           Result := Result + sLineBreak;
-        Inc(LPI);
+        Inc(LParagraphIndex);
         LRI := 0;
         LCI := 0;
       end;
@@ -5156,7 +5156,7 @@ begin
       Result := Result + LRun.Text;
 end;
 
-procedure TS4YHTMLEditor.SelectRange(const AStart, AEnd: TS4YDocPos);
+procedure TS4YHTMLEditor.SelectRange(const AStart, AEnd: TS4YDocumentPosition);
 begin
   FSelectionStart := AStart;
   FSelectionEnd := AEnd;
@@ -5174,13 +5174,13 @@ end;
 function TS4YHTMLEditor.FindNext(const AText: string; CaseSensitive: Boolean): Boolean;
 var
   LFindText: string;
-  LSearchFrom: TS4YDocPos;
-  LSelS, LSelE: TS4YDocPos;
+  LSearchFrom: TS4YDocumentPosition;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
   LFromParagraphIndex, LFromCharIndex: Integer;
   LParagraphIndex: Integer;
   LParagraphText, LSearchText: string;
   LMatchPosition: Integer;
-  LFoundStart, LFoundEnd: TS4YDocPos;
+  LFoundStart, LFoundEnd: TS4YDocumentPosition;
 begin
   Result := False;
   if AText = '' then
@@ -5195,8 +5195,8 @@ begin
 
   if FHasSelection then
   begin
-    GetSelectionRange(LSelS, LSelE);
-    LSearchFrom := LSelE;
+    GetSelectionRange(LSelectionStart, LSelectionEnd);
+    LSearchFrom := LSelectionEnd;
   end
   else
     LSearchFrom := FCaretPosition;
@@ -5269,13 +5269,13 @@ end;
 function TS4YHTMLEditor.FindPrevious(const AText: string; CaseSensitive: Boolean): Boolean;
 var
   LFindText: string;
-  LSearchFrom: TS4YDocPos;
-  LSelS, LSelE: TS4YDocPos;
+  LSearchFrom: TS4YDocumentPosition;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
   LFromParagraphIndex, LFromCharIndex: Integer;
   LParagraphIndex: Integer;
   LParagraphText, LSearchText: string;
   LMatchPosition, LLastMatchPosition: Integer;
-  LFoundStart, LFoundEnd: TS4YDocPos;
+  LFoundStart, LFoundEnd: TS4YDocumentPosition;
 begin
   Result := False;
   if AText = '' then
@@ -5291,8 +5291,8 @@ begin
   // Start searching just before the selection start (or caret)
   if FHasSelection then
   begin
-    GetSelectionRange(LSelS, LSelE);
-    LSearchFrom := LSelS;
+    GetSelectionRange(LSelectionStart, LSelectionEnd);
+    LSearchFrom := LSelectionStart;
   end
   else
     LSearchFrom := FCaretPosition;
@@ -5391,7 +5391,7 @@ var
   LMatchPositions: TList<Integer>;
   LMatchPosition, LSearchStart: Integer;
   LMatchIndex: Integer;
-  LStartPosition, LEndPosition: TS4YDocPos;
+  LStartPosition, LEndPosition: TS4YDocumentPosition;
   LSRI, LSCI, LERI, LECI: Integer;
   LSRISplitWillHappen: Boolean;
   LDelFrom, LDelTo, LI: Integer;
@@ -5518,7 +5518,7 @@ begin
     end;
 end;
 
-procedure TS4YHTMLEditor.ScrollToDocumentPosition(const APosition: TS4YDocPos);
+procedure TS4YHTMLEditor.ScrollToDocumentPosition(const APosition: TS4YDocumentPosition);
 var
   LX, LY, LH: Single;
 begin
@@ -5549,8 +5549,8 @@ begin
     if FCaretPosition.ParagraphIndex + 1 <= LLast then
       RenumberListBlock(FCaretPosition.ParagraphIndex + 1, LLast);
     FHasSelection := False;
-    FSelectionStart := TS4YDocPos.Invalid;
-    FSelectionEnd := TS4YDocPos.Invalid;
+    FSelectionStart := TS4YDocumentPosition.Invalid;
+    FSelectionEnd := TS4YDocumentPosition.Invalid;
     if not FBatchMode then
     begin
       DoLayout;
@@ -5610,10 +5610,10 @@ begin
 
   NormalizeRuns(FCaretPosition.ParagraphIndex);
 
-  FCaretPosition := TS4YDocPos.At(LNewParagraphIndex, 0, 0);
+  FCaretPosition := TS4YDocumentPosition.At(LNewParagraphIndex, 0, 0);
   FHasSelection := False;
-  FSelectionStart := TS4YDocPos.Invalid;
-  FSelectionEnd := TS4YDocPos.Invalid;
+  FSelectionStart := TS4YDocumentPosition.Invalid;
+  FSelectionEnd := TS4YDocumentPosition.Invalid;
 
   if not FBatchMode then
   begin
@@ -5681,10 +5681,10 @@ begin
     LParagraph.Runs.Insert(LAfterIndex, LAnchorRun);
   end;
 
-  FCaretPosition := TS4YDocPos.At(FCaretPosition.ParagraphIndex, LAfterIndex, 0);
+  FCaretPosition := TS4YDocumentPosition.At(FCaretPosition.ParagraphIndex, LAfterIndex, 0);
   FHasSelection := False;
-  FSelectionStart := TS4YDocPos.Invalid;
-  FSelectionEnd := TS4YDocPos.Invalid;
+  FSelectionStart := TS4YDocumentPosition.Invalid;
+  FSelectionEnd := TS4YDocumentPosition.Invalid;
 
   DoLayout;
   DoChanged;
@@ -5721,7 +5721,7 @@ var
   LPreviousParagraph: TS4YHTMLParagraph;
   LCurrentParagraph: TS4YHTMLParagraph;
   LOldRunCount: Integer;
-  LPrevEndCI: Integer;
+  LPreviousEndCharIndex: Integer;
 begin
   if (AParagraphIndex <= 0) or (AParagraphIndex >= FDocument.Paragraphs.Count) then
     Exit;
@@ -5731,26 +5731,26 @@ begin
   if LPreviousParagraph.BlockType in [btHR, btImage] then
   begin
     FDocument.Paragraphs.Delete(AParagraphIndex - 1);
-    FCaretPosition := TS4YDocPos.At(AParagraphIndex - 1, 0, 0);
+    FCaretPosition := TS4YDocumentPosition.At(AParagraphIndex - 1, 0, 0);
     Exit;
   end;
   if LCurrentParagraph.BlockType in [btHR, btImage] then
   begin
     LOldRunCount := LPreviousParagraph.Runs.Count;
     if LOldRunCount > 0 then
-      LPrevEndCI := LPreviousParagraph.Runs[LOldRunCount - 1].Text.Length
+      LPreviousEndCharIndex := LPreviousParagraph.Runs[LOldRunCount - 1].Text.Length
     else
-      LPrevEndCI := 0;
-    FCaretPosition := TS4YDocPos.At(AParagraphIndex - 1, Max(0, LOldRunCount - 1), LPrevEndCI);
+      LPreviousEndCharIndex := 0;
+    FCaretPosition := TS4YDocumentPosition.At(AParagraphIndex - 1, Max(0, LOldRunCount - 1), LPreviousEndCharIndex);
     FDocument.Paragraphs.Delete(AParagraphIndex);
     Exit;
   end;
   LOldRunCount := LPreviousParagraph.Runs.Count;
   if LOldRunCount > 0 then
-    LPrevEndCI := LPreviousParagraph.Runs[LOldRunCount - 1].Text.Length
+    LPreviousEndCharIndex := LPreviousParagraph.Runs[LOldRunCount - 1].Text.Length
   else
-    LPrevEndCI := 0;
-  FCaretPosition := TS4YDocPos.At(AParagraphIndex - 1, Max(0, LOldRunCount - 1), LPrevEndCI);
+    LPreviousEndCharIndex := 0;
+  FCaretPosition := TS4YDocumentPosition.At(AParagraphIndex - 1, Max(0, LOldRunCount - 1), LPreviousEndCharIndex);
   while LCurrentParagraph.Runs.Count > 0 do
   begin
     LRun := LCurrentParagraph.Runs[0];
@@ -5763,7 +5763,7 @@ end;
 
 // -- Style application ---------------------------------------------------------
 
-function TS4YHTMLEditor.DocumentPositionToAbsChar(const APosition: TS4YDocPos): Integer;
+function TS4YHTMLEditor.DocumentPositionToAbsChar(const APosition: TS4YDocumentPosition): Integer;
 var
   LParagraph: TS4YHTMLParagraph;
   LRunIndex: Integer;
@@ -5780,14 +5780,14 @@ begin
   Result := Result + APosition.CharIndex;
 end;
 
-function TS4YHTMLEditor.AbsCharToDocumentPosition(AParagraphIndex, AAbsChar: Integer; PreferRight: Boolean): TS4YDocPos;
+function TS4YHTMLEditor.AbsCharToDocumentPosition(AParagraphIndex, AAbsChar: Integer; PreferRight: Boolean): TS4YDocumentPosition;
 var
   LParagraph: TS4YHTMLParagraph;
   LRunIndex: Integer;
   LRemaining: Integer;
   LRunLength: Integer;
 begin
-  Result := TS4YDocPos.At(AParagraphIndex, 0, 0);
+  Result := TS4YDocumentPosition.At(AParagraphIndex, 0, 0);
   if (AParagraphIndex < 0) or (AParagraphIndex >= FDocument.Paragraphs.Count) then
     Exit;
   LParagraph := FDocument.Paragraphs[AParagraphIndex];
@@ -5806,7 +5806,7 @@ begin
     LRemaining := LRemaining - LRunLength;
     Inc(LRunIndex);
   end;
-  Result := TS4YDocPos.At(AParagraphIndex, LRunIndex, Min(LRemaining, LParagraph.Runs[LRunIndex].Text.Length));
+  Result := TS4YDocumentPosition.At(AParagraphIndex, LRunIndex, Min(LRemaining, LParagraph.Runs[LRunIndex].Text.Length));
 end;
 
 procedure TS4YHTMLEditor.ApplyFormatToSelection(ABold, AItalic, AUnderline, AStrikeOut, ASuperscript, ASubscript: Integer;
@@ -5839,9 +5839,9 @@ procedure TS4YHTMLEditor.ApplyFormatToSelection(ABold, AItalic, AUnderline, AStr
   end;
 
 var
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
   LERunExcl: Integer;
-  LPI: Integer;
+  LParagraphIndex: Integer;
   LRI: Integer;
   LParagraph: TS4YHTMLParagraph;
   LRun: TS4YHTMLRun;
@@ -5879,16 +5879,16 @@ begin
   end;
   LSelectionEnd.RunIndex := LERunExcl;
 
-  LPI := LSelectionStart.ParagraphIndex;
+  LParagraphIndex := LSelectionStart.ParagraphIndex;
   LRI := LSelectionStart.RunIndex;
-  while PositionCompare(TS4YDocPos.At(LPI, LRI, 0), TS4YDocPos.At(LSelectionEnd.ParagraphIndex, LSelectionEnd.RunIndex, 0)) < 0 do
+  while PositionCompare(TS4YDocumentPosition.At(LParagraphIndex, LRI, 0), TS4YDocumentPosition.At(LSelectionEnd.ParagraphIndex, LSelectionEnd.RunIndex, 0)) < 0 do
   begin
-    if LPI >= FDocument.Paragraphs.Count then
+    if LParagraphIndex >= FDocument.Paragraphs.Count then
       Break;
-    LParagraph := FDocument.Paragraphs[LPI];
+    LParagraph := FDocument.Paragraphs[LParagraphIndex];
     if LRI >= LParagraph.Runs.Count then
     begin
-      Inc(LPI);
+      Inc(LParagraphIndex);
       LRI := 0;
     end
     else
@@ -5903,7 +5903,7 @@ begin
       Inc(LRI);
       if LRI >= LParagraph.Runs.Count then
       begin
-        Inc(LPI);
+        Inc(LParagraphIndex);
         LRI := 0;
       end;
     end;
@@ -6023,9 +6023,9 @@ end;
 procedure TS4YHTMLEditor.ClearFormatting;
 var
   LTextStyle: TS4YHTMLTextStyle;
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
   LERunExcl2: Integer;
-  LPI: Integer;
+  LParagraphIndex: Integer;
   LRI: Integer;
   LParagraph: TS4YHTMLParagraph;
   LSelectionStartAbsChar: Integer;
@@ -6057,16 +6057,16 @@ begin
       Inc(LERunExcl2);
   end;
   LSelectionEnd.RunIndex := LERunExcl2;
-  LPI := LSelectionStart.ParagraphIndex;
+  LParagraphIndex := LSelectionStart.ParagraphIndex;
   LRI := LSelectionStart.RunIndex;
-  while PositionCompare(TS4YDocPos.At(LPI, LRI, 0), TS4YDocPos.At(LSelectionEnd.ParagraphIndex, LSelectionEnd.RunIndex, 0)) < 0 do
+  while PositionCompare(TS4YDocumentPosition.At(LParagraphIndex, LRI, 0), TS4YDocumentPosition.At(LSelectionEnd.ParagraphIndex, LSelectionEnd.RunIndex, 0)) < 0 do
   begin
-    if LPI >= FDocument.Paragraphs.Count then
+    if LParagraphIndex >= FDocument.Paragraphs.Count then
       Break;
-    LParagraph := FDocument.Paragraphs[LPI];
+    LParagraph := FDocument.Paragraphs[LParagraphIndex];
     if LRI >= LParagraph.Runs.Count then
     begin
-      Inc(LPI);
+      Inc(LParagraphIndex);
       LRI := 0;
     end
     else
@@ -6075,7 +6075,7 @@ begin
       Inc(LRI);
       if LRI >= LParagraph.Runs.Count then
       begin
-        Inc(LPI);
+        Inc(LParagraphIndex);
         LRI := 0;
       end;
     end;
@@ -6093,7 +6093,7 @@ end;
 
 procedure TS4YHTMLEditor.AlignLeft;
 var
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
 begin
   SaveUndo;
   if FHasSelection then
@@ -6112,7 +6112,7 @@ end;
 
 procedure TS4YHTMLEditor.AlignCenter;
 var
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
 begin
   SaveUndo;
   if FHasSelection then
@@ -6134,7 +6134,7 @@ const
   C_PARA_BLOCK_TYPES: array[TS4YParagraphFormat] of TS4YHTMLBlockType = (
     btBodyText, btParagraph, btH1, btH2, btH3, btH4, btH5, btH6, btPre);
 var
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
 begin
   if not FCaretPosition.IsValid then
     Exit;
@@ -6157,7 +6157,7 @@ end;
 
 procedure TS4YHTMLEditor.AlignRight;
 var
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
 begin
   SaveUndo;
   if FHasSelection then
@@ -6176,7 +6176,7 @@ end;
 
 procedure TS4YHTMLEditor.AlignJustify;
 var
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
 begin
   SaveUndo;
   if FHasSelection then
@@ -6198,7 +6198,7 @@ const
   C_BLOCK_TYPES: array [0 .. 6] of TS4YHTMLBlockType = (btParagraph, btH1, btH2, btH3, btH4, btH5, btH6);
 var
   LLevel: Integer;
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
 begin
   if not FCaretPosition.IsValid then
     Exit;
@@ -6222,7 +6222,7 @@ end;
 
 procedure TS4YHTMLEditor.ToggleOrderedList;
 var
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
   LFirst, LLast: Integer;
   LIndent: Integer;
   LAllOrdered: Boolean;
@@ -6282,7 +6282,7 @@ end;
 
 procedure TS4YHTMLEditor.ToggleUnorderedList;
 var
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
   LFirst, LLast: Integer;
   LIndent: Integer;
   LAllUnordered: Boolean;
@@ -6341,7 +6341,7 @@ end;
 
 procedure TS4YHTMLEditor.Indent;
 var
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
   LFirst, LLast: Integer;
 begin
   if not FCaretPosition.IsValid then
@@ -6371,7 +6371,7 @@ end;
 
 procedure TS4YHTMLEditor.Outdent;
 var
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
   LFirst, LLast: Integer;
 begin
   if not FCaretPosition.IsValid then
@@ -6412,14 +6412,14 @@ begin
   LHR.HRColor := AColor;
   LHR.HRThickness := AThickness;
   FDocument.Paragraphs.Insert(FCaretPosition.ParagraphIndex + 1, LHR);
-  FCaretPosition := TS4YDocPos.At(FCaretPosition.ParagraphIndex + 1, 0, 0);
+  FCaretPosition := TS4YDocumentPosition.At(FCaretPosition.ParagraphIndex + 1, 0, 0);
   if FCaretPosition.ParagraphIndex >= FDocument.Paragraphs.Count - 1 then
   begin
     LNewP := TS4YHTMLParagraph.Create;
     LNewP.BlockType := btParagraph;
     FDocument.Paragraphs.Add(LNewP);
   end;
-  FCaretPosition := TS4YDocPos.At(FCaretPosition.ParagraphIndex + 1, 0, 0);
+  FCaretPosition := TS4YDocumentPosition.At(FCaretPosition.ParagraphIndex + 1, 0, 0);
   DoLayout;
   DoChanged;
   InvalidateRender;
@@ -6468,7 +6468,7 @@ begin
     end;
   end;
   LParagraph.Runs.Insert(LInsertIndex, LRun);
-  FCaretPosition := TS4YDocPos.At(FCaretPosition.ParagraphIndex, LInsertIndex, LRun.Text.Length);
+  FCaretPosition := TS4YDocumentPosition.At(FCaretPosition.ParagraphIndex, LInsertIndex, LRun.Text.Length);
   NormalizeRuns(FCaretPosition.ParagraphIndex);
   DoLayout;
   DoChanged;
@@ -6574,38 +6574,38 @@ begin
   end;
   DoLayout;
   DoChanged;
-  SetCaretPosition(TS4YDocPos.At(LFirstCellIndex, 0, 0), False);
+  SetCaretPosition(TS4YDocumentPosition.At(LFirstCellIndex, 0, 0), False);
 end;
 
 procedure TS4YHTMLEditor.GetTableBounds(ATableID: Integer; out AFirstIndex, ALastIndex: Integer);
 var
-  LPI: Integer;
+  LParagraphIndex: Integer;
 begin
   AFirstIndex := -1;
   ALastIndex := -1;
-  for LPI := 0 to FDocument.Paragraphs.Count - 1 do
-    if (FDocument.Paragraphs[LPI].BlockType = btTableCell) and
-       (FDocument.Paragraphs[LPI].TableID = ATableID) then
+  for LParagraphIndex := 0 to FDocument.Paragraphs.Count - 1 do
+    if (FDocument.Paragraphs[LParagraphIndex].BlockType = btTableCell) and
+       (FDocument.Paragraphs[LParagraphIndex].TableID = ATableID) then
     begin
       if AFirstIndex < 0 then
-        AFirstIndex := LPI;
-      ALastIndex := LPI;
+        AFirstIndex := LParagraphIndex;
+      ALastIndex := LParagraphIndex;
     end;
 end;
 
 function TS4YHTMLEditor.FindFirstCellInRow(ATableID, ARow: Integer): Integer;
 var
-  LPI: Integer;
+  LParagraphIndex: Integer;
   LFound: Boolean;
 begin
   Result := -1;
   LFound := False;
-  for LPI := 0 to FDocument.Paragraphs.Count - 1 do
-    if (FDocument.Paragraphs[LPI].BlockType = btTableCell) and
-       (FDocument.Paragraphs[LPI].TableID = ATableID) and
-       (FDocument.Paragraphs[LPI].TableRow = ARow) and not LFound then
+  for LParagraphIndex := 0 to FDocument.Paragraphs.Count - 1 do
+    if (FDocument.Paragraphs[LParagraphIndex].BlockType = btTableCell) and
+       (FDocument.Paragraphs[LParagraphIndex].TableID = ATableID) and
+       (FDocument.Paragraphs[LParagraphIndex].TableRow = ARow) and not LFound then
     begin
-      Result := LPI;
+      Result := LParagraphIndex;
       LFound := True;
     end;
 end;
@@ -6616,7 +6616,7 @@ var
   LTableID, LTargetRow, LTableCols: Integer;
   LFirstIndex, LLastIndex: Integer;
   LInsertAt, LNewFirstCellIndex: Integer;
-  LPI: Integer;
+  LParagraphIndex: Integer;
   LNewCell: TS4YHTMLParagraph;
   LNewRowIndex: Integer;
 begin
@@ -6639,15 +6639,15 @@ begin
   GetTableBounds(LTableID, LFirstIndex, LLastIndex);
 
   // Shift existing rows after the target row up by one
-  for LPI := LFirstIndex to LLastIndex do
-    if FDocument.Paragraphs[LPI].TableRow > LTargetRow then
-      FDocument.Paragraphs[LPI].TableRow := FDocument.Paragraphs[LPI].TableRow + 1;
+  for LParagraphIndex := LFirstIndex to LLastIndex do
+    if FDocument.Paragraphs[LParagraphIndex].TableRow > LTargetRow then
+      FDocument.Paragraphs[LParagraphIndex].TableRow := FDocument.Paragraphs[LParagraphIndex].TableRow + 1;
 
   // Find insertion point: right after the last cell of LTargetRow
   LInsertAt := LFirstIndex;
-  for LPI := LFirstIndex to LLastIndex do
-    if FDocument.Paragraphs[LPI].TableRow = LTargetRow then
-      LInsertAt := LPI + 1;
+  for LParagraphIndex := LFirstIndex to LLastIndex do
+    if FDocument.Paragraphs[LParagraphIndex].TableRow = LTargetRow then
+      LInsertAt := LParagraphIndex + 1;
 
   // Insert new row (one empty cell per column)
   LNewFirstCellIndex := LInsertAt;
@@ -6664,7 +6664,7 @@ begin
 
   DoLayout;
   DoChanged;
-  SetCaretPosition(TS4YDocPos.At(LNewFirstCellIndex, 0, 0), False);
+  SetCaretPosition(TS4YDocumentPosition.At(LNewFirstCellIndex, 0, 0), False);
 end;
 
 procedure TS4YHTMLEditor.DeleteTableRow;
@@ -6672,7 +6672,7 @@ var
   LCurrentParagraph: TS4YHTMLParagraph;
   LTableID, LTargetRow: Integer;
   LFirstIndex, LLastIndex: Integer;
-  LPI: Integer;
+  LParagraphIndex: Integer;
   LParagraph: TS4YHTMLParagraph;
   LNewCaretIndex: Integer;
   LRowCount: Integer;
@@ -6696,18 +6696,18 @@ begin
 
   // Count distinct rows (max TableRow + 1)
   LRowCount := 0;
-  for LPI := LFirstIndex to LLastIndex do
-    if FDocument.Paragraphs[LPI].TableRow > LRowCount then
-      LRowCount := FDocument.Paragraphs[LPI].TableRow;
+  for LParagraphIndex := LFirstIndex to LLastIndex do
+    if FDocument.Paragraphs[LParagraphIndex].TableRow > LRowCount then
+      LRowCount := FDocument.Paragraphs[LParagraphIndex].TableRow;
   Inc(LRowCount);
 
   // Delete all cells belonging to the target row (right-to-left)
-  for LPI := LLastIndex downto LFirstIndex do
+  for LParagraphIndex := LLastIndex downto LFirstIndex do
   begin
-    LParagraph := FDocument.Paragraphs[LPI];
+    LParagraph := FDocument.Paragraphs[LParagraphIndex];
     if (LParagraph.BlockType = btTableCell) and (LParagraph.TableID = LTableID) and
        (LParagraph.TableRow = LTargetRow) then
-      FDocument.Paragraphs.Delete(LPI);
+      FDocument.Paragraphs.Delete(LParagraphIndex);
   end;
 
   LNewCaretIndex := 0;
@@ -6728,9 +6728,9 @@ begin
   begin
     // Renumber remaining rows
     GetTableBounds(LTableID, LFirstIndex, LLastIndex);
-    for LPI := LFirstIndex to LLastIndex do
+    for LParagraphIndex := LFirstIndex to LLastIndex do
     begin
-      LParagraph := FDocument.Paragraphs[LPI];
+      LParagraph := FDocument.Paragraphs[LParagraphIndex];
       if LParagraph.TableRow > LTargetRow then
         LParagraph.TableRow := LParagraph.TableRow - 1;
     end;
@@ -6749,7 +6749,7 @@ begin
 
   DoLayout;
   DoChanged;
-  SetCaretPosition(TS4YDocPos.At(Max(0, LNewCaretIndex), 0, 0), False);
+  SetCaretPosition(TS4YDocumentPosition.At(Max(0, LNewCaretIndex), 0, 0), False);
 end;
 
 procedure TS4YHTMLEditor.InsertTableColumn;
@@ -6758,7 +6758,7 @@ var
   LTableID, LTargetCol, LTableCols: Integer;
   LFirstIndex, LLastIndex: Integer;
   LMaximumRow, LRow: Integer;
-  LPI: Integer;
+  LParagraphIndex: Integer;
   LParagraph: TS4YHTMLParagraph;
   LInsertAt: Integer;
   LNewCell: TS4YHTMLParagraph;
@@ -6783,14 +6783,14 @@ begin
 
   // Find max row index
   LMaximumRow := 0;
-  for LPI := LFirstIndex to LLastIndex do
-    if FDocument.Paragraphs[LPI].TableRow > LMaximumRow then
-      LMaximumRow := FDocument.Paragraphs[LPI].TableRow;
+  for LParagraphIndex := LFirstIndex to LLastIndex do
+    if FDocument.Paragraphs[LParagraphIndex].TableRow > LMaximumRow then
+      LMaximumRow := FDocument.Paragraphs[LParagraphIndex].TableRow;
 
   // Step 1: shift TableCol and update TableCols on all existing cells
-  for LPI := LFirstIndex to LLastIndex do
+  for LParagraphIndex := LFirstIndex to LLastIndex do
   begin
-    LParagraph := FDocument.Paragraphs[LPI];
+    LParagraph := FDocument.Paragraphs[LParagraphIndex];
     if LParagraph.TableCol > LTargetCol then
       LParagraph.TableCol := LParagraph.TableCol + 1;
     LParagraph.TableCols := LTableCols + 1;
@@ -6803,12 +6803,12 @@ begin
   begin
     // Find the para index of the cell at (LRow, LTargetCol)
     LInsertAt := -1;
-    for LPI := LFirstIndex to LLastIndex do
+    for LParagraphIndex := LFirstIndex to LLastIndex do
     begin
-      LParagraph := FDocument.Paragraphs[LPI];
+      LParagraph := FDocument.Paragraphs[LParagraphIndex];
       if (LParagraph.TableID = LTableID) and (LParagraph.TableRow = LRow) and
          (LParagraph.TableCol = LTargetCol) then
-        LInsertAt := LPI + 1;
+        LInsertAt := LParagraphIndex + 1;
     end;
     if LInsertAt < 0 then
       LInsertAt := LLastIndex + 1;
@@ -6834,7 +6834,7 @@ begin
 
   DoLayout;
   DoChanged;
-  SetCaretPosition(TS4YDocPos.At(LNewCellIndex, 0, 0), False);
+  SetCaretPosition(TS4YDocumentPosition.At(LNewCellIndex, 0, 0), False);
 end;
 
 procedure TS4YHTMLEditor.DeleteTableColumn;
@@ -6842,7 +6842,7 @@ var
   LCurrentParagraph: TS4YHTMLParagraph;
   LTableID, LTargetCol, LTableCols: Integer;
   LFirstIndex, LLastIndex: Integer;
-  LPI: Integer;
+  LParagraphIndex: Integer;
   LParagraph: TS4YHTMLParagraph;
   LNewCaretIndex: Integer;
   LNewCaretCol: Integer;
@@ -6867,11 +6867,11 @@ begin
   GetTableBounds(LTableID, LFirstIndex, LLastIndex);
 
   // Delete all cells in the target column (right-to-left)
-  for LPI := LLastIndex downto LFirstIndex do
+  for LParagraphIndex := LLastIndex downto LFirstIndex do
   begin
-    LParagraph := FDocument.Paragraphs[LPI];
+    LParagraph := FDocument.Paragraphs[LParagraphIndex];
     if (LParagraph.TableID = LTableID) and (LParagraph.TableCol = LTargetCol) then
-      FDocument.Paragraphs.Delete(LPI);
+      FDocument.Paragraphs.Delete(LParagraphIndex);
   end;
 
   LNewCaretIndex := 0;
@@ -6892,9 +6892,9 @@ begin
   begin
     // Update remaining cells
     GetTableBounds(LTableID, LFirstIndex, LLastIndex);
-    for LPI := LFirstIndex to LLastIndex do
+    for LParagraphIndex := LFirstIndex to LLastIndex do
     begin
-      LParagraph := FDocument.Paragraphs[LPI];
+      LParagraph := FDocument.Paragraphs[LParagraphIndex];
       LParagraph.TableCols := LTableCols - 1;
       if LParagraph.TableCol > LTargetCol then
         LParagraph.TableCol := LParagraph.TableCol - 1;
@@ -6905,13 +6905,13 @@ begin
     // or LTargetCol-1 if the deleted column was the last one
     LNewCaretCol := Min(LTargetCol, LTableCols - 2);
     LNewCaretFound := False;
-    for LPI := LFirstIndex to LLastIndex do
+    for LParagraphIndex := LFirstIndex to LLastIndex do
     begin
-      LParagraph := FDocument.Paragraphs[LPI];
+      LParagraph := FDocument.Paragraphs[LParagraphIndex];
       if (LParagraph.TableRow = LCurrentParagraph.TableRow) and (LParagraph.TableCol = LNewCaretCol) and
          not LNewCaretFound then
       begin
-        LNewCaretIndex := LPI;
+        LNewCaretIndex := LParagraphIndex;
         LNewCaretFound := True;
       end;
     end;
@@ -6922,7 +6922,7 @@ begin
 
   DoLayout;
   DoChanged;
-  SetCaretPosition(TS4YDocPos.At(Max(0, LNewCaretIndex), 0, 0), False);
+  SetCaretPosition(TS4YDocumentPosition.At(Max(0, LNewCaretIndex), 0, 0), False);
 end;
 
 procedure TS4YHTMLEditor.InsertText(const AText: string);
@@ -6982,18 +6982,18 @@ end;
 
 procedure TS4YHTMLEditor.InsertHTML(const AHTML: string);
 var
-  LInsDoc: TS4YHTMLDocument;
+  LInsertedDocument: TS4YHTMLDocument;
   LCurrentParagraph: TS4YHTMLParagraph;
   LTailParagraph: TS4YHTMLParagraph;
   LSourceParagraph: TS4YHTMLParagraph;
   LMoveFrom: Integer;
   LInsertAt: Integer;
-  LOrigParaIdx: Integer;
+  LOriginalParagraphIndex: Integer;
   LParser: TS4YHTMLParser;
   LLastRI: Integer;
-  LTargSeg: Integer;
+  LTargetSegment: Integer;
   LTargOfs: Integer;
-  LCurSeg: Integer;
+  LCurrentSegment: Integer;
   LAcc: Integer;
   LLI4: Integer;
   LFound4: Boolean;
@@ -7007,19 +7007,19 @@ begin
     DeleteSelection;
   LParser := TS4YHTMLParser.Create;
   try
-    LInsDoc := LParser.Parse(AHTML);
+    LInsertedDocument := LParser.Parse(AHTML);
   finally
     LParser.Free;
   end;
   try
-    if LInsDoc.Paragraphs.Count = 0 then
+    if LInsertedDocument.Paragraphs.Count = 0 then
       Exit;
     if FCaretPosition.ParagraphIndex >= FDocument.Paragraphs.Count then
       Exit;
 
     SplitRunAt(FCaretPosition.ParagraphIndex, FCaretPosition.RunIndex, FCaretPosition.CharIndex);
     LCurrentParagraph := FDocument.Paragraphs[FCaretPosition.ParagraphIndex];
-    LOrigParaIdx := FCaretPosition.ParagraphIndex;
+    LOriginalParagraphIndex := FCaretPosition.ParagraphIndex;
 
     if FCaretPosition.RunIndex >= LCurrentParagraph.Runs.Count then
       LMoveFrom := LCurrentParagraph.Runs.Count
@@ -7028,22 +7028,22 @@ begin
     else
       LMoveFrom := FCaretPosition.RunIndex + 1;
 
-    if LInsDoc.Paragraphs.Count = 1 then
+    if LInsertedDocument.Paragraphs.Count = 1 then
     begin
-      LSourceParagraph := LInsDoc.Paragraphs[0];
+      LSourceParagraph := LInsertedDocument.Paragraphs[0];
       LInsertAt := LMoveFrom;
       for var LRI := 0 to LSourceParagraph.Runs.Count - 1 do
         LCurrentParagraph.Runs.Insert(LInsertAt + LRI, LSourceParagraph.Runs[LRI].Clone);
 
       LLastRI := LInsertAt + LSourceParagraph.Runs.Count - 1;
-      LTargSeg := 0;
+      LTargetSegment := 0;
       LTargOfs := 0;
       if LLastRI >= 0 then
       begin
         for var I := 0 to LLastRI - 1 do
           if LCurrentParagraph.Runs[I].IsLineBreak then
           begin
-            Inc(LTargSeg);
+            Inc(LTargetSegment);
             LTargOfs := 0;
           end
           else
@@ -7052,9 +7052,9 @@ begin
           Inc(LTargOfs, LCurrentParagraph.Runs[LLastRI].Text.Length);
       end;
 
-      NormalizeRuns(LOrigParaIdx);
+      NormalizeRuns(LOriginalParagraphIndex);
 
-      LCurSeg := 0;
+      LCurrentSegment := 0;
       LAcc := 0;
       FCaretPosition.RunIndex := 0;
       FCaretPosition.CharIndex := 0;
@@ -7064,15 +7064,15 @@ begin
       begin
         if LCurrentParagraph.Runs[LLI4].IsLineBreak then
         begin
-          if LCurSeg = LTargSeg then
+          if LCurrentSegment = LTargetSegment then
             LFound4 := True
           else
           begin
-            Inc(LCurSeg);
+            Inc(LCurrentSegment);
             LAcc := 0;
           end;
         end
-        else if LCurSeg = LTargSeg then
+        else if LCurrentSegment = LTargetSegment then
         begin
           if LTargOfs <= LAcc + LCurrentParagraph.Runs[LLI4].Text.Length then
           begin
@@ -7093,7 +7093,7 @@ begin
     else
     begin
       LTailParagraph := TS4YHTMLParagraph.Create;
-      LLastSource := LInsDoc.Paragraphs[LInsDoc.Paragraphs.Count - 1];
+      LLastSource := LInsertedDocument.Paragraphs[LInsertedDocument.Paragraphs.Count - 1];
       LTailParagraph.BlockType := LLastSource.BlockType;
       LTailParagraph.Alignment := LLastSource.Alignment;
       LTailParagraph.IndentLevel := LLastSource.IndentLevel;
@@ -7105,7 +7105,7 @@ begin
         LTailParagraph.Runs.Add(LRun);
       end;
 
-      LSourceParagraph := LInsDoc.Paragraphs[0];
+      LSourceParagraph := LInsertedDocument.Paragraphs[0];
       LCurrentParagraph.BlockType := LSourceParagraph.BlockType;
       LCurrentParagraph.Alignment := LSourceParagraph.Alignment;
       LCurrentParagraph.IndentLevel := LSourceParagraph.IndentLevel;
@@ -7113,31 +7113,31 @@ begin
       for var LRI := 0 to LSourceParagraph.Runs.Count - 1 do
         LCurrentParagraph.Runs.Add(LSourceParagraph.Runs[LRI].Clone);
 
-      NormalizeRuns(LOrigParaIdx);
+      NormalizeRuns(LOriginalParagraphIndex);
 
-      LInsertAt := LOrigParaIdx + 1;
-      for var LPI := 1 to LInsDoc.Paragraphs.Count - 2 do
+      LInsertAt := LOriginalParagraphIndex + 1;
+      for var LParagraphIndex := 1 to LInsertedDocument.Paragraphs.Count - 2 do
       begin
-        FDocument.Paragraphs.Insert(LInsertAt, LInsDoc.Paragraphs[LPI].Clone);
+        FDocument.Paragraphs.Insert(LInsertAt, LInsertedDocument.Paragraphs[LParagraphIndex].Clone);
         Inc(LInsertAt);
       end;
 
-      LSourceParagraph := LInsDoc.Paragraphs[LInsDoc.Paragraphs.Count - 1];
+      LSourceParagraph := LInsertedDocument.Paragraphs[LInsertedDocument.Paragraphs.Count - 1];
       for var LRI := LSourceParagraph.Runs.Count - 1 downto 0 do
         LTailParagraph.Runs.Insert(0, LSourceParagraph.Runs[LRI].Clone);
 
       FDocument.Paragraphs.Insert(LInsertAt, LTailParagraph);
       NormalizeRuns(LInsertAt);
-      FCaretPosition := TS4YDocPos.At(LInsertAt, 0, 0);
+      FCaretPosition := TS4YDocumentPosition.At(LInsertAt, 0, 0);
     end;
 
     FHasSelection := False;
-    FSelectionStart := TS4YDocPos.Invalid;
-    FSelectionEnd := TS4YDocPos.Invalid;
+    FSelectionStart := TS4YDocumentPosition.Invalid;
+    FSelectionEnd := TS4YDocumentPosition.Invalid;
     ScanForPlaceholders(FDocument);
     RebuildPlaceholderList;
   finally
-    LInsDoc.Free;
+    LInsertedDocument.Free;
   end;
   DoLayout;
   DoChanged;
@@ -7367,7 +7367,7 @@ end;
 
 function TS4YHTMLEditor.GetCurrentIsOrderedList: Boolean;
 var
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
   LFirst, LLast: Integer;
   LIndent: Integer;
 begin
@@ -7399,7 +7399,7 @@ end;
 
 function TS4YHTMLEditor.GetCurrentIsUnorderedList: Boolean;
 var
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
   LFirst, LLast: Integer;
   LIndent: Integer;
 begin
@@ -7432,7 +7432,7 @@ end;
 function TS4YHTMLEditor.GetState: TS4YEditorState;
 var
   LTextStyle: TS4YHTMLTextStyle;
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
   LImageRun: TS4YHTMLRun;
 begin
   LTextStyle := StyleAtCaret;
@@ -7602,7 +7602,7 @@ var
   LPSEnd: Integer;
   LSaveStyle: TS4YHTMLTextStyle;
   LSaveBorderColor: TAlphaColor;
-  LInsIdx: Integer;
+  LInsertionIndex: Integer;
   LBeforeText: string;
   LPhText: string;
   LAfterText: string;
@@ -7645,30 +7645,30 @@ begin
             LPhText := LText.Substring(LPStart, LPSEnd - LPStart);
             LAfterText := LText.Substring(LPSEnd);
             LParagraph.Runs.Delete(LIndex);
-            LInsIdx := LIndex;
+            LInsertionIndex := LIndex;
             if LBeforeText <> '' then
             begin
               LSplitRun := TS4YHTMLRun.Create;
               LSplitRun.Style := LSaveStyle;
               LSplitRun.Text := LBeforeText;
-              LParagraph.Runs.Insert(LInsIdx, LSplitRun);
-              Inc(LInsIdx);
+              LParagraph.Runs.Insert(LInsertionIndex, LSplitRun);
+              Inc(LInsertionIndex);
             end;
             LPhRun := TS4YHTMLRun.Create;
             LPhRun.Style := LSaveStyle;
             LPhRun.PlaceholderBorderColor := LSaveBorderColor;
             LPhRun.Text := LPhText;
             LPhRun.IsPlaceholder := True;
-            LParagraph.Runs.Insert(LInsIdx, LPhRun);
-            Inc(LInsIdx);
+            LParagraph.Runs.Insert(LInsertionIndex, LPhRun);
+            Inc(LInsertionIndex);
             if LAfterText <> '' then
             begin
               LSplitRun := TS4YHTMLRun.Create;
               LSplitRun.Style := LSaveStyle;
               LSplitRun.Text := LAfterText;
-              LParagraph.Runs.Insert(LInsIdx, LSplitRun);
+              LParagraph.Runs.Insert(LInsertionIndex, LSplitRun);
             end;
-            LIndex := LInsIdx;
+            LIndex := LInsertionIndex;
           end;
         end;
       end;
@@ -7716,7 +7716,7 @@ begin
   LRun.IsPlaceholder := True;
   LParagraph.Runs.Insert(LInsertIndex, LRun);
   FPlaceholders.Add(LRun);
-  FCaretPosition := TS4YDocPos.At(FCaretPosition.ParagraphIndex, LInsertIndex, LRun.Text.Length);
+  FCaretPosition := TS4YDocumentPosition.At(FCaretPosition.ParagraphIndex, LInsertIndex, LRun.Text.Length);
   NormalizeRuns(FCaretPosition.ParagraphIndex);
   DoLayout;
   DoChanged;
@@ -7730,7 +7730,7 @@ var
   LRun: TS4YHTMLRun;
   LPreviousRun: TS4YHTMLRun;
   LRunIndex: Integer;
-  LSelectionStart, LSelectionEnd: TS4YDocPos;
+  LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
 begin
   Result := nil;
   if FHasSelection then
@@ -7904,7 +7904,7 @@ end;
 function TS4YHTMLEditor.GetHTML: string;
 var
   LGenerator: TS4YHTMLGenerator;
-  LPlaceholderStyle: TS4YPlaceholderGenStyle;
+  LPlaceholderStyle: TS4YPlaceholderGeneratorStyle;
 begin
   if (FDocument.Paragraphs.Count = 1) and FDocument.Paragraphs[0].IsEmpty and
     (FDocument.Paragraphs[0].BlockType in [btParagraph, btBodyText]) and
@@ -7975,7 +7975,7 @@ begin
     LParagraph := TS4YHTMLParagraph.Create;
     LParagraph.BlockType := btParagraph;
     FDocument.Paragraphs.Add(LParagraph);
-    FCaretPosition := TS4YDocPos.At(0, 0, 0);
+    FCaretPosition := TS4YDocumentPosition.At(0, 0, 0);
   end;
   Result := True;
 end;

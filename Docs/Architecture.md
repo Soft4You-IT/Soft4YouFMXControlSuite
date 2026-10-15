@@ -32,7 +32,7 @@ Un **run** è il segmento minimo di testo omogeneo per stile. Se scrivi "ciao **
 
 Un paragrafo **vuoto** è rappresentato con `Runs.Count = 0` — non da un run con `Text=''`. Questa distinzione è critica per il layout (dettaglio nella sezione Layout engine).
 
-La posizione del cursore è un `TS4YDocPos` con tre interi:
+La posizione del cursore è un `TS4YDocumentPosition` con tre interi:
 
 ```
 ParagraphIndex  →  indice del paragrafo
@@ -63,7 +63,7 @@ Ogni `TS4YHTMLParagraph` ha un campo `IndentLevel: Integer` (0 = nessuna indenta
 
 Il layout engine converte il modello dati in due array piatti:
 
-- **`FFrags: TArray<TS4YLayoutFrag>`** — ogni frammento è un pezzo di testo misurabile, con coordinate X/Y/W/H in pixel (coordinate documento, senza scroll).
+- **`FFrags: TArray<TS4YLayoutFragment>`** — ogni frammento è un pezzo di testo misurabile, con coordinate X/Y/W/H in pixel (coordinate documento, senza scroll).
 - **`FLines: TArray<TS4YLayoutLine>`** — ogni riga logica del documento, con Y, H, ascent, e gli indici di inizio/fine nei `FFrags`.
 
 ### Come funziona `LayoutParagraph`
