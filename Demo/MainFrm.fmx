@@ -38,7 +38,7 @@ object frmMain: TfrmMain
       Text = 'Editor'
       ExplicitSize.cx = 52.000000000000000000
       ExplicitSize.cy = 26.000000000000000000
-      object HTMLEditor: THTMLEditor
+      object HTMLEditor: TS4YHTMLEditor
         LineSpacing = 1.000000000000000000
         ParagraphSpacing = 6.000000000000000000
         PlaceholderAppearance.FillColor = xFFD0E8FF

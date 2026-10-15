@@ -44,18 +44,18 @@ resourcestring
 
 type
 
-  THTMLAlignment = (haLeft, haCenter, haRight, haJustify);
+  TS4YHTMLAlignment = (haLeft, haCenter, haRight, haJustify);
 
-  THTMLBlockType = (btParagraph, btH1, btH2, btH3, btH4, btH5, btH6,
+  TS4YHTMLBlockType = (btParagraph, btH1, btH2, btH3, btH4, btH5, btH6,
     btBlockquote, btUL, btOL, btLI, btHR, btImage, btTableCell, btBodyText, btPre);
 
-  TParagraphFormat = (pfBodyText, pfParagraph, pfH1, pfH2, pfH3, pfH4, pfH5, pfH6, pfPre);
+  TS4YParagraphFormat = (pfBodyText, pfParagraph, pfH1, pfH2, pfH3, pfH4, pfH5, pfH6, pfPre);
 
   // ===========================================================================
   // Text style
   // ===========================================================================
 
-  THTMLTextStyle = record
+  TS4YHTMLTextStyle = record
     FontName: string;
     FontSize: Single; // pt
     Bold: Boolean;
@@ -68,14 +68,14 @@ type
     BackgroundColor: TAlphaColor; // claNull = transparent
     LinkURL: string;
     procedure Init;
-    function EqualsFormat(const O: THTMLTextStyle): Boolean;
+    function EqualsFormat(const O: TS4YHTMLTextStyle): Boolean;
   end;
 
   // ===========================================================================
-  // Placeholder generation style (passed from THTMLEditor to THTMLGenerator)
+  // Placeholder generation style (passed from TS4YHTMLEditor to TS4YHTMLGenerator)
   // ===========================================================================
 
-  TPlaceholderGenStyle = record
+  TS4YPlaceholderGenStyle = record
     FillColor: TAlphaColor;
     TextColor: TAlphaColor;
     BorderColor: TAlphaColor;
@@ -90,21 +90,21 @@ type
   // Caret position  (paragraph / run / char index)
   // ===========================================================================
 
-  TDocPos = record
+  TS4YDocPos = record
     ParaIdx: Integer; // -1 = invalid
     RunIdx: Integer;
     CharIdx: Integer; // 0 = before first char of run
-    class function Invalid: TDocPos; static; inline;
-    class function At(P, R, C: Integer): TDocPos; static; inline;
+    class function Invalid: TS4YDocPos; static; inline;
+    class function At(P, R, C: Integer): TS4YDocPos; static; inline;
     function IsValid: Boolean; inline;
-    function Equals(const O: TDocPos): Boolean; inline;
+    function Equals(const O: TS4YDocPos): Boolean; inline;
   end;
 
   // ===========================================================================
-  // Layout types  (produced by TLayoutEngine)
+  // Layout types  (produced by TS4YLayoutEngine)
   // ===========================================================================
 
-  TLayoutFrag = record
+  TS4YLayoutFrag = record
     ParaIdx: Integer;
     RunIdx: Integer;
     CharStart: Integer; // inclusive, within Run.Text
@@ -119,7 +119,7 @@ type
     IsPlaceholder: Boolean;  // mirrors Run.IsPlaceholder; drives chip rendering
   end;
 
-  TLayoutLine = record
+  TS4YLayoutLine = record
     Y: Single;
     H: Single;      // line-box height
     Ascent: Single; // max ascent in line
@@ -139,13 +139,13 @@ type
   // Font size presets
   // ===========================================================================
 
-  TFontSizePreset = record
+  TS4YFontSizePreset = record
     Size: Single;
     Caption: string;
     constructor Create(ASize: Single; const ACaption: string);
   end;
 
-function FontSizePresets: TArray<TFontSizePreset>;
+function FontSizePresets: TArray<TS4YFontSizePreset>;
 
 // ===========================================================================
 // Helpers
@@ -189,10 +189,10 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// TFontSizePreset
+// TS4YFontSizePreset
 // -----------------------------------------------------------------------------
 
-constructor TFontSizePreset.Create(ASize: Single; const ACaption: string);
+constructor TS4YFontSizePreset.Create(ASize: Single; const ACaption: string);
 begin
   Size    := ASize;
   Caption := ACaption;
@@ -202,23 +202,23 @@ end;
 // FontSizePresets
 // -----------------------------------------------------------------------------
 
-function FontSizePresets: TArray<TFontSizePreset>;
+function FontSizePresets: TArray<TS4YFontSizePreset>;
 begin
   Result := [
-    TFontSizePreset.Create(C_FONT_SIZE_VERY_SMALL, S_FONT_SIZE_VERY_SMALL),
-    TFontSizePreset.Create(C_FONT_SIZE_SMALL,       S_FONT_SIZE_SMALL),
-    TFontSizePreset.Create(C_FONT_SIZE_MEDIUM,      S_FONT_SIZE_MEDIUM),
-    TFontSizePreset.Create(C_FONT_SIZE_LARGE,       S_FONT_SIZE_LARGE),
-    TFontSizePreset.Create(C_FONT_SIZE_VERY_LARGE,  S_FONT_SIZE_VERY_LARGE),
-    TFontSizePreset.Create(C_FONT_SIZE_HUGE,        S_FONT_SIZE_HUGE)
+    TS4YFontSizePreset.Create(C_FONT_SIZE_VERY_SMALL, S_FONT_SIZE_VERY_SMALL),
+    TS4YFontSizePreset.Create(C_FONT_SIZE_SMALL,       S_FONT_SIZE_SMALL),
+    TS4YFontSizePreset.Create(C_FONT_SIZE_MEDIUM,      S_FONT_SIZE_MEDIUM),
+    TS4YFontSizePreset.Create(C_FONT_SIZE_LARGE,       S_FONT_SIZE_LARGE),
+    TS4YFontSizePreset.Create(C_FONT_SIZE_VERY_LARGE,  S_FONT_SIZE_VERY_LARGE),
+    TS4YFontSizePreset.Create(C_FONT_SIZE_HUGE,        S_FONT_SIZE_HUGE)
   ];
 end;
 
 // -----------------------------------------------------------------------------
-// TPlaceholderGenStyle
+// TS4YPlaceholderGenStyle
 // -----------------------------------------------------------------------------
 
-procedure TPlaceholderGenStyle.Init;
+procedure TS4YPlaceholderGenStyle.Init;
 begin
   FillColor := claNull;
   TextColor := claNull;
@@ -230,10 +230,10 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// THTMLTextStyle
+// TS4YHTMLTextStyle
 // -----------------------------------------------------------------------------
 
-procedure THTMLTextStyle.Init;
+procedure TS4YHTMLTextStyle.Init;
 begin
   FontName := S_EDITOR_FONT_NAME;
   FontSize := C_EDITOR_FONT_SIZE;
@@ -248,7 +248,7 @@ begin
   LinkURL := '';
 end;
 
-function THTMLTextStyle.EqualsFormat(const O: THTMLTextStyle): Boolean;
+function TS4YHTMLTextStyle.EqualsFormat(const O: TS4YHTMLTextStyle): Boolean;
 begin
   Result := (FontName = O.FontName) and (Abs(FontSize - O.FontSize) < 0.01) and
     (Bold = O.Bold) and (Italic = O.Italic) and (Underline = O.Underline) and
@@ -258,29 +258,29 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// TDocPos
+// TS4YDocPos
 // -----------------------------------------------------------------------------
 
-class function TDocPos.Invalid: TDocPos;
+class function TS4YDocPos.Invalid: TS4YDocPos;
 begin
   Result.ParaIdx := -1;
   Result.RunIdx := 0;
   Result.CharIdx := 0;
 end;
 
-class function TDocPos.At(P, R, C: Integer): TDocPos;
+class function TS4YDocPos.At(P, R, C: Integer): TS4YDocPos;
 begin
   Result.ParaIdx := P;
   Result.RunIdx := R;
   Result.CharIdx := C;
 end;
 
-function TDocPos.IsValid: Boolean;
+function TS4YDocPos.IsValid: Boolean;
 begin
   Result := ParaIdx >= 0;
 end;
 
-function TDocPos.Equals(const O: TDocPos): Boolean;
+function TS4YDocPos.Equals(const O: TS4YDocPos): Boolean;
 begin
   Result := (ParaIdx = O.ParaIdx) and (RunIdx = O.RunIdx) and (CharIdx = O.CharIdx);
 end;

@@ -24,40 +24,40 @@ uses
 type
 
   // ===========================================================================
-  // THTMLGenerator
+  // TS4YHTMLGenerator
   // ===========================================================================
 
-  THTMLGenerator = class
+  TS4YHTMLGenerator = class
   private
     FPretty: Boolean;
-    FPlaceholderStyle: TPlaceholderGenStyle;
+    FPlaceholderStyle: TS4YPlaceholderGenStyle;
     function HtmlEncode(const AText: string): string;
     function ColorToHex(AColor: TAlphaColor): string;
-    function StyleDiff(const Cur, Base: THTMLTextStyle): string;
+    function StyleDiff(const Cur, Base: TS4YHTMLTextStyle): string;
   public
-    function Generate(ADocument: THTMLDocument): string;
+    function Generate(ADocument: TS4YHTMLDocument): string;
 
-    property PlaceholderStyle: TPlaceholderGenStyle read FPlaceholderStyle write FPlaceholderStyle;
+    property PlaceholderStyle: TS4YPlaceholderGenStyle read FPlaceholderStyle write FPlaceholderStyle;
     property Pretty: Boolean read FPretty write FPretty;
   end;
 
 implementation
 
 // -----------------------------------------------------------------------------
-// THTMLGenerator
+// TS4YHTMLGenerator
 // -----------------------------------------------------------------------------
 
-function THTMLGenerator.HtmlEncode(const AText: string): string;
+function TS4YHTMLGenerator.HtmlEncode(const AText: string): string;
 begin
   Result := AText.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;').Replace('"', '&quot;');
 end;
 
-function THTMLGenerator.ColorToHex(AColor: TAlphaColor): string;
+function TS4YHTMLGenerator.ColorToHex(AColor: TAlphaColor): string;
 begin
   Result := Format('#%.2x%.2x%.2x', [TAlphaColorRec(AColor).R, TAlphaColorRec(AColor).G, TAlphaColorRec(AColor).B]);
 end;
 
-function THTMLGenerator.StyleDiff(const Cur, Base: THTMLTextStyle): string;
+function TS4YHTMLGenerator.StyleDiff(const Cur, Base: TS4YHTMLTextStyle): string;
 var
   LStringBuilder: TStringBuilder;
 begin
@@ -79,12 +79,12 @@ begin
   end;
 end;
 
-function THTMLGenerator.Generate(ADocument: THTMLDocument): string;
+function TS4YHTMLGenerator.Generate(ADocument: TS4YHTMLDocument): string;
 var
   LStringBuilder: TStringBuilder;
-  LParagraph: THTMLParagraph;
-  LRun: THTMLRun;
-  LBase: THTMLTextStyle;
+  LParagraph: TS4YHTMLParagraph;
+  LRun: TS4YHTMLRun;
+  LBase: TS4YHTMLTextStyle;
   LOpenTag, LCloseTag, LCSS: string;
   LAlignCSS: string;
   LIndent: string;
@@ -98,7 +98,7 @@ var
   LChipBold: Boolean;
   LChipCSS: string;
 
-  procedure EmitRuns(APara: THTMLParagraph);
+  procedure EmitRuns(APara: TS4YHTMLParagraph);
   begin
     for var LEmitRun in APara.Runs do
     begin
@@ -196,7 +196,7 @@ var
 
   procedure EmitListBlock(ABaseLevel: Integer);
   var
-    LLI: THTMLParagraph;
+    LLI: TS4YHTMLParagraph;
     LListTag: string;
     LFirstOrdered: Boolean;
   begin
@@ -245,7 +245,7 @@ var
     LRow: Integer;
     LMaxRow: Integer;
     LCol: Integer;
-    LCell: THTMLParagraph;
+    LCell: TS4YHTMLParagraph;
     LCellTag: string;
     LCellStyle: string;
     LScanIndex: Integer;

@@ -22,10 +22,10 @@ uses
 type
 
   // ===========================================================================
-  // THTMLRun
+  // TS4YHTMLRun
   // ===========================================================================
 
-  THTMLRun = class
+  TS4YHTMLRun = class
   private
     FDisplayText: string;
     FImageAlt: string;
@@ -36,12 +36,12 @@ type
     FIsLineBreak: Boolean;
     FIsPlaceholder: Boolean;
     FPlaceholderBorderColor: TAlphaColor;
-    FStyle: THTMLTextStyle;
+    FStyle: TS4YHTMLTextStyle;
     FText: string;
   public
     constructor Create;
 
-    function Clone: THTMLRun;
+    function Clone: TS4YHTMLRun;
 
     property DisplayText: string read FDisplayText write FDisplayText;
     property ImageAlt: string read FImageAlt write FImageAlt;
@@ -52,18 +52,18 @@ type
     property IsLineBreak: Boolean read FIsLineBreak write FIsLineBreak;
     property IsPlaceholder: Boolean read FIsPlaceholder write FIsPlaceholder;
     property PlaceholderBorderColor: TAlphaColor read FPlaceholderBorderColor write FPlaceholderBorderColor;
-    property Style: THTMLTextStyle read FStyle write FStyle;
+    property Style: TS4YHTMLTextStyle read FStyle write FStyle;
     property Text: string read FText write FText;
   end;
 
   // ===========================================================================
-  // THTMLParagraph
+  // TS4YHTMLParagraph
   // ===========================================================================
 
-  THTMLParagraph = class
+  TS4YHTMLParagraph = class
   private
-    FBlockType: THTMLBlockType;
-    FAlignment: THTMLAlignment;
+    FBlockType: TS4YHTMLBlockType;
+    FAlignment: TS4YHTMLAlignment;
     FIndentLevel: Integer;  // 0..N  (blockquote / list nesting)
     FListOrdered: Boolean;  // true = <ol>, used when BlockType = btLI
     FListIndex: Integer;    // 1-based counter for <ol>
@@ -78,17 +78,17 @@ type
     FTableCols: Integer;    // total columns in table (btTableCell only)
     FTableID: Integer;      // groups cells of same table; 0 = not a cell
     FTableRow: Integer;     // 0-based row index (btTableCell only)
-    FRuns: TObjectList<THTMLRun>;
+    FRuns: TObjectList<TS4YHTMLRun>;
   public
     constructor Create;
     destructor Destroy; override;
 
-    function Clone: THTMLParagraph;
+    function Clone: TS4YHTMLParagraph;
     function PlainText: string;
     function IsEmpty: Boolean;
 
-    property BlockType: THTMLBlockType read FBlockType write FBlockType;
-    property Alignment: THTMLAlignment read FAlignment write FAlignment;
+    property BlockType: TS4YHTMLBlockType read FBlockType write FBlockType;
+    property Alignment: TS4YHTMLAlignment read FAlignment write FAlignment;
     property IndentLevel: Integer read FIndentLevel write FIndentLevel;  // 0..N  (blockquote / list nesting)
     property ListOrdered: Boolean read FListOrdered write FListOrdered;  // true = <ol>, used when BlockType = btLI
     property ListIndex: Integer read FListIndex write FListIndex;    // 1-based counter for <ol>
@@ -103,24 +103,24 @@ type
     property TableCols: Integer read FTableCols write FTableCols;    // total columns in table (btTableCell only)
     property TableID: Integer read FTableID write FTableId;      // groups cells of same table; 0 = not a cell
     property TableRow: Integer read FTableRow write FTableRow;     // 0-based row index (btTableCell only)
-    property Runs: TObjectList<THTMLRun> read FRuns;
+    property Runs: TObjectList<TS4YHTMLRun> read FRuns;
   end;
 
   // ===========================================================================
-  // THTMLDocument
+  // TS4YHTMLDocument
   // ===========================================================================
 
-  THTMLDocument = class
+  TS4YHTMLDocument = class
   private
-    FParagraphs: TObjectList<THTMLParagraph>;
+    FParagraphs: TObjectList<TS4YHTMLParagraph>;
   public
     constructor Create;
     destructor Destroy; override;
 
     procedure Clear;
-    function Clone: THTMLDocument;
+    function Clone: TS4YHTMLDocument;
 
-    property Paragraphs: TObjectList<THTMLParagraph> read FParagraphs;
+    property Paragraphs: TObjectList<TS4YHTMLParagraph> read FParagraphs;
   end;
 
 // Returns the next unique table ID (shared counter for parser and editor)
@@ -138,18 +138,18 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// THTMLRun
+// TS4YHTMLRun
 // -----------------------------------------------------------------------------
 
-constructor THTMLRun.Create;
+constructor TS4YHTMLRun.Create;
 begin
   inherited;
   FStyle.Init;
 end;
 
-function THTMLRun.Clone: THTMLRun;
+function TS4YHTMLRun.Clone: TS4YHTMLRun;
 begin
-  Result := THTMLRun.Create;
+  Result := TS4YHTMLRun.Create;
   Result.DisplayText := DisplayText;
   Result.ImageAlt := ImageAlt;
   Result.ImageHeight := ImageHeight;
@@ -164,27 +164,27 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// THTMLParagraph
+// TS4YHTMLParagraph
 // -----------------------------------------------------------------------------
 
-constructor THTMLParagraph.Create;
+constructor TS4YHTMLParagraph.Create;
 begin
   inherited;
-  FRuns := TObjectList<THTMLRun>.Create(True);
+  FRuns := TObjectList<TS4YHTMLRun>.Create(True);
   FBlockType := btBodyText;
 end;
 
-destructor THTMLParagraph.Destroy;
+destructor TS4YHTMLParagraph.Destroy;
 begin
   FRuns.Free;
   inherited;
 end;
 
-function THTMLParagraph.Clone: THTMLParagraph;
+function TS4YHTMLParagraph.Clone: TS4YHTMLParagraph;
 var
-  LRun: THTMLRun;
+  LRun: TS4YHTMLRun;
 begin
-  Result := THTMLParagraph.Create;
+  Result := TS4YHTMLParagraph.Create;
   Result.BlockType := BlockType;
   Result.Alignment := Alignment;
   Result.IndentLevel := IndentLevel;
@@ -205,9 +205,9 @@ begin
     Result.Runs.Add(LRun.Clone);
 end;
 
-function THTMLParagraph.PlainText: string;
+function TS4YHTMLParagraph.PlainText: string;
 var
-  LRun: THTMLRun;
+  LRun: TS4YHTMLRun;
 begin
   Result := '';
   for LRun in Runs do
@@ -221,9 +221,9 @@ begin
   end;
 end;
 
-function THTMLParagraph.IsEmpty: Boolean;
+function TS4YHTMLParagraph.IsEmpty: Boolean;
 var
-  LRun: THTMLRun;
+  LRun: TS4YHTMLRun;
 begin
   for LRun in Runs do
     if (not LRun.IsLineBreak) and (LRun.Text <> '') then
@@ -232,31 +232,31 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// THTMLDocument
+// TS4YHTMLDocument
 // -----------------------------------------------------------------------------
 
-constructor THTMLDocument.Create;
+constructor TS4YHTMLDocument.Create;
 begin
   inherited;
-  FParagraphs := TObjectList<THTMLParagraph>.Create(True);
+  FParagraphs := TObjectList<TS4YHTMLParagraph>.Create(True);
 end;
 
-destructor THTMLDocument.Destroy;
+destructor TS4YHTMLDocument.Destroy;
 begin
   FParagraphs.Free;
   inherited;
 end;
 
-procedure THTMLDocument.Clear;
+procedure TS4YHTMLDocument.Clear;
 begin
   FParagraphs.Clear;
 end;
 
-function THTMLDocument.Clone: THTMLDocument;
+function TS4YHTMLDocument.Clone: TS4YHTMLDocument;
 var
-  LParagraph: THTMLParagraph;
+  LParagraph: TS4YHTMLParagraph;
 begin
-  Result := THTMLDocument.Create;
+  Result := TS4YHTMLDocument.Create;
   for LParagraph in Paragraphs do
     Result.Paragraphs.Add(LParagraph.Clone);
 end;

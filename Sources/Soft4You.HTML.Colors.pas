@@ -17,7 +17,7 @@ uses
   System.UITypes;
 
 type
-  THTMLNamedColor = record
+  TS4YHTMLNamedColor = record
     Name: string;
     Color: TAlphaColor;
   end;
@@ -31,7 +31,7 @@ function HTMLColorToAlphaColor(const AValue: string; out AColor: TAlphaColor): B
 function HTMLColorNameToAlphaColor(const AName: string; out AColor: TAlphaColor): Boolean;
 
 // Returns all 148 W3C named colors sorted alphabetically by lowercase name.
-function HTMLNamedColors: TArray<THTMLNamedColor>;
+function HTMLNamedColors: TArray<TS4YHTMLNamedColor>;
 
 // Returns #RRGGBB for the given color (alpha channel ignored).
 function AlphaColorToHTMLHex(AColor: TAlphaColor): string;
@@ -50,7 +50,7 @@ uses
 var
   GColorLookup: TDictionary<string, TAlphaColor>;
   GColorReverseLookup: TDictionary<TAlphaColor, string>;
-  GNamedColors: TArray<THTMLNamedColor>;
+  GNamedColors: TArray<TS4YHTMLNamedColor>;
 
 function HTMLColorToAlphaColor(const AValue: string; out AColor: TAlphaColor): Boolean;
 var
@@ -103,7 +103,7 @@ begin
   Result := GColorLookup.TryGetValue(AName.ToLower, AColor);
 end;
 
-function HTMLNamedColors: TArray<THTMLNamedColor>;
+function HTMLNamedColors: TArray<TS4YHTMLNamedColor>;
 begin
   Result := GNamedColors;
 end;
@@ -292,9 +292,9 @@ begin
     GNamedColors[LIdx].Color := LPair.Value;
     Inc(LIdx);
   end;
-  TArray.Sort<THTMLNamedColor>(GNamedColors,
-    TComparer<THTMLNamedColor>.Construct(
-      function(const A, B: THTMLNamedColor): Integer
+  TArray.Sort<TS4YHTMLNamedColor>(GNamedColors,
+    TComparer<TS4YHTMLNamedColor>.Construct(
+      function(const A, B: TS4YHTMLNamedColor): Integer
       begin
         Result := CompareStr(A.Name, B.Name);
       end));

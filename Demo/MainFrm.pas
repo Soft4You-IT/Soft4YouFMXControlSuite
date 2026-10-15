@@ -11,7 +11,7 @@ uses
 
 type
   TfrmMain = class(TForm)
-    HTMLEditor: THTMLEditor;
+    HTMLEditor: TS4YHTMLEditor;
     TabControl1: TTabControl;
     tabEditor: TTabItem;
     tabPlainText: TTabItem;
@@ -102,7 +102,7 @@ type
     procedure actDecreaseIndentExecute(Sender: TObject);
     procedure cbParagraphStyleChange(Sender: TObject);
     procedure actLoadFromHTMLFileExecute(Sender: TObject);
-    procedure HTMLEditorStateChange(Sender: TObject; const State: TEditorState);
+    procedure HTMLEditorStateChange(Sender: TObject; const State: TS4YEditorState);
     procedure btnAlignLeftClick(Sender: TObject);
     procedure btnAlignCenterClick(Sender: TObject);
     procedure btnAlignRightClick(Sender: TObject);
@@ -139,7 +139,7 @@ type
     procedure ShowControlPopup(const AControl: TControl);
     procedure SetParagraphFormat(const AIndex: integer);
     function ShowPlaceholderDlg(var ADisplayedName, APlaceholderName: string): boolean;
-    procedure UpdateEditorControls(const AState: TEditorState);
+    procedure UpdateEditorControls(const AState: TS4YEditorState);
     procedure UpdateStatusBar;
   public
     constructor Create(AOwner: TComponent); override;
@@ -258,13 +258,13 @@ end;
 
 procedure TfrmMain.BuildEmojisList;
 var
-  LEmojis: TArray<TEmoji>;
-  LEmoji: TEmoji;
+  LEmojis: TArray<TS4YEmoji>;
+  LEmoji: TS4YEmoji;
   LMenuItem: TMenuItem;
 begin
   pupEmojis.Clear;
 
-  LEmojis := TEmojiData.Emojis(TEmojiCategoryKind.eckSmileys);
+  LEmojis := TS4YEmojiData.Emojis(TS4YEmojiCategoryKind.eckSmileys);
 
   for LEmoji in LEmojis do
   begin
@@ -317,7 +317,7 @@ begin
   ShowMessage(Format('Clicked link "%s", url=%s', [LinkText, URL]));
 end;
 
-procedure TfrmMain.HTMLEditorStateChange(Sender: TObject; const State: TEditorState);
+procedure TfrmMain.HTMLEditorStateChange(Sender: TObject; const State: TS4YEditorState);
 begin
   UpdateEditorControls(State);
   UpdateStatusBar;
@@ -527,7 +527,7 @@ begin
     edPlainText.Lines.Text := HTMLEditor.HTML;
 end;
 
-procedure TfrmMain.UpdateEditorControls(const AState: TEditorState);
+procedure TfrmMain.UpdateEditorControls(const AState: TS4YEditorState);
 begin
   if FUpdatingUI then
     exit;
@@ -558,7 +558,7 @@ end;
 
 procedure TfrmMain.UpdateStatusBar;
 var
-  LRun: THTMLRun;
+  LRun: TS4YHTMLRun;
   LText: string;
 begin
   LRun := HTMLEditor.CurrentRun;

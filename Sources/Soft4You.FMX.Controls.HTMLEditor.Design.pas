@@ -20,10 +20,10 @@ uses
 type
 
   // ===========================================================================
-  // THTMLPropertyEditor
+  // TS4YHTMLPropertyEditor
   // ===========================================================================
 
-  THTMLPropertyEditor = class(TStringProperty)
+  TS4YHTMLPropertyEditor = class(TStringProperty)
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure Edit; override;
@@ -43,15 +43,15 @@ uses
   Soft4You.FMX.Controls.HTMLEditor;
 
 // -----------------------------------------------------------------------------
-// THTMLPropertyEditor
+// TS4YHTMLPropertyEditor
 // -----------------------------------------------------------------------------
 
-function THTMLPropertyEditor.GetAttributes: TPropertyAttributes;
+function TS4YHTMLPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
   Result := inherited GetAttributes + [paDialog];
 end;
 
-procedure THTMLPropertyEditor.Edit;
+procedure TS4YHTMLPropertyEditor.Edit;
 const
   C_DLG_W   = 700;
   C_DLG_H   = 500;
@@ -121,9 +121,9 @@ end;
 
 procedure Register;
 begin
-  RegisterComponents('Email', [THTMLEditor]);
-  RegisterObservableMember([THTMLEditor], 'HTML', 'OnChange');
-  RegisterPropertyEditor(TypeInfo(string), THTMLEditor, 'HTML', THTMLPropertyEditor);
+  RegisterComponents('Email', [TS4YHTMLEditor]);
+  RegisterObservableMember([TS4YHTMLEditor], 'HTML', 'OnChange');
+  RegisterPropertyEditor(TypeInfo(string), TS4YHTMLEditor, 'HTML', TS4YHTMLPropertyEditor);
 end;
 
 end.

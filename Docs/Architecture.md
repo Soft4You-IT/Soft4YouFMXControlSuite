@@ -6,9 +6,9 @@ Il componente è organizzato in quattro livelli indipendenti che lavorano in pip
 
 ```
 HTML string
-    ↓  THTMLParser
-THTMLDocument  (modello dati)
-    ↓  TLayoutEngine
+    ↓  TS4YHTMLParser
+TS4YHTMLDocument  (modello dati)
+    ↓  TS4YLayoutEngine
 FFrags / FLines  (layout calcolato)
     ↓  Paint / TCanvas
 Pixel su schermo
@@ -16,23 +16,23 @@ Pixel su schermo
 
 ---
 
-## 1. Modello dati (`THTMLDocument`)
+## 1. Modello dati (`TS4YHTMLDocument`)
 
-Il documento è una lista di **paragrafi** (`THTMLParagraph`), ciascuno contenente una lista di **run** (`THTMLRun`).
+Il documento è una lista di **paragrafi** (`TS4YHTMLParagraph`), ciascuno contenente una lista di **run** (`TS4YHTMLRun`).
 
 ```
-THTMLDocument
- └─ THTMLParagraph  [BlockType, Alignment, IndentLevel, ListOrdered, ListIndex]
-      └─ THTMLRun   [Text: string, Style: THTMLTextStyle, IsLineBreak, IsImage, IsPlaceholder]
-      └─ THTMLRun   ...
- └─ THTMLParagraph  ...
+TS4YHTMLDocument
+ └─ TS4YHTMLParagraph  [BlockType, Alignment, IndentLevel, ListOrdered, ListIndex]
+      └─ TS4YHTMLRun   [Text: string, Style: TS4YHTMLTextStyle, IsLineBreak, IsImage, IsPlaceholder]
+      └─ TS4YHTMLRun   ...
+ └─ TS4YHTMLParagraph  ...
 ```
 
 Un **run** è il segmento minimo di testo omogeneo per stile. Se scrivi "ciao **mondo**", il paragrafo ha due run: `"ciao "` con stile normale e `"mondo"` con Bold=True.
 
 Un paragrafo **vuoto** è rappresentato con `Runs.Count = 0` — non da un run con `Text=''`. Questa distinzione è critica per il layout (dettaglio nella sezione Layout engine).
 
-La posizione del cursore è un `TDocPos` con tre interi:
+La posizione del cursore è un `TS4YDocPos` con tre interi:
 
 ```
 ParaIdx  →  indice del paragrafo
@@ -42,7 +42,7 @@ CharIdx  →  posizione all'interno di Run.Text (0 = prima del primo char)
 
 ### Run speciali
 
-`THTMLRun` usa flag booleani per identificare i tipi non-testo:
+`TS4YHTMLRun` usa flag booleani per identificare i tipi non-testo:
 
 | Flag | Significato |
 |---|---|
@@ -52,19 +52,19 @@ CharIdx  →  posizione all'interno di Run.Text (0 = prima del primo char)
 
 ### Indentazione (`IndentLevel`)
 
-Ogni `THTMLParagraph` ha un campo `IndentLevel: Integer` (0 = nessuna indentazione):
+Ogni `TS4YHTMLParagraph` ha un campo `IndentLevel: Integer` (0 = nessuna indentazione):
 
 - **`btBlockquote`**: ogni livello di `<blockquote>` annidato incrementa `IndentLevel` di 1.
 - **`btLI`**: `IndentLevel = 0` per liste al primo livello, `IndentLevel = 1` per il primo annidamento, ecc. `Indent`/`Outdent` modificano questo valore; `Outdent` è abilitato solo se `IndentLevel > 0`.
 
 ---
 
-## 2. Layout engine (`TLayoutEngine`)
+## 2. Layout engine (`TS4YLayoutEngine`)
 
 Il layout engine converte il modello dati in due array piatti:
 
-- **`FFrags: TArray<TLayoutFrag>`** — ogni frammento è un pezzo di testo misurabile, con coordinate X/Y/W/H in pixel (coordinate documento, senza scroll).
-- **`FLines: TArray<TLayoutLine>`** — ogni riga logica del documento, con Y, H, ascent, e gli indici di inizio/fine nei `FFrags`.
+- **`FFrags: TArray<TS4YLayoutFrag>`** — ogni frammento è un pezzo di testo misurabile, con coordinate X/Y/W/H in pixel (coordinate documento, senza scroll).
+- **`FLines: TArray<TS4YLayoutLine>`** — ogni riga logica del documento, con Y, H, ascent, e gli indici di inizio/fine nei `FFrags`.
 
 ### Come funziona `LayoutParagraph`
 
@@ -182,7 +182,7 @@ KeyDown → InsertChar(Ch)
 ### `InsertParagraphBreak` (Invio) in dettaglio
 
 1. Splitta il run al punto del cursore (`SplitRunAt`)
-2. Crea un nuovo `THTMLParagraph` copiando BlockType/Alignment/IndentLevel
+2. Crea un nuovo `TS4YHTMLParagraph` copiando BlockType/Alignment/IndentLevel
 3. Sposta tutti i run **dopo** il cursore nel nuovo paragrafo
 4. Il vecchio paragrafo viene normalizzato (`NormalizeRuns`) — se non rimane nulla, `Runs.Count` sarà 0
 5. `DoLayout` viene chiamato **prima** di `SetCaretPos`, così `FFrags` contiene già il fragment placeholder del nuovo paragrafo vuoto
@@ -217,9 +217,9 @@ DocPosToXY(FCaretPos)
 
 ## 6. Cache dei placeholder (`FPlaceholders`)
 
-`FPlaceholders: TList<THTMLRun>` è una cache che tiene traccia di tutti i run con `IsPlaceholder = True` presenti nel documento, senza dover scansionare ogni volta l'intero albero.
+`FPlaceholders: TList<TS4YHTMLRun>` è una cache che tiene traccia di tutti i run con `IsPlaceholder = True` presenti nel documento, senza dover scansionare ogni volta l'intero albero.
 
-La cache è esposta in sola lettura come `property Placeholders: TList<THTMLRun>`.
+La cache è esposta in sola lettura come `property Placeholders: TList<TS4YHTMLRun>`.
 
 ### Punti di sincronizzazione
 

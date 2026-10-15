@@ -1,4 +1,4 @@
-# THTMLEditor — Soft4You FMX HTML Editor
+# TS4YHTMLEditor — Soft4You FMX HTML Editor
 
 WYSIWYG HTML editor component for Delphi FireMonkey (FMX). 100% native Delphi — no WebBrowser and no COM/OLE dependencies. The only third-party dependency is [Skia4Delphi](https://github.com/skia4delphi/skia4delphi), used to render SVG images.
 
@@ -42,14 +42,14 @@ Original author: **Carlo Marona (Soft4You)** — project started in 2026.
 
 | Layer | Class | Unit |
 |---|---|---|
-| Document model | `THTMLDocument` / `THTMLParagraph` / `THTMLRun` | `Soft4You.HTML.Document` |
-| Types & styles | `THTMLTextStyle`, `THTMLBlockType`, `TDocPos`, `TLayoutFrag` | `Soft4You.HTML.Types` |
-| HTML parser | `THTMLParser` | `Soft4You.HTML.Parser` |
-| HTML generator | `THTMLGenerator` | `Soft4You.HTML.Generator` |
-| Layout engine | `TLayoutEngine` | `Soft4You.FMX.Controls.HTMLEditor` |
-| Editor control | `THTMLEditor` | `Soft4You.FMX.Controls.HTMLEditor` |
-| Clipboard (HTML) | `THTMLClipboard` | `Soft4You.FMX.Clipboard.Html` |
-| Emoji catalogue | `TEmojiData` | `Soft4You.Unicode.EmojiData` |
+| Document model | `TS4YHTMLDocument` / `TS4YHTMLParagraph` / `TS4YHTMLRun` | `Soft4You.HTML.Document` |
+| Types & styles | `TS4YHTMLTextStyle`, `TS4YHTMLBlockType`, `TS4YDocPos`, `TS4YLayoutFrag` | `Soft4You.HTML.Types` |
+| HTML parser | `TS4YHTMLParser` | `Soft4You.HTML.Parser` |
+| HTML generator | `TS4YHTMLGenerator` | `Soft4You.HTML.Generator` |
+| Layout engine | `TS4YLayoutEngine` | `Soft4You.FMX.Controls.HTMLEditor` |
+| Editor control | `TS4YHTMLEditor` | `Soft4You.FMX.Controls.HTMLEditor` |
+| Clipboard (HTML) | `TS4YHTMLClipboard` | `Soft4You.FMX.Clipboard.Html` |
+| Emoji catalogue | `TS4YEmojiData` | `Soft4You.Unicode.EmojiData` |
 
 ---
 
@@ -58,7 +58,7 @@ Original author: **Carlo Marona (Soft4You)** — project started in 2026.
 0. Install Skia4Delphi (see [Requirements](#requirements)).
 1. Open `Packages\S4YFMXHTMLEditor.dpk` (runtime package) and **Build** it.
 2. Open `Packages\S4YFMXHTMLEditorD.dpk` (design-time package, registers the component and the HTML property editor) and **Build** and **Install** it.
-3. `THTMLEditor` appears in the Tool Palette under the registered category.
+3. `TS4YHTMLEditor` appears in the Tool Palette under the registered category.
 4. Add the `Sources` folder to the Delphi library path (needed to compile the Demo and your own projects).
 5. Add `Soft4You.FMX.Controls.HTMLEditor` to the `uses` clause of any unit that references the component programmatically.
 
@@ -80,7 +80,7 @@ ShowMessage(HTMLEditor.HTML);
 Memo1.Text := HTMLEditor.FullHTML;
 
 // React to state changes (update toolbar buttons)
-procedure TfrmMain.HTMLEditorStateChange(Sender: TObject; const State: TEditorState);
+procedure TfrmMain.HTMLEditorStateChange(Sender: TObject; const State: TS4YEditorState);
 begin
   btnBold.IsPressed        := State.IsBold;
   btnItalic.IsPressed      := State.IsItalic;
@@ -146,7 +146,7 @@ end;
 | `Lang` | `string` | `''` | Document language attribute (used in `FullHTML` export) |
 | `LineSpacing` | `Single` | `1.0` | Line-height multiplier (1.0 = natural height, 1.5 = 1.5× line spacing) |
 | `ParagraphSpacing` | `Single` | `6.0` | Extra vertical space in px added between block elements |
-| `PlaceholderAppearance` | `TPlaceholderAppearance` | — | Visual style of placeholder chips |
+| `PlaceholderAppearance` | `TS4YPlaceholderAppearance` | — | Visual style of placeholder chips |
 | `PlaceholderPrefix` | `string` | `''` | Prefix that identifies a placeholder run in raw text |
 | `PlaceholderSuffix` | `string` | `''` | Suffix that identifies a placeholder run in raw text |
 | `PrettyHTML` | `Boolean` | `False` | Emit indented HTML from the generator |
@@ -158,21 +158,21 @@ end;
 
 | Property | Type | Description |
 |---|---|---|
-| `CurrentRun` | `THTMLRun` | Run under the caret, or `nil` |
+| `CurrentRun` | `TS4YHTMLRun` | Run under the caret, or `nil` |
 | `FullHTML` | `string` | Full `<!DOCTYPE html>…</html>` document; writable (replaces content and extracts `Title`/`Lang`) |
 | `HasSelection` | `Boolean` | `True` when text is selected |
-| `Placeholders` | `TList<THTMLRun>` | All placeholder runs in the document (O(1) cache, read-only) |
-| `State` | `TEditorState` | Snapshot of formatting state at the caret position |
+| `Placeholders` | `TList<TS4YHTMLRun>` | All placeholder runs in the document (O(1) cache, read-only) |
+| `State` | `TS4YEditorState` | Snapshot of formatting state at the caret position |
 
 ---
 
-## TEditorState record
+## TS4YEditorState record
 
 Returned by the `State` property and passed to `OnStateChange`.
 
 ```delphi
-TEditorState = record
-  Alignment: THTMLAlignment;       // haLeft, haCenter, haRight, haJustify
+TS4YEditorState = record
+  Alignment: TS4YHTMLAlignment;       // haLeft, haCenter, haRight, haJustify
   BackgroundColor: TAlphaColor;    // per-character background (highlight) color at caret
   CanOutdent: Boolean;             // True when Outdent would have effect
   FontColor: TAlphaColor;          // per-character font color at caret
@@ -191,7 +191,7 @@ TEditorState = record
   LineNumber: Integer;                // 1-based visual line in the rendered document (0 = no layout)
   ColumnNumber: Integer;              // 1-based character position within the visual line (0 = no layout)
   LinkURL: string;                    // URL of the link at caret ('' if not a link)
-  ParagraphFormat: TParagraphFormat;  // pfBodyText, pfParagraph, pfH1..pfH6, pfPre
+  ParagraphFormat: TS4YParagraphFormat;  // pfBodyText, pfParagraph, pfH1..pfH6, pfPre
 end;
 ```
 
@@ -265,7 +265,7 @@ end;
 | Method | Description |
 |---|---|
 | `ScrollToParagraph(Index)` | Scroll the document so that paragraph at `Index` is visible at the top |
-| `ScrollToDocPos(Pos)` | Scroll to make a specific `TDocPos` position visible |
+| `ScrollToDocPos(Pos)` | Scroll to make a specific `TS4YDocPos` position visible |
 
 ### Document info
 
@@ -299,8 +299,8 @@ Search highlights the match via the normal selection. Each successive `FindNext`
 | `OnGetPlaceholderLabel` | `procedure(Sender; const RawText: string; var DisplayLabel: string)` | Map raw placeholder text to a display label |
 | `OnLinkClick` | `procedure(Sender; const URL, LinkText: string)` | User clicked a hyperlink |
 | `OnLinkHover` | `procedure(Sender; const URL: string; var Cursor: TCursor)` | Mouse entered/left a link |
-| `OnLoadImage` | `procedure(Sender; const ASrc: string; var ABitmap: TBitmap; AContext: TImageLoadContext)` | Custom image loading — assign a `TBitmap` to override default file/URL loading |
-| `OnStateChange` | `procedure(Sender; const State: TEditorState)` | Fired when caret moves or selection changes — use to update toolbar |
+| `OnLoadImage` | `procedure(Sender; const ASrc: string; var ABitmap: TBitmap; AContext: TS4YImageLoadContext)` | Custom image loading — assign a `TBitmap` to override default file/URL loading |
+| `OnStateChange` | `procedure(Sender; const State: TS4YEditorState)` | Fired when caret moves or selection changes — use to update toolbar |
 
 ---
 
@@ -342,7 +342,7 @@ Mouse: single click places caret, double-click selects word, triple-click select
 
 ---
 
-## TPlaceholderAppearance
+## TS4YPlaceholderAppearance
 
 Configure via Object Inspector or code:
 
@@ -358,17 +358,17 @@ HTMLEditor.PlaceholderAppearance.Bold             := True;
 
 A placeholder is inserted as a run with `IsPlaceholder = True`. Its raw text is `PlaceholderPrefix + RawText + PlaceholderSuffix`. Use `OnGetPlaceholderLabel` to display a human-readable label instead of the raw text.
 
-All placeholder runs are accessible at O(1) via the `Placeholders` property (a `TList<THTMLRun>` kept in sync with every edit operation).
+All placeholder runs are accessible at O(1) via the `Placeholders` property (a `TList<TS4YHTMLRun>` kept in sync with every edit operation).
 
 ---
 
 ## Performance Notes
 
-- **Layout cache**: `TLayoutEngine` caches text measurements (`MeasureStr`) in a `TDictionary`. The cache is cleared on every `SetHTML` call. Subsequent layouts (resize, keypress) are near-instant for typical documents.
+- **Layout cache**: `TS4YLayoutEngine` caches text measurements (`MeasureStr`) in a `TDictionary`. The cache is cleared on every `SetHTML` call. Subsequent layouts (resize, keypress) are near-instant for typical documents.
 - **Render cache**: the control renders to an off-screen `TBitmap` and blits it to the canvas on FMX-initiated repaints. Only changes that affect visual output trigger a re-render.
 - **Emoji / color fonts**: the first `SetHTML` call on a document containing emoji is slower due to DirectWrite color-font fallback (Windows). Subsequent layout operations on the same document are fast thanks to the measurement cache.
 - **Image cache**: images are loaded once per `src` value and cached in an internal `TObjectDictionary`. Orphaned entries (deleted images) are retained to support undo and shared `src` values; the cache is cleared only on `SetHTML` or destruction.
-- **Placeholder cache**: `FPlaceholders: TList<THTMLRun>` is kept in sync incrementally on every edit. Accessing `Editor.Placeholders` is O(1) — no document scan needed.
+- **Placeholder cache**: `FPlaceholders: TList<TS4YHTMLRun>` is kept in sync incrementally on every edit. Accessing `Editor.Placeholders` is O(1) — no document scan needed.
 
 ---
 
