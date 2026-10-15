@@ -3,10 +3,32 @@
 interface
 
 uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
-  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, Soft4You.FMX.Controls.HTMLEditor, FMX.Memo.Types, FMX.StdCtrls,
-  FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.TabControl, FMX.ListBox, System.ImageList, FMX.ImgList,
-  System.Actions, FMX.ActnList, FMX.Objects, FMX.Menus, FMX.Layouts, FMX.Ani,
+  System.SysUtils,
+  System.Types,
+  System.UITypes,
+  System.Classes,
+  System.Variants,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Forms,
+  FMX.Graphics,
+  FMX.Dialogs,
+  Soft4You.FMX.Controls.HTMLEditor,
+  FMX.Memo.Types,
+  FMX.StdCtrls,
+  FMX.Controls.Presentation,
+  FMX.ScrollBox,
+  FMX.Memo,
+  FMX.TabControl,
+  FMX.ListBox,
+  System.ImageList,
+  FMX.ImgList,
+  System.Actions,
+  FMX.ActnList,
+  FMX.Objects,
+  FMX.Menus,
+  FMX.Layouts,
+  FMX.Ani,
   FMX.Colors;
 
 type
@@ -152,21 +174,15 @@ implementation
 
 uses
   System.IOUtils,
-
   FMX.DialogService,
-
   Soft4You.HTML.Document,
   Soft4You.HTML.Types,
   Soft4You.Unicode.EmojiData,
-
   PlaceholderFrm,
-  ColorSelectionFrm
-
-  ;
+  ColorSelectionFrm;
 
 const
   C_HTML_FILE_NAME = '..\..\Test\Test.html';
-
 
 {$R *.fmx}
 

@@ -48,7 +48,6 @@ uses
 {$ENDIF}
   System.Character;
 
-
 // -----------------------------------------------------------------------------
 
 function LooksLikeHTML(const AText: string): Boolean;

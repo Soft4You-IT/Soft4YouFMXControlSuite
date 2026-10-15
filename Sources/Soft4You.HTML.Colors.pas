@@ -37,8 +37,8 @@ function HTMLNamedColors: TArray<TS4YHTMLNamedColor>;
 function AlphaColorToHTMLHex(AColor: TAlphaColor): string;
 
 // Returns the W3C name if the color is in the table (e.g. 'cornflowerblue'),
-// otherwise returns #RRGGBB when AFallbackToHex is True, or '' when False.
-function AlphaColorToHTMLName(AColor: TAlphaColor; AFallbackToHex: Boolean = True): string;
+// otherwise returns #RRGGBB when FallbackToHex is True, or '' when False.
+function AlphaColorToHTMLName(AColor: TAlphaColor; FallbackToHex: Boolean = True): string;
 
 implementation
 
@@ -113,14 +113,14 @@ begin
   Result := '#' +
     IntToHex((AColor shr 16) and $FF, 2) +
     IntToHex((AColor shr 8)  and $FF, 2) +
-    IntToHex( AColor          and $FF, 2);
+    IntToHex(AColor and $FF, 2);
 end;
 
-function AlphaColorToHTMLName(AColor: TAlphaColor; AFallbackToHex: Boolean = True): string;
+function AlphaColorToHTMLName(AColor: TAlphaColor; FallbackToHex: Boolean = True): string;
 begin
   if not GColorReverseLookup.TryGetValue(AColor, Result) then
   begin
-    if AFallbackToHex then
+    if FallbackToHex then
       Result := AlphaColorToHTMLHex(AColor)
     else
       Result := '';

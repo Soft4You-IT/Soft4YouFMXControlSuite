@@ -267,7 +267,8 @@ var
     LStringBuilder.Append('<table border="1" style="border-collapse:collapse;width:100%">' + LNewLine);
     for LRow := 0 to LMaxRow do
     begin
-      if FPretty then LStringBuilder.Append('  ');
+      if FPretty then
+        LStringBuilder.Append('  ');
       LStringBuilder.Append('<tr>' + LNewLine);
       for LCol := 0 to LCols - 1 do
       begin
@@ -285,7 +286,8 @@ var
         end;
         if LCell = nil then
         begin
-          if FPretty then LStringBuilder.Append('    ');
+          if FPretty then
+            LStringBuilder.Append('    ');
           LStringBuilder.Append('<td></td>' + LNewLine);
         end
         else
@@ -300,13 +302,15 @@ var
             haRight:   LCellStyle := LCellStyle + 'text-align:right;';
             haJustify: LCellStyle := LCellStyle + 'text-align:justify;';
           end;
-          if FPretty then LStringBuilder.Append('    ');
+          if FPretty then
+            LStringBuilder.Append('    ');
           LStringBuilder.Append('<' + LCellTag + ' style="' + LCellStyle + '">');
           EmitRuns(LCell);
           LStringBuilder.Append('</' + LCellTag + '>' + LNewLine);
         end;
       end;
-      if FPretty then LStringBuilder.Append('  ');
+      if FPretty then
+        LStringBuilder.Append('  ');
       LStringBuilder.Append('</tr>' + LNewLine);
     end;
     LStringBuilder.Append('</table>' + LNewLine);
@@ -321,7 +325,10 @@ begin
   LBase.Init;
   LStringBuilder := TStringBuilder.Create;
   LParagraphIndex := 0;
-  if FPretty then LNewLine := sLineBreak else LNewLine := '';
+  if FPretty then
+    LNewLine := sLineBreak
+  else
+    LNewLine := '';
   try
     while LParagraphIndex < ADocument.Paragraphs.Count do
     begin
@@ -416,12 +423,36 @@ begin
           LStyleAttr := ' style="' + LAlignCSS + LIndent + '"';
 
         case LParagraph.BlockType of
-          btH1: begin LOpenTag := '<h1' + LStyleAttr + '>'; LCloseTag := '</h1>'; end;
-          btH2: begin LOpenTag := '<h2' + LStyleAttr + '>'; LCloseTag := '</h2>'; end;
-          btH3: begin LOpenTag := '<h3' + LStyleAttr + '>'; LCloseTag := '</h3>'; end;
-          btH4: begin LOpenTag := '<h4' + LStyleAttr + '>'; LCloseTag := '</h4>'; end;
-          btH5: begin LOpenTag := '<h5' + LStyleAttr + '>'; LCloseTag := '</h5>'; end;
-          btH6: begin LOpenTag := '<h6' + LStyleAttr + '>'; LCloseTag := '</h6>'; end;
+          btH1:
+            begin
+              LOpenTag := '<h1' + LStyleAttr + '>';
+              LCloseTag := '</h1>';
+            end;
+          btH2:
+            begin
+              LOpenTag := '<h2' + LStyleAttr + '>';
+              LCloseTag := '</h2>';
+            end;
+          btH3:
+            begin
+              LOpenTag := '<h3' + LStyleAttr + '>';
+              LCloseTag := '</h3>';
+            end;
+          btH4:
+            begin
+              LOpenTag := '<h4' + LStyleAttr + '>';
+              LCloseTag := '</h4>';
+            end;
+          btH5:
+            begin
+              LOpenTag := '<h5' + LStyleAttr + '>';
+              LCloseTag := '</h5>';
+            end;
+          btH6:
+            begin
+              LOpenTag := '<h6' + LStyleAttr + '>';
+              LCloseTag := '</h6>';
+            end;
           btBlockquote:
             begin
               LOpenTag := '<blockquote' + LStyleAttr + '>';

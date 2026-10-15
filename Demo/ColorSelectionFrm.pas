@@ -3,9 +3,22 @@ unit ColorSelectionFrm;
 interface
 
 uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
-  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.StdCtrls, FMX.Objects, FMX.Edit, FMX.Layouts,
-  FMX.Controls.Presentation, FMX.Colors;
+  System.SysUtils,
+  System.Types,
+  System.UITypes,
+  System.Classes,
+  System.Variants,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Forms,
+  FMX.Graphics,
+  FMX.Dialogs,
+  FMX.StdCtrls,
+  FMX.Objects,
+  FMX.Edit,
+  FMX.Layouts,
+  FMX.Controls.Presentation,
+  FMX.Colors;
 
 type
   TColorSelection = class(TForm)
@@ -39,14 +52,9 @@ implementation
 
 uses
   System.StrUtils,
-
-  Soft4You.HTML.Colors
-
-  ;
-
+  Soft4You.HTML.Colors;
 
 {$R *.fmx}
-
 
 constructor TColorSelection.Create(AOwner: TComponent);
 begin

@@ -168,9 +168,12 @@ begin
   LR := Round(TAlphaColorRec(C).R * AFactor);
   LG := Round(TAlphaColorRec(C).G * AFactor);
   LB := Round(TAlphaColorRec(C).B * AFactor);
-  if LR > 255 then LR := 255;
-  if LG > 255 then LG := 255;
-  if LB > 255 then LB := 255;
+  if LR > 255 then
+    LR := 255;
+  if LG > 255 then
+    LG := 255;
+  if LB > 255 then
+    LB := 255;
   Result := TAlphaColor(($FF shl 24) or (LR shl 16) or (LG shl 8) or LB);
 end;
 

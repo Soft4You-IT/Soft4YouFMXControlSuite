@@ -97,12 +97,9 @@ const
   C_DEFAULT_TABLE_CELL_PADDING = 4.0;
   C_DEFAULT_TABLE_MIN_ROW_HEIGHT = 20.0;
 
-
   // Mouse management constants
   C_TRIPLE_CLICK_MS = 600;
   C_CLICK_DIST_2 = 25;
-
-
 
 type
 
@@ -354,7 +351,7 @@ type
 
     // Position helpers (run-structure-independent)
     function DocPosToAbsChar(const P: TS4YDocPos): Integer;
-    function AbsCharToDocPos(AParaIdx, AAbsChar: Integer; APreferRight: Boolean = False): TS4YDocPos;
+    function AbsCharToDocPos(AParaIdx, AAbsChar: Integer; PreferRight: Boolean = False): TS4YDocPos;
 
     // Caret & navigation
     procedure UpdateCaretXY;
@@ -562,9 +559,9 @@ type
     procedure LoadRemoteImages;
 
     // -- Search -------------------------------------------------------------
-    function FindNext(const AText: string; ACaseSensitive: Boolean = False): Boolean;
-    function FindPrev(const AText: string; ACaseSensitive: Boolean = False): Boolean;
-    function ReplaceAll(const AFindText, AReplaceText: string; ACaseSensitive: Boolean = False): Integer;
+    function FindNext(const AText: string; CaseSensitive: Boolean = False): Boolean;
+    function FindPrev(const AText: string; CaseSensitive: Boolean = False): Boolean;
+    function ReplaceAll(const AFindText, AReplaceText: string; CaseSensitive: Boolean = False): Integer;
 
     property CurrentRun: TS4YHTMLRun read GetCurrentRun;
     property FullHTML: string read GetFullHTML write SetFullHTML;
@@ -916,7 +913,7 @@ procedure TS4YLayoutEngine.LayoutParagraph(Para: TS4YHTMLParagraph; ParaIdx: Int
   var Lines: TArray<TS4YLayoutLine>; var Frags: TArray<TS4YLayoutFrag>; var Y: Single);
 
   procedure FlushLine(var ALineFrags: TArray<TS4YLayoutFrag>; ALineW, ALineH, ALineAsc: Single;
-    AIsFirst, AIsLast: Boolean);
+    IsFirst, IsLast: Boolean);
   var
     LLine: TS4YLayoutLine;
     LFragment: TS4YLayoutFrag;
@@ -947,7 +944,7 @@ procedure TS4YLayoutEngine.LayoutParagraph(Para: TS4YHTMLParagraph; ParaIdx: Int
       haRight:
         LXOffset := LIndentX + LEffW - ALineW;
       haJustify:
-        if (not AIsLast) and (Length(ALineFrags) > 1) then
+        if (not IsLast) and (Length(ALineFrags) > 1) then
         begin
           LNonSpaceFrags := 0;
           LSpaceSum := 0;
@@ -968,8 +965,8 @@ procedure TS4YLayoutEngine.LayoutParagraph(Para: TS4YHTMLParagraph; ParaIdx: Int
     LLine.H := ALineH * FLineSpacing;
     LLine.Ascent := ALineAsc;
     LLine.ParaIdx := ParaIdx;
-    LLine.IsFirst := AIsFirst;
-    LLine.IsLast := AIsLast;
+    LLine.IsFirst := IsFirst;
+    LLine.IsLast := IsLast;
     LLine.FragStart := LFragStart;
     LLine.FragCount := Length(ALineFrags);
     SetLength(Frags, LFragStart + Length(ALineFrags));
@@ -1134,7 +1131,7 @@ begin
   begin
     LES.Init;
     LEH := MeasureStr(' ', LES).Height;
-    LEF := Default (TS4YLayoutFrag);
+    LEF := Default(TS4YLayoutFrag);
     LEF.ParaIdx := ParaIdx;
     LEF.RunIdx := 0;
     LEF.CharStart := 0;
@@ -1201,7 +1198,7 @@ begin
         LLineH := 0;
         LLineAsc := 0;
       end;
-      LFragment := Default (TS4YLayoutFrag);
+      LFragment := Default(TS4YLayoutFrag);
       LFragment.ParaIdx := ParaIdx;
       LFragment.RunIdx := LRunIdx;
       LFragment.CharStart := 0;
@@ -1223,8 +1220,10 @@ begin
     begin
       LImgW := LRun.ImageWidth;
       LImgH := LRun.ImageHeight;
-      if LImgW <= 0 then LImgW := 100;
-      if LImgH <= 0 then LImgH := 50;
+      if LImgW <= 0 then
+        LImgW := 100;
+      if LImgH <= 0 then
+        LImgH := 50;
       if (LLineW > 0) and (LLineW + LImgW > LEffAvail + 0.5) then
       begin
         FlushLine(LLineFrags, LLineW, LLineH, LLineAsc, LIsFirstLine, False);
@@ -1316,7 +1315,7 @@ begin
     if Para.Runs.Count > 0 then
       LES2 := Para.Runs[LLastRI2].Style;
     LEH2 := MeasureStr(' ', LES2).Height;
-    LEF3 := Default (TS4YLayoutFrag);
+    LEF3 := Default(TS4YLayoutFrag);
     LEF3.ParaIdx := ParaIdx;
     LEF3.RunIdx := LLastRI2;
     LEF3.CharStart := 0;
@@ -1889,10 +1888,10 @@ begin
   LPhysW := Round(Width);
   LPhysH := Round(Height);
 
-  if FRenderDirty
-     or (FRenderCache.Width <> LPhysW)
-     or (FRenderCache.Height <> LPhysH)
-     or (Abs(AbsoluteOpacity - FLastPaintOpacity) > 0.001) then
+  if FRenderDirty or
+    (FRenderCache.Width <> LPhysW) or
+    (FRenderCache.Height <> LPhysH) or
+    (Abs(AbsoluteOpacity - FLastPaintOpacity) > 0.001) then
   begin
     FRenderCache.SetSize(LPhysW, LPhysH);
     if FRenderCache.Canvas.BeginScene then
@@ -3901,8 +3900,8 @@ begin
   if TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, LClipSvc) then
   begin
     LValue := LClipSvc.GetClipboard;
-    LCanPaste := (LValue.IsType<string> and (LValue.AsType<string> <> ''))
-              or TS4YHTMLClipboard.HasImage;
+    LCanPaste := (LValue.IsType<string> and (LValue.AsType<string> <> '')) or
+      TS4YHTMLClipboard.HasImage;
   end;
 
   for var I := 0 to FContextMenu.ItemsCount - 1 do
@@ -3959,14 +3958,14 @@ begin
     if Length(FFrags) = 0 then
       DoLayout;
     LHitPosition := HitTest(LLocalPt.X, LLocalPt.Y);
-    LIsAtom := LHitPosition.IsValid
-      and (LHitPosition.ParaIdx < FDoc.Paragraphs.Count)
-      and (LHitPosition.RunIdx >= 0);
+    LIsAtom := LHitPosition.IsValid and
+      (LHitPosition.ParaIdx < FDoc.Paragraphs.Count) and
+      (LHitPosition.RunIdx >= 0);
     if LIsAtom then
     begin
       LPara := FDoc.Paragraphs[LHitPosition.ParaIdx];
-      LIsAtom := (LHitPosition.RunIdx < LPara.Runs.Count)
-        and (LPara.Runs[LHitPosition.RunIdx].IsImage or LPara.Runs[LHitPosition.RunIdx].IsPlaceholder);
+      LIsAtom := (LHitPosition.RunIdx < LPara.Runs.Count) and
+        (LPara.Runs[LHitPosition.RunIdx].IsImage or LPara.Runs[LHitPosition.RunIdx].IsPlaceholder);
     end;
     if LIsAtom then
       SelectWordAt(LHitPosition)
@@ -5165,7 +5164,7 @@ begin
   DoNotifyState;
 end;
 
-function TS4YHTMLEditor.FindNext(const AText: string; ACaseSensitive: Boolean): Boolean;
+function TS4YHTMLEditor.FindNext(const AText: string; CaseSensitive: Boolean): Boolean;
 var
   LFindText: string;
   LSearchFrom: TS4YDocPos;
@@ -5182,7 +5181,7 @@ begin
   if FDoc.Paragraphs.Count = 0 then
     Exit;
 
-  if ACaseSensitive then
+  if CaseSensitive then
     LFindText := AText
   else
     LFindText := AText.ToUpper;
@@ -5205,7 +5204,7 @@ begin
   for LParaIdx := LFromParaIdx to FDoc.Paragraphs.Count - 1 do
   begin
     LParaText := ParagraphSearchText(LParaIdx);
-    if ACaseSensitive then
+    if CaseSensitive then
       LSearchText := LParaText
     else
       LSearchText := LParaText.ToUpper;
@@ -5228,7 +5227,7 @@ begin
   for LParaIdx := 0 to LFromParaIdx - 1 do
   begin
     LParaText := ParagraphSearchText(LParaIdx);
-    if ACaseSensitive then
+    if CaseSensitive then
       LSearchText := LParaText
     else
       LSearchText := LParaText.ToUpper;
@@ -5245,7 +5244,7 @@ begin
 
   // Pass 3: wrap -- same paragraph, any occurrence before the current offset
   LParaText := ParagraphSearchText(LFromParaIdx);
-  if ACaseSensitive then
+  if CaseSensitive then
     LSearchText := LParaText
   else
     LSearchText := LParaText.ToUpper;
@@ -5260,7 +5259,7 @@ begin
   end;
 end;
 
-function TS4YHTMLEditor.FindPrev(const AText: string; ACaseSensitive: Boolean): Boolean;
+function TS4YHTMLEditor.FindPrev(const AText: string; CaseSensitive: Boolean): Boolean;
 var
   LFindText: string;
   LSearchFrom: TS4YDocPos;
@@ -5277,7 +5276,7 @@ begin
   if FDoc.Paragraphs.Count = 0 then
     Exit;
 
-  if ACaseSensitive then
+  if CaseSensitive then
     LFindText := AText
   else
     LFindText := AText.ToUpper;
@@ -5299,7 +5298,7 @@ begin
 
   // Pass 1: current paragraph -- find the last occurrence strictly before caret
   LParaText := ParagraphSearchText(LFromParaIdx);
-  if ACaseSensitive then
+  if CaseSensitive then
     LSearchText := LParaText
   else
     LSearchText := LParaText.ToUpper;
@@ -5324,7 +5323,7 @@ begin
   for LParaIdx := LFromParaIdx - 1 downto 0 do
   begin
     LParaText := ParagraphSearchText(LParaIdx);
-    if ACaseSensitive then
+    if CaseSensitive then
       LSearchText := LParaText
     else
       LSearchText := LParaText.ToUpper;
@@ -5343,7 +5342,7 @@ begin
   for LParaIdx := FDoc.Paragraphs.Count - 1 downto LFromParaIdx + 1 do
   begin
     LParaText := ParagraphSearchText(LParaIdx);
-    if ACaseSensitive then
+    if CaseSensitive then
       LSearchText := LParaText
     else
       LSearchText := LParaText.ToUpper;
@@ -5360,7 +5359,7 @@ begin
 
   // Pass 4: wrap -- current paragraph, last occurrence at or after caret
   LParaText := ParagraphSearchText(LFromParaIdx);
-  if ACaseSensitive then
+  if CaseSensitive then
     LSearchText := LParaText
   else
     LSearchText := LParaText.ToUpper;
@@ -5375,7 +5374,7 @@ begin
   end;
 end;
 
-function TS4YHTMLEditor.ReplaceAll(const AFindText, AReplaceText: string; ACaseSensitive: Boolean): Integer;
+function TS4YHTMLEditor.ReplaceAll(const AFindText, AReplaceText: string; CaseSensitive: Boolean): Integer;
 var
   LFindText: string;
   LParaIdx: Integer;
@@ -5396,7 +5395,7 @@ begin
   if AFindText = '' then
     Exit;
 
-  if not ACaseSensitive then
+  if not CaseSensitive then
     LFindText := AFindText.ToUpper
   else
     LFindText := AFindText;
@@ -5413,7 +5412,7 @@ begin
         if not LRun.IsImage and not LRun.IsLineBreak and not LRun.IsPlaceholder then
           LParaText := LParaText + LRun.Text;
 
-      if not ACaseSensitive then
+      if not CaseSensitive then
         LSearchText := LParaText.ToUpper
       else
         LSearchText := LParaText;
@@ -5774,7 +5773,7 @@ begin
   Result := Result + P.CharIdx;
 end;
 
-function TS4YHTMLEditor.AbsCharToDocPos(AParaIdx, AAbsChar: Integer; APreferRight: Boolean): TS4YDocPos;
+function TS4YHTMLEditor.AbsCharToDocPos(AParaIdx, AAbsChar: Integer; PreferRight: Boolean): TS4YDocPos;
 var
   LParagraph: TS4YHTMLParagraph;
   LRunIdx: Integer;
@@ -5792,10 +5791,10 @@ begin
   while LRunIdx < LParagraph.Runs.Count - 1 do
   begin
     LRunLen := LParagraph.Runs[LRunIdx].Text.Length;
-    // APreferRight: advance when LRemaining >= run length (boundary -> start of next run)
+    // PreferRight: advance when LRemaining >= run length (boundary -> start of next run)
     // default:      advance when LRemaining >  run length (boundary -> end of current run)
-    if (APreferRight and (LRemaining < LRunLen)) or
-       ((not APreferRight) and (LRemaining <= LRunLen)) then
+    if (PreferRight and (LRemaining < LRunLen)) or
+       ((not PreferRight) and (LRemaining <= LRunLen)) then
       Break;
     LRemaining := LRemaining - LRunLen;
     Inc(LRunIdx);
@@ -6538,8 +6537,10 @@ var
 begin
   if not FCaretPos.IsValid then
     Exit;
-  if ARows < 1 then ARows := 1;
-  if ACols < 1 then ACols := 1;
+  if ARows < 1 then
+    ARows := 1;
+  if ACols < 1 then
+    ACols := 1;
   SaveUndo;
   LTableID := NextTableID;
   LInsertAt := FCaretPos.ParaIdx + 1;
@@ -6612,11 +6613,15 @@ var
   LNewCell: TS4YHTMLParagraph;
   LNewRowIdx: Integer;
 begin
-  if FReadOnly then Exit;
-  if not FCaretPos.IsValid then Exit;
-  if FCaretPos.ParaIdx >= FDoc.Paragraphs.Count then Exit;
+  if FReadOnly then
+    Exit;
+  if not FCaretPos.IsValid then
+    Exit;
+  if FCaretPos.ParaIdx >= FDoc.Paragraphs.Count then
+    Exit;
   LCurPara := FDoc.Paragraphs[FCaretPos.ParaIdx];
-  if LCurPara.BlockType <> btTableCell then Exit;
+  if LCurPara.BlockType <> btTableCell then
+    Exit;
 
   SaveUndo;
   LTableID := LCurPara.TableID;
@@ -6666,11 +6671,15 @@ var
   LRowCount: Integer;
   LNewPara: TS4YHTMLParagraph;
 begin
-  if FReadOnly then Exit;
-  if not FCaretPos.IsValid then Exit;
-  if FCaretPos.ParaIdx >= FDoc.Paragraphs.Count then Exit;
+  if FReadOnly then
+    Exit;
+  if not FCaretPos.IsValid then
+    Exit;
+  if FCaretPos.ParaIdx >= FDoc.Paragraphs.Count then
+    Exit;
   LCurPara := FDoc.Paragraphs[FCaretPos.ParaIdx];
-  if LCurPara.BlockType <> btTableCell then Exit;
+  if LCurPara.BlockType <> btTableCell then
+    Exit;
 
   SaveUndo;
   LTableID := LCurPara.TableID;
@@ -6748,11 +6757,15 @@ var
   LNewCell: TS4YHTMLParagraph;
   LNewCellIdx: Integer;
 begin
-  if FReadOnly then Exit;
-  if not FCaretPos.IsValid then Exit;
-  if FCaretPos.ParaIdx >= FDoc.Paragraphs.Count then Exit;
+  if FReadOnly then
+    Exit;
+  if not FCaretPos.IsValid then
+    Exit;
+  if FCaretPos.ParaIdx >= FDoc.Paragraphs.Count then
+    Exit;
   LCurPara := FDoc.Paragraphs[FCaretPos.ParaIdx];
-  if LCurPara.BlockType <> btTableCell then Exit;
+  if LCurPara.BlockType <> btTableCell then
+    Exit;
 
   SaveUndo;
   LTableID := LCurPara.TableID;
@@ -6829,11 +6842,15 @@ var
   LNewCaretFound: Boolean;
   LNewPara: TS4YHTMLParagraph;
 begin
-  if FReadOnly then Exit;
-  if not FCaretPos.IsValid then Exit;
-  if FCaretPos.ParaIdx >= FDoc.Paragraphs.Count then Exit;
+  if FReadOnly then
+    Exit;
+  if not FCaretPos.IsValid then
+    Exit;
+  if FCaretPos.ParaIdx >= FDoc.Paragraphs.Count then
+    Exit;
   LCurPara := FDoc.Paragraphs[FCaretPos.ParaIdx];
-  if LCurPara.BlockType <> btTableCell then Exit;
+  if LCurPara.BlockType <> btTableCell then
+    Exit;
 
   SaveUndo;
   LTableID := LCurPara.TableID;
