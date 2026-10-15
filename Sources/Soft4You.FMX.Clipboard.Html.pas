@@ -10,7 +10,7 @@
   ***************************************************************************** }
 
 { *******************************************************************************
-  THTMLClipboard  -  platform-aware HTML clipboard read/write
+  TS4YHTMLClipboard  -  platform-aware HTML clipboard read/write
   Windows  : CF_HTML (UTF-8 with byte-offset header) + CF_UNICODETEXT fallback
   Other    : IFMXClipboardService with HTML fragment as plain text
              (round-trip within the editor via LooksLikeHTML detection)
@@ -33,7 +33,7 @@ uses
 function LooksLikeHTML(const AText: string): Boolean;
 
 type
-  THTMLClipboard = class
+  TS4YHTMLClipboard = class
   public
     class procedure SetHTML(const AFragment, APlainText: string);
     class function GetHTML(out AFragment: string): Boolean;
@@ -60,7 +60,7 @@ begin
 end;
 
 // -----------------------------------------------------------------------------
-// THTMLClipboard
+// TS4YHTMLClipboard
 // -----------------------------------------------------------------------------
 
 {$IFDEF MSWINDOWS}
@@ -98,7 +98,7 @@ begin
     LPreBytes + LFragBytes + LPostBytes;
 end;
 
-class procedure THTMLClipboard.SetHTML(const AFragment, APlainText: string);
+class procedure TS4YHTMLClipboard.SetHTML(const AFragment, APlainText: string);
 var
   LCFHtml: UINT;
   LData:   RawByteString;
@@ -143,7 +143,7 @@ begin
   end;
 end;
 
-class function THTMLClipboard.GetHTML(out AFragment: string): Boolean;
+class function TS4YHTMLClipboard.GetHTML(out AFragment: string): Boolean;
 var
   LCFHtml:    UINT;
   LHMem:      HGLOBAL;
@@ -191,7 +191,7 @@ begin
   end;
 end;
 
-class function THTMLClipboard.HasImage: Boolean;
+class function TS4YHTMLClipboard.HasImage: Boolean;
 begin
   Result := IsClipboardFormatAvailable(CF_DIB);
 end;
@@ -200,7 +200,7 @@ end;
 
 // -- Non-Windows fallback ------------------------------------------------------
 
-class procedure THTMLClipboard.SetHTML(const AFragment, APlainText: string);
+class procedure TS4YHTMLClipboard.SetHTML(const AFragment, APlainText: string);
 var
   LSvc: IFMXClipboardService;
 begin
@@ -208,7 +208,7 @@ begin
     LSvc.SetClipboard(AFragment);
 end;
 
-class function THTMLClipboard.GetHTML(out AFragment: string): Boolean;
+class function TS4YHTMLClipboard.GetHTML(out AFragment: string): Boolean;
 var
   LSvc: IFMXClipboardService;
   LV:   TValue;
@@ -229,7 +229,7 @@ begin
   end;
 end;
 
-class function THTMLClipboard.HasImage: Boolean;
+class function TS4YHTMLClipboard.HasImage: Boolean;
 var
   LSvc: IFMXClipboardService;
   LValue: TValue;

@@ -27,18 +27,18 @@ uses
 type
 
   // ===========================================================================
-  // THTMLParser
+  // TS4YHTMLParser
   // ===========================================================================
 
-  THTMLParser = class
+  TS4YHTMLParser = class
   private
     FInput: string;
     FPosition: Integer;
     FLength: Integer;
-    FDoc: THTMLDocument;
-    FStyleStack: TList<THTMLTextStyle>;
+    FDoc: TS4YHTMLDocument;
+    FStyleStack: TList<TS4YHTMLTextStyle>;
     FBorderColorStack: TList<TAlphaColor>;
-    FCurrentParagraph: THTMLParagraph;
+    FCurrentParagraph: TS4YHTMLParagraph;
     FListDepth: Integer;
     FInOrderedList: Boolean;
     FOrderedListCounter: Integer;
@@ -48,7 +48,7 @@ type
     FTableColumns: Integer;
     FInTable: Boolean;
     FInPreformatted: Boolean;
-    FDivAlignment: THTMLAlignment;
+    FDivAlignment: TS4YHTMLAlignment;
 
     function PeekChar: Char; inline;
     function ReadChar: Char; inline;
@@ -59,34 +59,34 @@ type
     function ExtractCSSValue(const ACSS, AProp: string): string;
     function ParseColor(const AText: string): TAlphaColor;
     function ParseFontSize(const AText: string; ABaseSize: Single): Single;
-    procedure ParseInlineStyle(const ACSS: string; var ATextStyle: THTMLTextStyle);
+    procedure ParseInlineStyle(const ACSS: string; var ATextStyle: TS4YHTMLTextStyle);
     function ExtractBorderColor(const ACSS: string): TAlphaColor;
     procedure FlushPara;
-    procedure EnsurePara(ABlockType: THTMLBlockType = btBodyText);
-    procedure PushStyle(const ATextStyle: THTMLTextStyle; ABorderColor: TAlphaColor = claNull);
+    procedure EnsurePara(ABlockType: TS4YHTMLBlockType = btBodyText);
+    procedure PushStyle(const ATextStyle: TS4YHTMLTextStyle; ABorderColor: TAlphaColor = claNull);
     procedure PopStyle;
-    function TopStyle: THTMLTextStyle;
+    function TopStyle: TS4YHTMLTextStyle;
     function TopBorderColor: TAlphaColor;
     procedure HandleTag(const ATag, AAttributes: string; IsClose, IsSelf: Boolean);
     procedure AddTextRun(const AText: string);
     function HtmlDecode(const AText: string): string;
-    function BaseStyle: THTMLTextStyle;
+    function BaseStyle: TS4YHTMLTextStyle;
   public
-    function Parse(const AHTML: string): THTMLDocument;
+    function Parse(const AHTML: string): TS4YHTMLDocument;
   end;
 
 implementation
 
 // -----------------------------------------------------------------------------
-// THTMLParser
+// TS4YHTMLParser
 // -----------------------------------------------------------------------------
 
-function THTMLParser.BaseStyle: THTMLTextStyle;
+function TS4YHTMLParser.BaseStyle: TS4YHTMLTextStyle;
 begin
   Result.Init;
 end;
 
-function THTMLParser.TopStyle: THTMLTextStyle;
+function TS4YHTMLParser.TopStyle: TS4YHTMLTextStyle;
 begin
   if FStyleStack.Count > 0 then
     Result := FStyleStack.Last
@@ -94,13 +94,13 @@ begin
     Result := BaseStyle;
 end;
 
-procedure THTMLParser.PushStyle(const ATextStyle: THTMLTextStyle; ABorderColor: TAlphaColor);
+procedure TS4YHTMLParser.PushStyle(const ATextStyle: TS4YHTMLTextStyle; ABorderColor: TAlphaColor);
 begin
   FStyleStack.Add(ATextStyle);
   FBorderColorStack.Add(ABorderColor);
 end;
 
-procedure THTMLParser.PopStyle;
+procedure TS4YHTMLParser.PopStyle;
 begin
   if FStyleStack.Count > 0 then
   begin
@@ -109,7 +109,7 @@ begin
   end;
 end;
 
-function THTMLParser.TopBorderColor: TAlphaColor;
+function TS4YHTMLParser.TopBorderColor: TAlphaColor;
 begin
   if FBorderColorStack.Count > 0 then
     Result := FBorderColorStack.Last
@@ -117,7 +117,7 @@ begin
     Result := claNull;
 end;
 
-function THTMLParser.PeekChar: Char;
+function TS4YHTMLParser.PeekChar: Char;
 begin
   if FPosition <= FLength then
     Result := FInput[FPosition]
@@ -125,7 +125,7 @@ begin
     Result := #0;
 end;
 
-function THTMLParser.ReadChar: Char;
+function TS4YHTMLParser.ReadChar: Char;
 begin
   if FPosition <= FLength then
   begin
@@ -136,7 +136,7 @@ begin
     Result := #0;
 end;
 
-procedure THTMLParser.SkipUntil(const AText: string);
+procedure TS4YHTMLParser.SkipUntil(const AText: string);
 var
   LFoundIndex: Integer;
 begin
@@ -147,7 +147,7 @@ begin
     FPosition := FLength + 1;
 end;
 
-function THTMLParser.ReadTag(out ATagName, AAttributes: string; out IsClose, IsSelf: Boolean): Boolean;
+function TS4YHTMLParser.ReadTag(out ATagName, AAttributes: string; out IsClose, IsSelf: Boolean): Boolean;
 var
   LStringBuilder: TStringBuilder;
   LChar: Char;
@@ -207,7 +207,7 @@ begin
   end;
 end;
 
-function THTMLParser.ReadTextNode: string;
+function TS4YHTMLParser.ReadTextNode: string;
 var
   LStringBuilder: TStringBuilder;
   LChar: Char;
@@ -225,7 +225,7 @@ begin
   end;
 end;
 
-function THTMLParser.GetAttr(const AAttributes, AName: string): string;
+function TS4YHTMLParser.GetAttr(const AAttributes, AName: string): string;
 var
   LScanPosition, LValueEnd, LAttributeLength: Integer;
   LQuoteChar: Char;
@@ -294,7 +294,7 @@ begin
   end;
 end;
 
-function THTMLParser.ExtractCSSValue(const ACSS, AProp: string): string;
+function TS4YHTMLParser.ExtractCSSValue(const ACSS, AProp: string): string;
 var
   LParts: TArray<string>;
   LPair: TArray<string>;
@@ -313,13 +313,13 @@ begin
   end;
 end;
 
-function THTMLParser.ParseColor(const AText: string): TAlphaColor;
+function TS4YHTMLParser.ParseColor(const AText: string): TAlphaColor;
 begin
   if not HTMLColorToAlphaColor(AText, Result) then
     Result := claNull;
 end;
 
-function THTMLParser.ParseFontSize(const AText: string; ABaseSize: Single): Single;
+function TS4YHTMLParser.ParseFontSize(const AText: string; ABaseSize: Single): Single;
 var
   LValue: string;
   LNumericValue: Single;
@@ -344,7 +344,7 @@ begin
   end;
 end;
 
-procedure THTMLParser.ParseInlineStyle(const ACSS: string; var ATextStyle: THTMLTextStyle);
+procedure TS4YHTMLParser.ParseInlineStyle(const ACSS: string; var ATextStyle: TS4YHTMLTextStyle);
 var
   LParts: TArray<string>;
   LPair: TArray<string>;
@@ -395,7 +395,7 @@ begin
   end;
 end;
 
-function THTMLParser.ExtractBorderColor(const ACSS: string): TAlphaColor;
+function TS4YHTMLParser.ExtractBorderColor(const ACSS: string): TAlphaColor;
 var
   LColorValue: string;
   LBorderValue: string;
@@ -426,7 +426,7 @@ begin
   end;
 end;
 
-procedure THTMLParser.FlushPara;
+procedure TS4YHTMLParser.FlushPara;
 begin
   if (FCurrentParagraph <> nil) and (not FCurrentParagraph.IsEmpty or (FDoc.Paragraphs.Count = 0)) then
   begin
@@ -440,11 +440,11 @@ begin
   end;
 end;
 
-procedure THTMLParser.EnsurePara(ABlockType: THTMLBlockType);
+procedure TS4YHTMLParser.EnsurePara(ABlockType: TS4YHTMLBlockType);
 begin
   if FCurrentParagraph = nil then
   begin
-    FCurrentParagraph := THTMLParagraph.Create;
+    FCurrentParagraph := TS4YHTMLParagraph.Create;
     FCurrentParagraph.BlockType := ABlockType;
     if FDivAlignment <> haLeft then
     begin
@@ -454,10 +454,10 @@ begin
   end;
 end;
 
-procedure THTMLParser.AddTextRun(const AText: string);
+procedure TS4YHTMLParser.AddTextRun(const AText: string);
 var
-  LRun: THTMLRun;
-  LTextStyle: THTMLTextStyle;
+  LRun: TS4YHTMLRun;
+  LTextStyle: TS4YHTMLTextStyle;
   LBorderColor: TAlphaColor;
 begin
   if AText = '' then
@@ -471,7 +471,7 @@ begin
     FCurrentParagraph.Runs.Last.Text := FCurrentParagraph.Runs.Last.Text + AText
   else
   begin
-    LRun := THTMLRun.Create;
+    LRun := TS4YHTMLRun.Create;
     LRun.Text := AText;
     LRun.Style := LTextStyle;
     LRun.PlaceholderBorderColor := LBorderColor;
@@ -479,12 +479,12 @@ begin
   end;
 end;
 
-procedure THTMLParser.HandleTag(const ATag, AAttributes: string; IsClose, IsSelf: Boolean);
+procedure TS4YHTMLParser.HandleTag(const ATag, AAttributes: string; IsClose, IsSelf: Boolean);
 var
-  LTextStyle: THTMLTextStyle;
-  LBlockType: THTMLBlockType;
-  LLineBreakRun: THTMLRun;
-  LHorizontalRuleParagraph: THTMLParagraph;
+  LTextStyle: TS4YHTMLTextStyle;
+  LBlockType: TS4YHTMLBlockType;
+  LLineBreakRun: TS4YHTMLRun;
+  LHorizontalRuleParagraph: TS4YHTMLParagraph;
   LLinkURL: string;
   LParagraphStyle: string;
   LStyleLower: string;
@@ -523,7 +523,7 @@ begin
     else
     begin
       FlushPara;
-      FCurrentParagraph := THTMLParagraph.Create;
+      FCurrentParagraph := TS4YHTMLParagraph.Create;
       FCurrentParagraph.BlockType := btParagraph;
       LParagraphStyle := GetAttr(AAttributes, 'style');
       if LParagraphStyle <> '' then
@@ -588,7 +588,7 @@ begin
       else if LAlignAttribute = 'justify' then
         FCurrentParagraph.Alignment := haJustify;
     end;
-    var LImageRun := THTMLRun.Create;
+    var LImageRun := TS4YHTMLRun.Create;
     LImageRun.IsImage := True;
     LImageRun.ImageSrc := LImageSource;
     LImageRun.ImageAlt := LImageAltText;
@@ -605,7 +605,7 @@ begin
     if IsClose then
       Exit;
     EnsurePara;
-    LLineBreakRun := THTMLRun.Create;
+    LLineBreakRun := TS4YHTMLRun.Create;
     LLineBreakRun.IsLineBreak := True;
     FCurrentParagraph.Runs.Add(LLineBreakRun);
     Exit;
@@ -616,7 +616,7 @@ begin
     if IsClose then
       Exit;
     FlushPara;
-    LHorizontalRuleParagraph := THTMLParagraph.Create;
+    LHorizontalRuleParagraph := TS4YHTMLParagraph.Create;
     LHorizontalRuleParagraph.BlockType := btHR;
     LColorAttribute := GetAttr(AAttributes, 'color');
     if LColorAttribute <> '' then
@@ -670,7 +670,7 @@ begin
     else
     begin
       FlushPara;
-      FCurrentParagraph := THTMLParagraph.Create;
+      FCurrentParagraph := TS4YHTMLParagraph.Create;
       FCurrentParagraph.BlockType := LBlockType;
     end;
     Exit;
@@ -726,7 +726,7 @@ begin
     else
     begin
       FlushPara;
-      FCurrentParagraph := THTMLParagraph.Create;
+      FCurrentParagraph := TS4YHTMLParagraph.Create;
       FCurrentParagraph.BlockType := btLI;
       FCurrentParagraph.IndentLevel := FListDepth - 1;
       FCurrentParagraph.ListOrdered := FInOrderedList;
@@ -749,7 +749,7 @@ begin
     else
     begin
       FlushPara;
-      FCurrentParagraph := THTMLParagraph.Create;
+      FCurrentParagraph := TS4YHTMLParagraph.Create;
       FCurrentParagraph.BlockType := btPre;
       FInPreformatted := True;
     end;
@@ -833,7 +833,7 @@ begin
     else
     begin
       FlushPara;
-      FCurrentParagraph := THTMLParagraph.Create;
+      FCurrentParagraph := TS4YHTMLParagraph.Create;
       FCurrentParagraph.BlockType := btTableCell;
       FCurrentParagraph.TableID := FTableID;
       FCurrentParagraph.TableRow := FTableRow;
@@ -1052,7 +1052,7 @@ begin
   // Ignore unknown tags
 end;
 
-function THTMLParser.HtmlDecode(const AText: string): string;
+function TS4YHTMLParser.HtmlDecode(const AText: string): string;
 var
   LScanPosition, LEntityEnd: Integer;
   LEntity: string;
@@ -1132,21 +1132,21 @@ begin
   end;
 end;
 
-function THTMLParser.Parse(const AHTML: string): THTMLDocument;
+function TS4YHTMLParser.Parse(const AHTML: string): TS4YHTMLDocument;
 var
   LTagName, LAttributes: string;
   LIsClose, LIsSelf: Boolean;
   LTextNode: string;
-  LBaseStyle: THTMLTextStyle;
-  LParagraph: THTMLParagraph;
+  LBaseStyle: TS4YHTMLTextStyle;
+  LParagraph: TS4YHTMLParagraph;
   LPreformattedParts: TArray<string>;
   I: Integer;
 begin
   FInput := AHTML;
   FLength := Length(AHTML);
   FPosition := Low(AHTML);
-  FDoc := THTMLDocument.Create;
-  FStyleStack := TList<THTMLTextStyle>.Create;
+  FDoc := TS4YHTMLDocument.Create;
+  FStyleStack := TList<TS4YHTMLTextStyle>.Create;
   FBorderColorStack := TList<TAlphaColor>.Create;
   FCurrentParagraph := nil;
   FDivAlignment := haLeft;
@@ -1184,7 +1184,7 @@ begin
             if I < High(LPreformattedParts) then
             begin
               FlushPara;
-              FCurrentParagraph := THTMLParagraph.Create;
+              FCurrentParagraph := TS4YHTMLParagraph.Create;
               FCurrentParagraph.BlockType := btPre;
             end;
           end;
@@ -1204,7 +1204,7 @@ begin
 
     if FDoc.Paragraphs.Count = 0 then
     begin
-      LParagraph := THTMLParagraph.Create;
+      LParagraph := TS4YHTMLParagraph.Create;
       LParagraph.BlockType := btParagraph;
       FDoc.Paragraphs.Add(LParagraph);
     end;

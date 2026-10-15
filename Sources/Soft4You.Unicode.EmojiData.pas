@@ -22,12 +22,12 @@ interface
 // -- Public types --------------------------------------------------------------
 
 type
-  TEmoji = record
+  TS4YEmoji = record
     Glyph: string; // UTF-16 string (SMP emoji = 2 WideChar surrogate pair)
     Name:  string; // Human-readable name, populated from resourcestring
   end;
 
-  TEmojiCategoryKind = (
+  TS4YEmojiCategoryKind = (
     eckAll,
     eckActivities,
     eckAnimals,
@@ -39,19 +39,19 @@ type
     eckTravel
   );
 
-  TEmojiCategory = record
-    Kind:  TEmojiCategoryKind;
-    Items: TArray<TEmoji>;
+  TS4YEmojiCategory = record
+    Kind:  TS4YEmojiCategoryKind;
+    Items: TArray<TS4YEmoji>;
     Name:  string;
   end;
 
-  TEmojiData = class
+  TS4YEmojiData = class
   private
-    class var FCategories: TArray<TEmojiCategory>;
-    class function Build: TArray<TEmojiCategory>;
+    class var FCategories: TArray<TS4YEmojiCategory>;
+    class function Build: TArray<TS4YEmojiCategory>;
   public
-    class function Categories: TArray<TEmojiCategory>;
-    class function Emojis(ACategory: TEmojiCategoryKind = eckAll): TArray<TEmoji>;
+    class function Categories: TArray<TS4YEmojiCategory>;
+    class function Emojis(ACategory: TS4YEmojiCategoryKind = eckAll): TArray<TS4YEmoji>;
   end;
 
 // -- Localizable strings -------------------------------------------------------
@@ -249,24 +249,24 @@ implementation
 
 // -- Private helper ------------------------------------------------------------
 
-function E(const AGlyph, AName: string): TEmoji; inline;
+function E(const AGlyph, AName: string): TS4YEmoji; inline;
 begin
   Result.Glyph := AGlyph;
   Result.Name  := AName;
 end;
 
-// -- TEmojiData ----------------------------------------------------------------
+// -- TS4YEmojiData ----------------------------------------------------------------
 
-class function TEmojiData.Build: TArray<TEmojiCategory>;
+class function TS4YEmojiData.Build: TArray<TS4YEmojiCategory>;
 var
-  LCats: TArray<TEmojiCategory>;
+  LCats: TArray<TS4YEmojiCategory>;
 begin
   SetLength(LCats, 8);
 
   // -- 0: Smileys & Emotion ---------------------------------------------------
   LCats[0].Kind  := eckSmileys;
   LCats[0].Name  := S_EMOJI_CAT_SMILEYS;
-  LCats[0].Items := TArray<TEmoji>.Create(
+  LCats[0].Items := TArray<TS4YEmoji>.Create(
     E('😀', S_EMOJI_GRINNING_FACE),
     E('😃', S_EMOJI_GRINNING_BIG_EYES),
     E('😄', S_EMOJI_SMILING_EYES),
@@ -295,7 +295,7 @@ begin
   // -- 1: People & Gestures --------------------------------------------------
   LCats[1].Kind  := eckPeople;
   LCats[1].Name  := S_EMOJI_CAT_PEOPLE;
-  LCats[1].Items := TArray<TEmoji>.Create(
+  LCats[1].Items := TArray<TS4YEmoji>.Create(
     E('👍', S_EMOJI_THUMBS_UP),
     E('👎', S_EMOJI_THUMBS_DOWN),
     E('👋', S_EMOJI_WAVING),
@@ -321,7 +321,7 @@ begin
   // -- 2: Animals & Nature ---------------------------------------------------
   LCats[2].Kind  := eckAnimals;
   LCats[2].Name  := S_EMOJI_CAT_ANIMALS;
-  LCats[2].Items := TArray<TEmoji>.Create(
+  LCats[2].Items := TArray<TS4YEmoji>.Create(
     E('🐶', S_EMOJI_DOG_FACE),
     E('🐱', S_EMOJI_CAT_FACE),
     E('🐻', S_EMOJI_BEAR),
@@ -347,7 +347,7 @@ begin
   // -- 3: Food & Drink -------------------------------------------------------
   LCats[3].Kind  := eckFood;
   LCats[3].Name  := S_EMOJI_CAT_FOOD;
-  LCats[3].Items := TArray<TEmoji>.Create(
+  LCats[3].Items := TArray<TS4YEmoji>.Create(
     E('🍕', S_EMOJI_PIZZA),
     E('🍔', S_EMOJI_HAMBURGER),
     E('🌮', S_EMOJI_TACO),
@@ -373,7 +373,7 @@ begin
   // -- 4: Travel & Places ---------------------------------------------------
   LCats[4].Kind  := eckTravel;
   LCats[4].Name  := S_EMOJI_CAT_TRAVEL;
-  LCats[4].Items := TArray<TEmoji>.Create(
+  LCats[4].Items := TArray<TS4YEmoji>.Create(
     E('✈️', S_EMOJI_AIRPLANE),
     E('🚗', S_EMOJI_CAR),
     E('🚌', S_EMOJI_BUS),
@@ -399,7 +399,7 @@ begin
   // -- 5: Activities ---------------------------------------------------------
   LCats[5].Kind  := eckActivities;
   LCats[5].Name  := S_EMOJI_CAT_ACTIVITIES;
-  LCats[5].Items := TArray<TEmoji>.Create(
+  LCats[5].Items := TArray<TS4YEmoji>.Create(
     E('⚽', S_EMOJI_SOCCER),
     E('🏀', S_EMOJI_BASKETBALL),
     E('🏈', S_EMOJI_FOOTBALL),
@@ -425,7 +425,7 @@ begin
   // -- 6: Objects & Tech -----------------------------------------------------
   LCats[6].Kind  := eckObjects;
   LCats[6].Name  := S_EMOJI_CAT_OBJECTS;
-  LCats[6].Items := TArray<TEmoji>.Create(
+  LCats[6].Items := TArray<TS4YEmoji>.Create(
     E('📱', S_EMOJI_PHONE),
     E('💻', S_EMOJI_LAPTOP),
     E('🖥️', S_EMOJI_DESKTOP),
@@ -451,7 +451,7 @@ begin
   // -- 7: Signs & Symbols ---------------------------------------------------
   LCats[7].Kind  := eckSymbols;
   LCats[7].Name  := S_EMOJI_CAT_SYMBOLS;
-  LCats[7].Items := TArray<TEmoji>.Create(
+  LCats[7].Items := TArray<TS4YEmoji>.Create(
     E('❤️', S_EMOJI_RED_HEART),
     E('🧡', S_EMOJI_ORANGE_HEART),
     E('💛', S_EMOJI_YELLOW_HEART),
@@ -477,17 +477,17 @@ begin
   Result := LCats;
 end;
 
-class function TEmojiData.Categories: TArray<TEmojiCategory>;
+class function TS4YEmojiData.Categories: TArray<TS4YEmojiCategory>;
 begin
   if Length(FCategories) = 0 then
     FCategories := Build;
   Result := FCategories;
 end;
 
-class function TEmojiData.Emojis(ACategory: TEmojiCategoryKind): TArray<TEmoji>;
+class function TS4YEmojiData.Emojis(ACategory: TS4YEmojiCategoryKind): TArray<TS4YEmoji>;
 var
-  LCategories: TArray<TEmojiCategory>;
-  LCategory: TEmojiCategory;
+  LCategories: TArray<TS4YEmojiCategory>;
+  LCategory: TS4YEmojiCategory;
   LTotalCount: Integer;
   LOffset: Integer;
 begin
