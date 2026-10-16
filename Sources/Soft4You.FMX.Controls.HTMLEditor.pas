@@ -303,6 +303,8 @@ type
     FBatchMode: Boolean; // when True, InsertChar/InsertParagraphBreak skip DoLayout+Repaint
     FContextMenu: TPopupMenu;
     FAutoLoadRemoteImages: Boolean;
+    FDocumentPath: string;
+    FImagePathMode: TS4YImagePathMode;
     FReadOnly: Boolean;
     FShowBorder: Boolean;
     FBackgroundColor: TAlphaColor;
@@ -425,6 +427,10 @@ type
     procedure SetLineSpacing(const Value: Single);
     procedure SetParagraphSpacing(const Value: Single);
     procedure SetReadOnly(const Value: Boolean);
+    procedure SetDocumentPath(const Value: string);
+    procedure SetImagePathMode(const Value: TS4YImagePathMode);
+    procedure ReloadImagesAfterPathChange;
+    function StoredImageSource(const ASource: string): string;
     procedure SetBackgroundColor(const Value: TAlphaColor);
     procedure SetFontColor(const Value: TAlphaColor);
     procedure SetFont(const Value: TFont);
@@ -564,6 +570,10 @@ type
 
     // -- Images -------------------------------------------------------------
     procedure LoadRemoteImages;
+    function ResolveImageSource(const ASource: string): string;
+
+    // -- Files --------------------------------------------------------------
+    procedure LoadFromFile(const AFileName: string; AEncoding: TEncoding = nil);
 
     // -- Search -------------------------------------------------------------
     function FindNext(const AText: string; CaseSensitive: Boolean = False): Boolean;
@@ -583,10 +593,12 @@ type
     property Anchors;
     property AutoLoadRemoteImages: Boolean read FAutoLoadRemoteImages write FAutoLoadRemoteImages default True;
     property BackgroundColor: TAlphaColor read FBackgroundColor write SetBackgroundColor default claWhite;
+    property DocumentPath: string read FDocumentPath write SetDocumentPath;
     property Font: TFont read FFont write SetFont;
     property FontColor: TAlphaColor read FFontColor write SetFontColor default claBlack;
     property Height;
     property HTML: string read GetHTML write SetHTML;
+    property ImagePathMode: TS4YImagePathMode read FImagePathMode write SetImagePathMode default ipmApplication;
     property Language: string read FLanguage write FLanguage;
     property LineSpacing: Single read FLineSpacing write SetLineSpacing;
     property Margins;
@@ -619,6 +631,9 @@ type
   end;
 
 implementation
+
+uses
+  System.IOUtils;
 
 // -----------------------------------------------------------------------------
 // FMX helper for TS4YHTMLTextStyle
@@ -2027,6 +2042,7 @@ var
   LStream: TBytesStream;
   LSVGText: string;
   LSVGDOM: ISkSVGDOM;
+  LFilePath: string;
 begin
   if StartsWithCI(ASource, 'http://') or StartsWithCI(ASource, 'https://') then
   begin
@@ -2086,17 +2102,35 @@ begin
       else
         FreeAndNil(Result);
     end
-    else if ASource.ToLower.EndsWith('.svg') then
-    begin
-      FreeAndNil(Result);
-      LSVGDOM := TSkSVGDOM.MakeFromFile(ASource);
-      Result := RenderSVGToBitmap(LSVGDOM, AWidth, AHeight);
-    end
     else
-      Result.LoadFromFile(ASource);
+    begin
+      LFilePath := ResolveImageSource(ASource);
+      if LFilePath.ToLower.EndsWith('.svg') then
+      begin
+        FreeAndNil(Result);
+        LSVGDOM := TSkSVGDOM.MakeFromFile(LFilePath);
+        Result := RenderSVGToBitmap(LSVGDOM, AWidth, AHeight);
+      end
+      else
+        Result.LoadFromFile(LFilePath);
+    end;
   except
     FreeAndNil(Result);
   end;
+end;
+
+function TS4YHTMLEditor.ResolveImageSource(const ASource: string): string;
+begin
+  Result := ResolveImagePath(ASource, FDocumentPath, FImagePathMode);
+end;
+
+// Source to store in the document: in document mode a local file inside DocumentPath
+// is stored relative to it; anything else is stored as passed
+function TS4YHTMLEditor.StoredImageSource(const ASource: string): string;
+begin
+  Result := ASource;
+  if FImagePathMode = ipmDocument then
+    Result := MakeDocumentRelativePath(ASource, FDocumentPath);
 end;
 
 function TS4YHTMLEditor.LoadImage(const ASource: string; AContext: TS4YImageLoadContext; AWidth, AHeight: Integer): TBitmap;
@@ -6459,7 +6493,7 @@ begin
     Inc(LInsertIndex);
   LRun := TS4YHTMLRun.Create;
   LRun.IsImage := True;
-  LRun.ImageSource := ASource;
+  LRun.ImageSource := StoredImageSource(ASource);
   LRun.ImageWidth := AWidth;
   LRun.ImageHeight := AHeight;
   LRun.ImageAlt := AAlt;
@@ -6467,7 +6501,7 @@ begin
   LRun.Text := #$FFFC;
   if (LRun.ImageWidth = 0) or (LRun.ImageHeight = 0) then
   begin
-    LBitmap := LoadImage(ASource, ilcInsert);
+    LBitmap := LoadImage(LRun.ImageSource, ilcInsert);
     if Assigned(LBitmap) then
     begin
       if LRun.ImageWidth = 0 then
@@ -6502,13 +6536,13 @@ begin
   if not LRun.IsImage then
     Exit;
   SaveUndo;
-  LRun.ImageSource := ASource;
+  LRun.ImageSource := StoredImageSource(ASource);
   LRun.ImageAlt := AAlt;
   LRun.ImageWidth := AWidth;
   LRun.ImageHeight := AHeight;
   if (LRun.ImageWidth = 0) or (LRun.ImageHeight = 0) then
   begin
-    LBitmap := LoadImage(ASource, ilcInsert);
+    LBitmap := LoadImage(LRun.ImageSource, ilcInsert);
     if Assigned(LBitmap) then
     begin
       if LRun.ImageWidth = 0 then
@@ -8023,6 +8057,43 @@ end;
 procedure TS4YHTMLEditor.SetReadOnly(const Value: Boolean);
 begin
   FReadOnly := Value;
+end;
+
+procedure TS4YHTMLEditor.ReloadImagesAfterPathChange;
+begin
+  FImageCache.Clear;
+  PreloadImages;
+  FLayoutEngine.ClearMeasureCache;
+  DoLayout;
+  InvalidateRender;
+end;
+
+procedure TS4YHTMLEditor.SetDocumentPath(const Value: string);
+begin
+  if FDocumentPath = Value then
+    Exit;
+  FDocumentPath := Value;
+  ReloadImagesAfterPathChange;
+end;
+
+procedure TS4YHTMLEditor.SetImagePathMode(const Value: TS4YImagePathMode);
+begin
+  if FImagePathMode = Value then
+    Exit;
+  FImagePathMode := Value;
+  ReloadImagesAfterPathChange;
+end;
+
+procedure TS4YHTMLEditor.LoadFromFile(const AFileName: string; AEncoding: TEncoding);
+var
+  LEncoding: TEncoding;
+begin
+  LEncoding := AEncoding;
+  if LEncoding = nil then
+    LEncoding := TEncoding.UTF8;
+  // The path is set before the HTML so the images are resolved against the right folder
+  FDocumentPath := ExcludeTrailingPathDelimiter(ExtractFilePath(TPath.GetFullPath(AFileName)));
+  SetHTML(TFile.ReadAllText(AFileName, LEncoding));
 end;
 
 procedure TS4YHTMLEditor.SetBackgroundColor(const Value: TAlphaColor);
