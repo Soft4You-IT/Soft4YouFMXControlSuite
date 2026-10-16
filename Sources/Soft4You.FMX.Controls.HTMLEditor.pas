@@ -302,6 +302,7 @@ type
     FInsertStyleSet: Boolean;
     FBatchMode: Boolean; // when True, InsertChar/InsertParagraphBreak skip DoLayout+Repaint
     FContextMenu: TPopupMenu;
+    FAutoLoadLocalImages: Boolean;
     FAutoLoadRemoteImages: Boolean;
     FDocumentPath: string;
     FImagePathMode: TS4YImagePathMode;
@@ -355,6 +356,8 @@ type
     function RenderSVGToBitmap(const ASVGDOM: ISkSVGDOM; AWidth, AHeight: Integer): TBitmap;
     function LoadBitmapFromSource(const ASource: string; AWidth: Integer = 0; AHeight: Integer = 0): TBitmap;
     function LoadImage(const ASource: string; AContext: TS4YImageLoadContext = ilcRender; AWidth: Integer = 0; AHeight: Integer = 0): TBitmap;
+    function IsDeferredImageSource(const ASource: string): Boolean;
+    procedure LoadDeferredImages(ALocal: Boolean);
     procedure PreloadImages;
     procedure PrepareImageDimensions;
 
@@ -569,6 +572,7 @@ type
     function WordCount: Integer;
 
     // -- Images -------------------------------------------------------------
+    procedure LoadLocalImages;
     procedure LoadRemoteImages;
     function ResolveImageSource(const ASource: string): string;
 
@@ -591,6 +595,7 @@ type
   published
     property Align;
     property Anchors;
+    property AutoLoadLocalImages: Boolean read FAutoLoadLocalImages write FAutoLoadLocalImages default True;
     property AutoLoadRemoteImages: Boolean read FAutoLoadRemoteImages write FAutoLoadRemoteImages default True;
     property BackgroundColor: TAlphaColor read FBackgroundColor write SetBackgroundColor default claWhite;
     property DocumentPath: string read FDocumentPath write SetDocumentPath;
@@ -1553,6 +1558,7 @@ begin
   FUndoStack := TObjectList<TS4YUndoEntry>.Create(True);
   FRedoStack := TObjectList<TS4YUndoEntry>.Create(True);
   FPlaceholders := TList<TS4YHTMLRun>.Create;
+  FAutoLoadLocalImages := True;
   FAutoLoadRemoteImages := True;
   FBackgroundColor := claWhite;
   FFontColor := claBlack;
@@ -2044,7 +2050,7 @@ var
   LSVGDOM: ISkSVGDOM;
   LFilePath: string;
 begin
-  if StartsWithCI(ASource, 'http://') or StartsWithCI(ASource, 'https://') then
+  if IsRemoteImageSource(ASource) then
   begin
     var LClient := THTTPClient.Create;
     var LDownloadStream := TMemoryStream.Create;
@@ -2105,7 +2111,10 @@ begin
     else
     begin
       LFilePath := ResolveImageSource(ASource);
-      if LFilePath.ToLower.EndsWith('.svg') then
+      // A missing file is drawn as "not found": no exception is raised for it
+      if not TFile.Exists(LFilePath) then
+        FreeAndNil(Result)
+      else if LFilePath.ToLower.EndsWith('.svg') then
       begin
         FreeAndNil(Result);
         LSVGDOM := TSkSVGDOM.MakeFromFile(LFilePath);
@@ -2139,14 +2148,20 @@ begin
     Exit(nil);
   if FImageCache.TryGetValue(ASource, Result) then
     Exit;
-  if not FAutoLoadRemoteImages and
-     (StartsWithCI(ASource, 'http://') or StartsWithCI(ASource, 'https://')) then
+  if IsDeferredImageSource(ASource) then
     Exit(nil);
   Result := LoadBitmapFromSource(ASource, AWidth, AHeight);
   if Assigned(FOnLoadImage) then
     FOnLoadImage(Self, ASource, Result, AContext);
   if Assigned(Result) then
     FImageCache.Add(ASource, Result);
+end;
+
+// True when the source belongs to a kind of images that is not loaded automatically
+function TS4YHTMLEditor.IsDeferredImageSource(const ASource: string): Boolean;
+begin
+  Result := (not FAutoLoadRemoteImages and IsRemoteImageSource(ASource)) or
+    (not FAutoLoadLocalImages and IsLocalImageSource(ASource));
 end;
 
 procedure TS4YHTMLEditor.PreloadImages;
@@ -2163,8 +2178,7 @@ begin
   begin
     if (LParagraph.BlockType = btImage) and (LParagraph.ImageSource <> '') then
     begin
-      LDeferred := not FAutoLoadRemoteImages and
-                   (StartsWithCI(LParagraph.ImageSource, 'http://') or StartsWithCI(LParagraph.ImageSource, 'https://'));
+      LDeferred := IsDeferredImageSource(LParagraph.ImageSource);
       if LDeferred then
       begin
         if LParagraph.ImageWidth = 0 then
@@ -2188,8 +2202,7 @@ begin
     begin
       if not LRun.IsImage or (LRun.ImageSource = '') then
         Continue;
-      LDeferred := not FAutoLoadRemoteImages and
-                   (StartsWithCI(LRun.ImageSource, 'http://') or StartsWithCI(LRun.ImageSource, 'https://'));
+      LDeferred := IsDeferredImageSource(LRun.ImageSource);
       if LDeferred then
       begin
         if LRun.ImageWidth = 0 then
@@ -2251,7 +2264,19 @@ begin
   end;
 end;
 
+procedure TS4YHTMLEditor.LoadLocalImages;
+begin
+  LoadDeferredImages(True);
+end;
+
 procedure TS4YHTMLEditor.LoadRemoteImages;
+begin
+  LoadDeferredImages(False);
+end;
+
+// Loads on request the images of one kind (local files or remote URLs), whatever
+// the corresponding AutoLoad property says
+procedure TS4YHTMLEditor.LoadDeferredImages(ALocal: Boolean);
 var
   LParagraph: TS4YHTMLParagraph;
   LRun: TS4YHTMLRun;
@@ -2260,7 +2285,8 @@ begin
   for LParagraph in FDocument.Paragraphs do
   begin
     if (LParagraph.BlockType = btImage) and (LParagraph.ImageSource <> '') and
-       (StartsWithCI(LParagraph.ImageSource, 'http://') or StartsWithCI(LParagraph.ImageSource, 'https://')) then
+       ((ALocal and IsLocalImageSource(LParagraph.ImageSource)) or
+        (not ALocal and IsRemoteImageSource(LParagraph.ImageSource))) then
     begin
       if not FImageCache.TryGetValue(LParagraph.ImageSource, LBitmap) then
       begin
@@ -2280,7 +2306,8 @@ begin
     begin
       if not LRun.IsImage or (LRun.ImageSource = '') then
         Continue;
-      if not (StartsWithCI(LRun.ImageSource, 'http://') or StartsWithCI(LRun.ImageSource, 'https://')) then
+      if not ((ALocal and IsLocalImageSource(LRun.ImageSource)) or
+              (not ALocal and IsRemoteImageSource(LRun.ImageSource))) then
         Continue;
       if not FImageCache.TryGetValue(LRun.ImageSource, LBitmap) then
       begin
