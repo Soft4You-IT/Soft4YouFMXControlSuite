@@ -163,6 +163,8 @@ function StartsWithCI(const AText, APrefix: string): Boolean; inline;
 // Image source paths
 function FileUrlToPath(const AUrl: string): string;
 function IsRelativeLocalPath(const ASource: string): Boolean;
+function IsRemoteImageSource(const ASource: string): Boolean;
+function IsLocalImageSource(const ASource: string): Boolean;
 function ResolveImagePath(const ASource, ADocumentPath: string; AMode: TS4YImagePathMode): string;
 function MakeDocumentRelativePath(const ASource, ADocumentPath: string): string;
 
@@ -303,6 +305,19 @@ end;
 function IsRelativeLocalPath(const ASource: string): Boolean;
 begin
   Result := (ASource <> '') and not HasUrlScheme(ASource) and TPath.IsRelativePath(ASource);
+end;
+
+// http: and https: sources
+function IsRemoteImageSource(const ASource: string): Boolean;
+begin
+  Result := StartsWithCI(ASource, 'http://') or StartsWithCI(ASource, 'https://');
+end;
+
+// Sources read from the file system: file: URLs and relative or absolute paths.
+// data:, cid: and any other scheme are not local
+function IsLocalImageSource(const ASource: string): Boolean;
+begin
+  Result := StartsWithCI(ASource, 'file:') or ((ASource <> '') and not HasUrlScheme(ASource));
 end;
 
 function ResolveImagePath(const ASource, ADocumentPath: string; AMode: TS4YImagePathMode): string;
