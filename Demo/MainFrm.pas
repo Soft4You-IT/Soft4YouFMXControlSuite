@@ -466,7 +466,7 @@ begin
     LDialog.Filter := 'HTML document (*.html)|*.html';
 
     if LDialog.Execute then
-      HTMLEditor.HTML := TFile.ReadAllText(LDialog.FileName, TEncoding.UTF8);
+      HTMLEditor.LoadFromFile(LDialog.FileName);
   finally
     LDialog.Free;
   end;

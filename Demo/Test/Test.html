@@ -76,16 +76,16 @@ inline</b> come qualsiasi altro blocco.</blockquote>
 					<p>HR blu da 2px:</p>
 					<hr style="color:#0044CC;height:2px;"/>
 					<h2>Immagini</h2>
-					<p>Immagine con dimensioni esplicite da attributo (path inesistente → placeholder con alt):</p>
-					<img src="..\..\Test\logo.png" width="200" height="80" alt="Logo aziendale"/>
+					<p>Immagine con dimensioni esplicite da attributo (percorso relativo alla cartella del documento, se il file non esiste → placeholder con alt):</p>
+					<img src="logo.png" width="200" height="80" alt="Logo aziendale"/>
 					<p>Immagine con dimensioni da CSS:</p>
-					<img src="..\..\Test\photo.jpg" style="width:225px;height:225px;" alt="Foto prodotto"/>
+					<img src="photo.jpg" style="width:225px;height:225px;" alt="Foto prodotto"/>
 					<p>Immagine centrata tramite align:</p>
-					<img src="..\..\Test\banner.png" width="450" height="112" alt="Banner centrato" align="center"/>
+					<img src="banner.png" width="450" height="112" alt="Banner centrato" align="center"/>
 					<p>Immagine allineata a destra:</p>
-					<img src="..\..\Test\icon.png" width="64" height="64" alt="Icona" align="right"/>
+					<img src="icon.png" width="64" height="64" alt="Icona" align="right"/>
 					<p>Immagine senza dimensioni (usa dimensioni naturali del file, o placeholder 100px se non trovata):</p>
-					<img src="..\..\Test\big_image.jpg" alt="Immagine senza width/height"/>
+					<img src="big_image.jpg" alt="Immagine senza width/height"/>
 					<!-- data URI inline: SVG reso via Skia4Delphi -->
 					<p>Immagine inline data URI – SVG URL-encoded (atteso: rettangolo blu 160×60):</p>
 					<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%234a90d9'/%3E%3C/svg%3E" width="160" height="60" alt="SVG inline blu"/>
