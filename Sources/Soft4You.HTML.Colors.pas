@@ -294,9 +294,9 @@ begin
   end;
   TArray.Sort<TS4YHTMLNamedColor>(GNamedColors,
     TComparer<TS4YHTMLNamedColor>.Construct(
-      function(const A, B: TS4YHTMLNamedColor): Integer
+      function(const ALeft, ARight: TS4YHTMLNamedColor): Integer
       begin
-        Result := CompareStr(A.Name, B.Name);
+        Result := CompareStr(ALeft.Name, ARight.Name);
       end));
 
   // Build reverse lookup (color -> canonical name).
