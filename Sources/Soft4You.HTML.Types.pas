@@ -51,6 +51,11 @@ type
 
   TS4YParagraphFormat = (pfBodyText, pfParagraph, pfH1, pfH2, pfH3, pfH4, pfH5, pfH6, pfPre);
 
+  // How a relative local image path is resolved:
+  //   ipmApplication - as the operating system does (relative to the current directory)
+  //   ipmDocument    - relative to the folder of the document (DocumentPath)
+  TS4YImagePathMode = (ipmApplication, ipmDocument);
+
   // ===========================================================================
   // Text style
   // ===========================================================================
@@ -155,7 +160,16 @@ function DarkenColor(AColor: TAlphaColor; AFactor: Single = 0.65): TAlphaColor;
 function TrimS(const AText: string): string; inline;
 function StartsWithCI(const AText, APrefix: string): Boolean; inline;
 
+// Image source paths
+function FileUrlToPath(const AUrl: string): string;
+function IsRelativeLocalPath(const ASource: string): Boolean;
+function ResolveImagePath(const ASource, ADocumentPath: string; AMode: TS4YImagePathMode): string;
+function MakeDocumentRelativePath(const ASource, ADocumentPath: string): string;
+
 implementation
+
+uses
+  System.IOUtils;
 
 // -----------------------------------------------------------------------------
 // DarkenColor
@@ -189,6 +203,148 @@ end;
 function StartsWithCI(const AText, APrefix: string): Boolean;
 begin
   Result := AText.ToLower.StartsWith(APrefix.ToLower);
+end;
+
+// -----------------------------------------------------------------------------
+// Image source paths
+// -----------------------------------------------------------------------------
+
+// Decodes %XX sequences as UTF-8 bytes; unlike TNetEncoding.URL a '+' stays a '+'
+function DecodePercentEscapes(const AText: string): string;
+var
+  LBytes: TBytes;
+  LIndex: Integer;
+  LCount: Integer;
+  LHexValue: Integer;
+  LUtf8: TBytes;
+begin
+  if not AText.Contains('%') then
+    Exit(AText);
+  LUtf8 := TEncoding.UTF8.GetBytes(AText);
+  SetLength(LBytes, Length(LUtf8));
+  LCount := 0;
+  LIndex := 0;
+  while LIndex < Length(LUtf8) do
+  begin
+    if (LUtf8[LIndex] = Ord('%')) and (LIndex + 2 < Length(LUtf8)) and
+       TryStrToInt('$' + Char(LUtf8[LIndex + 1]) + Char(LUtf8[LIndex + 2]), LHexValue) then
+    begin
+      LBytes[LCount] := Byte(LHexValue);
+      Inc(LIndex, 3);
+    end
+    else
+    begin
+      LBytes[LCount] := LUtf8[LIndex];
+      Inc(LIndex);
+    end;
+    Inc(LCount);
+  end;
+  Result := TEncoding.UTF8.GetString(LBytes, 0, LCount);
+end;
+
+// file:///C:/dir/a%20b.png -> C:\dir\a b.png    file://server/share/x.png -> \\server\share\x.png
+function FileUrlToPath(const AUrl: string): string;
+var
+  LRest: string;
+  LAuthority: string;
+  LSlash: Integer;
+begin
+  if not StartsWithCI(AUrl, 'file:') then
+    Exit(AUrl);
+  LRest := AUrl.Substring(5);
+  LAuthority := '';
+  if LRest.StartsWith('//') then
+  begin
+    LRest := LRest.Substring(2);
+    LSlash := LRest.IndexOf('/');
+    if LSlash < 0 then
+    begin
+      LAuthority := LRest;
+      LRest := '';
+    end
+    else
+    begin
+      LAuthority := LRest.Substring(0, LSlash);
+      LRest := LRest.Substring(LSlash);
+    end;
+  end;
+  LRest := DecodePercentEscapes(LRest);
+{$IFDEF MSWINDOWS}
+  // '/C:/dir' -> 'C:/dir'
+  if (Length(LRest) >= 3) and (LRest[Low(LRest)] = '/') and (LRest[Low(LRest) + 2] = ':') then
+    LRest := LRest.Substring(1);
+  LRest := LRest.Replace('/', PathDelim);
+  if (LAuthority <> '') and not SameText(LAuthority, 'localhost') then
+    LRest := PathDelim + PathDelim + LAuthority + LRest;
+{$ENDIF}
+  Result := LRest;
+end;
+
+// True when the source starts with a URL scheme (data:, http:, cid:, file: ...)
+function HasUrlScheme(const ASource: string): Boolean;
+var
+  LColon: Integer;
+  LIndex: Integer;
+begin
+  Result := False;
+  LColon := ASource.IndexOf(':');
+  // A scheme has at least 2 characters ('C:' is a drive letter, not a scheme)
+  if LColon < 2 then
+    Exit;
+  Result := True;
+  for LIndex := 0 to LColon - 1 do
+  begin
+    if not CharInSet(ASource[Low(ASource) + LIndex], ['a'..'z', 'A'..'Z', '0'..'9', '+', '-', '.']) then
+      Result := False;
+  end;
+end;
+
+// True for a file system path that is not absolute; False for URLs and absolute paths
+function IsRelativeLocalPath(const ASource: string): Boolean;
+begin
+  Result := (ASource <> '') and not HasUrlScheme(ASource) and TPath.IsRelativePath(ASource);
+end;
+
+function ResolveImagePath(const ASource, ADocumentPath: string; AMode: TS4YImagePathMode): string;
+begin
+  if StartsWithCI(ASource, 'file:') then
+    Exit(FileUrlToPath(ASource));
+  Result := ASource;
+  if IsRelativeLocalPath(ASource) then
+  begin
+    Result := ASource.Replace('\', PathDelim);
+    if (AMode = ipmDocument) and (ADocumentPath <> '') then
+      Result := TPath.GetFullPath(TPath.Combine(ADocumentPath, Result));
+  end;
+end;
+
+// Returns the source relative to the document folder (with '/' separators) when the file is
+// inside it or in a subfolder; otherwise returns the source unchanged
+function MakeDocumentRelativePath(const ASource, ADocumentPath: string): string;
+var
+  LPath: string;
+  LBase: string;
+  LFullPath: string;
+begin
+  Result := ASource;
+  if ADocumentPath = '' then
+    Exit;
+  if StartsWithCI(ASource, 'file:') then
+    LPath := FileUrlToPath(ASource)
+  else if (ASource <> '') and not HasUrlScheme(ASource) then
+    LPath := ASource
+  else
+    Exit;
+  if TPath.IsRelativePath(LPath) then
+    Exit;
+  LBase := IncludeTrailingPathDelimiter(TPath.GetFullPath(ADocumentPath));
+  LFullPath := TPath.GetFullPath(LPath);
+{$IFDEF MSWINDOWS}
+  if LFullPath.StartsWith(LBase, True) then
+{$ELSE}
+  if LFullPath.StartsWith(LBase, False) then
+{$ENDIF}
+    Result := LFullPath.Substring(LBase.Length).Replace(PathDelim, '/');
 end;
 
 // -----------------------------------------------------------------------------
