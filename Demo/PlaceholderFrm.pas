@@ -3,8 +3,19 @@ unit PlaceholderFrm;
 interface
 
 uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
-  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.StdCtrls, FMX.Controls.Presentation, FMX.Edit;
+  System.SysUtils,
+  System.Types,
+  System.UITypes,
+  System.Classes,
+  System.Variants,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Forms,
+  FMX.Graphics,
+  FMX.Dialogs,
+  FMX.StdCtrls,
+  FMX.Controls.Presentation,
+  FMX.Edit;
 
 type
   TfrmPlaceholder = class(TForm)
@@ -37,21 +48,21 @@ implementation
 
 class function TfrmPlaceholder.Execute(var ADisplayedName, APlaceholderName: string): boolean;
 var
-  LDlg: TfrmPlaceholder;
+  LDialog: TfrmPlaceholder;
 begin
-  LDlg := TfrmPlaceholder.Create(nil);
+  LDialog := TfrmPlaceholder.Create(nil);
 
   try
-    LDlg.DisplayedName := ADisplayedName;
-    LDlg.PlaceholderName := APlaceholderName;
+    LDialog.DisplayedName := ADisplayedName;
+    LDialog.PlaceholderName := APlaceholderName;
 
-    if LDlg.ShowModal = mrOk then
+    if LDialog.ShowModal = mrOk then
     begin
-      ADisplayedName := LDlg.DisplayedName;
-      APlaceholderName := LDlg.PlaceholderName;
+      ADisplayedName := LDialog.DisplayedName;
+      APlaceholderName := LDialog.PlaceholderName;
     end;
   finally
-    LDlg.Free;
+    LDialog.Free;
   end;
 end;
 

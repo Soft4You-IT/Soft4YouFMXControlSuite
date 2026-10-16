@@ -37,8 +37,8 @@ function HTMLNamedColors: TArray<TS4YHTMLNamedColor>;
 function AlphaColorToHTMLHex(AColor: TAlphaColor): string;
 
 // Returns the W3C name if the color is in the table (e.g. 'cornflowerblue'),
-// otherwise returns #RRGGBB when AFallbackToHex is True, or '' when False.
-function AlphaColorToHTMLName(AColor: TAlphaColor; AFallbackToHex: Boolean = True): string;
+// otherwise returns #RRGGBB when FallbackToHex is True, or '' when False.
+function AlphaColorToHTMLName(AColor: TAlphaColor; FallbackToHex: Boolean = True): string;
 
 implementation
 
@@ -113,14 +113,14 @@ begin
   Result := '#' +
     IntToHex((AColor shr 16) and $FF, 2) +
     IntToHex((AColor shr 8)  and $FF, 2) +
-    IntToHex( AColor          and $FF, 2);
+    IntToHex(AColor and $FF, 2);
 end;
 
-function AlphaColorToHTMLName(AColor: TAlphaColor; AFallbackToHex: Boolean = True): string;
+function AlphaColorToHTMLName(AColor: TAlphaColor; FallbackToHex: Boolean = True): string;
 begin
   if not GColorReverseLookup.TryGetValue(AColor, Result) then
   begin
-    if AFallbackToHex then
+    if FallbackToHex then
       Result := AlphaColorToHTMLHex(AColor)
     else
       Result := '';
@@ -129,7 +129,7 @@ end;
 
 procedure BuildColorTable;
 var
-  LIdx: Integer;
+  LIndex: Integer;
   LPair: TPair<string, TAlphaColor>;
 begin
   GColorLookup := TDictionary<string, TAlphaColor>.Create(160);
@@ -285,18 +285,18 @@ begin
   GColorLookup.Add('yellowgreen',          TAlphaColor($FF9ACD32));
 
   SetLength(GNamedColors, GColorLookup.Count);
-  LIdx := 0;
+  LIndex := 0;
   for LPair in GColorLookup do
   begin
-    GNamedColors[LIdx].Name := LPair.Key;
-    GNamedColors[LIdx].Color := LPair.Value;
-    Inc(LIdx);
+    GNamedColors[LIndex].Name := LPair.Key;
+    GNamedColors[LIndex].Color := LPair.Value;
+    Inc(LIndex);
   end;
   TArray.Sort<TS4YHTMLNamedColor>(GNamedColors,
     TComparer<TS4YHTMLNamedColor>.Construct(
-      function(const A, B: TS4YHTMLNamedColor): Integer
+      function(const ALeft, ARight: TS4YHTMLNamedColor): Integer
       begin
-        Result := CompareStr(A.Name, B.Name);
+        Result := CompareStr(ALeft.Name, ARight.Name);
       end));
 
   // Build reverse lookup (color -> canonical name).

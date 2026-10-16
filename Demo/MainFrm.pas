@@ -3,10 +3,32 @@
 interface
 
 uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
-  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, Soft4You.FMX.Controls.HTMLEditor, FMX.Memo.Types, FMX.StdCtrls,
-  FMX.Controls.Presentation, FMX.ScrollBox, FMX.Memo, FMX.TabControl, FMX.ListBox, System.ImageList, FMX.ImgList,
-  System.Actions, FMX.ActnList, FMX.Objects, FMX.Menus, FMX.Layouts, FMX.Ani,
+  System.SysUtils,
+  System.Types,
+  System.UITypes,
+  System.Classes,
+  System.Variants,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Forms,
+  FMX.Graphics,
+  FMX.Dialogs,
+  Soft4You.FMX.Controls.HTMLEditor,
+  FMX.Memo.Types,
+  FMX.StdCtrls,
+  FMX.Controls.Presentation,
+  FMX.ScrollBox,
+  FMX.Memo,
+  FMX.TabControl,
+  FMX.ListBox,
+  System.ImageList,
+  FMX.ImgList,
+  System.Actions,
+  FMX.ActnList,
+  FMX.Objects,
+  FMX.Menus,
+  FMX.Layouts,
+  FMX.Ani,
   FMX.Colors;
 
 type
@@ -152,21 +174,15 @@ implementation
 
 uses
   System.IOUtils,
-
   FMX.DialogService,
-
   Soft4You.HTML.Document,
   Soft4You.HTML.Types,
   Soft4You.Unicode.EmojiData,
-
   PlaceholderFrm,
-  ColorSelectionFrm
-
-  ;
+  ColorSelectionFrm;
 
 const
   C_HTML_FILE_NAME = '..\..\Test\Test.html';
-
 
 {$R *.fmx}
 
@@ -407,52 +423,52 @@ end;
 
 procedure TfrmMain.actInsertImageExecute(Sender: TObject);
 var
-  LDlg: TOpenDialog;
+  LDialog: TOpenDialog;
 begin
-  LDlg := TOpenDialog.Create(nil);
+  LDialog := TOpenDialog.Create(nil);
 
   try
-    LDlg.Title := 'Select image';
-    LDlg.Filter := 'Portable Network Graphic (*.png)|*.png';
+    LDialog.Title := 'Select image';
+    LDialog.Filter := 'Portable Network Graphic (*.png)|*.png';
 
-    if LDlg.Execute then
-      HTMLEditor.InsertImage(LDlg.FileName);
+    if LDialog.Execute then
+      HTMLEditor.InsertImage(LDialog.FileName);
   finally
-    LDlg.Free;
+    LDialog.Free;
   end;
 end;
 
 procedure TfrmMain.actInsertInlineImageExecute(Sender: TObject);
 var
-  LDlg: TOpenDialog;
+  LDialog: TOpenDialog;
 begin
-  LDlg := TOpenDialog.Create(nil);
+  LDialog := TOpenDialog.Create(nil);
 
   try
-    LDlg.Title := 'Select image';
-    LDlg.Filter := 'Portable Network Graphic (*.png)|*.png';
+    LDialog.Title := 'Select image';
+    LDialog.Filter := 'Portable Network Graphic (*.png)|*.png';
 
-    if LDlg.Execute then
-      HTMLEditor.InsertInlineImage(LDlg.FileName);
+    if LDialog.Execute then
+      HTMLEditor.InsertInlineImage(LDialog.FileName);
   finally
-    LDlg.Free;
+    LDialog.Free;
   end;
 end;
 
 procedure TfrmMain.actLoadFromHTMLFileExecute(Sender: TObject);
 var
-  LDlg: TOpenDialog;
+  LDialog: TOpenDialog;
 begin
-  LDlg := TOpenDialog.Create(nil);
+  LDialog := TOpenDialog.Create(nil);
 
   try
-    LDlg.Title := 'Select HTML document';
-    LDlg.Filter := 'HTML document (*.html)|*.html';
+    LDialog.Title := 'Select HTML document';
+    LDialog.Filter := 'HTML document (*.html)|*.html';
 
-    if LDlg.Execute then
-      HTMLEditor.HTML := TFile.ReadAllText(LDlg.FileName, TEncoding.UTF8);
+    if LDialog.Execute then
+      HTMLEditor.HTML := TFile.ReadAllText(LDialog.FileName, TEncoding.UTF8);
   finally
-    LDlg.Free;
+    LDialog.Free;
   end;
 end;
 
@@ -463,19 +479,19 @@ end;
 
 procedure TfrmMain.actSaveToHTMLFileExecute(Sender: TObject);
 var
-  LDlg: TSaveDialog;
+  LDialog: TSaveDialog;
 begin
-  LDlg := TSaveDialog.Create(nil);
+  LDialog := TSaveDialog.Create(nil);
 
   try
-    LDlg.Title := 'Save document';
-    LDLG.Filter := 'HTML document (*.html)|*.html';
-    LDlg.FileName := 'No name.html';
+    LDialog.Title := 'Save document';
+    LDialog.Filter := 'HTML document (*.html)|*.html';
+    LDialog.FileName := 'No name.html';
 
-    if LDlg.Execute then
-      TFile.WriteAllText(LDlg.FileName, HTMLEditor.FullHTML, TEncoding.UTF8);
+    if LDialog.Execute then
+      TFile.WriteAllText(LDialog.FileName, HTMLEditor.FullHTML, TEncoding.UTF8);
   finally
-    LDlg.Free;
+    LDialog.Free;
   end;
 end;
 
@@ -567,7 +583,7 @@ begin
   if Assigned(LRun) then
   begin
     if LRun.IsImage then
-      LText := LRun.ImageSrc
+      LText := LRun.ImageSource
     else if LRun.IsPlaceholder then
       LText := LRun.DisplayText
   end;

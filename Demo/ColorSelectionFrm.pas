@@ -3,9 +3,22 @@ unit ColorSelectionFrm;
 interface
 
 uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
-  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.StdCtrls, FMX.Objects, FMX.Edit, FMX.Layouts,
-  FMX.Controls.Presentation, FMX.Colors;
+  System.SysUtils,
+  System.Types,
+  System.UITypes,
+  System.Classes,
+  System.Variants,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Forms,
+  FMX.Graphics,
+  FMX.Dialogs,
+  FMX.StdCtrls,
+  FMX.Objects,
+  FMX.Edit,
+  FMX.Layouts,
+  FMX.Controls.Presentation,
+  FMX.Colors;
 
 type
   TColorSelection = class(TForm)
@@ -25,9 +38,9 @@ type
     function GetSelectedColor: TAlphaColor;
     procedure SetSelectedColor(const Value: TAlphaColor);
   public
-    constructor Create(AOwner: TComponent); override;
-
     class function Execute(var AColor: TAlphacolor): boolean;
+
+    constructor Create(AOwner: TComponent); override;
 
     property SelectedColor: TAlphaColor read GetSelectedColor write SetSelectedColor;
   end;
@@ -39,14 +52,9 @@ implementation
 
 uses
   System.StrUtils,
-
-  Soft4You.HTML.Colors
-
-  ;
-
+  Soft4You.HTML.Colors;
 
 {$R *.fmx}
-
 
 constructor TColorSelection.Create(AOwner: TComponent);
 begin
@@ -88,18 +96,18 @@ end;
 
 class function TColorSelection.Execute(var AColor: TAlphacolor): boolean;
 var
-  LDlg: TColorSelection;
+  LDialog: TColorSelection;
 begin
-  LDlg := TColorSelection.Create(nil);
+  LDialog := TColorSelection.Create(nil);
 
   try
-    LDLg.SelectedColor := AColor;
+    LDialog.SelectedColor := AColor;
 
-    Result := LDlg.ShowModal = mrOk;
+    Result := LDialog.ShowModal = mrOk;
 
-    AColor := Ldlg.SelectedColor;
+    AColor := LDialog.SelectedColor;
   finally
-    LDlg.Free;
+    LDialog.Free;
   end;
 end;
 
