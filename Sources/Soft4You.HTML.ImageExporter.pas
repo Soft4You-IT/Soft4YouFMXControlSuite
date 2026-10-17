@@ -22,6 +22,9 @@ type
   // Maps an image source of the document to the file it is read from
   TS4YImagePathResolver = reference to function(const ASource: string): string;
 
+  // Tells whether an image source may be copied
+  TS4YImageSourceFilter = reference to function(const ASource: string): Boolean;
+
   // ===========================================================================
   // TS4YImageExporter
   // Copies the local images of a document into a subfolder next to the saved file
@@ -31,6 +34,7 @@ type
   private
     FDestinationFolder: string;
     FFolderName: string;
+    FIsAllowed: TS4YImageSourceFilter;
     FResolver: TS4YImagePathResolver;
     FCopiedPaths: TDictionary<string, string>;
     FDestinations: TDictionary<string, string>;
@@ -39,7 +43,8 @@ type
     function AreFilesEqual(const AFirstFile, ASecondFile: string): Boolean;
     function CopyToDestination(const ASourceFile: string): string;
   public
-    constructor Create(const ADestinationFolder, AFolderName: string; const AResolver: TS4YImagePathResolver);
+    constructor Create(const ADestinationFolder, AFolderName: string; const AResolver: TS4YImagePathResolver;
+      const AIsAllowed: TS4YImageSourceFilter);
     destructor Destroy; override;
 
     // True when the source is a local image that exists: ANewSource is then the
@@ -60,9 +65,11 @@ uses
 // TS4YImageExporter
 // -----------------------------------------------------------------------------
 
-constructor TS4YImageExporter.Create(const ADestinationFolder, AFolderName: string; const AResolver: TS4YImagePathResolver);
+constructor TS4YImageExporter.Create(const ADestinationFolder, AFolderName: string; const AResolver: TS4YImagePathResolver;
+  const AIsAllowed: TS4YImageSourceFilter);
 begin
   inherited Create;
+  FIsAllowed := AIsAllowed;
   FDestinationFolder := ADestinationFolder;
   FFolderName := AFolderName;
   FResolver := AResolver;
@@ -149,6 +156,8 @@ begin
     Exit(True);
   ANewSource := ASource;
   if not IsLocalImageSource(ASource) then
+    Exit;
+  if Assigned(FIsAllowed) and not FIsAllowed(ASource) then
     Exit;
   LSourceFile := TPath.GetFullPath(FResolver(ASource));
   if not TFile.Exists(LSourceFile) then

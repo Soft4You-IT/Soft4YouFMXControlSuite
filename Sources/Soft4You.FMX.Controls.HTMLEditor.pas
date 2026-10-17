@@ -122,7 +122,9 @@ type
   TS4YLinkClickEvent = procedure(Sender: TObject; const URL: string; const LinkText: string) of object;
   TS4YLinkHoverEvent = procedure(Sender: TObject; const URL: string; var Cursor: TCursor) of object;
 
-  TS4YImageLoadContext = (ilcParse, ilcInsert, ilcReload, ilcRender);
+  TS4YImageLoadContext = (ilcParse, ilcInsert, ilcReload, ilcRender, ilcSave);
+  TS4YBeforeLoadImageEvent = procedure(Sender: TObject; const ASource: string;
+    AContext: TS4YImageLoadContext; var Allow: Boolean) of object;
   TS4YLoadImageEvent = procedure(Sender: TObject; const ASource: string; var ABitmap: TBitmap;
     AContext: TS4YImageLoadContext) of object;
 
@@ -325,6 +327,7 @@ type
     FPrettyHTML: Boolean;
     FTitle: string;
     FImageCache: TObjectDictionary<string, TBitmap>;
+    FRefusedImages: TDictionary<string, Boolean>;
     FOnChange: TNotifyEvent;
     FOnStateChange: TS4YEditorStateEvent;
     FOnDrawListMarker: TS4YDrawListMarkerEvent;
@@ -333,6 +336,7 @@ type
     FOnGetPlaceholderLabel: TS4YGetPlaceholderLabelEvent;
     FOnLinkClick: TS4YLinkClickEvent;
     FOnLinkHover: TS4YLinkHoverEvent;
+    FOnBeforeLoadImage: TS4YBeforeLoadImageEvent;
     FOnLoadImage: TS4YLoadImageEvent;
 
     // Layout
@@ -358,6 +362,8 @@ type
     function LoadBitmapFromSource(const ASource: string; AWidth: Integer = 0; AHeight: Integer = 0): TBitmap;
     function LoadImage(const ASource: string; AContext: TS4YImageLoadContext = ilcRender; AWidth: Integer = 0; AHeight: Integer = 0): TBitmap;
     function IsDeferredImageSource(const ASource: string): Boolean;
+    function IsImageLoadAllowed(const ASource: string; AContext: TS4YImageLoadContext): Boolean;
+    function LoadAllowedBitmap(const ASource: string; AContext: TS4YImageLoadContext; AWidth: Integer = 0; AHeight: Integer = 0): TBitmap;
     procedure LoadDeferredImages(ALocal: Boolean);
     procedure PreloadImages;
     procedure PrepareImageDimensions;
@@ -627,6 +633,7 @@ type
     property Title: string read FTitle write FTitle;
     property Visible;
     property Width;
+    property OnBeforeLoadImage: TS4YBeforeLoadImageEvent read FOnBeforeLoadImage write FOnBeforeLoadImage;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property OnClick;
     property OnDblClick;
@@ -1557,6 +1564,7 @@ begin
   FLineSpacing := C_EDITOR_LINE_SPACING;
   FParagraphSpacing := C_EDITOR_PARA_SPACING;
   FImageCache := TObjectDictionary<string, TBitmap>.Create([doOwnsValues]);
+  FRefusedImages := TDictionary<string, Boolean>.Create;
   FPlaceholderAppearance := TS4YPlaceholderAppearance.Create;
   FPlaceholderAppearance.OnChange := AppearanceChanged;
   FPlaceholderPrefix := S_DEFAULT_PLACEHOLDER_PREFIX;
@@ -1630,6 +1638,7 @@ begin
   FCaretTimer.Free;
   FRenderCache.Free;
   FLayoutEngine.Free;
+  FRefusedImages.Free;
   FImageCache.Free;
   FUndoStack.Free;
   FRedoStack.Free;
@@ -2154,13 +2163,41 @@ begin
     Exit(nil);
   if FImageCache.TryGetValue(ASource, Result) then
     Exit;
+  // Refused by OnBeforeLoadImage and nobody provided a bitmap: the event is not asked again
+  // until the images are reloaded
+  if FRefusedImages.ContainsKey(ASource) then
+    Exit(nil);
   if IsDeferredImageSource(ASource) then
     Exit(nil);
-  Result := LoadBitmapFromSource(ASource, AWidth, AHeight);
-  if Assigned(FOnLoadImage) then
-    FOnLoadImage(Self, ASource, Result, AContext);
+  Result := LoadAllowedBitmap(ASource, AContext, AWidth, AHeight);
   if Assigned(Result) then
     FImageCache.Add(ASource, Result);
+end;
+
+function TS4YHTMLEditor.IsImageLoadAllowed(const ASource: string; AContext: TS4YImageLoadContext): Boolean;
+begin
+  Result := True;
+  if Assigned(FOnBeforeLoadImage) then
+    FOnBeforeLoadImage(Self, ASource, AContext, Result);
+end;
+
+// Loads the image unless OnBeforeLoadImage refuses it, then lets OnLoadImage replace or
+// provide the bitmap (also for a refused image: it stays nil if the handler gives nothing).
+// A refusal without a substitute bitmap is remembered in FRefusedImages
+function TS4YHTMLEditor.LoadAllowedBitmap(const ASource: string; AContext: TS4YImageLoadContext; AWidth, AHeight: Integer): TBitmap;
+var
+  LIsAllowed: Boolean;
+begin
+  Result := nil;
+  LIsAllowed := IsImageLoadAllowed(ASource, AContext);
+  if LIsAllowed then
+    Result := LoadBitmapFromSource(ASource, AWidth, AHeight);
+  if Assigned(FOnLoadImage) then
+    FOnLoadImage(Self, ASource, Result, AContext);
+  if not LIsAllowed and (Result = nil) then
+    FRefusedImages.AddOrSetValue(ASource, True)
+  else
+    FRefusedImages.Remove(ASource);
 end;
 
 // True when the source belongs to a kind of images that is not loaded automatically
@@ -2296,9 +2333,7 @@ begin
     begin
       if not FImageCache.TryGetValue(LParagraph.ImageSource, LBitmap) then
       begin
-        LBitmap := LoadBitmapFromSource(LParagraph.ImageSource);
-        if Assigned(FOnLoadImage) then
-          FOnLoadImage(Self, LParagraph.ImageSource, LBitmap, ilcParse);
+        LBitmap := LoadAllowedBitmap(LParagraph.ImageSource, ilcParse);
         if Assigned(LBitmap) then
           FImageCache.Add(LParagraph.ImageSource, LBitmap);
       end;
@@ -2317,9 +2352,7 @@ begin
         Continue;
       if not FImageCache.TryGetValue(LRun.ImageSource, LBitmap) then
       begin
-        LBitmap := LoadBitmapFromSource(LRun.ImageSource);
-        if Assigned(FOnLoadImage) then
-          FOnLoadImage(Self, LRun.ImageSource, LBitmap, ilcParse);
+        LBitmap := LoadAllowedBitmap(LRun.ImageSource, ilcParse);
         if Assigned(LBitmap) then
           FImageCache.Add(LRun.ImageSource, LBitmap);
       end;
@@ -8024,6 +8057,7 @@ begin
   FUndoStack.Clear;
   FRedoStack.Clear;
   FImageCache.Clear;
+  FRefusedImages.Clear;
   LParser := TS4YHTMLParser.Create;
   try
     LNewDocument := LParser.Parse(Value);
@@ -8106,6 +8140,7 @@ end;
 procedure TS4YHTMLEditor.ReloadImagesAfterPathChange;
 begin
   FImageCache.Clear;
+  FRefusedImages.Clear;
   PreloadImages;
   FLayoutEngine.ClearMeasureCache;
   DoLayout;
@@ -8172,6 +8207,10 @@ begin
         function(const ASource: string): string
         begin
           Result := ResolveImageSource(ASource);
+        end,
+        function(const ASource: string): Boolean
+        begin
+          Result := IsImageLoadAllowed(ASource, ilcSave);
         end);
     end;
     // Copied images point to the copies. Other relative sources depend on the current
