@@ -158,6 +158,7 @@
         <DCCReference Include="..\Sources\Soft4You.HTML.Document.pas"/>
         <DCCReference Include="..\Sources\Soft4You.HTML.Parser.pas"/>
         <DCCReference Include="..\Sources\Soft4You.HTML.Generator.pas"/>
+        <DCCReference Include="..\Sources\Soft4You.HTML.ImageExporter.pas"/>
         <DCCReference Include="..\Sources\Soft4You.HTML.Colors.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
