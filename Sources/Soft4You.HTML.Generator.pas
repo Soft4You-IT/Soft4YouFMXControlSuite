@@ -30,13 +30,16 @@ type
   TS4YHTMLGenerator = class
   private
     FPretty: Boolean;
+    FImageSourceConverter: TFunc<string, string>;
     FPlaceholderStyle: TS4YPlaceholderGeneratorStyle;
+    function ConvertImageSource(const ASource: string): string;
     function HtmlEncode(const AText: string): string;
     function ColorToHex(AColor: TAlphaColor): string;
     function StyleDiff(const ACurrentStyle, ABaseStyle: TS4YHTMLTextStyle): string;
   public
     function Generate(ADocument: TS4YHTMLDocument): string;
 
+    property ImageSourceConverter: TFunc<string, string> read FImageSourceConverter write FImageSourceConverter;
     property PlaceholderStyle: TS4YPlaceholderGeneratorStyle read FPlaceholderStyle write FPlaceholderStyle;
     property Pretty: Boolean read FPretty write FPretty;
   end;
@@ -46,6 +49,13 @@ implementation
 // -----------------------------------------------------------------------------
 // TS4YHTMLGenerator
 // -----------------------------------------------------------------------------
+
+function TS4YHTMLGenerator.ConvertImageSource(const ASource: string): string;
+begin
+  Result := ASource;
+  if Assigned(FImageSourceConverter) then
+    Result := FImageSourceConverter(ASource);
+end;
 
 function TS4YHTMLGenerator.HtmlEncode(const AText: string): string;
 begin
@@ -142,7 +152,7 @@ var
       begin
         LStringBuilder.Append('<img');
         if LEmitRun.ImageSource <> '' then
-          LStringBuilder.Append(' src="' + LEmitRun.ImageSource + '"');
+          LStringBuilder.Append(' src="' + ConvertImageSource(LEmitRun.ImageSource) + '"');
         if LEmitRun.ImageWidth > 0 then
           LStringBuilder.Append(' width="' + IntToStr(LEmitRun.ImageWidth) + '"');
         if LEmitRun.ImageHeight > 0 then
@@ -351,7 +361,7 @@ begin
       begin
         LStringBuilder.Append('<img');
         if LParagraph.ImageSource <> '' then
-          LStringBuilder.Append(' src="' + LParagraph.ImageSource + '"');
+          LStringBuilder.Append(' src="' + ConvertImageSource(LParagraph.ImageSource) + '"');
         if LParagraph.ImageWidth > 0 then
           LStringBuilder.Append(' width="' + IntToStr(LParagraph.ImageWidth) + '"');
         if LParagraph.ImageHeight > 0 then

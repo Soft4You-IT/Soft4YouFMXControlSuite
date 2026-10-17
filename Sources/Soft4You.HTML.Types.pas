@@ -167,6 +167,8 @@ function IsRemoteImageSource(const ASource: string): Boolean;
 function IsLocalImageSource(const ASource: string): Boolean;
 function ResolveImagePath(const ASource, ADocumentPath: string; AMode: TS4YImagePathMode): string;
 function MakeDocumentRelativePath(const ASource, ADocumentPath: string): string;
+function PathToFileUrl(const APath: string): string;
+function ImageSourceToFileUrl(const ASource: string): string;
 
 implementation
 
@@ -360,6 +362,45 @@ begin
   if LFullPath.StartsWith(LBase, False) then
 {$ENDIF}
     Result := LFullPath.Substring(LBase.Length).Replace(PathDelim, '/');
+end;
+
+// C:\dir\a b.png -> file:///C:/dir/a%20b.png    \\server\share\x.png -> file://server/share/x.png
+function PathToFileUrl(const APath: string): string;
+var
+  LPath: string;
+  LBytes: TBytes;
+  LByte: Byte;
+  LBuilder: TStringBuilder;
+begin
+  LPath := APath.Replace('\', '/');
+  LBuilder := TStringBuilder.Create;
+  try
+    if LPath.StartsWith('//') then
+      LBuilder.Append('file:')
+    else if LPath.StartsWith('/') then
+      LBuilder.Append('file://')
+    else
+      LBuilder.Append('file:///');
+    LBytes := TEncoding.UTF8.GetBytes(LPath);
+    for LByte in LBytes do
+    begin
+      if CharInSet(Char(LByte), ['a'..'z', 'A'..'Z', '0'..'9', '-', '.', '_', '~', '/', ':']) then
+        LBuilder.Append(Char(LByte))
+      else
+        LBuilder.Append('%' + IntToHex(LByte, 2));
+    end;
+    Result := LBuilder.ToString;
+  finally
+    LBuilder.Free;
+  end;
+end;
+
+// Relative local path -> file: URL resolved against the current directory; anything else unchanged
+function ImageSourceToFileUrl(const ASource: string): string;
+begin
+  Result := ASource;
+  if IsRelativeLocalPath(ASource) then
+    Result := PathToFileUrl(TPath.GetFullPath(ASource.Replace('\', PathDelim)));
 end;
 
 // -----------------------------------------------------------------------------

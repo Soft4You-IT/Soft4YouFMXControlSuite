@@ -393,6 +393,7 @@ type
     procedure DeleteBack;
     procedure DeleteForward;
     procedure DeleteSelection;
+    function BuildFullHTML(const AImageSourceConverter: TFunc<string, string>): string;
     function GetFullHTML: string;
     procedure SetFullHTML(const Value: string);
     function GetSelectionHTML: string;
@@ -425,6 +426,7 @@ type
     procedure OnScrollChange(Sender: TObject);
 
     // Properties
+    function BuildHTML(const AImageSourceConverter: TFunc<string, string>): string;
     function GetHTML: string;
     procedure SetHTML(const Value: string);
     procedure SetLineSpacing(const Value: Single);
@@ -578,6 +580,7 @@ type
 
     // -- Files --------------------------------------------------------------
     procedure LoadFromFile(const AFileName: string; AEncoding: TEncoding = nil);
+    procedure SaveToFile(const AFileName: string; AEncoding: TEncoding = nil);
 
     // -- Search -------------------------------------------------------------
     function FindNext(const AText: string; CaseSensitive: Boolean = False): Boolean;
@@ -7940,6 +7943,11 @@ begin
 end;
 
 function TS4YHTMLEditor.GetFullHTML: string;
+begin
+  Result := BuildFullHTML(nil);
+end;
+
+function TS4YHTMLEditor.BuildFullHTML(const AImageSourceConverter: TFunc<string, string>): string;
 var
   LStringBuilder: TStringBuilder;
   LLanguageAttribute: string;
@@ -7949,7 +7957,7 @@ begin
     LLanguageAttribute := ' lang="' + FLanguage + '"'
   else
     LLanguageAttribute := '';
-  LBodyContent := GetHTML;
+  LBodyContent := BuildHTML(AImageSourceConverter);
   LStringBuilder := TStringBuilder.Create;
   try
     LStringBuilder.Append('<!DOCTYPE html>').Append(sLineBreak);
@@ -7972,6 +7980,11 @@ end;
 // -- HTML get/set --------------------------------------------------------------
 
 function TS4YHTMLEditor.GetHTML: string;
+begin
+  Result := BuildHTML(nil);
+end;
+
+function TS4YHTMLEditor.BuildHTML(const AImageSourceConverter: TFunc<string, string>): string;
 var
   LGenerator: TS4YHTMLGenerator;
   LPlaceholderStyle: TS4YPlaceholderGeneratorStyle;
@@ -7983,6 +7996,7 @@ begin
   LGenerator := TS4YHTMLGenerator.Create;
   try
     LGenerator.Pretty := FPrettyHTML;
+    LGenerator.ImageSourceConverter := AImageSourceConverter;
     LPlaceholderStyle.Init;
     LPlaceholderStyle.FillColor := FPlaceholderAppearance.FillColor;
     LPlaceholderStyle.TextColor := FPlaceholderAppearance.TextColor;
@@ -8120,7 +8134,30 @@ begin
     LEncoding := TEncoding.UTF8;
   // The path is set before the HTML so the images are resolved against the right folder
   FDocumentPath := ExcludeTrailingPathDelimiter(ExtractFilePath(TPath.GetFullPath(AFileName)));
-  SetHTML(TFile.ReadAllText(AFileName, LEncoding));
+  SetFullHTML(TFile.ReadAllText(AFileName, LEncoding));
+end;
+
+procedure TS4YHTMLEditor.SaveToFile(const AFileName: string; AEncoding: TEncoding);
+var
+  LEncoding: TEncoding;
+  LContent: string;
+begin
+  LEncoding := AEncoding;
+  if LEncoding = nil then
+    LEncoding := TEncoding.UTF8;
+  if FImagePathMode = ipmDocument then
+  begin
+    TFile.WriteAllText(AFileName, BuildFullHTML(nil), LEncoding);
+    DocumentPath := ExcludeTrailingPathDelimiter(ExtractFilePath(TPath.GetFullPath(AFileName)));
+    Exit;
+  end;
+  // Relative sources depend on the current directory: written as absolute file: URLs
+  LContent := BuildFullHTML(
+    function(ASource: string): string
+    begin
+      Result := ImageSourceToFileUrl(ASource);
+    end);
+  TFile.WriteAllText(AFileName, LContent, LEncoding);
 end;
 
 procedure TS4YHTMLEditor.SetBackgroundColor(const Value: TAlphaColor);
