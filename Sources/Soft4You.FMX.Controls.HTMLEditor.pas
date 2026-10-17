@@ -61,7 +61,8 @@ uses
   Soft4You.HTML.Types,
   Soft4You.HTML.Document,
   Soft4You.HTML.Parser,
-  Soft4You.HTML.Generator;
+  Soft4You.HTML.Generator,
+  Soft4You.HTML.ImageExporter;
 
 const
   C_EDITOR_PADDING = 10.0; // px inner margin
@@ -435,6 +436,7 @@ type
     procedure SetDocumentPath(const Value: string);
     procedure SetImagePathMode(const Value: TS4YImagePathMode);
     procedure ReloadImagesAfterPathChange;
+    procedure UpdateSourcesAfterExport(const AExporter: TS4YImageExporter; const ADestinationFolder: string);
     function StoredImageSource(const ASource: string): string;
     procedure SetBackgroundColor(const Value: TAlphaColor);
     procedure SetFontColor(const Value: TAlphaColor);
@@ -580,7 +582,8 @@ type
 
     // -- Files --------------------------------------------------------------
     procedure LoadFromFile(const AFileName: string; AEncoding: TEncoding = nil);
-    procedure SaveToFile(const AFileName: string; AEncoding: TEncoding = nil);
+    procedure SaveToFile(const AFileName: string; AEncoding: TEncoding = nil); overload;
+    procedure SaveToFile(const AFileName: string; const AOptions: TS4YSaveOptions; AEncoding: TEncoding = nil); overload;
 
     // -- Search -------------------------------------------------------------
     function FindNext(const AText: string; CaseSensitive: Boolean = False): Boolean;
@@ -8139,25 +8142,91 @@ end;
 
 procedure TS4YHTMLEditor.SaveToFile(const AFileName: string; AEncoding: TEncoding);
 var
+  LOptions: TS4YSaveOptions;
+begin
+  LOptions.Init;
+  SaveToFile(AFileName, LOptions, AEncoding);
+end;
+
+procedure TS4YHTMLEditor.SaveToFile(const AFileName: string; const AOptions: TS4YSaveOptions; AEncoding: TEncoding);
+var
   LEncoding: TEncoding;
+  LDestinationFolder: string;
+  LFolderName: string;
   LContent: string;
+  LExporter: TS4YImageExporter;
+  LHasCopies: Boolean;
 begin
   LEncoding := AEncoding;
   if LEncoding = nil then
     LEncoding := TEncoding.UTF8;
-  if FImagePathMode = ipmDocument then
-  begin
-    TFile.WriteAllText(AFileName, BuildFullHTML(nil), LEncoding);
-    DocumentPath := ExcludeTrailingPathDelimiter(ExtractFilePath(TPath.GetFullPath(AFileName)));
-    Exit;
-  end;
-  // Relative sources depend on the current directory: written as absolute file: URLs
-  LContent := BuildFullHTML(
-    function(ASource: string): string
+  LDestinationFolder := ExcludeTrailingPathDelimiter(ExtractFilePath(TPath.GetFullPath(AFileName)));
+  LFolderName := AOptions.ImagesFolderName;
+  if LFolderName = '' then
+    LFolderName := TPath.GetFileNameWithoutExtension(AFileName) + '_files';
+  LExporter := nil;
+  try
+    if AOptions.CopyImages and FAutoLoadLocalImages then
     begin
-      Result := ImageSourceToFileUrl(ASource);
-    end);
-  TFile.WriteAllText(AFileName, LContent, LEncoding);
+      LExporter := TS4YImageExporter.Create(LDestinationFolder, LFolderName,
+        function(const ASource: string): string
+        begin
+          Result := ResolveImageSource(ASource);
+        end);
+    end;
+    // Copied images point to the copies. Other relative sources depend on the current
+    // directory in ipmApplication mode: they are written as absolute file: URLs
+    LContent := BuildFullHTML(
+      function(ASource: string): string
+      begin
+        if (LExporter <> nil) and LExporter.TryConvert(ASource, Result) then
+          Exit;
+        if FImagePathMode = ipmDocument then
+          Result := ASource
+        else
+          Result := ImageSourceToFileUrl(ASource);
+      end);
+    TFile.WriteAllText(AFileName, LContent, LEncoding);
+    LHasCopies := (LExporter <> nil) and (LExporter.Destinations.Count > 0);
+    if LHasCopies and AOptions.UpdateModel then
+      UpdateSourcesAfterExport(LExporter, LDestinationFolder);
+    // The model still points to the original images unless it was updated: the document
+    // folder moves only when the sources stay valid there
+    if (FImagePathMode = ipmDocument) and (not LHasCopies or AOptions.UpdateModel) then
+      DocumentPath := LDestinationFolder;
+    if LHasCopies and AOptions.UpdateModel then
+      ReloadImagesAfterPathChange;
+  finally
+    LExporter.Free;
+  end;
+end;
+
+// Points the images of the document to their copies: relative to the new document folder
+// in ipmDocument mode, absolute paths otherwise
+procedure TS4YHTMLEditor.UpdateSourcesAfterExport(const AExporter: TS4YImageExporter; const ADestinationFolder: string);
+var
+  LParagraph: TS4YHTMLParagraph;
+  LRun: TS4YHTMLRun;
+  LNewSource: string;
+
+  function NewSourceFor(const AOldSource: string; out ANewSource: string): Boolean;
+  begin
+    Result := AExporter.Destinations.TryGetValue(AOldSource, ANewSource);
+    if Result and (FImagePathMode = ipmDocument) then
+      ANewSource := MakeDocumentRelativePath(ANewSource, ADestinationFolder);
+  end;
+
+begin
+  for LParagraph in FDocument.Paragraphs do
+  begin
+    if NewSourceFor(LParagraph.ImageSource, LNewSource) then
+      LParagraph.ImageSource := LNewSource;
+    for LRun in LParagraph.Runs do
+    begin
+      if LRun.IsImage and NewSourceFor(LRun.ImageSource, LNewSource) then
+        LRun.ImageSource := LNewSource;
+    end;
+  end;
 end;
 
 procedure TS4YHTMLEditor.SetBackgroundColor(const Value: TAlphaColor);

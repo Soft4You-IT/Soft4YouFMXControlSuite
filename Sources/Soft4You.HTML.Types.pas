@@ -56,6 +56,18 @@ type
   //   ipmDocument    - relative to the folder of the document (DocumentPath)
   TS4YImagePathMode = (ipmApplication, ipmDocument);
 
+  // Options of TS4YHTMLEditor.SaveToFile (call Init first, then set what differs)
+  //   CopyImages       - copy the local images next to the saved file and point the saved
+  //                      HTML to the copies (ignored when AutoLoadLocalImages is False)
+  //   ImagesFolderName - subfolder of the copies; empty = '<file name>_files'
+  //   UpdateModel      - after saving, the document itself also points to the copies
+  TS4YSaveOptions = record
+    CopyImages: Boolean;
+    ImagesFolderName: string;
+    UpdateModel: Boolean;
+    procedure Init;
+  end;
+
   // ===========================================================================
   // Text style
   // ===========================================================================
@@ -432,6 +444,13 @@ end;
 // -----------------------------------------------------------------------------
 // TS4YPlaceholderGeneratorStyle
 // -----------------------------------------------------------------------------
+
+procedure TS4YSaveOptions.Init;
+begin
+  CopyImages := False;
+  ImagesFolderName := '';
+  UpdateModel := False;
+end;
 
 procedure TS4YPlaceholderGeneratorStyle.Init;
 begin

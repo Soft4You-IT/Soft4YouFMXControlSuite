@@ -44,6 +44,7 @@ contains
   Soft4You.HTML.Document in '..\Sources\Soft4You.HTML.Document.pas',
   Soft4You.HTML.Parser in '..\Sources\Soft4You.HTML.Parser.pas',
   Soft4You.HTML.Generator in '..\Sources\Soft4You.HTML.Generator.pas',
+  Soft4You.HTML.ImageExporter in '..\Sources\Soft4You.HTML.ImageExporter.pas',
   Soft4You.HTML.Colors in '..\Sources\Soft4You.HTML.Colors.pas';
 
 end.
