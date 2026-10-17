@@ -56,6 +56,12 @@ type
   //   ipmDocument    - relative to the folder of the document (DocumentPath)
   TS4YImagePathMode = (ipmApplication, ipmDocument);
 
+  // Which local files an image source may point to:
+  //   liaAnywhere       - any file the process can read
+  //   liaDocumentFolder - only files inside DocumentPath or its subfolders (relative
+  //                       segments, file: URLs and network paths are checked on the resolved path)
+  TS4YLocalImageAccess = (liaAnywhere, liaDocumentFolder);
+
   // Options of TS4YHTMLEditor.SaveToFile (call Init first, then set what differs)
   //   CopyImages       - copy the local images next to the saved file and point the saved
   //                      HTML to the copies (ignored when AutoLoadLocalImages is False)
@@ -179,6 +185,7 @@ function IsRemoteImageSource(const ASource: string): Boolean;
 function IsLocalImageSource(const ASource: string): Boolean;
 function ResolveImagePath(const ASource, ADocumentPath: string; AMode: TS4YImagePathMode): string;
 function MakeDocumentRelativePath(const ASource, ADocumentPath: string): string;
+function IsPathInsideFolder(const APath, AFolder: string): Boolean;
 function PathToFileUrl(const APath: string): string;
 function ImageSourceToFileUrl(const ASource: string): string;
 
@@ -374,6 +381,25 @@ begin
   if LFullPath.StartsWith(LBase, False) then
 {$ENDIF}
     Result := LFullPath.Substring(LBase.Length).Replace(PathDelim, '/');
+end;
+
+// True when the path, once made absolute and normalized, is inside the folder or one of its
+// subfolders; False when either is empty. Symbolic links are not resolved
+function IsPathInsideFolder(const APath, AFolder: string): Boolean;
+var
+  LBase: string;
+  LFullPath: string;
+begin
+  Result := False;
+  if (APath = '') or (AFolder = '') then
+    Exit;
+  LBase := IncludeTrailingPathDelimiter(TPath.GetFullPath(AFolder));
+  LFullPath := TPath.GetFullPath(APath);
+{$IFDEF MSWINDOWS}
+  Result := LFullPath.StartsWith(LBase, True);
+{$ELSE}
+  Result := LFullPath.StartsWith(LBase, False);
+{$ENDIF}
 end;
 
 // C:\dir\a b.png -> file:///C:/dir/a%20b.png    \\server\share\x.png -> file://server/share/x.png
