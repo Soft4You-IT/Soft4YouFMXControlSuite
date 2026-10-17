@@ -309,6 +309,7 @@ type
     FAutoLoadRemoteImages: Boolean;
     FDocumentPath: string;
     FImagePathMode: TS4YImagePathMode;
+    FLocalImageAccess: TS4YLocalImageAccess;
     FReadOnly: Boolean;
     FShowBorder: Boolean;
     FBackgroundColor: TAlphaColor;
@@ -363,6 +364,7 @@ type
     function LoadImage(const ASource: string; AContext: TS4YImageLoadContext = ilcRender; AWidth: Integer = 0; AHeight: Integer = 0): TBitmap;
     function IsDeferredImageSource(const ASource: string): Boolean;
     function IsImageLoadAllowed(const ASource: string; AContext: TS4YImageLoadContext): Boolean;
+    function IsLocalImageAccessAllowed(const ASource: string): Boolean;
     function LoadAllowedBitmap(const ASource: string; AContext: TS4YImageLoadContext; AWidth: Integer = 0; AHeight: Integer = 0): TBitmap;
     procedure LoadDeferredImages(ALocal: Boolean);
     procedure PreloadImages;
@@ -441,6 +443,7 @@ type
     procedure SetReadOnly(const Value: Boolean);
     procedure SetDocumentPath(const Value: string);
     procedure SetImagePathMode(const Value: TS4YImagePathMode);
+    procedure SetLocalImageAccess(const Value: TS4YLocalImageAccess);
     procedure ReloadImagesAfterPathChange;
     procedure UpdateSourcesAfterExport(const AExporter: TS4YImageExporter; const ADestinationFolder: string);
     function StoredImageSource(const ASource: string): string;
@@ -618,6 +621,7 @@ type
     property ImagePathMode: TS4YImagePathMode read FImagePathMode write SetImagePathMode default ipmApplication;
     property Language: string read FLanguage write FLanguage;
     property LineSpacing: Single read FLineSpacing write SetLineSpacing;
+    property LocalImageAccess: TS4YLocalImageAccess read FLocalImageAccess write SetLocalImageAccess default liaAnywhere;
     property Margins;
     property Opacity;
     property Padding;
@@ -1573,6 +1577,7 @@ begin
   FRedoStack := TObjectList<TS4YUndoEntry>.Create(True);
   FPlaceholders := TList<TS4YHTMLRun>.Create;
   FAutoLoadLocalImages := True;
+  FLocalImageAccess := liaAnywhere;
   FAutoLoadRemoteImages := True;
   FBackgroundColor := claWhite;
   FFontColor := claBlack;
@@ -2174,11 +2179,19 @@ begin
     FImageCache.Add(ASource, Result);
 end;
 
+// LocalImageAccess is checked first and cannot be overridden by OnBeforeLoadImage
 function TS4YHTMLEditor.IsImageLoadAllowed(const ASource: string; AContext: TS4YImageLoadContext): Boolean;
 begin
-  Result := True;
-  if Assigned(FOnBeforeLoadImage) then
+  Result := IsLocalImageAccessAllowed(ASource);
+  if Result and Assigned(FOnBeforeLoadImage) then
     FOnBeforeLoadImage(Self, ASource, AContext, Result);
+end;
+
+function TS4YHTMLEditor.IsLocalImageAccessAllowed(const ASource: string): Boolean;
+begin
+  Result := True;
+  if (FLocalImageAccess = liaDocumentFolder) and IsLocalImageSource(ASource) then
+    Result := IsPathInsideFolder(ResolveImageSource(ASource), FDocumentPath);
 end;
 
 // Loads the image unless OnBeforeLoadImage refuses it, then lets OnLoadImage replace or
@@ -8160,6 +8173,14 @@ begin
   if FImagePathMode = Value then
     Exit;
   FImagePathMode := Value;
+  ReloadImagesAfterPathChange;
+end;
+
+procedure TS4YHTMLEditor.SetLocalImageAccess(const Value: TS4YLocalImageAccess);
+begin
+  if FLocalImageAccess = Value then
+    Exit;
+  FLocalImageAccess := Value;
   ReloadImagesAfterPathChange;
 end;
 

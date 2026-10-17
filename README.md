@@ -150,6 +150,7 @@ end;
 | `ImagePathMode` | `TS4YImagePathMode` | `ipmApplication` | How relative local image paths are resolved: `ipmApplication` (process working directory) or `ipmDocument` (relative to `DocumentPath`) |
 | `Language` | `string` | `''` | Document language attribute (used in `FullHTML` export) |
 | `LineSpacing` | `Single` | `1.0` | Line-height multiplier (1.0 = natural height, 1.5 = 1.5× line spacing) |
+| `LocalImageAccess` | `TS4YLocalImageAccess` | `liaAnywhere` | Which local files images may be read from: `liaAnywhere` (any readable file) or `liaDocumentFolder` (only inside `DocumentPath`); see [Images and files](#images-and-files) |
 | `ParagraphSpacing` | `Single` | `6.0` | Extra vertical space in px added between block elements |
 | `PlaceholderAppearance` | `TS4YPlaceholderAppearance` | — | Visual style of placeholder chips |
 | `PlaceholderPrefix` | `string` | `''` | Prefix that identifies a placeholder run in raw text |
@@ -372,6 +373,26 @@ end;
 
 The same image used several times is copied once. Two different files with the same name get a numeric suffix (`logo.png`, `logo_2.png`); a file already in the destination folder is never overwritten (an identical one is reused). If the destination cannot be written, the exception is raised normally.
 
+### Restricting local files: `LocalImageAccess`
+
+By default (`liaAnywhere`) an image can be read from any local file the process can read, which is what an editor for your own documents needs. When the content comes from somebody else (for example an incoming e-mail), set `LocalImageAccess := liaDocumentFolder`:
+
+- a local image is loaded only if its resolved path is inside `DocumentPath` or one of its subfolders, with `..` segments, `file:` URLs and network paths (`\\server\share`, `file://server/share`) evaluated on the final normalized path;
+- with an empty `DocumentPath` no local image is loaded: this is the intended setup for content you only display, such as a received e-mail set with `HTML` / `SetHTML`, where no local file must be read or even probed;
+- `data:` and remote images are not affected (use `AutoLoadRemoteImages` and `OnBeforeLoadImage` for those);
+- the check cannot be overridden by `OnBeforeLoadImage`, and it also applies to the images copied by `SaveToFile`;
+- symbolic links inside the folder are not resolved.
+
+Changing the property reloads the images.
+
+Typical setups:
+
+| Scenario | Suggested settings |
+|---|---|
+| Editing your own documents (the default use) | `LocalImageAccess = liaAnywhere`; `LoadFromFile` / `ImagePathMode = ipmDocument` if the images are relative to the document |
+| Displaying untrusted content, e.g. a received e-mail | `LocalImageAccess = liaDocumentFolder` and an empty `DocumentPath`; supply `cid:` images in `OnLoadImage`; decide about remote images with `AutoLoadRemoteImages` / `OnBeforeLoadImage` |
+| Composing a message with images chosen by the user | `liaAnywhere` if you trust what the user pastes; otherwise `liaDocumentFolder` with `DocumentPath` set to a working folder of the draft, copying the chosen images there |
+
 ### Controlling what is loaded: `OnBeforeLoadImage`
 
 `OnBeforeLoadImage` is fired before an image is read or downloaded, for every non-empty `src` (including `data:`), and lets the application refuse it:
@@ -459,7 +480,7 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 
 ## Known Limitations
 
-- **Image security**: the editor reads local files and `file:` URLs named by the HTML without any check. When displaying content from untrusted sources (for example e-mail), set `AutoLoadLocalImages` to `False` or filter with `OnBeforeLoadImage`.
+- **Image security**: the editor reads local files and `file:` URLs named by the HTML without any check. When displaying content from untrusted sources (for example e-mail), set `LocalImageAccess` to `liaDocumentFolder` (or `AutoLoadLocalImages` to `False`) and filter with `OnBeforeLoadImage`.
 - **Tables**: `colspan` and `rowspan` are ignored on import, so merged cells lose their structure. Each cell is a single paragraph; `Enter` inserts a line break.
 - **IME**: input composition (CJK pre-edit text) is not supported, so the control is not usable with Chinese, Japanese or Korean input methods.
 - **Accessibility**: no VoiceOver / TalkBack support.

@@ -233,3 +233,51 @@ La cache è esposta in sola lettura come `property Placeholders: TList<TS4YHTMLR
 | `Undo` / `Redo` | `RebuildPlaceholderList` dopo il ripristino del documento |
 
 `RebuildPlaceholderList` scansiona l'intero documento e ricrea la lista da zero; viene usato solo nelle operazioni che modificano strutturalmente il documento. Le operazioni semplici usano aggiornamento incrementale.
+
+
+---
+
+## 7. Immagini: caricamento, percorsi e salvataggio
+
+### Caricamento (`LoadImage`)
+
+Il modello conserva sempre il `src` originale (`ImageSource` di paragrafo o run). Il bitmap vive nella cache `FImageCache` (chiave: `src` originale). Per ogni richiesta `LoadImage(ASource, AContext)` percorre questi passi, fermandosi al primo che decide:
+
+| Passo | Esito |
+|---|---|
+| `src` vuoto | nessun bitmap |
+| presente in `FImageCache` | bitmap della cache |
+| presente in `FRefusedImages` | nessun bitmap, nessun evento (rifiuto gia' noto) |
+| `IsDeferredImageSource` (`AutoLoadLocalImages` / `AutoLoadRemoteImages` a `False`) | nessun bitmap: l'immagine e' disegnata come segnaposto fino a `LoadLocalImages` / `LoadRemoteImages` |
+| `IsImageLoadAllowed`: prima `LocalImageAccess`, poi `OnBeforeLoadImage` | se rifiutata non si legge nulla |
+| `LoadBitmapFromSource` | remoto (HTTP), `data:` (raster e SVG), oppure file locale (percorso risolto con `ResolveImageSource`; file mancante = nessun bitmap, senza eccezione) |
+| `OnLoadImage` | puo' sostituire o fornire il bitmap, anche per un'immagine rifiutata (arriva `nil`) |
+
+Un bitmap non nullo entra in `FImageCache`. Se l'immagine e' stata rifiutata e `OnLoadImage` non fornisce nulla, la sorgente entra in `FRefusedImages`, cosi' gli eventi non scattano a ogni repaint. `LoadLocalImages` e `LoadRemoteImages` passano da `LoadAllowedBitmap` (stessi controlli) e quindi interpellano di nuovo l'applicazione.
+
+`FImageCache` e `FRefusedImages` vengono svuotati insieme da `SetHTML` e da `ReloadImagesAfterPathChange`, che e' richiamato dai setter di `DocumentPath`, `ImagePathMode` e `LocalImageAccess`.
+
+### Percorsi relativi
+
+`ResolveImagePath` (in `Soft4You.HTML.Types`) trasforma il `src` nel percorso da leggere: i `file:` URL sono decodificati (`FileUrlToPath`: percent-encoding UTF-8, UNC, `localhost`); un percorso relativo resta relativo alla current directory in `ipmApplication`, oppure viene combinato con `DocumentPath` in `ipmDocument`. Gli URL e i percorsi assoluti presenti nel documento non vengono mai riscritti. In `ipmDocument`, `InsertImage` / `InsertInlineImage` / `UpdateImage` memorizzano il `src` relativo a `DocumentPath` (`MakeDocumentRelativePath`) solo se il file sta dentro quella cartella.
+
+`LoadFromFile` imposta `FDocumentPath` direttamente (senza ricaricare le immagini) e poi chiama `SetFullHTML`, cosi' le immagini vengono caricate una volta sola con la cartella giusta.
+
+### Sicurezza dei file locali
+
+`LocalImageAccess = liaDocumentFolder` fa verificare a `IsLocalImageAccessAllowed` che il percorso risolto e normalizzato (`IsPathInsideFolder`) sia dentro `DocumentPath`. Il controllo precede `OnBeforeLoadImage` e non e' scavalcabile da esso. Con `DocumentPath` vuoto nessuna immagine locale e' consentita: e' la configurazione pensata per i contenuti ricevuti da terzi (per esempio un'email caricata con `SetHTML`). Le immagini `data:` e remote non dipendono da questa proprieta'.
+
+### Salvataggio (`SaveToFile`)
+
+```
+SaveToFile(AFileName, AOptions)
+   ↓ BuildFullHTML(convertitore)
+TS4YHTMLGenerator.ImageSourceConverter   (applicato ai due punti dove il generatore scrive src="...")
+```
+
+Il convertitore e' scelto in base a `ImagePathMode` e alle opzioni:
+
+- `ipmDocument`: nessuna riscrittura; dopo la scrittura `DocumentPath` passa alla cartella di destinazione.
+- `ipmApplication`: i `src` relativi diventano `file:///...` assoluti (`ImageSourceToFileUrl`) solo nel testo salvato; il modello non cambia.
+- `CopyImages`: `TS4YImageExporter` (`Soft4You.HTML.ImageExporter`) copia le immagini locali esistenti in una sottocartella accanto al file e restituisce il `src` relativo alla copia. Interpella `IsImageLoadAllowed(ASource, ilcSave)` prima di copiare, quindi rispetta `LocalImageAccess` e `OnBeforeLoadImage`. Non copia nulla se `AutoLoadLocalImages` e' `False`. Nomi in conflitto ricevono un suffisso numerico; un file diverso gia' presente non viene mai sovrascritto, uno identico viene riusato.
+- `UpdateModel`: al termine `UpdateSourcesAfterExport` riscrive i `src` del modello verso le copie (relativi in `ipmDocument`, assoluti in `ipmApplication`) e ricarica le immagini. Senza `UpdateModel`, e con copie effettuate, `DocumentPath` non si sposta: i `src` in memoria devono continuare a risolversi sugli originali.
