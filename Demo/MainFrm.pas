@@ -489,7 +489,7 @@ begin
     LDialog.FileName := 'No name.html';
 
     if LDialog.Execute then
-      TFile.WriteAllText(LDialog.FileName, HTMLEditor.FullHTML, TEncoding.UTF8);
+      HTMLEditor.SaveToFile(LDialog.FileName);
   finally
     LDialog.Free;
   end;
