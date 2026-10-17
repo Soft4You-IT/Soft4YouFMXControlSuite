@@ -46,6 +46,7 @@ Original author: **Carlo Marona (Soft4You)** — project started in 2026.
 | Types & styles | `TS4YHTMLTextStyle`, `TS4YHTMLBlockType`, `TS4YDocumentPosition`, `TS4YLayoutFragment` | `Soft4You.HTML.Types` |
 | HTML parser | `TS4YHTMLParser` | `Soft4You.HTML.Parser` |
 | HTML generator | `TS4YHTMLGenerator` | `Soft4You.HTML.Generator` |
+| Image export (copy on save) | `TS4YImageExporter` | `Soft4You.HTML.ImageExporter` |
 | Layout engine | `TS4YLayoutEngine` | `Soft4You.FMX.Controls.HTMLEditor` |
 | Editor control | `TS4YHTMLEditor` | `Soft4You.FMX.Controls.HTMLEditor` |
 | Clipboard (HTML) | `TS4YHTMLClipboard` | `Soft4You.FMX.Clipboard.Html` |
@@ -141,8 +142,12 @@ end;
 | Property | Type | Default | Description |
 |---|---|---|---|
 | `HTML` | `string` | `''` | HTML content of the document body (fragment, no doctype) |
+| `AutoLoadLocalImages` | `Boolean` | `True` | Load images whose `src` is a local file (relative or absolute path, `file:` URL). When `False` they are drawn as placeholders until `LoadLocalImages` is called |
+| `AutoLoadRemoteImages` | `Boolean` | `True` | Load images whose `src` is `http://` or `https://`. When `False` they are drawn as placeholders until `LoadRemoteImages` is called |
 | `BackgroundColor` | `TAlphaColor` | `claWhite` | Editor canvas background color |
+| `DocumentPath` | `string` | `''` | Folder that relative image paths are resolved against when `ImagePathMode = ipmDocument`. Set by `LoadFromFile`; see [Images and files](#images-and-files) |
 | `Font` | `TFont` | platform default | Default font for new text |
+| `ImagePathMode` | `TS4YImagePathMode` | `ipmApplication` | How relative local image paths are resolved: `ipmApplication` (process working directory) or `ipmDocument` (relative to `DocumentPath`) |
 | `Language` | `string` | `''` | Document language attribute (used in `FullHTML` export) |
 | `LineSpacing` | `Single` | `1.0` | Line-height multiplier (1.0 = natural height, 1.5 = 1.5× line spacing) |
 | `ParagraphSpacing` | `Single` | `6.0` | Extra vertical space in px added between block elements |
@@ -246,6 +251,17 @@ end;
 | `InsertPlaceholder(RawText[, DisplayName])` | Insert a non-editable placeholder chip |
 | `UpdatePlaceholder(NewRawText[, NewDisplayName])` | Replace the placeholder under the caret |
 | `ReloadImages` | Re-fetch all images from their source paths/URLs |
+| `LoadLocalImages` | Load the local images skipped because `AutoLoadLocalImages` is `False` |
+| `LoadRemoteImages` | Load the remote images skipped because `AutoLoadRemoteImages` is `False` |
+| `ResolveImageSource(Src)` | Return the file path (or URL) that a `src` is read from, according to `ImagePathMode` and `DocumentPath` |
+
+### Files
+
+| Method | Description |
+|---|---|
+| `LoadFromFile(FileName[, Encoding])` | Read an HTML file (UTF-8 by default) into the editor. Sets `DocumentPath` to the folder of the file before loading, so document-relative images resolve. Title and language are read like `FullHTML` |
+| `SaveToFile(FileName[, Encoding])` | Write the full HTML document (UTF-8 by default). See [Images and files](#images-and-files) for what happens to the image paths |
+| `SaveToFile(FileName, Options[, Encoding])` | Same, with a `TS4YSaveOptions` record, e.g. to copy the images next to the file |
 
 ### Editing
 
@@ -292,6 +308,7 @@ Search highlights the match via the normal selection. Each successive `FindNext`
 
 | Event | Signature | Description |
 |---|---|---|
+| `OnBeforeLoadImage` | `procedure(Sender; const ASource: string; AContext: TS4YImageLoadContext; var Allow: Boolean)` | Fired before an image is read or downloaded; set `Allow=False` to refuse it. `OnLoadImage` still fires with a `nil` bitmap, so it can provide a substitute; if still `nil` the image is drawn as "not found". Also consulted (context `ilcSave`) before `SaveToFile` copies an image |
 | `OnChange` | `TNotifyEvent` | Fired after every content change |
 | `OnDrawListMarker` | `procedure(Sender; Canvas; const Bounds; IndentLevel: Integer; var Handled)` | Custom drawing of a list bullet; set `Handled=True` to suppress default rendering |
 | `OnDrawPlaceholder` | `procedure(Sender; Canvas; const Bounds; const RawText; var Handled)` | Custom rendering of placeholder chips |
@@ -299,8 +316,76 @@ Search highlights the match via the normal selection. Each successive `FindNext`
 | `OnGetPlaceholderLabel` | `procedure(Sender; const RawText: string; var DisplayLabel: string)` | Map raw placeholder text to a display label |
 | `OnLinkClick` | `procedure(Sender; const URL, LinkText: string)` | User clicked a hyperlink |
 | `OnLinkHover` | `procedure(Sender; const URL: string; var Cursor: TCursor)` | Mouse entered/left a link |
-| `OnLoadImage` | `procedure(Sender; const ASource: string; var ABitmap: TBitmap; AContext: TS4YImageLoadContext)` | Custom image loading — assign a `TBitmap` to override default file/URL loading |
+| `OnLoadImage` | `procedure(Sender; const ASource: string; var ABitmap: TBitmap; AContext: TS4YImageLoadContext)` | Custom image loading — assign a `TBitmap` to override or provide the default file/URL loading. `ASource` is the original `src`, as written in the document |
 | `OnStateChange` | `procedure(Sender; const State: TS4YEditorState)` | Fired when caret moves or selection changes — use to update toolbar |
+
+---
+
+## Images and files
+
+### Image sources
+
+`src` values are kept exactly as written in the document and are never rewritten while editing. The editor reads them as follows:
+
+- **Local files**: relative or absolute paths, and `file:` URLs (`file:///C:/dir/a%20b.png`, UNC and `localhost` forms). A missing file is drawn as "not found" without raising an exception.
+- **Remote images**: `http://` and `https://`.
+- **Embedded images**: `data:` URIs (base64 raster images and SVG).
+- Other schemes (for example `cid:`) are not loaded by the editor: supply the bitmap in `OnLoadImage`.
+
+`AutoLoadLocalImages` and `AutoLoadRemoteImages` control whether local and remote images are loaded automatically; `LoadLocalImages` and `LoadRemoteImages` load them on request.
+
+### Relative paths: `ImagePathMode`
+
+| Mode | A relative `src` is resolved against |
+|---|---|
+| `ipmApplication` (default) | The process working directory (often, but not always, the executable folder) |
+| `ipmDocument` | `DocumentPath`, the folder of the document. `LoadFromFile` sets it for you; set it yourself when the HTML comes from elsewhere |
+
+In `ipmDocument` mode `InsertImage`, `InsertInlineImage` and `UpdateImage` store the source relative to `DocumentPath` (with `/` separators) when the file is inside that folder or one of its subfolders; any other source is stored as passed. Absolute paths and URLs already present in the HTML are never rewritten.
+
+### Saving: `SaveToFile`
+
+`SaveToFile` writes the document and treats the image paths as follows:
+
+- `ipmDocument`: the sources are left untouched and `DocumentPath` moves to the folder of the saved file.
+- `ipmApplication`: a relative path depends on the working directory, so it would break when the file is opened elsewhere. In the saved text it is written as an absolute `file:///...` URL (the document in memory is not changed). Absolute paths, remote URLs and `data:` URIs are written as they are.
+
+To make the saved document self-contained, pass a `TS4YSaveOptions` record:
+
+```delphi
+var
+  LOptions: TS4YSaveOptions;
+begin
+  LOptions.Init;
+  LOptions.CopyImages := True;      // copy the local images next to the file
+  // LOptions.ImagesFolderName := 'images';   // default: '<file name>_files'
+  // LOptions.UpdateModel := True;            // also point the document to the copies
+  HTMLEditor.SaveToFile('C:\Docs\letter.html', LOptions);
+end;
+```
+
+| Option | Default | Meaning |
+|---|---|---|
+| `CopyImages` | `False` | Copy the existing local images into a subfolder next to the saved file; the saved HTML points to the copies. Remote, `data:` and missing sources are left as they are. Nothing is copied when `AutoLoadLocalImages` is `False` or when `OnBeforeLoadImage` refuses the image |
+| `ImagesFolderName` | `''` | Name of the subfolder; empty means `<file name>_files` |
+| `UpdateModel` | `False` | After saving, the document itself points to the copies (relative paths in `ipmDocument`, absolute paths in `ipmApplication`). When `False` the document keeps pointing to the original images and `DocumentPath` does not move |
+
+The same image used several times is copied once. Two different files with the same name get a numeric suffix (`logo.png`, `logo_2.png`); a file already in the destination folder is never overwritten (an identical one is reused). If the destination cannot be written, the exception is raised normally.
+
+### Controlling what is loaded: `OnBeforeLoadImage`
+
+`OnBeforeLoadImage` is fired before an image is read or downloaded, for every non-empty `src` (including `data:`), and lets the application refuse it:
+
+```delphi
+procedure TfrmMain.HTMLEditorBeforeLoadImage(Sender: TObject; const ASource: string;
+  AContext: TS4YImageLoadContext; var Allow: Boolean);
+begin
+  // e.g. in a mail client: never touch local files named by an incoming message
+  Allow := not IsLocalImageSource(ASource);   // from Soft4You.HTML.Types
+end;
+```
+
+A refused image is not read; `OnLoadImage` still fires with a `nil` bitmap so a replacement can be supplied, and if none is the image is drawn as "not found". A refusal without a replacement is remembered, so the events are not fired again at every repaint; the memory is cleared when the content or the path settings change, and `LoadLocalImages` / `LoadRemoteImages` ask again. The context tells why the image is needed: `ilcParse` (loading a document), `ilcInsert`, `ilcReload`, `ilcRender` and `ilcSave` (about to be copied by `SaveToFile`).
 
 ---
 
@@ -367,14 +452,14 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 - **Layout cache**: `TS4YLayoutEngine` caches text measurements (`MeasureStr`) in a `TDictionary`. The cache is cleared on every `SetHTML` call. Subsequent layouts (resize, keypress) are near-instant for typical documents.
 - **Render cache**: the control renders to an off-screen `TBitmap` and blits it to the canvas on FMX-initiated repaints. Only changes that affect visual output trigger a re-render.
 - **Emoji / color fonts**: the first `SetHTML` call on a document containing emoji is slower due to DirectWrite color-font fallback (Windows). Subsequent layout operations on the same document are fast thanks to the measurement cache.
-- **Image cache**: images are loaded once per `src` value and cached in an internal `TObjectDictionary`. Orphaned entries (deleted images) are retained to support undo and shared `src` values; the cache is cleared only on `SetHTML` or destruction.
+- **Image cache**: images are loaded once per `src` value and cached in an internal `TObjectDictionary`. Orphaned entries (deleted images) are retained to support undo and shared `src` values; the cache is cleared on `SetHTML`, when `ImagePathMode` or `DocumentPath` change, or on destruction.
 - **Placeholder cache**: `FPlaceholders: TList<TS4YHTMLRun>` is kept in sync incrementally on every edit. Accessing `Editor.Placeholders` is O(1) — no document scan needed.
 
 ---
 
 ## Known Limitations
 
-- **Image paths**: `src` values are used as-is. A file path is loaded exactly as written: absolute paths work, while relative paths are resolved against the process working directory (often, but not always, the executable folder), **not** against the HTML document. `file://` URLs are not supported. Remote images (`http://`, `https://`) are loaded only when `AutoLoadRemoteImages` is enabled; `data:` URIs (base64 raster images and SVG) are supported. To resolve document-relative paths, supply the bitmap yourself in `OnLoadImage`.
+- **Image security**: the editor reads local files and `file:` URLs named by the HTML without any check. When displaying content from untrusted sources (for example e-mail), set `AutoLoadLocalImages` to `False` or filter with `OnBeforeLoadImage`.
 - **Tables**: `colspan` and `rowspan` are ignored on import, so merged cells lose their structure. Each cell is a single paragraph; `Enter` inserts a line break.
 - **IME**: input composition (CJK pre-edit text) is not supported, so the control is not usable with Chinese, Japanese or Korean input methods.
 - **Accessibility**: no VoiceOver / TalkBack support.
