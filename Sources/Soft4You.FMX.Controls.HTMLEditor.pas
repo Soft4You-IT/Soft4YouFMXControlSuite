@@ -2256,25 +2256,26 @@ begin
     end;
     for LRun in LParagraph.Runs do
     begin
-      if not LRun.IsImage or (LRun.ImageSource = '') then
-        Continue;
-      LDeferred := IsDeferredImageSource(LRun.ImageSource);
-      if LDeferred then
+      if LRun.IsImage and (LRun.ImageSource <> '') then
       begin
-        if LRun.ImageWidth = 0 then
-          LRun.ImageWidth := C_DEFAULT_DEFERRED_IMAGE_WIDTH;
-        if LRun.ImageHeight = 0 then
-          LRun.ImageHeight := C_DEFAULT_DEFERRED_IMAGE_HEIGHT;
-      end
-      else
-      begin
-        LBitmap := LoadImage(LRun.ImageSource, ilcParse);
-        if Assigned(LBitmap) then
+        LDeferred := IsDeferredImageSource(LRun.ImageSource);
+        if LDeferred then
         begin
           if LRun.ImageWidth = 0 then
-            LRun.ImageWidth := LBitmap.Width;
+            LRun.ImageWidth := C_DEFAULT_DEFERRED_IMAGE_WIDTH;
           if LRun.ImageHeight = 0 then
-            LRun.ImageHeight := LBitmap.Height;
+            LRun.ImageHeight := C_DEFAULT_DEFERRED_IMAGE_HEIGHT;
+        end
+        else
+        begin
+          LBitmap := LoadImage(LRun.ImageSource, ilcParse);
+          if Assigned(LBitmap) then
+          begin
+            if LRun.ImageWidth = 0 then
+              LRun.ImageWidth := LBitmap.Width;
+            if LRun.ImageHeight = 0 then
+              LRun.ImageHeight := LBitmap.Height;
+          end;
         end;
       end;
     end;
@@ -2305,17 +2306,17 @@ begin
     end;
     for LRun in LParagraph.Runs do
     begin
-      if not LRun.IsImage then
-        Continue;
-      if (LRun.ImageWidth > 0) and (LRun.ImageHeight > 0) then
-        Continue;
-      LBitmap := LoadImage(LRun.ImageSource);
-      if not Assigned(LBitmap) then
-        Continue;
-      if LRun.ImageWidth = 0 then
-        LRun.ImageWidth := LBitmap.Width;
-      if LRun.ImageHeight = 0 then
-        LRun.ImageHeight := LBitmap.Height;
+      if LRun.IsImage and ((LRun.ImageWidth <= 0) or (LRun.ImageHeight <= 0)) then
+      begin
+        LBitmap := LoadImage(LRun.ImageSource);
+        if Assigned(LBitmap) then
+        begin
+          if LRun.ImageWidth = 0 then
+            LRun.ImageWidth := LBitmap.Width;
+          if LRun.ImageHeight = 0 then
+            LRun.ImageHeight := LBitmap.Height;
+        end;
+      end;
     end;
   end;
 end;
@@ -2358,21 +2359,21 @@ begin
     end;
     for LRun in LParagraph.Runs do
     begin
-      if not LRun.IsImage or (LRun.ImageSource = '') then
-        Continue;
-      if not ((ALocal and IsLocalImageSource(LRun.ImageSource)) or
-              (not ALocal and IsRemoteImageSource(LRun.ImageSource))) then
-        Continue;
-      if not FImageCache.TryGetValue(LRun.ImageSource, LBitmap) then
+      if LRun.IsImage and (LRun.ImageSource <> '') and
+         ((ALocal and IsLocalImageSource(LRun.ImageSource)) or
+          (not ALocal and IsRemoteImageSource(LRun.ImageSource))) then
       begin
-        LBitmap := LoadAllowedBitmap(LRun.ImageSource, ilcParse);
-        if Assigned(LBitmap) then
-          FImageCache.Add(LRun.ImageSource, LBitmap);
-      end;
-      if Assigned(LBitmap) and (LBitmap.Width > 0) then
-      begin
-        LRun.ImageWidth := LBitmap.Width;
-        LRun.ImageHeight := LBitmap.Height;
+        if not FImageCache.TryGetValue(LRun.ImageSource, LBitmap) then
+        begin
+          LBitmap := LoadAllowedBitmap(LRun.ImageSource, ilcParse);
+          if Assigned(LBitmap) then
+            FImageCache.Add(LRun.ImageSource, LBitmap);
+        end;
+        if Assigned(LBitmap) and (LBitmap.Width > 0) then
+        begin
+          LRun.ImageWidth := LBitmap.Width;
+          LRun.ImageHeight := LBitmap.Height;
+        end;
       end;
     end;
   end;
