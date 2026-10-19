@@ -5023,6 +5023,7 @@ begin
     Exit;
   if PositionCompare(FCaretPosition, DocumentEnd) = 0 then
     Exit;
+  LCaretAbsChar := 0;
   LRemapCaret := False;
 
   LParagraph := FDocument.Paragraphs[FCaretPosition.ParagraphIndex];
