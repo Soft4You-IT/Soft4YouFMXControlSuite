@@ -102,6 +102,11 @@ const
   C_TRIPLE_CLICK_MS = 600;
   C_CLICK_DIST_2 = 25;
 
+  // Rendering: fragments farther than this many pixels from the visible area are not
+  // painted. It must exceed what a fragment draws outside its own box (sub/superscript
+  // shift, underline, background), otherwise parts of them would be cut.
+  C_RENDER_CULL_MARGIN = 64;
+
 type
 
   // ===========================================================================
@@ -1804,7 +1809,6 @@ var
   LScrollBarWidth: Single;
   LState: TCanvasSaveState;
   LListParagraph: TS4YHTMLParagraph;
-  LFirstFragmentFound: Boolean;
   LMarkerX: Single;
   LMarkerY: Single;
   LTextStyle: TS4YHTMLTextStyle;
@@ -1818,109 +1822,126 @@ var
     LMarkerHandled: Boolean;
     LMarkerChar: string;
     LCharLayout: TTextLayout;
+    LCullTop: Single;
+    LCullBottom: Single;
+    LFragmentIndex: Integer;
+    LFirstFragmentOfParagraph: TArray<Integer>;
   begin
     LState := ACanvas.SaveState;
     try
       ACanvas.IntersectClipRect(TRectF.Create(1, 1, Width - LScrollBarWidth - 1, Height - 1));
       PaintBackground(ACanvas);
       PaintTableCellBorders(ACanvas);
+      // Painting is limited to the fragments near the visible area: the cost of a frame
+      // follows the window, not the length of the document. PERFORMANCE-CRITICAL: do not
+      // go back to painting every fragment (each one builds a text layout).
+      LCullTop := -C_RENDER_CULL_MARGIN - ContentTop;
+      LCullBottom := Height + C_RENDER_CULL_MARGIN - ContentTop;
       for var I := 0 to High(FFrags) do
       begin
-        if FFrags[I].IsHR then
-          PaintHorizontalRule(ACanvas, FFrags[I].Y + ContentTop, FFrags[I].Width, FFrags[I].X + ContentLeft,
-            FDocument.Paragraphs[FFrags[I].ParagraphIndex])
-        else if FFrags[I].IsImage then
+        if (FFrags[I].Y + FFrags[I].Height >= LCullTop) and (FFrags[I].Y <= LCullBottom) then
         begin
-          if FFrags[I].RunIndex < 0 then
-            PaintImage(ACanvas, FFrags[I], FDocument.Paragraphs[FFrags[I].ParagraphIndex])
+          if FFrags[I].IsHR then
+            PaintHorizontalRule(ACanvas, FFrags[I].Y + ContentTop, FFrags[I].Width, FFrags[I].X + ContentLeft,
+              FDocument.Paragraphs[FFrags[I].ParagraphIndex])
+          else if FFrags[I].IsImage then
+          begin
+            if FFrags[I].RunIndex < 0 then
+              PaintImage(ACanvas, FFrags[I], FDocument.Paragraphs[FFrags[I].ParagraphIndex])
+            else
+              PaintImageRun(ACanvas, FFrags[I], FDocument.Paragraphs[FFrags[I].ParagraphIndex].Runs[FFrags[I].RunIndex]);
+          end
           else
-            PaintImageRun(ACanvas, FFrags[I], FDocument.Paragraphs[FFrags[I].ParagraphIndex].Runs[FFrags[I].RunIndex]);
-        end
-        else
-          PaintFragment(ACanvas, FFrags[I]);
+            PaintFragment(ACanvas, FFrags[I]);
+        end;
       end;
       PaintSelection(ACanvas);
+      // First fragment of every paragraph, found in a single pass (list markers hang from it)
+      SetLength(LFirstFragmentOfParagraph, FDocument.Paragraphs.Count);
+      for var I := 0 to High(LFirstFragmentOfParagraph) do
+        LFirstFragmentOfParagraph[I] := -1;
+      for var I := High(FFrags) downto 0 do
+        if (FFrags[I].ParagraphIndex >= 0) and (FFrags[I].ParagraphIndex < Length(LFirstFragmentOfParagraph)) then
+          LFirstFragmentOfParagraph[FFrags[I].ParagraphIndex] := I;
       for var I := 0 to FDocument.Paragraphs.Count - 1 do
       begin
         LListParagraph := FDocument.Paragraphs[I];
         if LListParagraph.BlockType = btLI then
         begin
-          LFirstFragmentFound := False;
-          for var J := 0 to High(FFrags) do
+          LFragmentIndex := LFirstFragmentOfParagraph[I];
+          if (LFragmentIndex >= 0) and
+             (FFrags[LFragmentIndex].Y + FFrags[LFragmentIndex].Height >= LCullTop) and
+             (FFrags[LFragmentIndex].Y <= LCullBottom) then
           begin
-            if (not LFirstFragmentFound) and (FFrags[J].ParagraphIndex = I) then
+            LMarkerX := FFrags[LFragmentIndex].X + ContentLeft - C_EDITOR_LIST_INDENT;
+            LMarkerY := FFrags[LFragmentIndex].Y + ContentTop;
+            LTextStyle.Init;
+            if LListParagraph.Runs.Count > 0 then
+              LTextStyle := LListParagraph.Runs[0].Style;
+            ACanvas.Fill.Kind := TBrushKind.Solid;
+            ACanvas.Fill.Color := IfThen(LTextStyle.Color <> claNull, LTextStyle.Color, FFontColor);
+            if LListParagraph.ListOrdered then
             begin
-              LFirstFragmentFound := True;
-              LMarkerX := FFrags[J].X + ContentLeft - C_EDITOR_LIST_INDENT;
-              LMarkerY := FFrags[J].Y + ContentTop;
-              LTextStyle.Init;
-              if LListParagraph.Runs.Count > 0 then
-                LTextStyle := LListParagraph.Runs[0].Style;
-              ACanvas.Fill.Kind := TBrushKind.Solid;
-              ACanvas.Fill.Color := IfThen(LTextStyle.Color <> claNull, LTextStyle.Color, FFontColor);
-              if LListParagraph.ListOrdered then
+              LLayout := TTextLayoutManager.DefaultTextLayout.Create(ACanvas);
+              try
+                LLayout.BeginUpdate;
+                LLayout.Font.Family := LTextStyle.FontName;
+                LLayout.Font.Size := LTextStyle.FontSize;
+                LLayout.Color := IfThen(LTextStyle.Color <> claNull, LTextStyle.Color, FFontColor);
+                LLayout.WordWrap := False;
+                LLayout.MaxSize := TPointF.Create(C_EDITOR_LIST_INDENT - 2, FFrags[LFragmentIndex].Height + 4);
+                LLayout.Text := IntToStr(LListParagraph.ListIndex) + '.';
+                LLayout.TopLeft := TPointF.Create(LMarkerX, LMarkerY);
+                LLayout.EndUpdate;
+                LLayout.RenderLayout(ACanvas);
+              finally
+                LLayout.Free;
+              end;
+            end
+            else
+            begin
+              LMarkerRectangle := TRectF.Create(LMarkerX + 2, LMarkerY + FFrags[LFragmentIndex].Height * 0.35,
+                LMarkerX + 8, LMarkerY + FFrags[LFragmentIndex].Height * 0.65);
+              LMarkerHandled := False;
+              LMarkerChar := '';
+              if Assigned(FOnGetListMarker) then
+                FOnGetListMarker(Self, LListParagraph.IndentLevel, LMarkerChar, LMarkerHandled);
+              if LMarkerHandled then
               begin
-                LLayout := TTextLayoutManager.DefaultTextLayout.Create(ACanvas);
+                LCharLayout := TTextLayoutManager.DefaultTextLayout.Create(ACanvas);
                 try
-                  LLayout.BeginUpdate;
-                  LLayout.Font.Family := LTextStyle.FontName;
-                  LLayout.Font.Size := LTextStyle.FontSize;
-                  LLayout.Color := IfThen(LTextStyle.Color <> claNull, LTextStyle.Color, FFontColor);
-                  LLayout.WordWrap := False;
-                  LLayout.MaxSize := TPointF.Create(C_EDITOR_LIST_INDENT - 2, FFrags[J].Height + 4);
-                  LLayout.Text := IntToStr(LListParagraph.ListIndex) + '.';
-                  LLayout.TopLeft := TPointF.Create(LMarkerX, LMarkerY);
-                  LLayout.EndUpdate;
-                  LLayout.RenderLayout(ACanvas);
+                  LCharLayout.BeginUpdate;
+                  LCharLayout.Font.Family := LTextStyle.FontName;
+                  LCharLayout.Font.Size := LTextStyle.FontSize;
+                  LCharLayout.Color := IfThen(LTextStyle.Color <> claNull, LTextStyle.Color, FFontColor);
+                  LCharLayout.WordWrap := False;
+                  LCharLayout.HorizontalAlign := TTextAlign.Center;
+                  LCharLayout.MaxSize := TPointF.Create(C_EDITOR_LIST_INDENT - 2, FFrags[LFragmentIndex].Height + 4);
+                  LCharLayout.Text := LMarkerChar;
+                  LCharLayout.TopLeft := TPointF.Create(LMarkerX, LMarkerY);
+                  LCharLayout.EndUpdate;
+                  LCharLayout.RenderLayout(ACanvas);
                 finally
-                  LLayout.Free;
+                  LCharLayout.Free;
                 end;
               end
               else
               begin
-                LMarkerRectangle := TRectF.Create(LMarkerX + 2, LMarkerY + FFrags[J].Height * 0.35,
-                  LMarkerX + 8, LMarkerY + FFrags[J].Height * 0.65);
-                LMarkerHandled := False;
-                LMarkerChar := '';
-                if Assigned(FOnGetListMarker) then
-                  FOnGetListMarker(Self, LListParagraph.IndentLevel, LMarkerChar, LMarkerHandled);
-                if LMarkerHandled then
-                begin
-                  LCharLayout := TTextLayoutManager.DefaultTextLayout.Create(ACanvas);
-                  try
-                    LCharLayout.BeginUpdate;
-                    LCharLayout.Font.Family := LTextStyle.FontName;
-                    LCharLayout.Font.Size := LTextStyle.FontSize;
-                    LCharLayout.Color := IfThen(LTextStyle.Color <> claNull, LTextStyle.Color, FFontColor);
-                    LCharLayout.WordWrap := False;
-                    LCharLayout.HorizontalAlign := TTextAlign.Center;
-                    LCharLayout.MaxSize := TPointF.Create(C_EDITOR_LIST_INDENT - 2, FFrags[J].Height + 4);
-                    LCharLayout.Text := LMarkerChar;
-                    LCharLayout.TopLeft := TPointF.Create(LMarkerX, LMarkerY);
-                    LCharLayout.EndUpdate;
-                    LCharLayout.RenderLayout(ACanvas);
-                  finally
-                    LCharLayout.Free;
-                  end;
-                end
-                else
-                begin
-                  if Assigned(FOnDrawListMarker) then
-                    FOnDrawListMarker(Self, ACanvas, LMarkerRectangle, LListParagraph.IndentLevel, LMarkerHandled);
-                  if not LMarkerHandled then
-                    case LListParagraph.IndentLevel mod 3 of
-                      0: ACanvas.FillEllipse(LMarkerRectangle, AbsoluteOpacity);
-                      1:
-                      begin
-                        ACanvas.Stroke.Kind := TBrushKind.Solid;
-                        ACanvas.Stroke.Color := IfThen(LTextStyle.Color <> claNull, LTextStyle.Color, FFontColor);
-                        ACanvas.Stroke.Thickness := 1.5;
-                        ACanvas.DrawEllipse(LMarkerRectangle, AbsoluteOpacity);
-                      end;
-                    else
-                      ACanvas.FillRect(LMarkerRectangle, AbsoluteOpacity);
+                if Assigned(FOnDrawListMarker) then
+                  FOnDrawListMarker(Self, ACanvas, LMarkerRectangle, LListParagraph.IndentLevel, LMarkerHandled);
+                if not LMarkerHandled then
+                  case LListParagraph.IndentLevel mod 3 of
+                    0: ACanvas.FillEllipse(LMarkerRectangle, AbsoluteOpacity);
+                    1:
+                    begin
+                      ACanvas.Stroke.Kind := TBrushKind.Solid;
+                      ACanvas.Stroke.Color := IfThen(LTextStyle.Color <> claNull, LTextStyle.Color, FFontColor);
+                      ACanvas.Stroke.Thickness := 1.5;
+                      ACanvas.DrawEllipse(LMarkerRectangle, AbsoluteOpacity);
                     end;
-                end;
+                  else
+                    ACanvas.FillRect(LMarkerRectangle, AbsoluteOpacity);
+                  end;
               end;
             end;
           end;
