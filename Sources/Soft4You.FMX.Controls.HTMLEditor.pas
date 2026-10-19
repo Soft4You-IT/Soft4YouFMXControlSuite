@@ -5229,10 +5229,9 @@ begin
   LParagraphIndex := LSelectionStart.ParagraphIndex;
   LRunIndex := LSelectionStart.RunIndex;
   LCharIndex := LSelectionStart.CharIndex;
-  while PositionCompare(TS4YDocumentPosition.At(LParagraphIndex, LRunIndex, LCharIndex), LSelectionEnd) < 0 do
+  while (PositionCompare(TS4YDocumentPosition.At(LParagraphIndex, LRunIndex, LCharIndex), LSelectionEnd) < 0) and
+    (LParagraphIndex < FDocument.Paragraphs.Count) do
   begin
-    if LParagraphIndex >= FDocument.Paragraphs.Count then
-      Break;
     LParagraph := FDocument.Paragraphs[LParagraphIndex];
     if LRunIndex >= LParagraph.Runs.Count then
     begin
@@ -5946,6 +5945,7 @@ var
   LRunIndex: Integer;
   LRemaining: Integer;
   LRunLength: Integer;
+  LAdvancing: Boolean;
 begin
   Result := TS4YDocumentPosition.At(AParagraphIndex, 0, 0);
   if (AParagraphIndex < 0) or (AParagraphIndex >= FDocument.Paragraphs.Count) then
@@ -5955,16 +5955,22 @@ begin
     Exit;
   LRunIndex := 0;
   LRemaining := AAbsChar;
-  while LRunIndex < LParagraph.Runs.Count - 1 do
+  LAdvancing := True;
+  while LAdvancing and (LRunIndex < LParagraph.Runs.Count - 1) do
   begin
     LRunLength := LParagraph.Runs[LRunIndex].Text.Length;
     // PreferRight: advance when LRemaining >= run length (boundary -> start of next run)
     // default:      advance when LRemaining >  run length (boundary -> end of current run)
     if (PreferRight and (LRemaining < LRunLength)) or
        ((not PreferRight) and (LRemaining <= LRunLength)) then
-      Break;
-    LRemaining := LRemaining - LRunLength;
-    Inc(LRunIndex);
+    begin
+      LAdvancing := False;
+    end
+    else
+    begin
+      LRemaining := LRemaining - LRunLength;
+      Inc(LRunIndex);
+    end;
   end;
   Result := TS4YDocumentPosition.At(AParagraphIndex, LRunIndex, Min(LRemaining, LParagraph.Runs[LRunIndex].Text.Length));
 end;
@@ -6041,10 +6047,9 @@ begin
 
   LParagraphIndex := LSelectionStart.ParagraphIndex;
   LRunIndex := LSelectionStart.RunIndex;
-  while PositionCompare(TS4YDocumentPosition.At(LParagraphIndex, LRunIndex, 0), TS4YDocumentPosition.At(LSelectionEnd.ParagraphIndex, LSelectionEnd.RunIndex, 0)) < 0 do
+  while (PositionCompare(TS4YDocumentPosition.At(LParagraphIndex, LRunIndex, 0), TS4YDocumentPosition.At(LSelectionEnd.ParagraphIndex, LSelectionEnd.RunIndex, 0)) < 0) and
+    (LParagraphIndex < FDocument.Paragraphs.Count) do
   begin
-    if LParagraphIndex >= FDocument.Paragraphs.Count then
-      Break;
     LParagraph := FDocument.Paragraphs[LParagraphIndex];
     if LRunIndex >= LParagraph.Runs.Count then
     begin
@@ -6219,10 +6224,9 @@ begin
   LSelectionEnd.RunIndex := LERunExcl2;
   LParagraphIndex := LSelectionStart.ParagraphIndex;
   LRunIndex := LSelectionStart.RunIndex;
-  while PositionCompare(TS4YDocumentPosition.At(LParagraphIndex, LRunIndex, 0), TS4YDocumentPosition.At(LSelectionEnd.ParagraphIndex, LSelectionEnd.RunIndex, 0)) < 0 do
+  while (PositionCompare(TS4YDocumentPosition.At(LParagraphIndex, LRunIndex, 0), TS4YDocumentPosition.At(LSelectionEnd.ParagraphIndex, LSelectionEnd.RunIndex, 0)) < 0) and
+    (LParagraphIndex < FDocument.Paragraphs.Count) do
   begin
-    if LParagraphIndex >= FDocument.Paragraphs.Count then
-      Break;
     LParagraph := FDocument.Paragraphs[LParagraphIndex];
     if LRunIndex >= LParagraph.Runs.Count then
     begin
