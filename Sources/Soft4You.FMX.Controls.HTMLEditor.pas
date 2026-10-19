@@ -4387,31 +4387,37 @@ begin
         end;
       'B':
         begin
-          ToggleBold;
+          // A read-only control ignores the shortcuts that change the document
+          if not FReadOnly then
+            ToggleBold;
           Key := 0;
           Exit;
         end;
       'I':
         begin
-          ToggleItalic;
+          if not FReadOnly then
+            ToggleItalic;
           Key := 0;
           Exit;
         end;
       'U':
         begin
-          ToggleUnderline;
+          if not FReadOnly then
+            ToggleUnderline;
           Key := 0;
           Exit;
         end;
       'Z':
         begin
-          Undo;
+          if not FReadOnly then
+            Undo;
           Key := 0;
           Exit;
         end;
       'Y':
         begin
-          Redo;
+          if not FReadOnly then
+            Redo;
           Key := 0;
           Exit;
         end;
@@ -4423,7 +4429,8 @@ begin
         end;
       'X':
         begin
-          Cut;
+          if not FReadOnly then
+            Cut;
           Key := 0;
           Exit;
         end;
