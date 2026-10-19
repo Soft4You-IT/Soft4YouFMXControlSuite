@@ -243,13 +243,13 @@ begin
     while (LScanPosition < LAttributeLength) and (LAttributesLower[Low(LAttributesLower) + LScanPosition] in [' ', #9, #10, #13]) do
       Inc(LScanPosition);
     if LScanPosition >= LAttributeLength then
-      Break;
+      Exit;
     // Try to match the attribute name at this exact token boundary
     if LAttributesLower.Substring(LScanPosition, LNameWithEquals.Length) = LNameWithEquals then
     begin
       Inc(LScanPosition, LNameWithEquals.Length);
       if LScanPosition >= LAttributeLength then
-        Break;
+        Exit;
       LQuoteChar := LAttributesLower[Low(LAttributesLower) + LScanPosition];
       if LQuoteChar in ['"', ''''] then
       begin

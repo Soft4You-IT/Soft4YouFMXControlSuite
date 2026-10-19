@@ -209,6 +209,7 @@ var
     LListItem: TS4YHTMLParagraph;
     LListTag: string;
     LFirstOrdered: Boolean;
+    LContinueList: Boolean;
   begin
     LListItem := ADocument.Paragraphs[LParagraphIndex];
     LFirstOrdered := LListItem.ListOrdered;
@@ -217,33 +218,39 @@ var
     else
       LListTag := 'ul';
     LStringBuilder.Append('<' + LListTag + '>' + LNewLine);
-    while (LParagraphIndex < ADocument.Paragraphs.Count) and
+    LContinueList := True;
+    while LContinueList and
+          (LParagraphIndex < ADocument.Paragraphs.Count) and
           (ADocument.Paragraphs[LParagraphIndex].BlockType = btLI) and
           (ADocument.Paragraphs[LParagraphIndex].IndentLevel >= ABaseLevel) do
     begin
       LListItem := ADocument.Paragraphs[LParagraphIndex];
-      // Item jumps deeper without a parent li -- open sub-list at its actual level
       if LListItem.IndentLevel > ABaseLevel then
       begin
+        // Item jumps deeper without a parent li -- open sub-list at its actual level
         EmitListBlock(LListItem.IndentLevel);
-        Continue;
-      end;
-      // Different list type at same level -- end this list; outer loop starts a new one
-      if LListItem.ListOrdered <> LFirstOrdered then
-        Break;
-      // Emit list item
-      LStringBuilder.Append('<li>');
-      EmitRuns(LListItem);
-      Inc(LParagraphIndex);
-      // If next items are deeper, nest a sub-list inside this <li>
-      if (LParagraphIndex < ADocument.Paragraphs.Count) and
-         (ADocument.Paragraphs[LParagraphIndex].BlockType = btLI) and
-         (ADocument.Paragraphs[LParagraphIndex].IndentLevel > ABaseLevel) then
+      end
+      else if LListItem.ListOrdered <> LFirstOrdered then
       begin
-        LStringBuilder.Append(LNewLine);
-        EmitListBlock(ADocument.Paragraphs[LParagraphIndex].IndentLevel);
+        // Different list type at same level -- end this list; outer loop starts a new one
+        LContinueList := False;
+      end
+      else
+      begin
+        // Emit list item
+        LStringBuilder.Append('<li>');
+        EmitRuns(LListItem);
+        Inc(LParagraphIndex);
+        // If next items are deeper, nest a sub-list inside this <li>
+        if (LParagraphIndex < ADocument.Paragraphs.Count) and
+           (ADocument.Paragraphs[LParagraphIndex].BlockType = btLI) and
+           (ADocument.Paragraphs[LParagraphIndex].IndentLevel > ABaseLevel) then
+        begin
+          LStringBuilder.Append(LNewLine);
+          EmitListBlock(ADocument.Paragraphs[LParagraphIndex].IndentLevel);
+        end;
+        LStringBuilder.Append('</li>' + LNewLine);
       end;
-      LStringBuilder.Append('</li>' + LNewLine);
     end;
     LStringBuilder.Append('</' + LListTag + '>' + LNewLine);
   end;
