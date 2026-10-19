@@ -159,7 +159,7 @@ end;
 | `PlaceholderPrefix` | `string` | `''` | Prefix that identifies a placeholder run in raw text |
 | `PlaceholderSuffix` | `string` | `''` | Suffix that identifies a placeholder run in raw text |
 | `PrettyHTML` | `Boolean` | `False` | Emit indented HTML from the generator |
-| `ReadOnly` | `Boolean` | `False` | Blocks typing, deleting, `Enter` and paste; selection, copy and link clicks still work. It does not block the editing methods called from code or the `Ctrl+B/I/U/X` shortcuts; see the [Developer Guide](Docs/DeveloperGuide.md#4-read-only-mode) |
+| `ReadOnly` | `Boolean` | `False` | Blocks the user's typing, deleting, paste and the editing shortcuts; selection, copy and link clicks still work. It does not block the editing methods called from code; see the [Developer Guide](Docs/DeveloperGuide.md#4-read-only-mode) |
 | `ShowBorder` | `Boolean` | `True` | Draws a 1px border around the control |
 | `Title` | `string` | `''` | Document title (used in `FullHTML` export) |
 
@@ -313,7 +313,7 @@ Search highlights the match via the normal selection. Each successive `FindNext`
 | Event | Signature | Description |
 |---|---|---|
 | `OnBeforeLoadImage` | `procedure(Sender; const ASource: string; AContext: TS4YImageLoadContext; var Allow: Boolean)` | Fired before an image is read or downloaded; set `Allow=False` to refuse it. `OnLoadImage` still fires with a `nil` bitmap, so it can provide a substitute; if still `nil` the image is drawn as "not found". Also consulted (context `ilcSave`) before `SaveToFile` copies an image |
-| `OnChange` | `TNotifyEvent` | Fired after edits to the text (typing, deleting, inserting, paste, undo/redo, replace). Not fired after formatting-only changes, nor after `HTML` / `FullHTML` / `LoadFromFile` set the content |
+| `OnChange` | `TNotifyEvent` | Fired after every change to the document (typing, deleting, formatting, inserting, paste, undo/redo, replace); one action may fire it more than once. Not fired when `HTML` / `FullHTML` / `LoadFromFile` set the content |
 | `OnDrawListMarker` | `procedure(Sender; Canvas; const Bounds; IndentLevel: Integer; var Handled)` | Custom drawing of a list bullet; set `Handled=True` to suppress default rendering. Called only for items near the visible area, and again at every redraw |
 | `OnDrawPlaceholder` | `procedure(Sender; Canvas; const Bounds; const RawText; var Handled)` | Custom rendering of placeholder chips. Called only for chips near the visible area, and again at every redraw |
 | `OnGetListMarker` | `procedure(Sender; IndentLevel: Integer; var Marker: string; var Handled)` | Return a text character (e.g. `•`, `◦`) to use as bullet; takes priority over `OnDrawListMarker`. Same calling rules as `OnDrawListMarker` |
@@ -485,7 +485,6 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 ## Known Limitations
 
 - **Image security**: the editor reads local files and `file:` URLs named by the HTML without any check. When displaying content from untrusted sources (for example e-mail), set `LocalImageAccess` to `liaDocumentFolder` (or `AutoLoadLocalImages` to `False`) and filter with `OnBeforeLoadImage`.
-- **Read-only mode**: `ReadOnly` guards typing and paste only; see the [Developer Guide](Docs/DeveloperGuide.md#4-read-only-mode).
 - **Tables**: `colspan` and `rowspan` are ignored on import, so merged cells lose their structure. Each cell is a single paragraph; `Enter` inserts a line break.
 - **IME**: input composition (CJK pre-edit text) is not supported, so the control is not usable with Chinese, Japanese or Korean input methods.
 - **Accessibility**: no VoiceOver / TalkBack support.

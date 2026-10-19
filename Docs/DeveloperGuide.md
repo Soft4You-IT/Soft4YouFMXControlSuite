@@ -41,7 +41,7 @@ Points to know:
 
 | Event | Fires | Keep in mind |
 |---|---|---|
-| `OnChange` | After edits to the text: typing, deleting, `InsertText`, `InsertHTML`, `InsertLink`, `InsertImage`, tables, `Cut`, `Paste`, `Undo`, `Redo`, `ReplaceAll` | **Not** after formatting (`ToggleBold`, fonts, colours, alignment, headings, lists, `Indent`), and not after `HTML`/`FullHTML`/`LoadFromFile`; see the note below |
+| `OnChange` | After every change to the document: typing, deleting, formatting (`ToggleBold`, fonts, colours, alignment, headings, lists, `Indent`), `InsertText`, `InsertHTML`, `InsertLink`, `InsertImage`, tables, `Cut`, `Paste`, `Undo`, `Redo`, `ReplaceAll` | **Not** after `HTML`/`FullHTML`/`LoadFromFile`; may fire more than once for one action, see the note below |
 | `OnStateChange` | When the caret or selection moves, after edits, and after the content is replaced | The `State` record is computed for each call: keep the handler light |
 | `OnLinkClick` | On mouse release over a link, if nothing is selected | |
 | `OnLinkHover` | When the pointer enters a link; you may change the cursor | |
@@ -49,9 +49,9 @@ Points to know:
 | `OnGetListMarker`, `OnDrawListMarker` | While the editor draws a list item | See the warning below |
 | `OnGetPlaceholderLabel`, `OnDrawPlaceholder` | While the editor lays out or draws a placeholder | See the warning below |
 
-### `OnChange` does not cover formatting
+### `OnChange` means "the document changed", not "once per action"
 
-`OnChange` is fired by operations that insert or delete content. Pure formatting changes (bold, italic, font name, size and colour, alignment, paragraph format, list toggles, indent and outdent) fire only `OnStateChange`. If you need to know that the document differs from the saved one, do not rely on `OnChange` alone: also set your modified flag when a formatting method is called from your own code, or compare `HTML` with the text you saved. Some operations fire `OnChange` more than once (for example `InsertImage`), so use it as "something changed", never as a counter.
+One user action can fire `OnChange` more than once. For example, inserting an image while some text is selected first deletes the selection (one event) and then inserts the image (a second event), and `ClearFormatting` followed by other calls fires once per call. Use `OnChange` as "something changed" (set a flag, schedule a refresh), never as a counter. Setting the content with `HTML`, `FullHTML` or `LoadFromFile` does not fire it.
 
 ### Drawing events run while painting
 
@@ -72,22 +72,17 @@ Points to know:
 
 ## 4. Read-only mode
 
-`ReadOnly := True` is meant for displaying content. At present it blocks:
+`ReadOnly := True` is meant for displaying content. It blocks the **user's** attempts to change the document:
 
 - typing, `Backspace`, `Delete`, `Enter`;
 - `Paste` and `PasteAsPlainText`;
+- the shortcuts that change the document: `Ctrl+B`, `Ctrl+I`, `Ctrl+U`, `Ctrl+X`, `Ctrl+Z`, `Ctrl+Y` (the keys are consumed and do nothing);
 - adding or removing table rows and columns, and `Tab` appending a row;
 - the Undo, Redo, Cut and Paste items of the context menu.
 
 Selection, copy and clicking links still work.
 
-**Important limitation:** `ReadOnly` guards some user input paths, not every public method and not every shortcut. Verified on the current version:
-
-- calling `InsertText`, `InsertHTML`, `ToggleBold` and the other formatting and insertion methods from your code still changes the document;
-- the keyboard shortcuts `Ctrl+B`, `Ctrl+I` and `Ctrl+U` still apply formatting, and `Ctrl+X` still removes the selected text (copying it to the clipboard);
-- `Undo` and `Redo` are not blocked either.
-
-If your application needs a strictly read-only view, do not wire editing methods to buttons while the control is read-only, and keep in mind that a user can still press `Ctrl+X` on a selection.
+**What it does not block:** the methods that your own code calls. As with the `Lines` of a `TMemo`, `ReadOnly` limits the user, not the program: `InsertText`, `InsertHTML`, `ToggleBold`, `Undo` and the other editing methods still change a read-only document. This is deliberate, so that an application can fill or update a view that the user cannot edit. If you wire such methods to buttons, disable the buttons yourself while the control is read-only.
 
 ---
 
@@ -198,19 +193,19 @@ HTMLEditor.HTML := LMessageBody;
 HTMLEditor.LoadRemoteImages;
 ```
 
-Remember the `ReadOnly` limitation in section 4 if the view has buttons that call editing methods.
+Remember (section 4) that `ReadOnly` does not stop the editing methods that your own code calls.
 
 ### Detect that the user changed the document
 
 ```delphi
 procedure TfrmMain.HTMLEditorChange(Sender: TObject);
 begin
-  FModified := True;   // text edits only: not fired by HTML := / LoadFromFile, nor by formatting
+  FModified := True;   // not fired by HTML := / LoadFromFile
 end;
 
 function TfrmMain.IsDocumentModified: Boolean;
 begin
-  // reliable, including formatting: compare with the text saved or loaded last
+  // alternative that ignores edits which were undone: compare with the text saved or loaded last
   Result := HTMLEditor.HTML <> FSavedHTML;
 end;
 ```
