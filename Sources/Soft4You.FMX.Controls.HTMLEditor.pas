@@ -113,23 +113,111 @@ type
   // Placeholder events  (declared before TS4YLayoutEngine which references them)
   // ===========================================================================
 
+  /// <summary>
+  /// Lets the application supply a text character as the bullet of an unordered list item.
+  /// </summary>
+  /// <param name="Sender">The editor that fired the event.</param>
+  /// <param name="IndentLevel">Indent level of the list item (0 for the first level).</param>
+  /// <param name="Marker">Receives the character to draw, for example a bullet.</param>
+  /// <param name="Handled">Set to True when Marker was supplied; otherwise the default bullet is drawn.</param>
+  /// <remarks>
+  /// It takes priority over TS4YDrawListMarkerEvent. Numbered lists always draw their number.
+  /// It is called while the editor paints, only for the items near the visible area and again at every redraw: keep it fast, always return the same result for the same input, and do not change the editor from inside it.
+  /// </remarks>
   TS4YGetListMarkerEvent = procedure(Sender: TObject; IndentLevel: Integer;
     var Marker: string; var Handled: Boolean) of object;
 
+  /// <summary>
+  /// Lets the application draw the bullet of an unordered list item.
+  /// </summary>
+  /// <param name="Sender">The editor that fired the event.</param>
+  /// <param name="Canvas">Canvas to draw on.</param>
+  /// <param name="Bounds">Rectangle reserved for the bullet.</param>
+  /// <param name="IndentLevel">Indent level of the list item (0 for the first level).</param>
+  /// <param name="Handled">Set to True when the bullet was drawn; otherwise the default bullet is drawn.</param>
+  /// <remarks>
+  /// It is called while the editor paints, only for the items near the visible area and again at every redraw: keep it fast and draw on Canvas only.
+  /// </remarks>
   TS4YDrawListMarkerEvent = procedure(Sender: TObject; Canvas: TCanvas; const Bounds: TRectF;
     IndentLevel: Integer; var Handled: Boolean) of object;
 
+  /// <summary>
+  /// Lets the application draw a placeholder chip.
+  /// </summary>
+  /// <param name="Sender">The editor that fired the event.</param>
+  /// <param name="Canvas">Canvas to draw on.</param>
+  /// <param name="Bounds">Rectangle of the chip.</param>
+  /// <param name="RawText">Text of the placeholder, including the prefix and the suffix.</param>
+  /// <param name="Handled">Set to True when the chip was drawn; otherwise the default chip is drawn.</param>
+  /// <remarks>
+  /// It is called while the editor paints, only for the placeholders near the visible area and again at every redraw: keep it fast and draw on Canvas only.
+  /// </remarks>
   TS4YDrawPlaceholderEvent = procedure(Sender: TObject; Canvas: TCanvas; const Bounds: TRectF; const RawText: string;
     var Handled: Boolean) of object;
 
+  /// <summary>
+  /// Maps the raw text of a placeholder to the label shown to the user.
+  /// </summary>
+  /// <param name="Sender">The editor that fired the event.</param>
+  /// <param name="RawText">Text of the placeholder, including the prefix and the suffix.</param>
+  /// <param name="DisplayLabel">Receives the label to show; it starts as the raw text.</param>
+  /// <remarks>
+  /// It is called during layout and painting, also for placeholders that are not visible, and many times: it must be a pure and fast mapping.
+  /// </remarks>
   TS4YGetPlaceholderLabelEvent = procedure(Sender: TObject; const RawText: string; var DisplayLabel: string) of object;
 
+  /// <summary>
+  /// The user clicked a hyperlink.
+  /// </summary>
+  /// <param name="Sender">The editor that fired the event.</param>
+  /// <param name="URL">Target of the link.</param>
+  /// <param name="LinkText">Visible text of the link.</param>
+  /// <remarks>
+  /// It is fired when the mouse button is released over the link and nothing is selected.
+  /// </remarks>
   TS4YLinkClickEvent = procedure(Sender: TObject; const URL: string; const LinkText: string) of object;
+  /// <summary>
+  /// The pointer is over a hyperlink.
+  /// </summary>
+  /// <param name="Sender">The editor that fired the event.</param>
+  /// <param name="URL">Target of the link under the pointer.</param>
+  /// <param name="Cursor">Cursor to show; it starts as the hand cursor and can be changed.</param>
   TS4YLinkHoverEvent = procedure(Sender: TObject; const URL: string; var Cursor: TCursor) of object;
 
+  /// <summary>
+  /// Why an image is being loaded.
+  /// </summary>
+  /// <remarks>
+  /// ilcParse: the document is being loaded.
+  /// ilcInsert: the application inserted or replaced an image.
+  /// ilcReload: the images were reloaded.
+  /// ilcRender: the image is needed to draw the document.
+  /// ilcSave: the image is about to be copied by SaveToFile.
+  /// </remarks>
   TS4YImageLoadContext = (ilcParse, ilcInsert, ilcReload, ilcRender, ilcSave);
+  /// <summary>
+  /// Lets the application refuse to read or download an image.
+  /// </summary>
+  /// <param name="Sender">The editor that fired the event.</param>
+  /// <param name="ASource">The image source exactly as written in the document.</param>
+  /// <param name="AContext">Why the image is needed.</param>
+  /// <param name="Allow">Set to False to refuse the image; it starts as True.</param>
+  /// <remarks>
+  /// It is fired for every non-empty source, including data: sources. A refused image is not read; TS4YLoadImageEvent still fires with a nil bitmap so a substitute can be supplied.
+  /// A refusal without a substitute is remembered until the content or the path settings change. The check of LocalImageAccess comes first and cannot be overridden here.
+  /// </remarks>
   TS4YBeforeLoadImageEvent = procedure(Sender: TObject; const ASource: string;
     AContext: TS4YImageLoadContext; var Allow: Boolean) of object;
+  /// <summary>
+  /// Lets the application provide or replace the bitmap of an image.
+  /// </summary>
+  /// <param name="Sender">The editor that fired the event.</param>
+  /// <param name="ASource">The image source exactly as written in the document.</param>
+  /// <param name="ABitmap">The bitmap loaded by the editor, or nil when none could be loaded or the image was refused. Assign a new bitmap to override it.</param>
+  /// <param name="AContext">Why the image is needed.</param>
+  /// <remarks>
+  /// The bitmap assigned becomes owned by the image cache of the editor. Use it for sources that the editor cannot load itself, such as cid: images.
+  /// </remarks>
   TS4YLoadImageEvent = procedure(Sender: TObject; const ASource: string; var ABitmap: TBitmap;
     AContext: TS4YImageLoadContext) of object;
 
@@ -199,43 +287,91 @@ type
   // Event type for state notification
   // ===========================================================================
 
+  /// <summary>
+  /// Snapshot of the formatting at the caret, for updating a toolbar.
+  /// </summary>
+  /// <remarks>
+  /// Passed to OnStateChange and returned by the State property.
+  /// </remarks>
   TS4YEditorState = record
+    /// <summary>Alignment of the paragraph at the caret.</summary>
     Alignment: TS4YHTMLAlignment;
+    /// <summary>Highlight color of the character at the caret.</summary>
     BackgroundColor: TAlphaColor;
+    /// <summary>True when Outdent would have an effect.</summary>
     CanOutdent: Boolean;
+    /// <summary>1-based column within the visual line; 0 when there is no layout.</summary>
     ColumnNumber: Integer;  // 1-based column within the visual line (0 when no layout)
+    /// <summary>Text color of the character at the caret.</summary>
     FontColor: TAlphaColor;
+    /// <summary>Font family at the caret.</summary>
     FontName: string;
+    /// <summary>Font size at the caret, in points.</summary>
     FontSize: Single;
+    /// <summary>True when some text is selected.</summary>
     HasSelection: Boolean;
+    /// <summary>Alternative text of the image at the caret; empty when the caret is not on an image.</summary>
     ImageAlt: string;
+    /// <summary>Height in pixels of the image at the caret; 0 when the caret is not on an image.</summary>
     ImageHeight: Integer;
+    /// <summary>Source of the image at the caret; empty when the caret is not on an image.</summary>
     ImageSource: string;
+    /// <summary>Width in pixels of the image at the caret; 0 when the caret is not on an image.</summary>
     ImageWidth: Integer;
+    /// <summary>Indent level of the paragraph at the caret; 0 means no indent.</summary>
     IndentLevel: Integer;
+    /// <summary>The text at the caret is bold.</summary>
     IsBold: Boolean;
+    /// <summary>The caret is on an image.</summary>
     IsImage: Boolean;
+    /// <summary>The caret is in a table cell.</summary>
     IsInTable: Boolean;
+    /// <summary>The text at the caret is italic.</summary>
     IsItalic: Boolean;
+    /// <summary>The paragraph at the caret is an item of a numbered list.</summary>
     IsOrderedList: Boolean;
+    /// <summary>The text at the caret is struck through.</summary>
     IsStrikeOut: Boolean;
+    /// <summary>The text at the caret is a subscript.</summary>
     IsSubscript: Boolean;
+    /// <summary>The text at the caret is a superscript.</summary>
     IsSuperscript: Boolean;
+    /// <summary>The text at the caret is underlined.</summary>
     IsUnderline: Boolean;
+    /// <summary>The paragraph at the caret is an item of a bulleted list.</summary>
     IsUnorderedList: Boolean;
+    /// <summary>1-based visual line in the document; 0 when there is no layout.</summary>
     LineNumber: Integer;    // 1-based visual line in the document (0 when no layout)
+    /// <summary>Target of the link at the caret; empty when the caret is not on a link.</summary>
     LinkURL: string;
+    /// <summary>Format of the paragraph at the caret.</summary>
     ParagraphFormat: TS4YParagraphFormat;
+    /// <summary>0-based column of the table cell at the caret; -1 when not in a table.</summary>
     TableCol: Integer;      // 0-based, -1 when not in table
+    /// <summary>0-based row of the table cell at the caret; -1 when not in a table.</summary>
     TableRow: Integer;      // 0-based, -1 when not in table
   end;
 
+  /// <summary>
+  /// The formatting state at the caret changed.
+  /// </summary>
+  /// <param name="Sender">The editor that fired the event.</param>
+  /// <param name="State">The new state.</param>
+  /// <remarks>
+  /// It is fired when the caret or the selection moves, after edits, and after the content is replaced. The state is computed for every call: keep the handler light.
+  /// </remarks>
   TS4YEditorStateEvent = procedure(Sender: TObject; const State: TS4YEditorState) of object;
 
   // ===========================================================================
   // TS4YPlaceholderAppearance
   // ===========================================================================
 
+  /// <summary>
+  /// Visual style of the placeholder chips.
+  /// </summary>
+  /// <remarks>
+  /// Changing any value redraws the editor. Use OnDrawPlaceholder for full control of the drawing.
+  /// </remarks>
   TS4YPlaceholderAppearance = class(TPersistent)
   private
     FOnChange: TNotifyEvent;
@@ -256,15 +392,24 @@ type
     procedure Changed;
   public
     constructor Create;
+    /// <summary>Copies all values from another TS4YPlaceholderAppearance.</summary>
     procedure Assign(Source: TPersistent); override;
+    /// <summary>Fired when any value changes. Used by the editor to redraw; applications normally do not need it.</summary>
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   published
+    /// <summary>Draw the placeholder text in bold.</summary>
     property Bold: Boolean read FBold write SetBold;
+    /// <summary>Color of the border of the chip.</summary>
     property BorderColor: TAlphaColor read FBorderColor write SetBorderColor;
+    /// <summary>Corner radius of the chip, in pixels.</summary>
     property BorderRadius: Single read FBorderRadius write SetBorderRadius;
+    /// <summary>Background color of the chip.</summary>
     property FillColor: TAlphaColor read FFillColor write SetFillColor;
+    /// <summary>Left and right padding inside the chip, in pixels.</summary>
     property HorizontalPadding: Single read FHorizontalPadding write SetHorizontalPadding;
+    /// <summary>Text color of the chip.</summary>
     property TextColor: TAlphaColor read FTextColor write SetTextColor;
+    /// <summary>Top and bottom padding inside the chip, in pixels.</summary>
     property VerticalPadding: Single read FVerticalPadding write SetVerticalPadding;
   end;
 
@@ -272,6 +417,14 @@ type
   // TS4YHTMLEditor - the control
   // ===========================================================================
 
+  /// <summary>
+  /// WYSIWYG HTML editor control for FireMonkey.
+  /// </summary>
+  /// <remarks>
+  /// The content is a document of paragraphs and runs, built from HTML and exported back to HTML. The control draws it into an off-screen cache, so the cost of a repaint follows the size of the window and not the length of the document.
+  /// Use it from the main thread only. Setting the content (HTML, FullHTML, LoadFromFile) clears the undo history and does not fire OnChange.
+  /// See Docs/DeveloperGuide.md for how events behave and what to be careful about.
+  /// </remarks>
   TS4YHTMLEditor = class(TStyledControl)
   private
     FDocument: TS4YHTMLDocument;
@@ -525,135 +678,553 @@ type
     function ShowContextMenu(const ScreenPosition: TPointF): Boolean; override;
 
   public
+    /// <summary>Creates the control with an empty document, a 400 x 300 size and the default settings.</summary>
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     // -- Formatting ---------------------------------------------------------
+    /// <summary>Toggles bold on the selection or, with no selection, at the caret.</summary>
     procedure ToggleBold;
+    /// <summary>Toggles italic on the selection or, with no selection, at the caret.</summary>
     procedure ToggleItalic;
+    /// <summary>Toggles underline on the selection or, with no selection, at the caret.</summary>
     procedure ToggleUnderline;
+    /// <summary>Toggles strikethrough on the selection or, with no selection, at the caret.</summary>
     procedure ToggleStrikeOut;
+    /// <summary>Toggles superscript on the selection or, with no selection, at the caret.</summary>
     procedure ToggleSuperscript;
+    /// <summary>Toggles subscript on the selection or, with no selection, at the caret.</summary>
     procedure ToggleSubscript;
+    /// <summary>Decreases the font size of the selection or of the caret by one step.</summary>
     procedure DecreaseFontSize;
+    /// <summary>Increases the font size of the selection or of the caret by one step.</summary>
     procedure IncreaseFontSize;
+    /// <summary>
+    /// Applies a font family to the selection or, with no selection, at the caret.
+    /// </summary>
+    /// <param name="AName">Font family name.</param>
     procedure SetCurrentFontName(const AName: string);
+    /// <summary>
+    /// Applies a font size to the selection or, with no selection, at the caret.
+    /// </summary>
+    /// <param name="ASize">Font size in points.</param>
     procedure SetCurrentFontSize(ASize: Single);
+    /// <summary>
+    /// Applies a text color to the selection or, with no selection, at the caret.
+    /// </summary>
+    /// <param name="AColor">Text color.</param>
     procedure SetCurrentFontColor(AColor: TAlphaColor);
+    /// <summary>
+    /// Applies a highlight color to the selection or, with no selection, at the caret.
+    /// </summary>
+    /// <param name="AColor">Highlight color; claNull removes it.</param>
     procedure SetCurrentBackgroundColor(AColor: TAlphaColor);
+    /// <summary>Removes all character formatting from the selection.</summary>
     procedure ClearFormatting;
+    /// <summary>Aligns the paragraphs of the selection, or the paragraph at the caret, to the left.</summary>
     procedure AlignLeft;
+    /// <summary>Centers the paragraphs of the selection, or the paragraph at the caret.</summary>
     procedure AlignCenter;
+    /// <summary>Aligns the paragraphs of the selection, or the paragraph at the caret, to the right.</summary>
     procedure AlignRight;
+    /// <summary>Justifies the paragraphs of the selection, or the paragraph at the caret.</summary>
     procedure AlignJustify;
+    /// <summary>
+    /// Sets the heading level of the paragraphs of the selection, or of the paragraph at the caret.
+    /// </summary>
+    /// <param name="ALevel">Heading level from 1 to 6; 0 makes a plain paragraph. Values outside 0..6 are limited to that range.</param>
+    /// <remarks>
+    /// Kept for compatibility. Prefer SetCurrentParagraphFormat.
+    /// </remarks>
     procedure SetHeading(ALevel: Integer); // 0=p, 1..6=h1..h6 (legacy -- prefer SetCurrentParagraphFormat)
+    /// <summary>
+    /// Sets the format of the paragraphs of the selection, or of the paragraph at the caret.
+    /// </summary>
+    /// <param name="AFormat">The new format: body text, paragraph, heading 1 to 6, or preformatted.</param>
     procedure SetCurrentParagraphFormat(AFormat: TS4YParagraphFormat);
+    /// <summary>Turns the paragraphs of the selection, or the paragraph at the caret, into a numbered list, or back into plain paragraphs.</summary>
     procedure ToggleOrderedList;
+    /// <summary>Turns the paragraphs of the selection, or the paragraph at the caret, into a bulleted list, or back into plain paragraphs.</summary>
     procedure ToggleUnorderedList;
+    /// <summary>Increases the indent level of the paragraphs of the selection (nests list items, indents quotes).</summary>
     procedure Indent;
+    /// <summary>
+    /// Decreases the indent level of the paragraphs of the selection.
+    /// </summary>
+    /// <remarks>
+    /// It has an effect only when State.CanOutdent is True.
+    /// </remarks>
     procedure Outdent;
+    /// <summary>
+    /// Inserts a horizontal rule after the paragraph at the caret.
+    /// </summary>
+    /// <param name="AColor">Color of the rule; claNull uses the default color.</param>
+    /// <param name="AThickness">Thickness in pixels; 0 uses the default thickness.</param>
     procedure InsertHorizontalRule(AColor: TAlphaColor = claNull; AThickness: Single = 0);
+    /// <summary>
+    /// Inserts an image at the caret.
+    /// </summary>
+    /// <param name="ASource">Image source: a file path, a file: URL, an http(s) address or a data: URI.</param>
+    /// <param name="AWidth">Width in pixels; 0 uses the natural width of the image.</param>
+    /// <param name="AHeight">Height in pixels; 0 uses the natural height of the image.</param>
+    /// <param name="AAlt">Alternative text.</param>
+    /// <remarks>
+    /// In ImagePathMode ipmDocument the source is stored relative to DocumentPath when the file is inside that folder.
+    /// The current implementation inserts the image as an inline run, the same as InsertInlineImage.
+    /// </remarks>
     procedure InsertImage(const ASource: string; AWidth: Integer = 0; AHeight: Integer = 0; const AAlt: string = '');
+    /// <summary>
+    /// Inserts an image as an inline run in the paragraph at the caret.
+    /// </summary>
+    /// <param name="ASource">Image source: a file path, a file: URL, an http(s) address or a data: URI.</param>
+    /// <param name="AWidth">Width in pixels; 0 uses the natural width of the image.</param>
+    /// <param name="AHeight">Height in pixels; 0 uses the natural height of the image.</param>
+    /// <param name="AAlt">Alternative text.</param>
+    /// <remarks>
+    /// If some text is selected it is deleted first, so OnChange can fire twice.
+    /// </remarks>
     procedure InsertInlineImage(const ASource: string; AWidth: Integer = 0; AHeight: Integer = 0; const AAlt: string = '');
+    /// <summary>
+    /// Replaces the image at the caret.
+    /// </summary>
+    /// <param name="ASource">New image source.</param>
+    /// <param name="AWidth">Width in pixels; 0 uses the natural width.</param>
+    /// <param name="AHeight">Height in pixels; 0 uses the natural height.</param>
+    /// <param name="AAlt">Alternative text.</param>
+    /// <remarks>
+    /// It does nothing when the caret is not on an inline image; check State.IsImage first.
+    /// </remarks>
     procedure UpdateImage(const ASource: string; AWidth: Integer = 0; AHeight: Integer = 0; const AAlt: string = '');
+    /// <summary>
+    /// Reads again every image that is in the image cache and redraws.
+    /// </summary>
+    /// <remarks>
+    /// Use it when image files changed on disk.
+    /// </remarks>
     procedure ReloadImages;
+    /// <summary>
+    /// Inserts an empty table after the paragraph at the caret.
+    /// </summary>
+    /// <param name="ARows">Number of rows; at least 1.</param>
+    /// <param name="ACols">Number of columns; at least 1.</param>
+    /// <remarks>
+    /// The caret moves to the first cell.
+    /// </remarks>
     procedure InsertTable(ARows: Integer = 2; ACols: Integer = 2);
+    /// <summary>
+    /// Inserts a row after the row that contains the caret.
+    /// </summary>
+    /// <remarks>
+    /// It does nothing when ReadOnly is True.
+    /// </remarks>
     procedure InsertTableRow;
+    /// <summary>
+    /// Deletes the row that contains the caret.
+    /// </summary>
+    /// <remarks>
+    /// It does nothing when ReadOnly is True.
+    /// </remarks>
     procedure DeleteTableRow;
+    /// <summary>
+    /// Inserts a column after the column that contains the caret.
+    /// </summary>
+    /// <remarks>
+    /// It does nothing when ReadOnly is True.
+    /// </remarks>
     procedure InsertTableColumn;
+    /// <summary>
+    /// Deletes the column that contains the caret.
+    /// </summary>
+    /// <remarks>
+    /// It does nothing when ReadOnly is True.
+    /// </remarks>
     procedure DeleteTableColumn;
+    /// <summary>
+    /// Inserts text as a new hyperlink at the caret.
+    /// </summary>
+    /// <param name="AURL">Target of the link.</param>
+    /// <param name="AText">Visible text of the link.</param>
+    /// <remarks>
+    /// It does nothing when either value is empty.
+    /// </remarks>
     procedure InsertLink(const AURL, AText: string);
+    /// <summary>
+    /// Sets the target of a link.
+    /// </summary>
+    /// <param name="AURL">The new target; an empty string removes the link.</param>
+    /// <remarks>
+    /// It applies to the selection or, with no selection, to the link at the caret.
+    /// </remarks>
     procedure UpdateLink(const AURL: string);
+    /// <summary>Removes the hyperlink from the selection. The text is kept.</summary>
     procedure RemoveLink;
+    /// <summary>
+    /// Gets the link at the caret.
+    /// </summary>
+    /// <returns>The target of the link at the caret, or an empty string when the caret is not on a link.</returns>
     function GetLinkAtCaret: string;
+    /// <summary>
+    /// Inserts plain text at the caret, replacing the selection.
+    /// </summary>
+    /// <param name="AText">Text to insert; line breaks start new paragraphs.</param>
     procedure InsertText(const AText: string);
+    /// <summary>
+    /// Parses an HTML fragment and inserts it at the caret, replacing the selection.
+    /// </summary>
+    /// <param name="AHTML">HTML fragment to insert.</param>
     procedure InsertHTML(const AHTML: string);
+    /// <summary>
+    /// Inserts a placeholder chip at the caret.
+    /// </summary>
+    /// <param name="ARawText">Text of the placeholder, without the prefix and the suffix.</param>
+    /// <param name="ADisplayName">Label to show; empty uses OnGetPlaceholderLabel or the raw text.</param>
+    /// <remarks>
+    /// It does nothing when PlaceholderPrefix or PlaceholderSuffix is empty.
+    /// </remarks>
     procedure InsertPlaceholder(const ARawText: string; const ADisplayName: string = '');
+    /// <summary>
+    /// Replaces the placeholder at the caret.
+    /// </summary>
+    /// <param name="ANewRawText">New text of the placeholder, without the prefix and the suffix.</param>
+    /// <param name="ANewDisplayName">New label to show; empty uses OnGetPlaceholderLabel or the raw text.</param>
+    /// <remarks>
+    /// It does nothing when the caret is not on a placeholder, or when PlaceholderPrefix or PlaceholderSuffix is empty.
+    /// </remarks>
     procedure UpdatePlaceholder(const ANewRawText: string; const ANewDisplayName: string = '');
 
     // -- Editing ------------------------------------------------------------
+    /// <summary>Selects the whole document.</summary>
     procedure SelectAll;
+    /// <summary>Removes the selection without changing the content.</summary>
     procedure ClearSelection;
+    /// <summary>
+    /// Undoes the last change.
+    /// </summary>
+    /// <remarks>
+    /// Up to 100 levels are kept, as copies of the document. It is not blocked by ReadOnly.
+    /// </remarks>
     procedure Undo;
+    /// <summary>
+    /// Redoes the last undone change.
+    /// </summary>
+    /// <remarks>
+    /// It is not blocked by ReadOnly.
+    /// </remarks>
     procedure Redo;
+    /// <summary>Copies the selection to the clipboard and deletes it.</summary>
     procedure Cut;
+    /// <summary>Copies the selection to the clipboard, as HTML and as plain text where the platform supports it.</summary>
     procedure Copy;
+    /// <summary>
+    /// Pastes the clipboard at the caret, keeping the formatting when the clipboard holds HTML.
+    /// </summary>
+    /// <remarks>
+    /// It does nothing when ReadOnly is True.
+    /// </remarks>
     procedure Paste;
+    /// <summary>
+    /// Pastes the clipboard at the caret as plain text.
+    /// </summary>
+    /// <remarks>
+    /// It does nothing when ReadOnly is True. Shortcut: Ctrl+Shift+V.
+    /// </remarks>
     procedure PasteAsPlainText;
 
     // -- Navigation ---------------------------------------------------------
+    /// <summary>
+    /// Scrolls the document so that a paragraph is at the top.
+    /// </summary>
+    /// <param name="AIndex">Index of the paragraph; invalid indexes are ignored.</param>
     procedure ScrollToParagraph(AIndex: Integer);
+    /// <summary>
+    /// Scrolls the document so that a position is visible.
+    /// </summary>
+    /// <param name="APosition">The position to show.</param>
     procedure ScrollToDocumentPosition(const APosition: TS4YDocumentPosition);
 
     // -- Document info -------------------------------------------------------
+    /// <summary>
+    /// Counts the characters of the document.
+    /// </summary>
+    /// <returns>Number of text characters; images and placeholders are not counted.</returns>
     function CharCount: Integer;
+    /// <summary>
+    /// Counts the words of the document.
+    /// </summary>
+    /// <returns>Number of words, separated by white space.</returns>
     function WordCount: Integer;
 
     // -- Images -------------------------------------------------------------
+    /// <summary>
+    /// Loads the local images that were skipped because AutoLoadLocalImages is False.
+    /// </summary>
     procedure LoadLocalImages;
+    /// <summary>
+    /// Downloads the remote images that were skipped because AutoLoadRemoteImages is False.
+    /// </summary>
+    /// <remarks>
+    /// The download is synchronous on the calling thread, with no timeout set by the component.
+    /// </remarks>
     procedure LoadRemoteImages;
+    /// <summary>
+    /// Finds the file or URL that an image source is read from.
+    /// </summary>
+    /// <param name="ASource">The image source as written in the document.</param>
+    /// <returns>The file path or URL, according to ImagePathMode and DocumentPath.</returns>
     function ResolveImageSource(const ASource: string): string;
 
     // -- Files --------------------------------------------------------------
+    /// <summary>
+    /// Loads an HTML file into the editor.
+    /// </summary>
+    /// <param name="AFileName">Name of the file.</param>
+    /// <param name="AEncoding">Encoding of the file; nil means UTF-8.</param>
+    /// <remarks>
+    /// DocumentPath is set to the folder of the file first, so document-relative images resolve. Title and Language are read from the file. OnChange is not fired.
+    /// </remarks>
     procedure LoadFromFile(const AFileName: string; AEncoding: TEncoding = nil);
+    /// <summary>
+    /// Saves the document as a complete HTML file.
+    /// </summary>
+    /// <param name="AFileName">Name of the file.</param>
+    /// <param name="AEncoding">Encoding of the file; nil means UTF-8.</param>
+    /// <remarks>
+    /// In ipmDocument mode the image sources are left as they are and DocumentPath moves to the folder of the file. In ipmApplication mode relative sources are written as absolute file: URLs in the saved text; the document is not changed.
+    /// </remarks>
     procedure SaveToFile(const AFileName: string; AEncoding: TEncoding = nil); overload;
+    /// <summary>
+    /// Saves the document as a complete HTML file, with options.
+    /// </summary>
+    /// <param name="AFileName">Name of the file.</param>
+    /// <param name="AOptions">Options such as copying the images next to the file.</param>
+    /// <param name="AEncoding">Encoding of the file; nil means UTF-8.</param>
+    /// <remarks>
+    /// See TS4YSaveOptions. If the destination cannot be written the exception is raised normally.
+    /// </remarks>
     procedure SaveToFile(const AFileName: string; const AOptions: TS4YSaveOptions; AEncoding: TEncoding = nil); overload;
 
     // -- Search -------------------------------------------------------------
+    /// <summary>
+    /// Selects the next occurrence of a text, starting from the end of the selection or from the caret.
+    /// </summary>
+    /// <param name="AText">Text to find.</param>
+    /// <param name="CaseSensitive">True for a case-sensitive search.</param>
+    /// <returns>True when the text was found; the search wraps around the document.</returns>
     function FindNext(const AText: string; CaseSensitive: Boolean = False): Boolean;
+    /// <summary>
+    /// Selects the previous occurrence of a text, starting from the start of the selection or from the caret.
+    /// </summary>
+    /// <param name="AText">Text to find.</param>
+    /// <param name="CaseSensitive">True for a case-sensitive search.</param>
+    /// <returns>True when the text was found; the search wraps around the document.</returns>
     function FindPrevious(const AText: string; CaseSensitive: Boolean = False): Boolean;
+    /// <summary>
+    /// Replaces every occurrence of a text in the document.
+    /// </summary>
+    /// <param name="AFindText">Text to find.</param>
+    /// <param name="AReplaceText">Replacement text.</param>
+    /// <param name="CaseSensitive">True for a case-sensitive search.</param>
+    /// <returns>Number of replacements.</returns>
+    /// <remarks>
+    /// It is a single undo step.
+    /// </remarks>
     function ReplaceAll(const AFindText, AReplaceText: string; CaseSensitive: Boolean = False): Integer;
 
+    /// <summary>
+    /// The run of text that contains the caret.
+    /// </summary>
+    /// <value>The run, or nil when there is none.</value>
+    /// <remarks>
+    /// The run belongs to the document: do not free it and do not keep it after the content changes.
+    /// </remarks>
     property CurrentRun: TS4YHTMLRun read GetCurrentRun;
+    /// <summary>
+    /// The complete HTML document, with doctype, head and body.
+    /// </summary>
+    /// <remarks>
+    /// Reading it generates the HTML with Title and Language. Writing it replaces the content, extracts Title and Language, clears the undo history and does not fire OnChange.
+    /// </remarks>
     property FullHTML: string read GetFullHTML write SetFullHTML;
+    /// <summary>True when some text is selected.</summary>
     property HasSelection: Boolean read FHasSelection;
+    /// <summary>
+    /// All placeholder runs of the document.
+    /// </summary>
+    /// <remarks>
+    /// The list is kept in sync with every edit and is read-only: do not change it or its runs from outside.
+    /// </remarks>
     property Placeholders: TList<TS4YHTMLRun> read FPlaceholders;
+    /// <summary>The selection as an HTML fragment; empty when nothing is selected.</summary>
     property SelHTML: string read GetSelectionHTML;
+    /// <summary>The selection as plain text; empty when nothing is selected.</summary>
     property SelText: string read GetSelectionText;
+    /// <summary>
+    /// The formatting state at the caret.
+    /// </summary>
+    /// <remarks>
+    /// A fresh snapshot is computed at every read.
+    /// </remarks>
     property State: TS4YEditorState read GetState;
 
   published
     property Align;
     property Anchors;
+    /// <summary>
+    /// Load images whose source is a local file as soon as the content is set.
+    /// </summary>
+    /// <remarks>
+    /// When False they are drawn as placeholders until LoadLocalImages is called.
+    /// </remarks>
     property AutoLoadLocalImages: Boolean read FAutoLoadLocalImages write FAutoLoadLocalImages default True;
+    /// <summary>
+    /// Load images whose source is an http or https address as soon as the content is set.
+    /// </summary>
+    /// <remarks>
+    /// When False they are drawn as placeholders until LoadRemoteImages is called. Loading is synchronous on the calling thread.
+    /// </remarks>
     property AutoLoadRemoteImages: Boolean read FAutoLoadRemoteImages write FAutoLoadRemoteImages default True;
+    /// <summary>Background color of the editor.</summary>
     property BackgroundColor: TAlphaColor read FBackgroundColor write SetBackgroundColor default claWhite;
+    /// <summary>
+    /// Folder of the document, used to resolve relative image paths when ImagePathMode is ipmDocument.
+    /// </summary>
+    /// <remarks>
+    /// LoadFromFile sets it. Changing it reloads the images.
+    /// </remarks>
     property DocumentPath: string read FDocumentPath write SetDocumentPath;
+    /// <summary>Default font of the editor, used for text that has no font of its own.</summary>
     property Font: TFont read FFont write SetFont;
+    /// <summary>Default text color, used for text that has no color of its own.</summary>
     property FontColor: TAlphaColor read FFontColor write SetFontColor default claBlack;
     property Height;
+    /// <summary>
+    /// The HTML of the body of the document, as a fragment without doctype.
+    /// </summary>
+    /// <remarks>
+    /// Reading it generates the HTML from the document each time; an empty document gives an empty string.
+    /// Writing it replaces the content, clears the undo history, moves the caret to the start and does not fire OnChange. It is notified to LiveBindings after every edit.
+    /// </remarks>
     property HTML: string read GetHTML write SetHTML;
+    /// <summary>
+    /// How relative local image paths are resolved.
+    /// </summary>
+    /// <remarks>
+    /// Changing it reloads the images.
+    /// </remarks>
     property ImagePathMode: TS4YImagePathMode read FImagePathMode write SetImagePathMode default ipmApplication;
+    /// <summary>Language of the document, written as the lang attribute of FullHTML.</summary>
     property Language: string read FLanguage write FLanguage;
+    /// <summary>Line height multiplier: 1.0 is the natural height. Changing it lays the document out again.</summary>
     property LineSpacing: Single read FLineSpacing write SetLineSpacing;
+    /// <summary>
+    /// Which local files images may be read from.
+    /// </summary>
+    /// <remarks>
+    /// Use liaDocumentFolder for content from untrusted sources, with an empty DocumentPath to read no local file at all. Changing it reloads the images.
+    /// </remarks>
     property LocalImageAccess: TS4YLocalImageAccess read FLocalImageAccess write SetLocalImageAccess default liaAnywhere;
     property Margins;
     property Opacity;
     property Padding;
+    /// <summary>Extra vertical space between blocks, in pixels. Changing it lays the document out again.</summary>
     property ParagraphSpacing: Single read FParagraphSpacing write SetParagraphSpacing;
+    /// <summary>Visual style of the placeholder chips.</summary>
     property PlaceholderAppearance: TS4YPlaceholderAppearance read FPlaceholderAppearance write FPlaceholderAppearance;
+    /// <summary>
+    /// Text that starts a placeholder in the HTML.
+    /// </summary>
+    /// <remarks>
+    /// Placeholders are disabled until both PlaceholderPrefix and PlaceholderSuffix are set.
+    /// </remarks>
     property PlaceholderPrefix: string read FPlaceholderPrefix write SetPlaceholderPrefix;
+    /// <summary>
+    /// Text that ends a placeholder in the HTML.
+    /// </summary>
+    /// <remarks>
+    /// Placeholders are disabled until both PlaceholderPrefix and PlaceholderSuffix are set.
+    /// </remarks>
     property PlaceholderSuffix: string read FPlaceholderSuffix write SetPlaceholderSuffix;
     property Position;
+    /// <summary>Generate indented HTML.</summary>
     property PrettyHTML: Boolean read FPrettyHTML write FPrettyHTML default False;
+    /// <summary>
+    /// Prevents the user from changing the document.
+    /// </summary>
+    /// <remarks>
+    /// It blocks typing, Backspace, Delete, Enter, paste, the shortcuts that change the document (Ctrl+B, I, U, X, Z, Y) and the table row and column commands. Selection, copy and link clicks keep working.
+    /// It does not block the methods called from code: InsertText, ToggleBold, Undo and the others still change the document.
+    /// </remarks>
     property ReadOnly: Boolean read FReadOnly write SetReadOnly default False;
+    /// <summary>Draw a one-pixel border around the control.</summary>
     property ShowBorder: Boolean read FShowBorder write FShowBorder default True;
     property Size;
+    /// <summary>Title of the document, written as the title element of FullHTML.</summary>
     property Title: string read FTitle write FTitle;
     property Visible;
     property Width;
+    /// <summary>
+    /// Fired before an image is read or downloaded; set Allow to False to refuse it.
+    /// </summary>
+    /// <remarks>
+    /// See TS4YBeforeLoadImageEvent.
+    /// </remarks>
     property OnBeforeLoadImage: TS4YBeforeLoadImageEvent read FOnBeforeLoadImage write FOnBeforeLoadImage;
+    /// <summary>
+    /// Fired after the document changes: typing, deleting, formatting, insertions, paste, undo and redo, replace.
+    /// </summary>
+    /// <remarks>
+    /// One action can fire it more than once (for example inserting an image over a selection), so treat it as "something changed", not as a counter.
+    /// It is not fired when HTML, FullHTML or LoadFromFile set the content.
+    /// </remarks>
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property OnClick;
     property OnDblClick;
+    /// <summary>
+    /// Custom drawing of a list bullet.
+    /// </summary>
+    /// <remarks>
+    /// See TS4YDrawListMarkerEvent. It is called only for the items near the visible area.
+    /// </remarks>
     property OnDrawListMarker: TS4YDrawListMarkerEvent read FOnDrawListMarker write FOnDrawListMarker;
+    /// <summary>
+    /// Custom drawing of a placeholder chip.
+    /// </summary>
+    /// <remarks>
+    /// See TS4YDrawPlaceholderEvent. It is called only for the placeholders near the visible area.
+    /// </remarks>
     property OnDrawPlaceholder: TS4YDrawPlaceholderEvent read FOnDrawPlaceholder write FOnDrawPlaceholder;
+    /// <summary>
+    /// Supplies a text character as the bullet of a list item.
+    /// </summary>
+    /// <remarks>
+    /// See TS4YGetListMarkerEvent. It takes priority over OnDrawListMarker.
+    /// </remarks>
     property OnGetListMarker: TS4YGetListMarkerEvent read FOnGetListMarker write FOnGetListMarker;
+    /// <summary>
+    /// Maps the raw text of a placeholder to the label shown.
+    /// </summary>
+    /// <remarks>
+    /// See TS4YGetPlaceholderLabelEvent.
+    /// </remarks>
     property OnGetPlaceholderLabel: TS4YGetPlaceholderLabelEvent read FOnGetPlaceholderLabel write FOnGetPlaceholderLabel;
+    /// <summary>Fired when the user clicks a hyperlink.</summary>
     property OnLinkClick: TS4YLinkClickEvent read FOnLinkClick write FOnLinkClick;
+    /// <summary>Fired when the pointer is over a hyperlink; the cursor can be changed.</summary>
     property OnLinkHover: TS4YLinkHoverEvent read FOnLinkHover write FOnLinkHover;
+    /// <summary>
+    /// Lets the application provide or replace the bitmap of an image.
+    /// </summary>
+    /// <remarks>
+    /// See TS4YLoadImageEvent.
+    /// </remarks>
     property OnLoadImage: TS4YLoadImageEvent read FOnLoadImage write FOnLoadImage;
     property OnResize;
+    /// <summary>
+    /// Fired when the caret or the selection moves, after edits, and after the content is replaced; use it to update a toolbar.
+    /// </summary>
+    /// <remarks>
+    /// See TS4YEditorStateEvent.
+    /// </remarks>
     property OnStateChange: TS4YEditorStateEvent read FOnStateChange write FOnStateChange;
   end;
 
