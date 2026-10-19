@@ -3405,6 +3405,19 @@ begin
         LPreviousRightIndex := LPreviousRun.Text.Length;
       Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex, APosition.RunIndex - 1, LPreviousRightIndex));
     end
+    else if LPreviousRun.IsLineBreak then
+    begin
+      // A line break has no characters to step over: the previous position is the end of
+      // the line before it, which is a different place from (curRun, 0). A line break
+      // has no fragment of its own, so use the end of the text run before it when there
+      // is one, otherwise the break itself.
+      if (APosition.RunIndex > 1) and
+         not (LParagraph.Runs[APosition.RunIndex - 2].IsLineBreak or LParagraph.Runs[APosition.RunIndex - 2].IsPlaceholder or
+              LParagraph.Runs[APosition.RunIndex - 2].IsImage) then
+        Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex, APosition.RunIndex - 2, LParagraph.Runs[APosition.RunIndex - 2].Text.Length))
+      else
+        Exit(TS4YDocumentPosition.At(APosition.ParagraphIndex, APosition.RunIndex - 1, 0));
+    end
     else
       // Skip the phantom (prevRun, prevRun.Length) -- visually identical to (curRun, 0).
       Exit(PreviousDocumentPosition(TS4YDocumentPosition.At(APosition.ParagraphIndex, APosition.RunIndex - 1, LPreviousRun.Text.Length)));
@@ -4975,11 +4988,14 @@ var
   LNextRun: TS4YHTMLRun;
   LStep: Integer;
   LNewRunIndex: Integer;
+  LCaretAbsChar: Integer;
+  LRemapCaret: Boolean;
 begin
   if not FCaretPosition.IsValid then
     Exit;
   if PositionCompare(FCaretPosition, DocumentEnd) = 0 then
     Exit;
+  LRemapCaret := False;
 
   LParagraph := FDocument.Paragraphs[FCaretPosition.ParagraphIndex];
 
@@ -5014,6 +5030,10 @@ begin
   end
   else if LRun.IsLineBreak then
   begin
+    // NormalizeRuns below can merge or drop the runs around the break (e.g. the empty
+    // run after a trailing break): remember the caret as a character offset instead
+    LCaretAbsChar := DocumentPositionToAbsChar(FCaretPosition);
+    LRemapCaret := True;
     LParagraph.Runs.Delete(LRunIndex);
     if LRunIndex >= LParagraph.Runs.Count then
       LRunIndex := Max(0, LParagraph.Runs.Count - 1);
@@ -5050,6 +5070,8 @@ begin
   end;
 
   NormalizeRuns(FCaretPosition.ParagraphIndex);
+  if LRemapCaret then
+    FCaretPosition := AbsCharToDocumentPosition(FCaretPosition.ParagraphIndex, LCaretAbsChar);
   DoLayout;
   DoChanged;
   InvalidateRender;
@@ -5862,6 +5884,8 @@ begin
     if (FLines[LLineIndex3].ParagraphIndex = FCaretPosition.ParagraphIndex) and (LFragmentStart >= 0) and (LFragmentStart < Length(FFrags)) and
       (FFrags[LFragmentStart].RunIndex = LAfterIndex) then
     begin
+      // The X of the first fragment keeps the indentation of lists, quotes and table cells
+      FCaretScreenX := ContentLeft + FFrags[LFragmentStart].X;
       FCaretScreenY := ContentTop + FLines[LLineIndex3].Y;
       FCaretScreenH := IfThen(FFrags[LFragmentStart].Height > 0, FFrags[LFragmentStart].Height, FLines[LLineIndex3].Height / FLayoutEngine.LineSpacing);
       LFoundLine3 := True;
