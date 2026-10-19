@@ -7602,6 +7602,8 @@ var
   LLineIndex: Integer;
   LColumnOffset: Integer;
   LFoundInLine: Boolean;
+  LParagraphIndex: Integer;
+  LLastParagraphIndex: Integer;
 begin
   LTextStyle := StyleAtCaret;
   Result.IsBold := LTextStyle.Bold;
@@ -7651,12 +7653,13 @@ begin
     if FHasSelection then
     begin
       GetSelectionRange(LSelectionStart, LSelectionEnd);
-      for var I := LSelectionStart.ParagraphIndex to Min(LSelectionEnd.ParagraphIndex, FDocument.Paragraphs.Count - 1) do
-        if FDocument.Paragraphs[I].IndentLevel > 0 then
-        begin
-          Result.CanOutdent := True;
-          Break;
-        end;
+      LParagraphIndex := LSelectionStart.ParagraphIndex;
+      LLastParagraphIndex := Min(LSelectionEnd.ParagraphIndex, FDocument.Paragraphs.Count - 1);
+      while not Result.CanOutdent and (LParagraphIndex <= LLastParagraphIndex) do
+      begin
+        Result.CanOutdent := FDocument.Paragraphs[LParagraphIndex].IndentLevel > 0;
+        Inc(LParagraphIndex);
+      end;
     end
     else if FCaretPosition.ParagraphIndex < FDocument.Paragraphs.Count then
       Result.CanOutdent := FDocument.Paragraphs[FCaretPosition.ParagraphIndex].IndentLevel > 0;
@@ -7680,33 +7683,36 @@ begin
     LFoundInLine := False;
     for LLineIndex := 0 to High(FLines) do
     begin
-      if FLines[LLineIndex].ParagraphIndex <> FCaretPosition.ParagraphIndex then
-        Continue;
-      LColumnOffset := 0;
-      LFoundInLine := False;
-      for var LFragmentIndex := FLines[LLineIndex].FragmentStart to FLines[LLineIndex].FragmentStart + FLines[LLineIndex].FragmentCount - 1 do
+      if FLines[LLineIndex].ParagraphIndex = FCaretPosition.ParagraphIndex then
       begin
-        if (LFragmentIndex < 0) or (LFragmentIndex >= Length(FFrags)) then
-          Continue;
-        if FFrags[LFragmentIndex].RunIndex < FCaretPosition.RunIndex then
+        LColumnOffset := 0;
+        LFoundInLine := False;
+        for var LFragmentIndex := FLines[LLineIndex].FragmentStart to FLines[LLineIndex].FragmentStart + FLines[LLineIndex].FragmentCount - 1 do
         begin
-          if not FFrags[LFragmentIndex].IsImage and not FFrags[LFragmentIndex].IsPlaceholder then
-            Inc(LColumnOffset, FFrags[LFragmentIndex].CharEnd - FFrags[LFragmentIndex].CharStart);
-        end
-        else if FFrags[LFragmentIndex].RunIndex = FCaretPosition.RunIndex then
-        begin
-          if FCaretPosition.CharIndex >= FFrags[LFragmentIndex].CharStart then
+          if (LFragmentIndex >= 0) and (LFragmentIndex < Length(FFrags)) then
           begin
-            Inc(LColumnOffset, FCaretPosition.CharIndex - FFrags[LFragmentIndex].CharStart);
-            LFoundInLine := True;
+            if FFrags[LFragmentIndex].RunIndex < FCaretPosition.RunIndex then
+            begin
+              if not FFrags[LFragmentIndex].IsImage and not FFrags[LFragmentIndex].IsPlaceholder then
+                Inc(LColumnOffset, FFrags[LFragmentIndex].CharEnd - FFrags[LFragmentIndex].CharStart);
+            end
+            else if FFrags[LFragmentIndex].RunIndex = FCaretPosition.RunIndex then
+            begin
+              if FCaretPosition.CharIndex >= FFrags[LFragmentIndex].CharStart then
+              begin
+                Inc(LColumnOffset, FCaretPosition.CharIndex - FFrags[LFragmentIndex].CharStart);
+                LFoundInLine := True;
+              end;
+            end;
           end;
         end;
-      end;
-      if LFoundInLine then
-      begin
-        Result.LineNumber := LLineIndex + 1;
-        Result.ColumnNumber := LColumnOffset + 1;
-        Break;
+        if LFoundInLine then
+        begin
+          // Nothing follows the line search, so Exit ends it like the former Break
+          Result.LineNumber := LLineIndex + 1;
+          Result.ColumnNumber := LColumnOffset + 1;
+          Exit;
+        end;
       end;
     end;
   end;
