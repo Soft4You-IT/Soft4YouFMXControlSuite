@@ -19,15 +19,23 @@ uses
   System.UIConsts;
 
 const
+  /// <summary>Default font family of the editor. Empty means the platform default font (Segoe UI, Helvetica Neue, Roboto).</summary>
   S_EDITOR_FONT_NAME = ''; // '' = platform default (Segoe UI / Helvetica / Roboto)
+  /// <summary>Default font size of the editor, in points.</summary>
   C_EDITOR_FONT_SIZE = 12.0; // pt
 
   // Preset font sizes
+  /// <summary>Preset font size: very small, in points.</summary>
   C_FONT_SIZE_VERY_SMALL = 8.0;
+  /// <summary>Preset font size: small, in points.</summary>
   C_FONT_SIZE_SMALL      = 10.0;
+  /// <summary>Preset font size: medium (the default size), in points.</summary>
   C_FONT_SIZE_MEDIUM     = 12.0;
+  /// <summary>Preset font size: large, in points.</summary>
   C_FONT_SIZE_LARGE      = 14.0;
+  /// <summary>Preset font size: very large, in points.</summary>
   C_FONT_SIZE_VERY_LARGE = 18.0;
+  /// <summary>Preset font size: huge, in points.</summary>
   C_FONT_SIZE_HUGE       = 24.0;
 
 resourcestring
@@ -44,33 +52,80 @@ resourcestring
 
 type
 
+  /// <summary>
+  /// Horizontal alignment of a paragraph.
+  /// </summary>
+  /// <remarks>
+  /// haLeft, haCenter and haRight align the lines; haJustify stretches every line but the last one to the full width.
+  /// </remarks>
   TS4YHTMLAlignment = (haLeft, haCenter, haRight, haJustify);
 
+  /// <summary>
+  /// Kind of block that a paragraph of the document represents.
+  /// </summary>
+  /// <remarks>
+  /// btParagraph and btBodyText are plain text blocks; btH1 to btH6 are headings; btBlockquote is an indented quote;
+  /// btLI is a list item (the list type is given by the paragraph, btUL and btOL are the list containers used while parsing);
+  /// btHR is a horizontal rule; btImage is a block-level image; btTableCell is one cell of a table; btPre is preformatted text.
+  /// </remarks>
   TS4YHTMLBlockType = (btParagraph, btH1, btH2, btH3, btH4, btH5, btH6,
     btBlockquote, btUL, btOL, btLI, btHR, btImage, btTableCell, btBodyText, btPre);
 
+  /// <summary>
+  /// Paragraph format offered to the user, used by SetCurrentParagraphFormat and reported in the editor state.
+  /// </summary>
+  /// <remarks>
+  /// It is the subset of block types that the user can choose for a paragraph: body text, paragraph, headings 1 to 6 and preformatted text.
+  /// </remarks>
   TS4YParagraphFormat = (pfBodyText, pfParagraph, pfH1, pfH2, pfH3, pfH4, pfH5, pfH6, pfPre);
 
-  // How a relative local image path is resolved:
-  //   ipmApplication - as the operating system does (relative to the current directory)
-  //   ipmDocument    - relative to the folder of the document (DocumentPath)
+  /// <summary>
+  /// How a relative local image path is resolved.
+  /// </summary>
+  /// <remarks>
+  /// ipmApplication: as the operating system does, relative to the current directory of the process.
+  /// ipmDocument: relative to the folder of the document (DocumentPath).
+  /// </remarks>
   TS4YImagePathMode = (ipmApplication, ipmDocument);
 
-  // Which local files an image source may point to:
-  //   liaAnywhere       - any file the process can read
-  //   liaDocumentFolder - only files inside DocumentPath or its subfolders (relative
-  //                       segments, file: URLs and network paths are checked on the resolved path)
+  /// <summary>
+  /// Which local files an image source may point to.
+  /// </summary>
+  /// <remarks>
+  /// liaAnywhere: any file the process can read.
+  /// liaDocumentFolder: only files inside DocumentPath or its subfolders; relative segments, file: URLs and network paths are checked on the resolved path.
+  /// Use liaDocumentFolder when the content comes from somebody else (for example a received e-mail).
+  /// </remarks>
   TS4YLocalImageAccess = (liaAnywhere, liaDocumentFolder);
 
-  // Options of TS4YHTMLEditor.SaveToFile (call Init first, then set what differs)
-  //   CopyImages       - copy the local images next to the saved file and point the saved
-  //                      HTML to the copies (ignored when AutoLoadLocalImages is False)
-  //   ImagesFolderName - subfolder of the copies; empty = '<file name>_files'
-  //   UpdateModel      - after saving, the document itself also points to the copies
+  /// <summary>
+  /// Options of SaveToFile.
+  /// </summary>
+  /// <remarks>
+  /// Call Init first, then set what differs from the defaults.
+  /// </remarks>
   TS4YSaveOptions = record
+    /// <summary>
+    /// Copy the existing local images next to the saved file and point the saved HTML to the copies.
+    /// </summary>
+    /// <remarks>
+    /// Ignored when AutoLoadLocalImages is False or when OnBeforeLoadImage refuses the image. Remote, data: and missing sources are left as they are.
+    /// </remarks>
     CopyImages: Boolean;
+    /// <summary>
+    /// Name of the subfolder that receives the copied images. Empty means the file name followed by _files.
+    /// </summary>
     ImagesFolderName: string;
+    /// <summary>
+    /// After saving, make the document itself point to the copies of the images.
+    /// </summary>
+    /// <remarks>
+    /// When False the document keeps pointing to the original images and DocumentPath does not move.
+    /// </remarks>
     UpdateModel: Boolean;
+    /// <summary>
+    /// Sets all options to their defaults (nothing is copied).
+    /// </summary>
     procedure Init;
   end;
 
@@ -78,19 +133,42 @@ type
   // Text style
   // ===========================================================================
 
+  /// <summary>
+  /// Character formatting of a run of text.
+  /// </summary>
+  /// <remarks>
+  /// Call Init to get the default style before setting individual fields.
+  /// </remarks>
   TS4YHTMLTextStyle = record
+    /// <summary>Font family. Empty means the default font of the editor.</summary>
     FontName: string;
+    /// <summary>Font size in points.</summary>
     FontSize: Single; // pt
+    /// <summary>Bold text.</summary>
     Bold: Boolean;
+    /// <summary>Italic text.</summary>
     Italic: Boolean;
+    /// <summary>Underlined text.</summary>
     Underline: Boolean;
+    /// <summary>Strikethrough text.</summary>
     StrikeOut: Boolean;
+    /// <summary>Superscript text.</summary>
     Superscript: Boolean;
+    /// <summary>Subscript text.</summary>
     Subscript: Boolean;
+    /// <summary>Text color. claNull means the default font color of the editor.</summary>
     Color: TAlphaColor;
+    /// <summary>Background (highlight) color behind the text. claNull means transparent.</summary>
     BackgroundColor: TAlphaColor; // claNull = transparent
+    /// <summary>Target of the hyperlink the text belongs to. Empty means the text is not a link.</summary>
     LinkURL: string;
+    /// <summary>Sets the style to the editor defaults: default font and size, no emphasis, no colors, no link.</summary>
     procedure Init;
+    /// <summary>
+    /// Compares two styles.
+    /// </summary>
+    /// <param name="AOther">The style to compare with.</param>
+    /// <returns>True when all fields are equal (font sizes within 0.01 pt).</returns>
     function EqualsFormat(const AOther: TS4YHTMLTextStyle): Boolean;
   end;
 
@@ -98,14 +176,28 @@ type
   // Placeholder generation style (passed from TS4YHTMLEditor to TS4YHTMLGenerator)
   // ===========================================================================
 
+  /// <summary>
+  /// Appearance of the placeholders in the generated HTML.
+  /// </summary>
+  /// <remarks>
+  /// Filled by the editor from PlaceholderAppearance and passed to the HTML generator.
+  /// </remarks>
   TS4YPlaceholderGeneratorStyle = record
+    /// <summary>Background color of the placeholder.</summary>
     FillColor: TAlphaColor;
+    /// <summary>Text color of the placeholder.</summary>
     TextColor: TAlphaColor;
+    /// <summary>Border color of the placeholder.</summary>
     BorderColor: TAlphaColor;
+    /// <summary>Corner radius of the placeholder, in pixels.</summary>
     BorderRadius: Single;
+    /// <summary>Left and right padding inside the placeholder, in pixels.</summary>
     HorizontalPadding: Single;
+    /// <summary>Top and bottom padding inside the placeholder, in pixels.</summary>
     VerticalPadding: Single;
+    /// <summary>Draw the placeholder text in bold.</summary>
     Bold: Boolean;
+    /// <summary>Clears all fields (colors claNull, sizes 0, not bold).</summary>
     procedure Init;
   end;
 
@@ -113,13 +205,40 @@ type
   // Caret position  (paragraph / run / char index)
   // ===========================================================================
 
+  /// <summary>
+  /// A position in the document: a character offset inside a run of a paragraph.
+  /// </summary>
+  /// <remarks>
+  /// It is the unit of the caret and of the selection. The position is relative to the run structure, which can change when adjacent runs with the same style are merged.
+  /// </remarks>
   TS4YDocumentPosition = record
+    /// <summary>Index of the paragraph. -1 means the position is not valid.</summary>
     ParagraphIndex: Integer; // -1 = invalid
+    /// <summary>Index of the run inside the paragraph.</summary>
     RunIndex: Integer;
+    /// <summary>Character offset inside the text of the run. 0 means before the first character.</summary>
     CharIndex: Integer; // 0 = before first char of run
+    /// <summary>
+    /// Returns a position that is not valid (paragraph index -1).
+    /// </summary>
     class function Invalid: TS4YDocumentPosition; static; inline;
+    /// <summary>
+    /// Creates a position.
+    /// </summary>
+    /// <param name="AParagraphIndex">Index of the paragraph.</param>
+    /// <param name="ARunIndex">Index of the run in the paragraph.</param>
+    /// <param name="ACharIndex">Character offset in the run.</param>
     class function At(AParagraphIndex, ARunIndex, ACharIndex: Integer): TS4YDocumentPosition; static; inline;
+    /// <summary>
+    /// Tells whether the position refers to a paragraph.
+    /// </summary>
+    /// <returns>True when ParagraphIndex is not negative.</returns>
     function IsValid: Boolean; inline;
+    /// <summary>
+    /// Compares two positions.
+    /// </summary>
+    /// <param name="AOther">The position to compare with.</param>
+    /// <returns>True when paragraph, run and character index are all equal.</returns>
     function Equals(const AOther: TS4YDocumentPosition): Boolean; inline;
   end;
 
@@ -127,34 +246,70 @@ type
   // Layout types  (produced by TS4YLayoutEngine)
   // ===========================================================================
 
+  /// <summary>
+  /// A piece of a line produced by the layout engine: a word, an image, a rule or a placeholder.
+  /// </summary>
+  /// <remarks>
+  /// Coordinates are in pixels, relative to the document (without scrolling). The layout is recalculated by the editor; applications normally do not use this type.
+  /// </remarks>
   TS4YLayoutFragment = record
+    /// <summary>Index of the paragraph that the fragment belongs to.</summary>
     ParagraphIndex: Integer;
+    /// <summary>Index of the run that the fragment belongs to. Negative for block-level images and rules.</summary>
     RunIndex: Integer;
+    /// <summary>First character of the fragment inside the text of the run (inclusive).</summary>
     CharStart: Integer; // inclusive, within Run.Text
+    /// <summary>End of the fragment inside the text of the run (exclusive).</summary>
     CharEnd: Integer;   // exclusive
+    /// <summary>Position of the top left corner of the fragment.</summary>
     X, Y: Single;
+    /// <summary>Size of the fragment.</summary>
     Width, Height: Single;
+    /// <summary>Distance from the top of the line box to the baseline.</summary>
     Ascent: Single;    // distance from top of line-box to baseline
+    /// <summary>Index of the line that holds the fragment.</summary>
     LineIndex: Integer;
+    /// <summary>The fragment is a trailing space that can be omitted at the end of a line.</summary>
     IsSpace: Boolean;        // trailing space that can be omitted at EOL
+    /// <summary>The fragment is a horizontal rule.</summary>
     IsHR: Boolean;
+    /// <summary>The fragment is an image.</summary>
     IsImage: Boolean;
+    /// <summary>The fragment is a placeholder chip (mirrors the run flag).</summary>
     IsPlaceholder: Boolean;  // mirrors Run.IsPlaceholder; drives chip rendering
   end;
 
+  /// <summary>
+  /// A line of text produced by the layout engine.
+  /// </summary>
+  /// <remarks>
+  /// The table cell fields are valid only for paragraphs of type btTableCell. Applications normally do not use this type.
+  /// </remarks>
   TS4YLayoutLine = record
+    /// <summary>Top of the line, relative to the document.</summary>
     Y: Single;
+    /// <summary>Height of the line box.</summary>
     Height: Single; // line-box height
+    /// <summary>Largest ascent among the fragments of the line.</summary>
     Ascent: Single; // max ascent in line
+    /// <summary>Index of the paragraph that the line belongs to.</summary>
     ParagraphIndex: Integer;
+    /// <summary>The line is the first of its paragraph.</summary>
     IsFirst: Boolean;
+    /// <summary>The line is the last of its paragraph.</summary>
     IsLast: Boolean;
+    /// <summary>Index of the first fragment of the line in the fragment array.</summary>
     FragmentStart: Integer; // index into FFrags array
+    /// <summary>Number of fragments in the line.</summary>
     FragmentCount: Integer;
     // Table cell geometry -- only valid when Para.BlockType = btTableCell
+    /// <summary>Left edge of the table cell.</summary>
     CellX: Single;    // left edge of this cell
+    /// <summary>Width of the table cell.</summary>
     CellWidth: Single;    // width of this cell
+    /// <summary>Height of the row of the table cell, used for the border rectangle.</summary>
     CellRowHeight: Single; // total height of this cell's row (for border rect)
+    /// <summary>Top of the row of the table cell, used for the border rectangle.</summary>
     CellRowY: Single; // top Y of this cell's row (for border rect)
   end;
 
@@ -162,31 +317,110 @@ type
   // Font size presets
   // ===========================================================================
 
+  /// <summary>A font size offered to the user, with its caption.</summary>
   TS4YFontSizePreset = record
+    /// <summary>Font size in points.</summary>
     Size: Single;
+    /// <summary>Text to show to the user for this size.</summary>
     Caption: string;
+    /// <summary>
+    /// Creates a preset.
+    /// </summary>
+    /// <param name="ASize">Font size in points.</param>
+    /// <param name="ACaption">Caption to show.</param>
     constructor Create(ASize: Single; const ACaption: string);
   end;
 
+/// <summary>
+/// Returns the standard font size presets, from very small to huge.
+/// </summary>
+/// <remarks>
+/// The captions are localizable resource strings.
+/// </remarks>
 function FontSizePresets: TArray<TS4YFontSizePreset>;
 
 // ===========================================================================
 // Helpers
 // ===========================================================================
 
+/// <summary>
+/// Makes a color darker.
+/// </summary>
+/// <param name="AColor">The color to darken.</param>
+/// <param name="AFactor">Multiplier of each color channel; values below 1 darken, values above 1 lighten.</param>
+/// <returns>The new color, fully opaque.</returns>
 function DarkenColor(AColor: TAlphaColor; AFactor: Single = 0.65): TAlphaColor;
+/// <summary>Removes leading and trailing white space from a string.</summary>
 function TrimS(const AText: string): string; inline;
+/// <summary>
+/// Case-insensitive test for the start of a string.
+/// </summary>
+/// <param name="AText">The text to examine.</param>
+/// <param name="APrefix">The expected beginning.</param>
+/// <returns>True when AText starts with APrefix, ignoring case.</returns>
 function StartsWithCI(const AText, APrefix: string): Boolean; inline;
 
 // Image source paths
+/// <summary>
+/// Converts a file: URL to a file system path.
+/// </summary>
+/// <param name="AUrl">A file: URL (file:///C:/dir/a%20b.png, UNC and localhost forms); any other text is returned unchanged.</param>
+/// <returns>The path, for example C:\dir\a b.png.</returns>
 function FileUrlToPath(const AUrl: string): string;
+/// <summary>
+/// Tells whether an image source is a relative file system path.
+/// </summary>
+/// <param name="ASource">The image source.</param>
+/// <returns>True for a relative path; False for URLs, absolute paths and empty text.</returns>
 function IsRelativeLocalPath(const ASource: string): Boolean;
+/// <summary>
+/// Tells whether an image source is a remote address.
+/// </summary>
+/// <param name="ASource">The image source.</param>
+/// <returns>True for http: and https: sources.</returns>
 function IsRemoteImageSource(const ASource: string): Boolean;
+/// <summary>
+/// Tells whether an image source is read from the file system.
+/// </summary>
+/// <param name="ASource">The image source.</param>
+/// <returns>True for file: URLs and for relative or absolute paths; False for data:, cid: and other schemes.</returns>
 function IsLocalImageSource(const ASource: string): Boolean;
+/// <summary>
+/// Finds the path or URL that an image source is read from.
+/// </summary>
+/// <param name="ASource">The image source as written in the document.</param>
+/// <param name="ADocumentPath">Folder of the document.</param>
+/// <param name="AMode">How relative paths are resolved.</param>
+/// <returns>The file path to read; URLs and absolute paths are not changed.</returns>
 function ResolveImagePath(const ASource, ADocumentPath: string; AMode: TS4YImagePathMode): string;
+/// <summary>
+/// Makes an image source relative to the document folder.
+/// </summary>
+/// <param name="ASource">The image source.</param>
+/// <param name="ADocumentPath">Folder of the document.</param>
+/// <returns>The path relative to the folder (with / separators) when the file is inside it or in a subfolder; otherwise the source unchanged.</returns>
 function MakeDocumentRelativePath(const ASource, ADocumentPath: string): string;
+/// <summary>
+/// Tells whether a path is inside a folder.
+/// </summary>
+/// <param name="APath">The path to test.</param>
+/// <param name="AFolder">The folder.</param>
+/// <returns>True when the path, made absolute and normalized, is in the folder or in one of its subfolders; False when either is empty.</returns>
+/// <remarks>
+/// Symbolic links are not resolved.
+/// </remarks>
 function IsPathInsideFolder(const APath, AFolder: string): Boolean;
+/// <summary>
+/// Converts a file system path to a file: URL.
+/// </summary>
+/// <param name="APath">An absolute path.</param>
+/// <returns>The URL, for example file:///C:/dir/a%20b.png.</returns>
 function PathToFileUrl(const APath: string): string;
+/// <summary>
+/// Makes a relative local image source absolute.
+/// </summary>
+/// <param name="ASource">The image source.</param>
+/// <returns>A file: URL resolved against the current directory when the source is a relative path; anything else unchanged.</returns>
 function ImageSourceToFileUrl(const ASource: string): string;
 
 implementation
