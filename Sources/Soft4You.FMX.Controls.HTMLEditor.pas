@@ -3173,19 +3173,16 @@ function TS4YHTMLEditor.FragmentIndexAt(AParagraphIndex, ARunIndex, ACharIndex: 
 begin
   for var I := 0 to High(FFrags) do
   begin
-    if FFrags[I].ParagraphIndex <> AParagraphIndex then
-      Continue;
-    if FFrags[I].IsImage or FFrags[I].IsHR then
+    if FFrags[I].ParagraphIndex = AParagraphIndex then
     begin
-      if FFrags[I].RunIndex < 0 then
-        Exit(I)
-      else if FFrags[I].RunIndex = ARunIndex then
-        Exit(I)
-      else
-        Continue;
+      if FFrags[I].IsImage or FFrags[I].IsHR then
+      begin
+        if (FFrags[I].RunIndex < 0) or (FFrags[I].RunIndex = ARunIndex) then
+          Exit(I);
+      end
+      else if (FFrags[I].RunIndex = ARunIndex) and (ACharIndex >= FFrags[I].CharStart) and (ACharIndex <= FFrags[I].CharEnd) then
+        Exit(I);
     end;
-    if (FFrags[I].RunIndex = ARunIndex) and (ACharIndex >= FFrags[I].CharStart) and (ACharIndex <= FFrags[I].CharEnd) then
-      Exit(I);
   end;
   Result := -1;
 end;
