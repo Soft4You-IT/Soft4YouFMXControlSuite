@@ -51,7 +51,7 @@ Points to know:
 
 ### `OnChange` means "the document changed", not "once per action"
 
-One user action can fire `OnChange` more than once. For example, inserting an image while some text is selected first deletes the selection (one event) and then inserts the image (a second event), and `ClearFormatting` followed by other calls fires once per call. Use `OnChange` as "something changed" (set a flag, schedule a refresh), never as a counter. Setting the content with `HTML`, `FullHTML` or `LoadFromFile` does not fire it.
+One user action can fire `OnChange` more than once. For example, inserting an image while some text is selected first deletes the selection (one event) and then inserts the image (a second event). Use `OnChange` as "something changed" (set a flag, schedule a refresh), never as a counter. Setting the content with `HTML`, `FullHTML` or `LoadFromFile` does not fire it.
 
 ### Drawing events run while painting
 
@@ -82,7 +82,7 @@ One user action can fire `OnChange` more than once. For example, inserting an im
 
 Selection, copy and clicking links still work.
 
-**What it does not block:** the methods that your own code calls. As with the `Lines` of a `TMemo`, `ReadOnly` limits the user, not the program: `InsertText`, `InsertHTML`, `ToggleBold`, `Undo` and the other editing methods still change a read-only document. This is deliberate, so that an application can fill or update a view that the user cannot edit. If you wire such methods to buttons, disable the buttons yourself while the control is read-only.
+**What it does not block:** the methods that your own code calls. As with the `Lines` of a `TMemo`, `ReadOnly` limits the user, not the program: `InsertText`, `InsertHTML`, `ToggleBold`, `Undo` and the other editing methods still change a read-only document. This is deliberate, so that an application can fill or update a view that the user cannot edit. If you wire such methods to buttons, disable the buttons yourself while the control is read-only. The Demo does this: the "Read only" switch in its status bar sets `ReadOnly` and disables the toolbar commands that edit the document (see `UpdateReadOnlyControls` in `Demo\MainFrm.pas`).
 
 ---
 

@@ -496,7 +496,7 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 
 ## Demo
 
-The `Demo` folder contains a sample FMX application (`Demo\S4YHTMLEditorDemo.dproj`, also part of the project group in `Packages`) with a complete toolbar, emoji picker, placeholder and color dialogs. Install the component package first.
+The `Demo` folder contains a sample FMX application (`Demo\S4YHTMLEditorDemo.dproj`, also part of the project group in `Packages`) with a complete toolbar, emoji picker, placeholder and color dialogs, and a "Read only" switch in the status bar that also enables and disables the toolbar commands. Install the component package first.
 
 ---
 
