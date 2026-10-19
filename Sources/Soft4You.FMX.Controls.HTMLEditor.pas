@@ -3682,37 +3682,52 @@ var
   LCurrent: TS4YDocumentPosition;
   LParagraph: TS4YHTMLParagraph;
   LNext: TS4YDocumentPosition;
+  LKeepScanning: Boolean;
 begin
   LCurrent := APosition;
-  while PositionCompare(LCurrent, DocumentEnd) < 0 do
+  LKeepScanning := True;
+  while LKeepScanning and (PositionCompare(LCurrent, DocumentEnd) < 0) do
   begin
     LNext := NextDocumentPosition(LCurrent);
     if LNext.Equals(LCurrent) then
-      Break;
-    LParagraph := FDocument.Paragraphs[LCurrent.ParagraphIndex];
-    if (LCurrent.RunIndex < LParagraph.Runs.Count) and (LCurrent.CharIndex < LParagraph.Runs[LCurrent.RunIndex].Text.Length) then
     begin
-      if LParagraph.Runs[LCurrent.RunIndex].Text[Low(string) + LCurrent.CharIndex] = ' ' then
-        Break;
+      LKeepScanning := False;
     end
     else
-      Break;
-    LCurrent := LNext;
+    begin
+      LParagraph := FDocument.Paragraphs[LCurrent.ParagraphIndex];
+      if (LCurrent.RunIndex < LParagraph.Runs.Count) and (LCurrent.CharIndex < LParagraph.Runs[LCurrent.RunIndex].Text.Length) and
+         (LParagraph.Runs[LCurrent.RunIndex].Text[Low(string) + LCurrent.CharIndex] <> ' ') then
+      begin
+        LCurrent := LNext;
+      end
+      else
+      begin
+        LKeepScanning := False;
+      end;
+    end;
   end;
-  while PositionCompare(LCurrent, DocumentEnd) < 0 do
+  LKeepScanning := True;
+  while LKeepScanning and (PositionCompare(LCurrent, DocumentEnd) < 0) do
   begin
     LNext := NextDocumentPosition(LCurrent);
     if LNext.Equals(LCurrent) then
-      Break;
-    LParagraph := FDocument.Paragraphs[LCurrent.ParagraphIndex];
-    if (LCurrent.RunIndex < LParagraph.Runs.Count) and (LCurrent.CharIndex < LParagraph.Runs[LCurrent.RunIndex].Text.Length) then
     begin
-      if LParagraph.Runs[LCurrent.RunIndex].Text[Low(string) + LCurrent.CharIndex] <> ' ' then
-        Break;
+      LKeepScanning := False;
     end
     else
-      Break;
-    LCurrent := LNext;
+    begin
+      LParagraph := FDocument.Paragraphs[LCurrent.ParagraphIndex];
+      if (LCurrent.RunIndex < LParagraph.Runs.Count) and (LCurrent.CharIndex < LParagraph.Runs[LCurrent.RunIndex].Text.Length) and
+         (LParagraph.Runs[LCurrent.RunIndex].Text[Low(string) + LCurrent.CharIndex] = ' ') then
+      begin
+        LCurrent := LNext;
+      end
+      else
+      begin
+        LKeepScanning := False;
+      end;
+    end;
   end;
   Result := LCurrent;
 end;
@@ -3723,9 +3738,11 @@ var
   LPrevious: TS4YDocumentPosition;
   LParagraph: TS4YHTMLParagraph;
   LCharacter: String;
+  LKeepScanning: Boolean;
 begin
   LCurrent := PreviousDocumentPosition(APosition);
-  while PositionCompare(LCurrent, DocumentStart) > 0 do
+  LKeepScanning := True;
+  while LKeepScanning and (PositionCompare(LCurrent, DocumentStart) > 0) do
   begin
     LPrevious := PreviousDocumentPosition(LCurrent);
     LParagraph := FDocument.Paragraphs[LCurrent.ParagraphIndex];
@@ -3733,14 +3750,22 @@ begin
     then
     begin
       LCharacter := LParagraph.Runs[LCurrent.RunIndex].Text[Low(string) + LCurrent.CharIndex - 1];
-      if LCharacter <> ' ' then
-        Break;
+      if LCharacter = ' ' then
+      begin
+        LCurrent := LPrevious;
+      end
+      else
+      begin
+        LKeepScanning := False;
+      end;
     end
     else
-      Break;
-    LCurrent := LPrevious;
+    begin
+      LKeepScanning := False;
+    end;
   end;
-  while PositionCompare(LCurrent, DocumentStart) > 0 do
+  LKeepScanning := True;
+  while LKeepScanning and (PositionCompare(LCurrent, DocumentStart) > 0) do
   begin
     LPrevious := PreviousDocumentPosition(LCurrent);
     LParagraph := FDocument.Paragraphs[LPrevious.ParagraphIndex];
@@ -3749,11 +3774,18 @@ begin
     begin
       LCharacter := LParagraph.Runs[LPrevious.RunIndex].Text[Low(string) + LPrevious.CharIndex];
       if LCharacter = ' ' then
-        Break;
+      begin
+        LKeepScanning := False;
+      end
+      else
+      begin
+        LCurrent := LPrevious;
+      end;
     end
     else
-      Break;
-    LCurrent := LPrevious;
+    begin
+      LKeepScanning := False;
+    end;
   end;
   Result := LCurrent;
 end;
