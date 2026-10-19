@@ -38,6 +38,12 @@ Original author: **Carlo Marona (Soft4You)** — project started in 2026.
 
 ---
 
+## Code documentation
+
+The public API (the `TS4YHTMLEditor` control, its events and the types in `Soft4You.HTML.Types`) is documented with DocXML comments (`/// <summary>`), which Delphi shows as Help Insight tooltips in the code editor. For behaviour and warnings that do not fit in a tooltip, read the [Developer Guide](Docs/DeveloperGuide.md).
+
+---
+
 ## Architecture
 
 | Layer | Class | Unit |
@@ -244,7 +250,7 @@ end;
 | `InsertText(S)` | Insert plain text at caret |
 | `InsertHTML(HTML)` | Parse and insert an HTML fragment at caret |
 | `InsertHorizontalRule([Color, Thickness])` | Insert a horizontal rule |
-| `InsertImage(Src[, Width, Height, Alt])` | Insert a block-level image |
+| `InsertImage(Src[, Width, Height, Alt])` | Insert an image at the caret (currently inserted as an inline run, the same as `InsertInlineImage`) |
 | `InsertInlineImage(Src[, Width, Height, Alt])` | Insert an inline image (as a run inside a paragraph) |
 | `UpdateImage(Src[, Width, Height, Alt])` | Replace the image under the caret (use `State.IsImage` to check) |
 | `InsertTable([Rows, Cols])` | Insert an empty table (default 2×2) |
