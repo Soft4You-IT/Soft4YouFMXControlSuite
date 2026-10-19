@@ -3898,6 +3898,7 @@ var
   LRun: TS4YHTMLRun;
   LAnchor: TS4YDocumentPosition;
   LPreviousPosition: TS4YDocumentPosition;
+  LKeepScanning: Boolean;
 begin
   if not APosition.IsValid or (APosition.ParagraphIndex >= FDocument.Paragraphs.Count) then
     Exit;
@@ -3931,22 +3932,29 @@ begin
   end;
 
   LWordStart := LAnchor;
-  while True do
+  LKeepScanning := True;
+  while LKeepScanning do
   begin
     LCurrent := PreviousDocumentPosition(LWordStart);
-    if LCurrent.Equals(LWordStart) then
-      Break;
-    if (LCurrent.ParagraphIndex <> APosition.ParagraphIndex) or not IsWordChar(CharAtPosition(LCurrent)) then
-      Break;
-    LWordStart := LCurrent;
+    if LCurrent.Equals(LWordStart) or
+       (LCurrent.ParagraphIndex <> APosition.ParagraphIndex) or
+       not IsWordChar(CharAtPosition(LCurrent)) then
+    begin
+      LKeepScanning := False;
+    end
+    else
+    begin
+      LWordStart := LCurrent;
+    end;
   end;
 
   LWordEnd := LAnchor;
-  while IsWordChar(CharAtPosition(LWordEnd)) do
+  LKeepScanning := True;
+  while LKeepScanning and IsWordChar(CharAtPosition(LWordEnd)) do
   begin
     LWordEnd := NextDocumentPosition(LWordEnd);
     if LWordEnd.ParagraphIndex <> APosition.ParagraphIndex then
-      Break;
+      LKeepScanning := False;
   end;
 
   if PositionCompare(LWordStart, LWordEnd) = 0 then
