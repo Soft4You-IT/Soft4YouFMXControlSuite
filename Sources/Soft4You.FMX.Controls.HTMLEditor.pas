@@ -6138,6 +6138,7 @@ begin
   FHasSelection := FSelectionStart.IsValid and not FSelectionStart.Equals(FSelectionEnd);
 
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6306,6 +6307,7 @@ begin
   FCaretPosition  := AbsCharToDocumentPosition(FCaretPosition.ParagraphIndex,  LCaretAbsChar,    LCaretAbsChar = LSelectionStartAbsChar);
   FHasSelection := FSelectionStart.IsValid and not FSelectionStart.Equals(FSelectionEnd);
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6325,6 +6327,7 @@ begin
   else if FCaretPosition.IsValid and (FCaretPosition.ParagraphIndex < FDocument.Paragraphs.Count) then
     FDocument.Paragraphs[FCaretPosition.ParagraphIndex].Alignment := haLeft;
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6344,6 +6347,7 @@ begin
   else if FCaretPosition.IsValid and (FCaretPosition.ParagraphIndex < FDocument.Paragraphs.Count) then
     FDocument.Paragraphs[FCaretPosition.ParagraphIndex].Alignment := haCenter;
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6370,6 +6374,7 @@ begin
   for var I := LSelectionStart.ParagraphIndex to Min(LSelectionEnd.ParagraphIndex, FDocument.Paragraphs.Count - 1) do
     FDocument.Paragraphs[I].BlockType := C_PARA_BLOCK_TYPES[AFormat];
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6389,6 +6394,7 @@ begin
   else if FCaretPosition.IsValid and (FCaretPosition.ParagraphIndex < FDocument.Paragraphs.Count) then
     FDocument.Paragraphs[FCaretPosition.ParagraphIndex].Alignment := haRight;
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6408,6 +6414,7 @@ begin
   else if FCaretPosition.IsValid and (FCaretPosition.ParagraphIndex < FDocument.Paragraphs.Count) then
     FDocument.Paragraphs[FCaretPosition.ParagraphIndex].Alignment := haJustify;
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6435,6 +6442,7 @@ begin
   for var I := LSelectionStart.ParagraphIndex to Min(LSelectionEnd.ParagraphIndex, FDocument.Paragraphs.Count - 1) do
     FDocument.Paragraphs[I].BlockType := C_BLOCK_TYPES[LLevel];
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6495,6 +6503,7 @@ begin
     RenumberListBlock(LFirst, LLast);
   end;
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6554,6 +6563,7 @@ begin
       end;
   end;
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6584,6 +6594,7 @@ begin
     Inc(LLast);
   RenumberListBlock(LFirst, LLast);
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6614,6 +6625,7 @@ begin
     Inc(LLast);
   RenumberListBlock(LFirst, LLast);
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -7183,6 +7195,7 @@ begin
       SaveUndo;
       LRun.Style := LStyle;
       DoLayout;
+      DoChanged;
       InvalidateRender;
       DoNotifyState;
     end;
