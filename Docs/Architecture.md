@@ -1,4 +1,4 @@
-# TNativeHTMLEditor — Architettura
+# TS4YHTMLEditor — Architettura
 
 ## Pipeline generale
 
@@ -115,26 +115,48 @@ end;
 
 ## 3. Rendering (`Paint`)
 
-`Paint` viene chiamato da FMX ogni volta che il controllo deve essere ridisegnato. La sequenza è fissa:
+`Paint` non disegna direttamente a schermo: disegna in una **cache** (`FRenderCache`, un `TBitmap` grande come il controllo) e poi copia la cache sul canvas. La cache viene ridisegnata solo quando `FRenderDirty` e' `True` (`InvalidateRender`), oppure se cambiano dimensioni o opacita'; altrimenti `Paint` si limita a copiare il bitmap.
+
+Il ridisegno della cache (`RenderTo`, procedura locale di `Paint`) segue questa sequenza:
 
 ```
-PaintBG        → riempie il rettangolo di sfondo (con BackgroundColor)
-PaintSelection → disegna i rettangoli blu della selezione
-loop FFrags    → PaintFrag per ogni fragment (testo)
-loop Paragraphs → list markers (bullet / numero per <ul>/<ol>)
-PaintCaret     → disegna la linea verticale del cursore
-PaintBorder    → disegna il bordo del controllo
+IntersectClipRect   -> area interna, scrollbar esclusa
+PaintBackground     -> riempie lo sfondo (BackgroundColor)
+PaintTableCellBorders
+loop FFrags         -> PaintFragment / PaintImage / PaintImageRun / PaintHorizontalRule
+                       (solo i frammenti vicini all'area visibile, vedi sotto)
+PaintSelection      -> rettangoli della selezione
+marcatori di lista  -> bullet / numero per i paragrafi btLI visibili
+PaintCaret          -> linea verticale (solo se FCaretOn)
+PaintBorder         -> bordo del controllo (fuori dal clip)
 ```
 
-**`PaintFrag`** crea un `TTextLayout` FMX per ogni fragment, imposta font/dimensione/stile, lo posiziona a `ContentLeft + F.X, ContentTop + F.Y`, e chiama `RenderLayout`. Il `ContentTop` incorpora lo scroll: `EDITOR_PADDING - FScrollY`.
+### Disegno limitato all'area visibile (culling)
 
-**`PaintCaret`** disegna semplicemente una linea verticale nelle coordinate `FCaretScreenX, FCaretScreenY` con altezza `FCaretScreenH`. Disegna **solo se `FCaretOn = True`**.
+Il costo di un frame deve seguire la finestra, non la lunghezza del documento: ogni frammento di testo costruisce un `TTextLayout`, che e' l'operazione costosa. Per questo il loop su `FFrags` disegna un frammento solo se il suo intervallo verticale interseca l'area visibile estesa di `C_RENDER_CULL_MARGIN` (64 px) sopra e sotto:
 
-**Blink del cursore:** Un `TTimer` con intervallo 530ms chiama `OnCaretTick`, che alterna `FCaretOn` tra True e False e chiama `Repaint`. L'effetto lampeggio è interamente gestito con questo toggle + ridisegno.
+```pascal
+LCullTop := -C_RENDER_CULL_MARGIN - ContentTop;
+LCullBottom := Height + C_RENDER_CULL_MARGIN - ContentTop;
+if (FFrags[I].Y + FFrags[I].Height >= LCullTop) and (FFrags[I].Y <= LCullBottom) then
+  // disegna
+```
+
+`ContentTop` incorpora lo scroll, quindi porta le coordinate documento nello spazio dello schermo. Il margine esiste perche' un frammento puo' disegnare fuori dal proprio riquadro (apice/pedice, sottolineatura, sfondo): deve essere maggiore di cio' che un frammento disegna fuori da se'.
+
+**Vincolo da mantenere:** non tornare a disegnare tutti i frammenti. Il commento `PERFORMANCE-CRITICAL` nel codice lo ricorda. Effetto per chi usa il controllo: `OnDrawListMarker`, `OnGetListMarker` e gli eventi di disegno dei segnaposto scattano solo per gli elementi vicini all'area visibile (vedi `Docs/DeveloperGuide.md`).
+
+`PaintSelection` scorre ancora tutti i frammenti; non e' potato.
+
+**`PaintFragment`** crea un `TTextLayout` FMX, imposta font/dimensione/stile, lo posiziona a `ContentLeft + F.X, ContentTop + F.Y` e chiama `RenderLayout`. `ContentTop` e' `EDITOR_PADDING - FScrollY`.
+
+**`PaintCaret`** disegna una linea verticale a `FCaretScreenX, FCaretScreenY`, altezza `FCaretScreenH`, **solo se `FCaretOn = True`**. Il caret e' dentro la cache: ogni spostamento e ogni lampeggio ridisegnano la cache (ora a costo basso grazie al culling). Disegnarlo sopra la cache, ridisegnando questa solo quando cambiano contenuto, selezione o scroll, e' un'ottimizzazione possibile ma non realizzata.
+
+**Blink del cursore:** un `TTimer` con intervallo 530 ms (`C_EDITOR_CARET_BLINK`) chiama `OnCaretTick`, che alterna `FCaretOn` e chiama `InvalidateRender`. Il timer e' attivo solo quando il controllo ha il focus (`DoEnter`/`DoExit`) e mai in design time.
 
 ### Rendering dei marcatori di lista
 
-Dopo il loop dei fragment, un secondo loop sui paragrafi cerca quelli con `BlockType = btLI`. Per ciascuno, il codice trova il primo fragment di quel paragrafo per ricavare la posizione Y e poi disegna il marcatore nell'area a sinistra del testo (`X = FragX - C_EDITOR_LIST_INDENT`).
+Dopo il loop dei fragment, un secondo loop sui paragrafi cerca quelli con `BlockType = btLI`. Il primo fragment di ogni paragrafo si ottiene da una tabella (`LFirstFragmentOfParagraph`) costruita in un solo passaggio scorrendo `FFrags` dall'ultimo al primo (cosi' resta l'indice piu' basso per ogni paragrafo): senza la tabella il costo sarebbe item x frammenti. Il marcatore si disegna solo se quel fragment e' nell'area visibile estesa, nell'area a sinistra del testo (`X = FragX - C_EDITOR_LIST_INDENT`).
 
 **Priorità di rendering del bullet** (unordered list):
 
@@ -171,7 +193,7 @@ KeyDown → InsertChar(Ch)
 | Tasto | Azione |
 |---|---|
 | `vkBack` | `DeleteBack`: cancella il char prima del cursore; se a inizio paragrafo, fonde con il paragrafo precedente (`MergeWithPrev`) |
-| `vkDelete` | `DeleteFwd`: cancella il char dopo il cursore |
+| `vkDelete` | `DeleteForward`: cancella il char dopo il cursore |
 | `vkReturn` | `InsertParagraphBreak`: divide il paragrafo corrente in due |
 | `←→↑↓` | `SetCaretPosition` con `PreviousDocumentPosition/NextDocumentPosition/LineAbove/LineBelow` |
 | `Home/End` | inizio/fine riga o documento (con Ctrl) |
@@ -228,7 +250,7 @@ La cache è esposta in sola lettura come `property Placeholders: TList<TS4YHTMLR
 | `SetHTML` | `RebuildPlaceholderList` (ricostruzione completa) |
 | `InsertHTML` | `RebuildPlaceholderList` |
 | `InsertPlaceholder` | `FPlaceholders.Add(LRun)` (incrementale) |
-| `DeleteBack` / `DeleteFwd` su placeholder | `FPlaceholders.Remove(LRun)` prima della rimozione del run |
+| `DeleteBack` / `DeleteForward` su placeholder | `FPlaceholders.Remove(LRun)` prima della rimozione del run |
 | `DeleteSel` | `RebuildPlaceholderList` (operazione complessa) |
 | `Undo` / `Redo` | `RebuildPlaceholderList` dopo il ripristino del documento |
 
