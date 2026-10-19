@@ -116,6 +116,9 @@ type
     Line11: TLine;
     btnSuperScript: TSpeedButton;
     btnSubscript: TSpeedButton;
+    pnlStatusBarReadOnly: TPanel;
+    swReadOnly: TSwitch;
+    lblReadOnly: TLabel;
     procedure HTMLEditorLinkClick(Sender: TObject; const URL, LinkText: string);
     procedure TabControl1Change(Sender: TObject);
     procedure actToggleOrderedListExecute(Sender: TObject);
@@ -153,6 +156,7 @@ type
     procedure actLoadRemoteImagesExecute(Sender: TObject);
     procedure btnSuperScriptClick(Sender: TObject);
     procedure btnSubscriptClick(Sender: TObject);
+    procedure swReadOnlySwitch(Sender: TObject);
   private
     FUpdatingUI: Boolean;
     procedure ApplyColorButtonTextStyle(const AButton: TSpeedButton);
@@ -162,6 +166,7 @@ type
     procedure SetParagraphFormat(const AIndex: integer);
     function ShowPlaceholderDlg(var ADisplayedName, APlaceholderName: string): boolean;
     procedure UpdateEditorControls(const AState: TS4YEditorState);
+    procedure UpdateReadOnlyControls;
     procedure UpdateStatusBar;
   public
     constructor Create(AOwner: TComponent); override;
@@ -308,6 +313,8 @@ begin
   lblStatusBarCount.Text := EmptyStr;
   lblStatusBarPosition.Text := EmptyStr;
   TabControl1.ActiveTab := tabEditor;
+  swReadOnly.IsChecked := HTMLEditor.ReadOnly;
+  UpdateReadOnlyControls;
 
   ApplyColorButtonTextStyle(btnFontColor);
   ApplyColorButtonTextStyle(btnBackgroundColor);
@@ -564,12 +571,51 @@ begin
     btnAlignCenter.IsPressed := AState.Alignment = haCenter;
     btnAlignRight.IsPressed := AState.Alignment = haRight;
     btnAlignJustify.IsPressed := AState.Alignment = haJustify;
-    btnOutdent.Enabled := AState.CanOutdent;
+    btnOutdent.Enabled := AState.CanOutdent and not HTMLEditor.ReadOnly;
     shapeFontColor.Fill.Color := AState.FontColor;
     shapeBackgroundColor.Fill.Color := AState.BackgroundColor;
   finally
     FUpdatingUI := False;
   end;
+end;
+
+procedure TfrmMain.swReadOnlySwitch(Sender: TObject);
+begin
+  HTMLEditor.ReadOnly := swReadOnly.IsChecked;
+  UpdateReadOnlyControls;
+  HTMLEditor.SetFocus;
+end;
+
+procedure TfrmMain.UpdateReadOnlyControls;
+var
+  LEditable: Boolean;
+begin
+  // Find, load and save stay available: they do not edit the open document by hand
+  LEditable := not HTMLEditor.ReadOnly;
+  cbParagraphStyle.Enabled := LEditable;
+  btnToggleBold.Enabled := LEditable;
+  btnToggleItalic.Enabled := LEditable;
+  btnToggleUnderline.Enabled := LEditable;
+  btnToggleStrikeOut.Enabled := LEditable;
+  btnSuperscript.Enabled := LEditable;
+  btnSubscript.Enabled := LEditable;
+  btnToggleUnorderedList.Enabled := LEditable;
+  btnToggleOrderedList.Enabled := LEditable;
+  btnClearFormatting.Enabled := LEditable;
+  btnIndent.Enabled := LEditable;
+  btnOutdent.Enabled := LEditable and HTMLEditor.State.CanOutdent;
+  btnAlignLeft.Enabled := LEditable;
+  btnAlignCenter.Enabled := LEditable;
+  btnAlignRight.Enabled := LEditable;
+  btnAlignJustify.Enabled := LEditable;
+  btnFontColor.Enabled := LEditable;
+  btnBackgroundColor.Enabled := LEditable;
+  btnDecreaseFontSize.Enabled := LEditable;
+  btnIncreaseFontSize.Enabled := LEditable;
+  btnTable.Enabled := LEditable;
+  btnImage.Enabled := LEditable;
+  btnInsertEmoji.Enabled := LEditable;
+  btnInsertPlaceholder.Enabled := LEditable;
 end;
 
 procedure TfrmMain.UpdateStatusBar;
