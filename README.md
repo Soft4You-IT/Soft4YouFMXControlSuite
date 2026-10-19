@@ -13,7 +13,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 | `Sources` | All component units (`.pas`) |
 | `Packages` | Runtime and design-time packages, project group |
 | `Demo` | Sample FMX application |
-| `Docs` | Additional documentation (`Architecture.md`) |
+| `Docs` | Additional documentation: [`DeveloperGuide.md`](Docs/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals, in Italian) |
 
 ---
 
@@ -66,6 +66,8 @@ Original author: **Carlo Marona (Soft4You)** — project started in 2026.
 ---
 
 ## Quick Start
+
+For how the control behaves, when events fire and what to be careful about, read the [Developer Guide](Docs/DeveloperGuide.md).
 
 ```delphi
 uses
@@ -147,6 +149,7 @@ end;
 | `BackgroundColor` | `TAlphaColor` | `claWhite` | Editor canvas background color |
 | `DocumentPath` | `string` | `''` | Folder that relative image paths are resolved against when `ImagePathMode = ipmDocument`. Set by `LoadFromFile`; see [Images and files](#images-and-files) |
 | `Font` | `TFont` | platform default | Default font for new text |
+| `FontColor` | `TAlphaColor` | `claBlack` | Default text color, used where a run has no color of its own |
 | `ImagePathMode` | `TS4YImagePathMode` | `ipmApplication` | How relative local image paths are resolved: `ipmApplication` (process working directory) or `ipmDocument` (relative to `DocumentPath`) |
 | `Language` | `string` | `''` | Document language attribute (used in `FullHTML` export) |
 | `LineSpacing` | `Single` | `1.0` | Line-height multiplier (1.0 = natural height, 1.5 = 1.5× line spacing) |
@@ -156,7 +159,7 @@ end;
 | `PlaceholderPrefix` | `string` | `''` | Prefix that identifies a placeholder run in raw text |
 | `PlaceholderSuffix` | `string` | `''` | Suffix that identifies a placeholder run in raw text |
 | `PrettyHTML` | `Boolean` | `False` | Emit indented HTML from the generator |
-| `ReadOnly` | `Boolean` | `False` | Disables all editing; selection and link clicks still work |
+| `ReadOnly` | `Boolean` | `False` | Blocks typing, deleting, `Enter` and paste; selection, copy and link clicks still work. It does not block the editing methods called from code or the `Ctrl+B/I/U/X` shortcuts; see the [Developer Guide](Docs/DeveloperGuide.md#4-read-only-mode) |
 | `ShowBorder` | `Boolean` | `True` | Draws a 1px border around the control |
 | `Title` | `string` | `''` | Document title (used in `FullHTML` export) |
 
@@ -310,10 +313,10 @@ Search highlights the match via the normal selection. Each successive `FindNext`
 | Event | Signature | Description |
 |---|---|---|
 | `OnBeforeLoadImage` | `procedure(Sender; const ASource: string; AContext: TS4YImageLoadContext; var Allow: Boolean)` | Fired before an image is read or downloaded; set `Allow=False` to refuse it. `OnLoadImage` still fires with a `nil` bitmap, so it can provide a substitute; if still `nil` the image is drawn as "not found". Also consulted (context `ilcSave`) before `SaveToFile` copies an image |
-| `OnChange` | `TNotifyEvent` | Fired after every content change |
-| `OnDrawListMarker` | `procedure(Sender; Canvas; const Bounds; IndentLevel: Integer; var Handled)` | Custom drawing of a list bullet; set `Handled=True` to suppress default rendering |
-| `OnDrawPlaceholder` | `procedure(Sender; Canvas; const Bounds; const RawText; var Handled)` | Custom rendering of placeholder chips |
-| `OnGetListMarker` | `procedure(Sender; IndentLevel: Integer; var Marker: string; var Handled)` | Return a text character (e.g. `•`, `◦`) to use as bullet; takes priority over `OnDrawListMarker` |
+| `OnChange` | `TNotifyEvent` | Fired after edits to the text (typing, deleting, inserting, paste, undo/redo, replace). Not fired after formatting-only changes, nor after `HTML` / `FullHTML` / `LoadFromFile` set the content |
+| `OnDrawListMarker` | `procedure(Sender; Canvas; const Bounds; IndentLevel: Integer; var Handled)` | Custom drawing of a list bullet; set `Handled=True` to suppress default rendering. Called only for items near the visible area, and again at every redraw |
+| `OnDrawPlaceholder` | `procedure(Sender; Canvas; const Bounds; const RawText; var Handled)` | Custom rendering of placeholder chips. Called only for chips near the visible area, and again at every redraw |
+| `OnGetListMarker` | `procedure(Sender; IndentLevel: Integer; var Marker: string; var Handled)` | Return a text character (e.g. `•`, `◦`) to use as bullet; takes priority over `OnDrawListMarker`. Same calling rules as `OnDrawListMarker` |
 | `OnGetPlaceholderLabel` | `procedure(Sender; const RawText: string; var DisplayLabel: string)` | Map raw placeholder text to a display label |
 | `OnLinkClick` | `procedure(Sender; const URL, LinkText: string)` | User clicked a hyperlink |
 | `OnLinkHover` | `procedure(Sender; const URL: string; var Cursor: TCursor)` | Mouse entered/left a link |
@@ -471,7 +474,8 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 ## Performance Notes
 
 - **Layout cache**: `TS4YLayoutEngine` caches text measurements (`MeasureStr`) in a `TDictionary`. The cache is cleared on every `SetHTML` call. Subsequent layouts (resize, keypress) are near-instant for typical documents.
-- **Render cache**: the control renders to an off-screen `TBitmap` and blits it to the canvas on FMX-initiated repaints. Only changes that affect visual output trigger a re-render.
+- **Render cache**: the control renders to an off-screen `TBitmap` and blits it to the canvas on FMX-initiated repaints. Only changes that affect visual output trigger a re-render. The caret is drawn inside the cache, so each caret move and blink re-renders it.
+- **Visible-area painting**: a re-render draws only the fragments, images, rules and list markers within 64 px of the visible area, so the cost of a frame follows the window size and not the document length. Consequently the list-marker and placeholder drawing events are not called for items far out of view.
 - **Emoji / color fonts**: the first `SetHTML` call on a document containing emoji is slower due to DirectWrite color-font fallback (Windows). Subsequent layout operations on the same document are fast thanks to the measurement cache.
 - **Image cache**: images are loaded once per `src` value and cached in an internal `TObjectDictionary`. Orphaned entries (deleted images) are retained to support undo and shared `src` values; the cache is cleared on `SetHTML`, when `ImagePathMode` or `DocumentPath` change, or on destruction.
 - **Placeholder cache**: `FPlaceholders: TList<TS4YHTMLRun>` is kept in sync incrementally on every edit. Accessing `Editor.Placeholders` is O(1) — no document scan needed.
@@ -481,6 +485,7 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 ## Known Limitations
 
 - **Image security**: the editor reads local files and `file:` URLs named by the HTML without any check. When displaying content from untrusted sources (for example e-mail), set `LocalImageAccess` to `liaDocumentFolder` (or `AutoLoadLocalImages` to `False`) and filter with `OnBeforeLoadImage`.
+- **Read-only mode**: `ReadOnly` guards typing and paste only; see the [Developer Guide](Docs/DeveloperGuide.md#4-read-only-mode).
 - **Tables**: `colspan` and `rowspan` are ignored on import, so merged cells lose their structure. Each cell is a single paragraph; `Enter` inserts a line break.
 - **IME**: input composition (CJK pre-edit text) is not supported, so the control is not usable with Chinese, Japanese or Korean input methods.
 - **Accessibility**: no VoiceOver / TalkBack support.
