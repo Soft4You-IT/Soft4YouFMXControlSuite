@@ -4387,31 +4387,37 @@ begin
         end;
       'B':
         begin
-          ToggleBold;
+          // A read-only control ignores the shortcuts that change the document
+          if not FReadOnly then
+            ToggleBold;
           Key := 0;
           Exit;
         end;
       'I':
         begin
-          ToggleItalic;
+          if not FReadOnly then
+            ToggleItalic;
           Key := 0;
           Exit;
         end;
       'U':
         begin
-          ToggleUnderline;
+          if not FReadOnly then
+            ToggleUnderline;
           Key := 0;
           Exit;
         end;
       'Z':
         begin
-          Undo;
+          if not FReadOnly then
+            Undo;
           Key := 0;
           Exit;
         end;
       'Y':
         begin
-          Redo;
+          if not FReadOnly then
+            Redo;
           Key := 0;
           Exit;
         end;
@@ -4423,7 +4429,8 @@ begin
         end;
       'X':
         begin
-          Cut;
+          if not FReadOnly then
+            Cut;
           Key := 0;
           Exit;
         end;
@@ -5016,6 +5023,7 @@ begin
     Exit;
   if PositionCompare(FCaretPosition, DocumentEnd) = 0 then
     Exit;
+  LCaretAbsChar := 0;
   LRemapCaret := False;
 
   LParagraph := FDocument.Paragraphs[FCaretPosition.ParagraphIndex];
@@ -6131,6 +6139,7 @@ begin
   FHasSelection := FSelectionStart.IsValid and not FSelectionStart.Equals(FSelectionEnd);
 
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6299,6 +6308,7 @@ begin
   FCaretPosition  := AbsCharToDocumentPosition(FCaretPosition.ParagraphIndex,  LCaretAbsChar,    LCaretAbsChar = LSelectionStartAbsChar);
   FHasSelection := FSelectionStart.IsValid and not FSelectionStart.Equals(FSelectionEnd);
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6318,6 +6328,7 @@ begin
   else if FCaretPosition.IsValid and (FCaretPosition.ParagraphIndex < FDocument.Paragraphs.Count) then
     FDocument.Paragraphs[FCaretPosition.ParagraphIndex].Alignment := haLeft;
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6337,6 +6348,7 @@ begin
   else if FCaretPosition.IsValid and (FCaretPosition.ParagraphIndex < FDocument.Paragraphs.Count) then
     FDocument.Paragraphs[FCaretPosition.ParagraphIndex].Alignment := haCenter;
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6363,6 +6375,7 @@ begin
   for var I := LSelectionStart.ParagraphIndex to Min(LSelectionEnd.ParagraphIndex, FDocument.Paragraphs.Count - 1) do
     FDocument.Paragraphs[I].BlockType := C_PARA_BLOCK_TYPES[AFormat];
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6382,6 +6395,7 @@ begin
   else if FCaretPosition.IsValid and (FCaretPosition.ParagraphIndex < FDocument.Paragraphs.Count) then
     FDocument.Paragraphs[FCaretPosition.ParagraphIndex].Alignment := haRight;
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6401,6 +6415,7 @@ begin
   else if FCaretPosition.IsValid and (FCaretPosition.ParagraphIndex < FDocument.Paragraphs.Count) then
     FDocument.Paragraphs[FCaretPosition.ParagraphIndex].Alignment := haJustify;
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6428,6 +6443,7 @@ begin
   for var I := LSelectionStart.ParagraphIndex to Min(LSelectionEnd.ParagraphIndex, FDocument.Paragraphs.Count - 1) do
     FDocument.Paragraphs[I].BlockType := C_BLOCK_TYPES[LLevel];
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6488,6 +6504,7 @@ begin
     RenumberListBlock(LFirst, LLast);
   end;
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6547,6 +6564,7 @@ begin
       end;
   end;
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6577,6 +6595,7 @@ begin
     Inc(LLast);
   RenumberListBlock(LFirst, LLast);
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -6607,6 +6626,7 @@ begin
     Inc(LLast);
   RenumberListBlock(LFirst, LLast);
   DoLayout;
+  DoChanged;
   InvalidateRender;
   DoNotifyState;
 end;
@@ -7176,6 +7196,7 @@ begin
       SaveUndo;
       LRun.Style := LStyle;
       DoLayout;
+      DoChanged;
       InvalidateRender;
       DoNotifyState;
     end;
