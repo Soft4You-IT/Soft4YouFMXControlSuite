@@ -33,6 +33,26 @@ type
   /// <summary>Converts HTML text into a TS4YHTMLDocument.</summary>
   TS4YHTMLParser = class
   private
+    type
+      // What the parser knows about a table while it reads it; kept for the outer table when another one starts in a cell
+      TTableState = record
+        TableID: Integer;
+        Row: Integer;
+        Column: Integer;
+        Columns: Integer;
+        Covered: TArray<Integer>;
+        RowOpen: Boolean;
+        InTable: Boolean;
+        CellOpen: Boolean;
+        CellIsHeader: Boolean;
+        CellRow: Integer;
+        CellColumn: Integer;
+        CellColSpan: Integer;
+        CellRowSpan: Integer;
+        CellParagraphCount: Integer;
+        Containers: TArray<TS4YTableCellReference>;
+      end;
+  private
     FInput: string;
     FPosition: Integer;
     FLength: Integer;
@@ -57,7 +77,8 @@ type
     FCellColSpan: Integer;
     FCellRowSpan: Integer;
     FCellParagraphCount: Integer;  // paragraphs added to the open cell so far
-    FNestedTableDepth: Integer;  // tables found inside a cell; their cells are read as paragraphs of the outer cell
+    FTableContainers: TArray<TS4YTableCellReference>;  // cells that contain the table being read, outermost first
+    FTableStack: TList<TTableState>;  // the outer tables, while a table nested in one of their cells is read
     FInPreformatted: Boolean;
     FDivAlignment: TS4YHTMLAlignment;
 
@@ -75,6 +96,8 @@ type
     procedure FlushParagraph;
     procedure EndTableRow;
     procedure EndTableCell;
+    procedure EnterNestedTable;
+    procedure LeaveNestedTable;
     procedure AddParagraph(AParagraph: TS4YHTMLParagraph);
     function ParseTableSpan(const AAttributes, AName: string): Integer;
     procedure EnsureParagraph(ABlockType: TS4YHTMLBlockType = btBodyText);
@@ -457,6 +480,7 @@ begin
     if AParagraph.BlockType in [btBodyText, btParagraph] then
       AParagraph.BlockType := btTableCell;
     AParagraph.TableID := FTableID;
+    AParagraph.TableContainers := Copy(FTableContainers);
     AParagraph.TableRow := FCellRow;
     AParagraph.TableCol := FCellColumn;
     AParagraph.IsHeader := FCellIsHeader;
@@ -471,6 +495,66 @@ begin
     Inc(FCellParagraphCount);
   end;
   FDocument.Paragraphs.Add(AParagraph);
+end;
+
+// Starts a table inside the open cell: the state of the outer table is kept until the nested one ends.
+procedure TS4YHTMLParser.EnterNestedTable;
+var
+  LState: TTableState;
+  LEmptyParagraph: TS4YHTMLParagraph;
+  LContainers: TArray<TS4YTableCellReference>;
+begin
+  // The cell needs a paragraph of its own before the table: it holds the attributes of the cell
+  if FCellParagraphCount = 0 then
+  begin
+    LEmptyParagraph := TS4YHTMLParagraph.Create;
+    LEmptyParagraph.BlockType := btTableCell;
+    AddParagraph(LEmptyParagraph);
+  end;
+  LState.TableID := FTableID;
+  LState.Row := FTableRow;
+  LState.Column := FTableColumn;
+  LState.Columns := FTableColumns;
+  LState.Covered := FTableCovered;
+  LState.RowOpen := FTableRowOpen;
+  LState.InTable := FInTable;
+  LState.CellOpen := FCellOpen;
+  LState.CellIsHeader := FCellIsHeader;
+  LState.CellRow := FCellRow;
+  LState.CellColumn := FCellColumn;
+  LState.CellColSpan := FCellColSpan;
+  LState.CellRowSpan := FCellRowSpan;
+  LState.CellParagraphCount := FCellParagraphCount;
+  LState.Containers := FTableContainers;
+  FTableStack.Add(LState);
+  LContainers := Copy(FTableContainers);
+  SetLength(LContainers, Length(LContainers) + 1);
+  LContainers[High(LContainers)] := TS4YTableCellReference.At(FTableID, FCellRow, FCellColumn);
+  FTableContainers := LContainers;
+end;
+
+// Ends a nested table: the outer table and its open cell are current again.
+procedure TS4YHTMLParser.LeaveNestedTable;
+var
+  LState: TTableState;
+begin
+  LState := FTableStack.Last;
+  FTableStack.Delete(FTableStack.Count - 1);
+  FTableID := LState.TableID;
+  FTableRow := LState.Row;
+  FTableColumn := LState.Column;
+  FTableColumns := LState.Columns;
+  FTableCovered := LState.Covered;
+  FTableRowOpen := LState.RowOpen;
+  FInTable := LState.InTable;
+  FCellOpen := LState.CellOpen;
+  FCellIsHeader := LState.CellIsHeader;
+  FCellRow := LState.CellRow;
+  FCellColumn := LState.CellColumn;
+  FCellColSpan := LState.CellColSpan;
+  FCellRowSpan := LState.CellRowSpan;
+  FCellParagraphCount := LState.CellParagraphCount;
+  FTableContainers := LState.Containers;
 end;
 
 // Closes the open cell. A cell with no content keeps one empty paragraph.
@@ -883,20 +967,6 @@ begin
     Exit;
   end;
 
-  // A table inside a cell is not represented yet: its cells are read as paragraphs of the outer cell
-  if FInTable and FCellOpen and (ATag = 'table') and not IsClose then
-    Inc(FNestedTableDepth);
-  if FNestedTableDepth > 0 then
-  begin
-    if (ATag = 'table') or (ATag = 'tr') or (ATag = 'td') or (ATag = 'th') then
-    begin
-      FlushParagraph;
-      if (ATag = 'table') and IsClose then
-        Dec(FNestedTableDepth);
-      Exit;
-    end;
-  end;
-
   if ATag = 'table' then
   begin
     if IsClose then
@@ -914,10 +984,17 @@ begin
             FDocument.Paragraphs[LIndex].TableRowSpan := FTableRow - FDocument.Paragraphs[LIndex].TableRow + 1;
         end;
       FInTable := False;
+      // A table nested in a cell ends: the outer table goes on
+      if FTableStack.Count > 0 then
+        LeaveNestedTable;
     end
     else
     begin
       FlushParagraph;
+      if FInTable and FCellOpen then
+        EnterNestedTable
+      else
+        FTableContainers := nil;
       FTableID := NextTableID;
       FTableRow := -1;
       FTableColumn := 0;
@@ -925,7 +1002,6 @@ begin
       FTableCovered := nil;
       FTableRowOpen := False;
       FCellOpen := False;
-      FNestedTableDepth := 0;
       FInTable := True;
     end;
     Exit;
@@ -1280,6 +1356,10 @@ begin
   FDocument := TS4YHTMLDocument.Create;
   FStyleStack := TList<TS4YHTMLTextStyle>.Create;
   FBorderColorStack := TList<TAlphaColor>.Create;
+  FTableStack := TList<TTableState>.Create;
+  FInTable := False;
+  FCellOpen := False;
+  FTableContainers := nil;
   FCurrentParagraph := nil;
   FDivAlignment := haLeft;
   FListDepth := 0;
@@ -1350,6 +1430,7 @@ begin
   finally
     FStyleStack.Free;
     FBorderColorStack.Free;
+    FTableStack.Free;
     FCurrentParagraph.Free;
   end;
 end;
