@@ -252,6 +252,6 @@ What to expect from the round trip:
 - `Parse` returns a new document that you must free, and it always has at least one paragraph (an empty input gives `<p></p>`).
 - Only the HTML the editor supports is kept (see the README). The text inside an unknown tag such as `section` is kept, the tag itself is dropped; `video` and similar elements are lost.
 - White space is collapsed, as a browser does outside `pre`.
-- In tables `colspan` and `rowspan` are ignored, and a row with fewer cells than the widest one is completed with empty cells.
+- In tables `colspan` and `rowspan` are kept (up to 100), and a row with fewer cells than the widest one is completed with empty cells. The editor cannot merge or split cells, and it does not insert or delete rows and columns in a table that has merged cells.
 - `Generate` writes the content only, without the `html` and `body` elements. `Pretty := True` adds line breaks between the blocks and indents the rows of tables.
 - `ImageSourceConverter` is called for every image and returns the value to write in its `src`.

@@ -47,6 +47,8 @@ type
     FTableRow: Integer;
     FTableColumn: Integer;
     FTableColumns: Integer;
+    FTableCovered: TArray<Integer>;  // rows still covered in each column by a cell started in a previous row
+    FTableRowOpen: Boolean;
     FInTable: Boolean;
     FInPreformatted: Boolean;
     FDivAlignment: TS4YHTMLAlignment;
@@ -63,6 +65,8 @@ type
     procedure ParseInlineStyle(const ACSS: string; var ATextStyle: TS4YHTMLTextStyle);
     function ExtractBorderColor(const ACSS: string): TAlphaColor;
     procedure FlushParagraph;
+    procedure EndTableRow;
+    function ParseTableSpan(const AAttributes, AName: string): Integer;
     procedure EnsureParagraph(ABlockType: TS4YHTMLBlockType = btBodyText);
     procedure PushStyle(const ATextStyle: TS4YHTMLTextStyle; ABorderColor: TAlphaColor = claNull);
     procedure PopStyle;
@@ -82,6 +86,9 @@ type
   end;
 
 implementation
+
+const
+  C_MAXIMUM_TABLE_SPAN = 100;
 
 // -----------------------------------------------------------------------------
 // TS4YHTMLParser
@@ -430,6 +437,35 @@ begin
       Exit;
     end;
   end;
+end;
+
+// Closes the current table row: records the width of the row and lets the rowspan cells advance by one row.
+procedure TS4YHTMLParser.EndTableRow;
+begin
+  if not FTableRowOpen then
+    Exit;
+  FTableRowOpen := False;
+  if FTableColumn > FTableColumns then
+    FTableColumns := FTableColumn;
+  for var LColumn := 0 to High(FTableCovered) do
+  begin
+    if FTableCovered[LColumn] > 0 then
+    begin
+      if LColumn + 1 > FTableColumns then
+        FTableColumns := LColumn + 1;
+      Dec(FTableCovered[LColumn]);
+    end;
+  end;
+end;
+
+// Reads the colspan or rowspan attribute of a cell: 1 when missing or not valid, never above C_MAXIMUM_TABLE_SPAN.
+function TS4YHTMLParser.ParseTableSpan(const AAttributes, AName: string): Integer;
+begin
+  Result := StrToIntDef(Trim(GetAttribute(AAttributes, AName)), 1);
+  if Result < 1 then
+    Result := 1;
+  if Result > C_MAXIMUM_TABLE_SPAN then
+    Result := C_MAXIMUM_TABLE_SPAN;
 end;
 
 procedure TS4YHTMLParser.FlushParagraph;
@@ -799,10 +835,16 @@ begin
     if IsClose then
     begin
       FlushParagraph;
+      EndTableRow;
       for LIndex := 0 to FDocument.Paragraphs.Count - 1 do
         if (FDocument.Paragraphs[LIndex].BlockType = btTableCell) and
            (FDocument.Paragraphs[LIndex].TableID = FTableID) then
+        begin
           FDocument.Paragraphs[LIndex].TableCols := FTableColumns;
+          // A rowspan cannot go past the last row of the table
+          if FDocument.Paragraphs[LIndex].TableRow + FDocument.Paragraphs[LIndex].TableRowSpan - 1 > FTableRow then
+            FDocument.Paragraphs[LIndex].TableRowSpan := FTableRow - FDocument.Paragraphs[LIndex].TableRow + 1;
+        end;
       FInTable := False;
     end
     else
@@ -812,6 +854,8 @@ begin
       FTableRow := -1;
       FTableColumn := 0;
       FTableColumns := 0;
+      FTableCovered := nil;
+      FTableRowOpen := False;
       FInTable := True;
     end;
     Exit;
@@ -822,14 +866,15 @@ begin
     if IsClose then
     begin
       FlushParagraph;
-      if FTableColumn > FTableColumns then
-        FTableColumns := FTableColumn;
+      EndTableRow;
     end
     else
     begin
       FlushParagraph;
+      EndTableRow; // the previous row, when its closing tag was omitted
       Inc(FTableRow);
       FTableColumn := 0;
+      FTableRowOpen := True;
     end;
     Exit;
   end;
@@ -845,6 +890,9 @@ begin
     else
     begin
       FlushParagraph;
+      // Skip the columns that a cell of a previous row still covers
+      while (FTableColumn < Length(FTableCovered)) and (FTableCovered[FTableColumn] > 0) do
+        Inc(FTableColumn);
       FCurrentParagraph := TS4YHTMLParagraph.Create;
       FCurrentParagraph.BlockType := btTableCell;
       FCurrentParagraph.TableID := FTableID;
@@ -858,7 +906,13 @@ begin
         LTextStyle.Bold := True;
         PushStyle(LTextStyle);
       end;
-      Inc(FTableColumn);
+      FCurrentParagraph.TableColSpan := ParseTableSpan(AAttributes, 'colspan');
+      FCurrentParagraph.TableRowSpan := ParseTableSpan(AAttributes, 'rowspan');
+      if Length(FTableCovered) < FTableColumn + FCurrentParagraph.TableColSpan then
+        SetLength(FTableCovered, FTableColumn + FCurrentParagraph.TableColSpan);
+      for var LColumn := FTableColumn to FTableColumn + FCurrentParagraph.TableColSpan - 1 do
+        FTableCovered[LColumn] := FCurrentParagraph.TableRowSpan;
+      Inc(FTableColumn, FCurrentParagraph.TableColSpan);
     end;
     Exit;
   end;

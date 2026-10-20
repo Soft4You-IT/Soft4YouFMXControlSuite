@@ -80,9 +80,11 @@ A table is a run of consecutive `btTableCell` paragraphs, one paragraph per cell
 
 - `TableID` groups the cells of the same table. It comes from `NextTableID`, a counter shared by the parser and the editor, so two tables never share an identifier.
 - `TableRow` and `TableCol` are zero-based. `TableCols` is the number of columns of the table (the highest number of cells of a row); the parser fills it for every cell when it reaches `</table>`.
-- A cell holds a single paragraph. Block elements inside a `<td>` are not represented as blocks, and there is no `colspan` or `rowspan`. `<caption>` and `<colgroup>` are skipped and `<col>` is ignored.
+- `TableColSpan` and `TableRowSpan` (both 1 for a normal cell) say how many columns and rows a cell covers. A merged cell is one paragraph, stored at its top-left position; the positions it covers have no paragraph. The parser skips the columns that a `rowspan` cell of a previous row still covers, limits both spans to 100, and shortens a `rowspan` that goes past the last row. `TableCols` counts the columns covered, not the cells.
+- A cell holds a single paragraph. Block elements inside a `<td>` are not represented as blocks. `<caption>` and `<colgroup>` are skipped and `<col>` is ignored.
 - A `<th>` has `IsHeader = True`, centered alignment and bold text.
-- The generator reads the cells by `TableRow` and `TableCol` and writes an empty `<td>` for a position that has no cell.
+- The generator reads the cells by `TableRow` and `TableCol` and writes an empty `<td>` for a position that has no cell and is not covered by a merged cell. It writes `colspan` and `rowspan` only when they are greater than 1.
+- The layout gives a cell the width of the columns it covers. A cell that spans rows grows the last row it covers when its text does not fit. Moving the caret up or down finds the cell that covers the position above or below, also when it starts elsewhere. The commands that insert or delete a row or a column do nothing in a table that contains merged cells.
 
 ### Positions
 

@@ -94,8 +94,10 @@ type
     FIsHeader: Boolean;     // <th> -- rendered bold + center
     FTableCol: Integer;     // 0-based column index (btTableCell only)
     FTableCols: Integer;    // total columns in table (btTableCell only)
+    FTableColSpan: Integer; // columns covered by the cell, 1 or more (btTableCell only)
     FTableID: Integer;      // groups cells of same table; 0 = not a cell
     FTableRow: Integer;     // 0-based row index (btTableCell only)
+    FTableRowSpan: Integer; // rows covered by the cell, 1 or more (btTableCell only)
     FRuns: TObjectList<TS4YHTMLRun>;
   public
     /// <summary>Creates an empty paragraph of type btBodyText.</summary>
@@ -149,10 +151,24 @@ type
     property TableCol: Integer read FTableCol write FTableCol;     // 0-based column index (btTableCell only)
     /// <summary>Number of columns of the table that the cell belongs to, when BlockType is btTableCell.</summary>
     property TableCols: Integer read FTableCols write FTableCols;    // total columns in table (btTableCell only)
+    /// <summary>
+    /// Number of columns that the cell covers, when BlockType is btTableCell; 1 for a normal cell.
+    /// </summary>
+    /// <remarks>
+    /// The cell sits in the column TableCol; the columns to its right that it covers have no paragraph of their own.
+    /// </remarks>
+    property TableColSpan: Integer read FTableColSpan write FTableColSpan;  // columns covered by the cell, 1 or more (btTableCell only)
     /// <summary>Identifier that groups the cells of the same table; 0 when the paragraph is not a table cell.</summary>
     property TableID: Integer read FTableID write FTableID;      // groups cells of same table; 0 = not a cell
     /// <summary>Zero-based row of the cell, when BlockType is btTableCell.</summary>
     property TableRow: Integer read FTableRow write FTableRow;     // 0-based row index (btTableCell only)
+    /// <summary>
+    /// Number of rows that the cell covers, when BlockType is btTableCell; 1 for a normal cell.
+    /// </summary>
+    /// <remarks>
+    /// The cell sits in the row TableRow; the rows below it that it covers have no paragraph of their own in the covered columns.
+    /// </remarks>
+    property TableRowSpan: Integer read FTableRowSpan write FTableRowSpan;  // rows covered by the cell, 1 or more (btTableCell only)
   end;
 
   // ===========================================================================
@@ -233,6 +249,8 @@ begin
   inherited;
   FRuns := TObjectList<TS4YHTMLRun>.Create(True);
   FBlockType := btBodyText;
+  FTableColSpan := 1;
+  FTableRowSpan := 1;
 end;
 
 destructor TS4YHTMLParagraph.Destroy;
@@ -260,8 +278,10 @@ begin
   Result.IsHeader := IsHeader;
   Result.TableCol := TableCol;
   Result.TableCols := TableCols;
+  Result.TableColSpan := TableColSpan;
   Result.TableID := TableID;
   Result.TableRow := TableRow;
+  Result.TableRowSpan := TableRowSpan;
   for LRun in Runs do
     Result.Runs.Add(LRun.Clone);
 end;

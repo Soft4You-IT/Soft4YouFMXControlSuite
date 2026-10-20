@@ -289,7 +289,26 @@ var
     LCell: TS4YHTMLParagraph;
     LCellTag: string;
     LCellStyle: string;
+    LCellSpans: string;
     LScanIndex: Integer;
+    LEndIndex: Integer;
+
+    // True when a cell that starts in another position covers the given one
+    function IsCovered(ARow, ACol: Integer): Boolean;
+    var
+      LCoverIndex: Integer;
+      LCoverCell: TS4YHTMLParagraph;
+    begin
+      Result := False;
+      for LCoverIndex := AFirstPI to LEndIndex - 1 do
+      begin
+        LCoverCell := ADocument.Paragraphs[LCoverIndex];
+        if (LCoverCell.TableRow <= ARow) and (ARow < LCoverCell.TableRow + LCoverCell.TableRowSpan) and
+           (LCoverCell.TableCol <= ACol) and (ACol < LCoverCell.TableCol + LCoverCell.TableColSpan) then
+          Result := True;
+      end;
+    end;
+
   begin
     LTableID := ADocument.Paragraphs[AFirstPI].TableID;
     LCols := ADocument.Paragraphs[AFirstPI].TableCols;
@@ -305,13 +324,15 @@ var
         LMaximumRow := ADocument.Paragraphs[LScanIndex].TableRow;
       Inc(LScanIndex);
     end;
+    LEndIndex := LScanIndex;
     LStringBuilder.Append('<table border="1" style="border-collapse:collapse;width:100%">' + LNewLine);
     for LRow := 0 to LMaximumRow do
     begin
       if FPretty then
         LStringBuilder.Append('  ');
       LStringBuilder.Append('<tr>' + LNewLine);
-      for LCol := 0 to LCols - 1 do
+      LCol := 0;
+      while LCol < LCols do
       begin
         LCell := nil;
         LScanIndex := AFirstPI;
@@ -327,9 +348,14 @@ var
         end;
         if LCell = nil then
         begin
-          if FPretty then
-            LStringBuilder.Append('    ');
-          LStringBuilder.Append('<td></td>' + LNewLine);
+          // A position covered by a colspan or rowspan cell has no <td>
+          if not IsCovered(LRow, LCol) then
+          begin
+            if FPretty then
+              LStringBuilder.Append('    ');
+            LStringBuilder.Append('<td></td>' + LNewLine);
+          end;
+          Inc(LCol);
         end
         else
         begin
@@ -345,9 +371,18 @@ var
           end;
           if FPretty then
             LStringBuilder.Append('    ');
-          LStringBuilder.Append('<' + LCellTag + ' style="' + LCellStyle + '">');
+          LCellSpans := '';
+          if LCell.TableColSpan > 1 then
+            LCellSpans := LCellSpans + ' colspan="' + IntToStr(LCell.TableColSpan) + '"';
+          if LCell.TableRowSpan > 1 then
+            LCellSpans := LCellSpans + ' rowspan="' + IntToStr(LCell.TableRowSpan) + '"';
+          LStringBuilder.Append('<' + LCellTag + LCellSpans + ' style="' + LCellStyle + '">');
           EmitRuns(LCell);
           LStringBuilder.Append('</' + LCellTag + '>' + LNewLine);
+          if LCell.TableColSpan > 1 then
+            Inc(LCol, LCell.TableColSpan)
+          else
+            Inc(LCol);
         end;
       end;
       if FPretty then
