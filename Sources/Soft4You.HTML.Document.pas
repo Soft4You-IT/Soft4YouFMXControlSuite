@@ -95,6 +95,7 @@ type
     FTableCol: Integer;     // 0-based column index (table cell paragraphs only)
     FTableCols: Integer;    // total columns in table (table cell paragraphs only)
     FTableColSpan: Integer; // columns covered by the cell, 1 or more (table cell paragraphs only)
+    FTableContainers: TArray<TS4YTableCellReference>;  // cells that contain the table, outermost first (nested tables only)
     FTableID: Integer;      // groups cells of same table; 0 = not a cell
     FTableRow: Integer;     // 0-based row index (table cell paragraphs only)
     FTableRowSpan: Integer; // rows covered by the cell, 1 or more (table cell paragraphs only)
@@ -125,6 +126,33 @@ type
     /// </summary>
     /// <returns>True when TableID is not 0.</returns>
     function IsTableCell: Boolean;
+    /// <summary>
+    /// Tells whether the paragraph belongs to a table that sits inside a cell of another table.
+    /// </summary>
+    /// <returns>True when TableContainers is not empty.</returns>
+    function IsNestedTableCell: Boolean;
+    /// <summary>
+    /// Tells whether the paragraph is in a table, directly or inside a table nested in one of its cells.
+    /// </summary>
+    /// <param name="ATableID">Identifier of the table.</param>
+    /// <returns>True when ATableID is the table of the paragraph or one of the tables that contain it.</returns>
+    function BelongsToTable(ATableID: Integer): Boolean;
+    /// <summary>
+    /// Tells whether the paragraph is in a cell, directly or inside a table nested in that cell.
+    /// </summary>
+    /// <param name="ATableID">Identifier of the table of the cell.</param>
+    /// <param name="ARow">Zero-based row of the cell.</param>
+    /// <param name="AColumn">Zero-based column of the cell.</param>
+    /// <returns>True when the paragraph belongs to that cell or to a table that sits in it.</returns>
+    function IsInCell(ATableID, ARow, AColumn: Integer): Boolean;
+    /// <summary>
+    /// Gives the cell of a table that holds the paragraph, directly or through a table nested in that cell.
+    /// </summary>
+    /// <param name="ATableID">Identifier of the table.</param>
+    /// <param name="ARow">Zero-based row of the cell.</param>
+    /// <param name="AColumn">Zero-based column of the cell.</param>
+    /// <returns>True when the paragraph belongs to the table; ARow and AColumn are then valid.</returns>
+    function TryGetCellIn(ATableID: Integer; out ARow, AColumn: Integer): Boolean;
 
     /// <summary>Horizontal alignment of the paragraph.</summary>
     property Alignment: TS4YHTMLAlignment read FAlignment write FAlignment;
@@ -163,6 +191,13 @@ type
     /// The cell sits in the column TableCol; the columns to its right that it covers have no paragraph of their own.
     /// </remarks>
     property TableColSpan: Integer read FTableColSpan write FTableColSpan;  // columns covered by the cell, 1 or more (table cell paragraphs only)
+    /// <summary>
+    /// The cells that contain the table of this paragraph, from the outermost to the innermost; empty when the table is not inside another table.
+    /// </summary>
+    /// <remarks>
+    /// TableID, TableRow and TableCol always describe the innermost cell, the one that holds the paragraph.
+    /// </remarks>
+    property TableContainers: TArray<TS4YTableCellReference> read FTableContainers write FTableContainers;
     /// <summary>Identifier that groups the cells of the same table; 0 when the paragraph is not a table cell.</summary>
     property TableID: Integer read FTableID write FTableID;      // groups cells of same table; 0 = not a cell
     /// <summary>Zero-based row of the cell, when IsTableCell is True.</summary>
@@ -284,6 +319,7 @@ begin
   Result.TableCol := TableCol;
   Result.TableCols := TableCols;
   Result.TableColSpan := TableColSpan;
+  Result.TableContainers := Copy(TableContainers);
   Result.TableID := TableID;
   Result.TableRow := TableRow;
   Result.TableRowSpan := TableRowSpan;
@@ -320,6 +356,55 @@ end;
 function TS4YHTMLParagraph.IsTableCell: Boolean;
 begin
   Result := FTableID <> 0;
+end;
+
+function TS4YHTMLParagraph.IsNestedTableCell: Boolean;
+begin
+  Result := Length(FTableContainers) > 0;
+end;
+
+function TS4YHTMLParagraph.IsInCell(ATableID, ARow, AColumn: Integer): Boolean;
+var
+  LContainer: TS4YTableCellReference;
+begin
+  Result := (FTableID <> 0) and (FTableID = ATableID) and (FTableRow = ARow) and (FTableCol = AColumn);
+  for LContainer in FTableContainers do
+    if (LContainer.TableID = ATableID) and (LContainer.Row = ARow) and (LContainer.Column = AColumn) then
+      Result := True;
+end;
+
+function TS4YHTMLParagraph.TryGetCellIn(ATableID: Integer; out ARow, AColumn: Integer): Boolean;
+var
+  LContainer: TS4YTableCellReference;
+begin
+  Result := (FTableID <> 0) and (FTableID = ATableID);
+  if Result then
+  begin
+    ARow := FTableRow;
+    AColumn := FTableCol;
+  end
+  else
+  begin
+    ARow := -1;
+    AColumn := -1;
+    for LContainer in FTableContainers do
+      if LContainer.TableID = ATableID then
+      begin
+        ARow := LContainer.Row;
+        AColumn := LContainer.Column;
+        Result := True;
+      end;
+  end;
+end;
+
+function TS4YHTMLParagraph.BelongsToTable(ATableID: Integer): Boolean;
+var
+  LContainer: TS4YTableCellReference;
+begin
+  Result := (FTableID <> 0) and (FTableID = ATableID);
+  for LContainer in FTableContainers do
+    if LContainer.TableID = ATableID then
+      Result := True;
 end;
 
 // -----------------------------------------------------------------------------
