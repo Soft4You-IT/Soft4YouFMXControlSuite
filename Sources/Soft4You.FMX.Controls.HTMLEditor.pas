@@ -660,6 +660,9 @@ type
     procedure EnsureCaretVisible;
     procedure SaveUndo;
     procedure SetCaretPosition(const APosition: TS4YDocumentPosition; ExtendSel: Boolean);
+    procedure ApplyCaretPosition(const APosition: TS4YDocumentPosition; ExtendSel: Boolean);
+    procedure MoveCaretPosition(const APosition: TS4YDocumentPosition; ExtendSel: Boolean);
+    function IsPlaceholderPosition(const APosition: TS4YDocumentPosition): Boolean;
 
     // Table navigation
     function DoTableTab(AShift: TShiftState): Boolean;
@@ -2242,7 +2245,7 @@ begin
   DoLayout;
   FCaretOn := True;
   FCaretTimer.Enabled := True;
-  InvalidateRender;
+  Repaint;
 end;
 
 procedure TS4YHTMLEditor.DoExit;
@@ -2252,7 +2255,7 @@ begin
     Exit;
   FCaretTimer.Enabled := False;
   FCaretOn := False;
-  InvalidateRender;
+  Repaint;
 end;
 
 procedure TS4YHTMLEditor.Resize;
@@ -3387,6 +3390,9 @@ begin
     Exit;
   if not FCaretPosition.IsValid then
     Exit;
+  // While a selection is dragged the caret would follow the mouse pointer
+  if FDragging and FHasSelection then
+    Exit;
   ACanvas.Stroke.Kind := TBrushKind.Solid;
   ACanvas.Stroke.Color := TAlphaColors.Black;
   ACanvas.Stroke.Thickness := 1.5;
@@ -3740,6 +3746,41 @@ end;
 
 procedure TS4YHTMLEditor.SetCaretPosition(const APosition: TS4YDocumentPosition; ExtendSel: Boolean);
 begin
+  ApplyCaretPosition(APosition, ExtendSel);
+  InvalidateRender;
+  DoNotifyState;
+end;
+
+// Moves the caret and selection, then renders the document again only when the move changes what
+// the render cache contains: a selection (before or after) or a placeholder under the caret.
+// Otherwise the caret is drawn over the cache and a repaint is enough.
+procedure TS4YHTMLEditor.MoveCaretPosition(const APosition: TS4YDocumentPosition; ExtendSel: Boolean);
+var
+  LOldPosition: TS4YDocumentPosition;
+  LHadSelection: Boolean;
+begin
+  LOldPosition := FCaretPosition;
+  LHadSelection := FHasSelection;
+  ApplyCaretPosition(APosition, ExtendSel);
+  if LHadSelection or FHasSelection or IsPlaceholderPosition(LOldPosition) or IsPlaceholderPosition(FCaretPosition) then
+    InvalidateRender
+  else
+    Repaint;
+  DoNotifyState;
+end;
+
+function TS4YHTMLEditor.IsPlaceholderPosition(const APosition: TS4YDocumentPosition): Boolean;
+begin
+  Result := False;
+  if (APosition.ParagraphIndex < 0) or (APosition.ParagraphIndex >= FDocument.Paragraphs.Count) then
+    Exit;
+  if (APosition.RunIndex < 0) or (APosition.RunIndex >= FDocument.Paragraphs[APosition.ParagraphIndex].Runs.Count) then
+    Exit;
+  Result := FDocument.Paragraphs[APosition.ParagraphIndex].Runs[APosition.RunIndex].IsPlaceholder;
+end;
+
+procedure TS4YHTMLEditor.ApplyCaretPosition(const APosition: TS4YDocumentPosition; ExtendSel: Boolean);
+begin
   if ExtendSel then
   begin
     if not FHasSelection then
@@ -3768,8 +3809,6 @@ begin
   FCaretTimer.Enabled := IsFocused;
   UpdateCaretXY;
   EnsureCaretVisible;
-  InvalidateRender;
-  DoNotifyState;
 end;
 
 function TS4YHTMLEditor.FragmentIndexAt(AParagraphIndex, ARunIndex, ACharIndex: Integer): Integer;
@@ -4481,9 +4520,7 @@ begin
   end;
 
   FDragging := True;
-  SetCaretPosition(LHitPosition, ssShift in Shift);
-  FCaretOn := True;
-  InvalidateRender;
+  MoveCaretPosition(LHitPosition, ssShift in Shift);
 end;
 
 function IsWordChar(const AChar: Char): Boolean; inline;
@@ -4828,6 +4865,7 @@ begin
   FClickedLinkURL := '';
   FClickedLinkText := '';
   FDragging := False;
+  Repaint;
 end;
 
 procedure TS4YHTMLEditor.MouseWheel(Shift: TShiftState; WheelDelta: Integer; var Handled: Boolean);
@@ -5114,9 +5152,9 @@ begin
       begin
         FCaretAtImageRight := False;
         if ssCtrl in Shift then
-          SetCaretPosition(WordLeft(FCaretPosition), LExtend)
+          MoveCaretPosition(WordLeft(FCaretPosition), LExtend)
         else
-          SetCaretPosition(PreviousDocumentPosition(FCaretPosition), LExtend);
+          MoveCaretPosition(PreviousDocumentPosition(FCaretPosition), LExtend);
       end;
     end;
     vkRight:
@@ -5136,9 +5174,9 @@ begin
       begin
         FCaretAtImageRight := False;
         if ssCtrl in Shift then
-          SetCaretPosition(WordRight(FCaretPosition), LExtend)
+          MoveCaretPosition(WordRight(FCaretPosition), LExtend)
         else
-          SetCaretPosition(NextDocumentPosition(FCaretPosition), LExtend);
+          MoveCaretPosition(NextDocumentPosition(FCaretPosition), LExtend);
       end;
     end;
     vkUp:
@@ -5147,23 +5185,23 @@ begin
       FCaretAtImageRight := LNewCaretPosition.IsValid and
         (LNewCaretPosition.ParagraphIndex < FDocument.Paragraphs.Count) and
         (FDocument.Paragraphs[LNewCaretPosition.ParagraphIndex].BlockType in [btImage, btHR]);
-      SetCaretPosition(LNewCaretPosition, LExtend);
+      MoveCaretPosition(LNewCaretPosition, LExtend);
     end;
     vkDown:
     begin
       FCaretAtImageRight := False;
-      SetCaretPosition(LineBelow(FCaretPosition), LExtend);
+      MoveCaretPosition(LineBelow(FCaretPosition), LExtend);
     end;
     vkHome:
       if ssCtrl in Shift then
-        SetCaretPosition(DocumentStart, LExtend)
+        MoveCaretPosition(DocumentStart, LExtend)
       else
-        SetCaretPosition(LineStart(FCaretPosition), LExtend);
+        MoveCaretPosition(LineStart(FCaretPosition), LExtend);
     vkEnd:
       if ssCtrl in Shift then
-        SetCaretPosition(DocumentEnd, LExtend)
+        MoveCaretPosition(DocumentEnd, LExtend)
       else
-        SetCaretPosition(LineEnd(FCaretPosition), LExtend);
+        MoveCaretPosition(LineEnd(FCaretPosition), LExtend);
     vkPrior:
       ScrollTo(FScrollY - Height + C_EDITOR_PADDING);
     vkNext:
