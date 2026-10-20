@@ -94,6 +94,9 @@ type
     FIsHeader: Boolean;     // <th> -- rendered bold + center
     FTableCol: Integer;     // 0-based column index (table cell paragraphs only)
     FTableAlignment: TS4YHTMLAlignment;  // placement of the table when it is narrower than the space (table cell paragraphs only)
+    FTableCellBackgroundColor: TAlphaColor;  // background color of the cell, claNull = none (first paragraph of the cell only)
+    FTableCellPadding: TS4YTablePadding;  // padding of the cell (first paragraph of the cell only)
+    FTableCellVerticalAlignment: TS4YTableVerticalAlignment;  // where the content sits in a taller cell (first paragraph of the cell only)
     FTableCellWidth: TS4YTableLength;  // width asked for the cell (first paragraph of the cell only)
     FTableCols: Integer;    // total columns in table (table cell paragraphs only)
     FTableColSpan: Integer; // columns covered by the cell, 1 or more (table cell paragraphs only)
@@ -197,6 +200,27 @@ type
     /// Every paragraph of the table has the same value. The default is haLeft.
     /// </remarks>
     property TableAlignment: TS4YHTMLAlignment read FTableAlignment write FTableAlignment;
+    /// <summary>
+    /// Background color of the cell, when IsTableCell is True; claNull means none.
+    /// </summary>
+    /// <remarks>
+    /// Only the first paragraph of the cell holds it. A cell without its own color gets the color of the table when it is read.
+    /// </remarks>
+    property TableCellBackgroundColor: TAlphaColor read FTableCellBackgroundColor write FTableCellBackgroundColor;
+    /// <summary>
+    /// Space between the border of the cell and its content, when IsTableCell is True; not set means the default padding.
+    /// </summary>
+    /// <remarks>
+    /// Only the first paragraph of the cell holds it.
+    /// </remarks>
+    property TableCellPadding: TS4YTablePadding read FTableCellPadding write FTableCellPadding;
+    /// <summary>
+    /// Where the content sits when the cell is taller than the content, when IsTableCell is True. The default is tvaTop.
+    /// </summary>
+    /// <remarks>
+    /// Only the first paragraph of the cell holds it.
+    /// </remarks>
+    property TableCellVerticalAlignment: TS4YTableVerticalAlignment read FTableCellVerticalAlignment write FTableCellVerticalAlignment;
     /// <summary>
     /// Width asked for the cell, when IsTableCell is True; tlkAuto when it was not set.
     /// </summary>
@@ -367,6 +391,9 @@ begin
   Result.TableColSpan := TableColSpan;
   Result.TableContainers := Copy(TableContainers);
   Result.TableAlignment := TableAlignment;
+  Result.TableCellBackgroundColor := TableCellBackgroundColor;
+  Result.TableCellPadding := TableCellPadding;
+  Result.TableCellVerticalAlignment := TableCellVerticalAlignment;
   Result.TableCellWidth := TableCellWidth;
   Result.TableHasBorder := TableHasBorder;
   Result.TableMaximumWidth := TableMaximumWidth;
