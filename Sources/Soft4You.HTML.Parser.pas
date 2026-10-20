@@ -50,6 +50,14 @@ type
     FTableCovered: TArray<Integer>;  // rows still covered in each column by a cell started in a previous row
     FTableRowOpen: Boolean;
     FInTable: Boolean;
+    FCellOpen: Boolean;  // between a td/th and its end: the paragraphs that end now belong to the cell
+    FCellIsHeader: Boolean;
+    FCellRow: Integer;
+    FCellColumn: Integer;
+    FCellColSpan: Integer;
+    FCellRowSpan: Integer;
+    FCellParagraphCount: Integer;  // paragraphs added to the open cell so far
+    FNestedTableDepth: Integer;  // tables found inside a cell; their cells are read as paragraphs of the outer cell
     FInPreformatted: Boolean;
     FDivAlignment: TS4YHTMLAlignment;
 
@@ -66,6 +74,8 @@ type
     function ExtractBorderColor(const ACSS: string): TAlphaColor;
     procedure FlushParagraph;
     procedure EndTableRow;
+    procedure EndTableCell;
+    procedure AddParagraph(AParagraph: TS4YHTMLParagraph);
     function ParseTableSpan(const AAttributes, AName: string): Integer;
     procedure EnsureParagraph(ABlockType: TS4YHTMLBlockType = btBodyText);
     procedure PushStyle(const ATextStyle: TS4YHTMLTextStyle; ABorderColor: TAlphaColor = claNull);
@@ -439,6 +449,49 @@ begin
   end;
 end;
 
+// Adds a finished paragraph to the document. Inside a cell it becomes a paragraph of the cell.
+procedure TS4YHTMLParser.AddParagraph(AParagraph: TS4YHTMLParagraph);
+begin
+  if FCellOpen then
+  begin
+    if AParagraph.BlockType in [btBodyText, btParagraph] then
+      AParagraph.BlockType := btTableCell;
+    AParagraph.TableID := FTableID;
+    AParagraph.TableRow := FCellRow;
+    AParagraph.TableCol := FCellColumn;
+    AParagraph.IsHeader := FCellIsHeader;
+    if FCellIsHeader and (AParagraph.Alignment = haLeft) then
+      AParagraph.Alignment := haCenter;
+    // The attributes of the cell are kept by its first paragraph
+    if FCellParagraphCount = 0 then
+    begin
+      AParagraph.TableColSpan := FCellColSpan;
+      AParagraph.TableRowSpan := FCellRowSpan;
+    end;
+    Inc(FCellParagraphCount);
+  end;
+  FDocument.Paragraphs.Add(AParagraph);
+end;
+
+// Closes the open cell. A cell with no content keeps one empty paragraph.
+procedure TS4YHTMLParser.EndTableCell;
+var
+  LEmptyParagraph: TS4YHTMLParagraph;
+begin
+  if not FCellOpen then
+    Exit;
+  FlushParagraph;
+  if FCellParagraphCount = 0 then
+  begin
+    LEmptyParagraph := TS4YHTMLParagraph.Create;
+    LEmptyParagraph.BlockType := btTableCell;
+    AddParagraph(LEmptyParagraph);
+  end;
+  FCellOpen := False;
+  if FCellIsHeader then
+    PopStyle;
+end;
+
 // Closes the current table row: records the width of the row and lets the rowspan cells advance by one row.
 procedure TS4YHTMLParser.EndTableRow;
 begin
@@ -475,9 +528,9 @@ begin
      not FCurrentParagraph.Runs.Last.IsImage and not FCurrentParagraph.Runs.Last.IsLineBreak and
      (FCurrentParagraph.Runs.Last.Text = ' ') then
     FCurrentParagraph.Runs.Delete(FCurrentParagraph.Runs.Count - 1);
-  if (FCurrentParagraph <> nil) and (not FCurrentParagraph.IsEmpty or (FDocument.Paragraphs.Count = 0)) then
+  if (FCurrentParagraph <> nil) and (not FCurrentParagraph.IsEmpty or ((FDocument.Paragraphs.Count = 0) and not FCellOpen)) then
   begin
-    FDocument.Paragraphs.Add(FCurrentParagraph);
+    AddParagraph(FCurrentParagraph);
     FCurrentParagraph := nil;
   end
   else if FCurrentParagraph <> nil then
@@ -697,7 +750,7 @@ begin
           LHorizontalRuleParagraph.HRThickness := LPixelSize;
       end;
     end;
-    FDocument.Paragraphs.Add(LHorizontalRuleParagraph);
+    AddParagraph(LHorizontalRuleParagraph);
     Exit;
   end;
 
@@ -830,10 +883,25 @@ begin
     Exit;
   end;
 
+  // A table inside a cell is not represented yet: its cells are read as paragraphs of the outer cell
+  if FInTable and FCellOpen and (ATag = 'table') and not IsClose then
+    Inc(FNestedTableDepth);
+  if FNestedTableDepth > 0 then
+  begin
+    if (ATag = 'table') or (ATag = 'tr') or (ATag = 'td') or (ATag = 'th') then
+    begin
+      FlushParagraph;
+      if (ATag = 'table') and IsClose then
+        Dec(FNestedTableDepth);
+      Exit;
+    end;
+  end;
+
   if ATag = 'table' then
   begin
     if IsClose then
     begin
+      EndTableCell;
       FlushParagraph;
       EndTableRow;
       for LIndex := 0 to FDocument.Paragraphs.Count - 1 do
@@ -856,6 +924,8 @@ begin
       FTableColumns := 0;
       FTableCovered := nil;
       FTableRowOpen := False;
+      FCellOpen := False;
+      FNestedTableDepth := 0;
       FInTable := True;
     end;
     Exit;
@@ -863,6 +933,7 @@ begin
 
   if ATag = 'tr' then
   begin
+    EndTableCell;
     if IsClose then
     begin
       FlushParagraph;
@@ -882,37 +953,32 @@ begin
   if (ATag = 'td') or (ATag = 'th') then
   begin
     if IsClose then
-    begin
-      FlushParagraph;
-      if ATag = 'th' then
-        PopStyle;
-    end
+      EndTableCell
     else
     begin
+      EndTableCell; // the previous cell, when its closing tag was omitted
       FlushParagraph;
       // Skip the columns that a cell of a previous row still covers
       while (FTableColumn < Length(FTableCovered)) and (FTableCovered[FTableColumn] > 0) do
         Inc(FTableColumn);
-      FCurrentParagraph := TS4YHTMLParagraph.Create;
-      FCurrentParagraph.BlockType := btTableCell;
-      FCurrentParagraph.TableID := FTableID;
-      FCurrentParagraph.TableRow := FTableRow;
-      FCurrentParagraph.TableCol := FTableColumn;
-      FCurrentParagraph.IsHeader := (ATag = 'th');
-      if FCurrentParagraph.IsHeader then
+      FCellOpen := FInTable;
+      FCellIsHeader := FInTable and (ATag = 'th');
+      FCellRow := FTableRow;
+      FCellColumn := FTableColumn;
+      FCellColSpan := ParseTableSpan(AAttributes, 'colspan');
+      FCellRowSpan := ParseTableSpan(AAttributes, 'rowspan');
+      FCellParagraphCount := 0;
+      if FCellIsHeader then
       begin
-        FCurrentParagraph.Alignment := haCenter;
         LTextStyle := TopStyle;
         LTextStyle.Bold := True;
         PushStyle(LTextStyle);
       end;
-      FCurrentParagraph.TableColSpan := ParseTableSpan(AAttributes, 'colspan');
-      FCurrentParagraph.TableRowSpan := ParseTableSpan(AAttributes, 'rowspan');
-      if Length(FTableCovered) < FTableColumn + FCurrentParagraph.TableColSpan then
-        SetLength(FTableCovered, FTableColumn + FCurrentParagraph.TableColSpan);
-      for var LColumn := FTableColumn to FTableColumn + FCurrentParagraph.TableColSpan - 1 do
-        FTableCovered[LColumn] := FCurrentParagraph.TableRowSpan;
-      Inc(FTableColumn, FCurrentParagraph.TableColSpan);
+      if Length(FTableCovered) < FTableColumn + FCellColSpan then
+        SetLength(FTableCovered, FTableColumn + FCellColSpan);
+      for var LColumn := FTableColumn to FTableColumn + FCellColSpan - 1 do
+        FTableCovered[LColumn] := FCellRowSpan;
+      Inc(FTableColumn, FCellColSpan);
     end;
     Exit;
   end;
