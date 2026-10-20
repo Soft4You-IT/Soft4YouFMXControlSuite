@@ -799,7 +799,9 @@ type
     /// Reads again every image that is in the image cache and redraws.
     /// </summary>
     /// <remarks>
-    /// Use it when image files changed on disk.
+    /// Use it when image files changed on disk. Each image goes through the same checks as the first load
+    /// (LocalImageAccess and OnBeforeLoadImage), and OnLoadImage receives the ilcReload context.
+    /// An image that is now refused is not replaced.
     /// </remarks>
     procedure ReloadImages;
     /// <summary>

@@ -275,7 +275,7 @@ Il modello conserva sempre il `src` originale (`ImageSource` di paragrafo o run)
 | `LoadBitmapFromSource` | remoto (HTTP), `data:` (raster e SVG), oppure file locale (percorso risolto con `ResolveImageSource`; file mancante = nessun bitmap, senza eccezione) |
 | `OnLoadImage` | puo' sostituire o fornire il bitmap, anche per un'immagine rifiutata (arriva `nil`) |
 
-Un bitmap non nullo entra in `FImageCache`. Se l'immagine e' stata rifiutata e `OnLoadImage` non fornisce nulla, la sorgente entra in `FRefusedImages`, cosi' gli eventi non scattano a ogni repaint. `LoadLocalImages` e `LoadRemoteImages` passano da `LoadAllowedBitmap` (stessi controlli) e quindi interpellano di nuovo l'applicazione.
+Un bitmap non nullo entra in `FImageCache`. Se l'immagine e' stata rifiutata e `OnLoadImage` non fornisce nulla, la sorgente entra in `FRefusedImages`, cosi' gli eventi non scattano a ogni repaint. `LoadLocalImages`, `LoadRemoteImages` e `ReloadImages` passano da `LoadAllowedBitmap` (stessi controlli) e quindi interpellano di nuovo l'applicazione.
 
 `FImageCache` e `FRefusedImages` vengono svuotati insieme da `SetHTML` e da `ReloadImagesAfterPathChange`, che e' richiamato dai setter di `DocumentPath`, `ImagePathMode` e `LocalImageAccess`.
 
