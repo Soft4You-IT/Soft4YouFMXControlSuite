@@ -5264,6 +5264,7 @@ begin
     LNewCell.TableRow := LNewRow;
     LNewCell.TableCol := I;
     LNewCell.TableCols := LTableCols;
+    LNewCell.CopyTableLayoutFrom(LCurrentParagraph);
     FDocument.Paragraphs.Insert(LTargetIndex + I, LNewCell);
   end;
   DoLayout;
@@ -7867,6 +7868,7 @@ begin
     LNewCell.TableRow := LNewRowIndex;
     LNewCell.TableCol := LCol;
     LNewCell.TableCols := LTableCols;
+    LNewCell.CopyTableLayoutFrom(LCurrentParagraph);
     FDocument.Paragraphs.Insert(LInsertAt + LCol, LNewCell);
   end;
 
@@ -8035,6 +8037,7 @@ begin
     LNewCell.TableRow := LRow;
     LNewCell.TableCol := LTargetCol + 1;
     LNewCell.TableCols := LTableCols + 1;
+    LNewCell.CopyTableLayoutFrom(LCurrentParagraph);
     FDocument.Paragraphs.Insert(LInsertAt, LNewCell);
 
     // Track the new cell in the caret's row

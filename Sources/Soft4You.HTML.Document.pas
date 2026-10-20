@@ -143,6 +143,11 @@ type
     /// <returns>True when ATableID is the table of the paragraph or one of the tables that contain it.</returns>
     function BelongsToTable(ATableID: Integer): Boolean;
     /// <summary>
+    /// Copies the properties that every paragraph of a table shares: width, maximum width, alignment and border.
+    /// </summary>
+    /// <param name="ASource">A paragraph of the same table.</param>
+    procedure CopyTableLayoutFrom(ASource: TS4YHTMLParagraph);
+    /// <summary>
     /// Tells whether the paragraph is in a cell, directly or inside a table nested in that cell.
     /// </summary>
     /// <param name="ATableID">Identifier of the table of the cell.</param>
@@ -441,6 +446,14 @@ begin
         Result := True;
       end;
   end;
+end;
+
+procedure TS4YHTMLParagraph.CopyTableLayoutFrom(ASource: TS4YHTMLParagraph);
+begin
+  FTableWidth := ASource.TableWidth;
+  FTableMaximumWidth := ASource.TableMaximumWidth;
+  FTableAlignment := ASource.TableAlignment;
+  FTableHasBorder := ASource.TableHasBorder;
 end;
 
 function TS4YHTMLParagraph.BelongsToTable(ATableID: Integer): Boolean;
