@@ -300,6 +300,9 @@ type
   /// <summary>
   /// Where the content of a table cell sits when the cell is taller than the content.
   /// </summary>
+  /// <remarks>
+  /// tvaTop puts the content at the top of the cell (the default), tvaMiddle in the middle and tvaBottom at the bottom.
+  /// </remarks>
   TS4YTableVerticalAlignment = (tvaTop, tvaMiddle, tvaBottom);
 
   /// <summary>

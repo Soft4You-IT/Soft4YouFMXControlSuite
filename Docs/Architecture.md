@@ -176,6 +176,7 @@ Redrawing the cache (`RenderTo`, a local procedure of `Paint`) follows this sequ
 ```
 IntersectClipRect   -> inner area, scrollbar excluded
 PaintBackground     -> fills the background (BackgroundColor)
+PaintTableCellBackgrounds -> fills the cells that have a background color, the outer cell first
 PaintTableCellBorders
 loop FFrags         -> PaintFragment / PaintImage / PaintImageRun / PaintHorizontalRule
                        (only the fragments near the visible area, see below)
