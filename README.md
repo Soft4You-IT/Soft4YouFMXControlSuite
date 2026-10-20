@@ -207,6 +207,14 @@ TS4YEditorState = record
   ColumnNumber: Integer;              // 1-based character position within the visual line (0 = no layout)
   LinkURL: string;                    // URL of the link at caret ('' if not a link)
   ParagraphFormat: TS4YParagraphFormat;  // pfBodyText, pfParagraph, pfH1..pfH6, pfPre
+  IsInTable: Boolean;                 // True when the caret is in a table cell
+  TableRow, TableCol: Integer;        // 0-based position of the cell at caret (-1 when not in a table)
+  TableCellBackgroundColor: TAlphaColor;  // background of the cell at caret (claNull = none)
+  TableCellPadding: TS4YTablePadding;     // padding of the cell at caret (IsSet = False: default)
+  TableCellVerticalAlignment: TS4YTableVerticalAlignment;  // tvaTop, tvaMiddle, tvaBottom
+  TableAlignment: TS4YHTMLAlignment;  // placement of the table at caret when it is narrower than its space
+  TableHasBorder: Boolean;            // False for a table written with border=0
+  TableWidth: TS4YTableLength;        // width asked for the table at caret (Kind = tlkAuto: not set)
 end;
 ```
 
@@ -258,6 +266,12 @@ end;
 | `DeleteTableRow` | Delete the row containing the caret (does nothing in a table with merged cells) |
 | `InsertTableColumn` | Insert a new column after the column containing the caret (does nothing in a table with merged cells) |
 | `DeleteTableColumn` | Delete the column containing the caret (does nothing in a table with merged cells) |
+| `SetTableCellBackgroundColor(Color)` | Background color of the cell at the caret, or of every cell that the selection touches (`claNull` removes it) |
+| `SetTableCellPadding(Padding)` | Padding of the cell(s), a `TS4YTablePadding` (`TS4YTablePadding.Default` goes back to the default) |
+| `SetTableCellVerticalAlignment(Alignment)` | `tvaTop`, `tvaMiddle` or `tvaBottom` for the cell(s) |
+| `SetTableBorder(Visible)` | Show or hide the borders of the table that contains the caret |
+| `SetTableAlignment(Alignment)` | `haLeft`, `haCenter` or `haRight`, for a table that is narrower than its space |
+| `SetTableWidth(Width)` | Width of the table, a `TS4YTableLength` (`TS4YTableLength.Pixels`, `.Percent` or `.Auto`); it removes `max-width` |
 | `InsertPlaceholder(RawText[, DisplayName])` | Insert a non-editable placeholder chip |
 | `UpdatePlaceholder(NewRawText[, NewDisplayName])` | Replace the placeholder under the caret |
 | `ReloadImages` | Re-fetch all images from their source paths/URLs, with the same checks as the first load |
