@@ -19,10 +19,10 @@ uses
 
 type
 
-  // Maps an image source of the document to the file it is read from
+  /// <summary>Maps an image source of the document to the path of the file it is read from.</summary>
   TS4YImagePathResolver = reference to function(const ASource: string): string;
 
-  // Tells whether an image source may be copied
+  /// <summary>Tells whether an image source may be copied.</summary>
   TS4YImageSourceFilter = reference to function(const ASource: string): Boolean;
 
   // ===========================================================================
@@ -30,6 +30,7 @@ type
   // Copies the local images of a document into a subfolder next to the saved file
   // ===========================================================================
 
+  /// <summary>Copies the local images of a document into a subfolder next to the saved file.</summary>
   TS4YImageExporter = class
   private
     FDestinationFolder: string;
@@ -43,15 +44,27 @@ type
     function AreFilesEqual(const AFirstFile, ASecondFile: string): Boolean;
     function CopyToDestination(const ASourceFile: string): string;
   public
+    /// <summary>
+    /// Creates an exporter.
+    /// </summary>
+    /// <param name="ADestinationFolder">Folder where the document is saved.</param>
+    /// <param name="AFolderName">Name of the subfolder, inside ADestinationFolder, that receives the copies.</param>
+    /// <param name="AResolver">Returns the file that an image source is read from.</param>
+    /// <param name="AIsAllowed">Tells whether a source may be copied; it can be nil, and then every local image is allowed.</param>
     constructor Create(const ADestinationFolder, AFolderName: string; const AResolver: TS4YImagePathResolver;
       const AIsAllowed: TS4YImageSourceFilter);
+    /// <summary>Frees the exporter.</summary>
     destructor Destroy; override;
 
-    // True when the source is a local image that exists: ANewSource is then the
-    // source to write in the saved document (relative to the destination folder)
+    /// <summary>
+    /// Copies the file of a local image and gives the source to write in the saved document.
+    /// </summary>
+    /// <param name="ASource">Image source as written in the document.</param>
+    /// <param name="ANewSource">Source to write in the saved document, relative to ADestinationFolder; it is ASource when the result is False.</param>
+    /// <returns>True when the source is a local image that exists and is allowed. The file is copied only the first time; a different file with the same name gets a numeric suffix.</returns>
     function TryConvert(const ASource: string; out ANewSource: string): Boolean;
 
-    // Original source -> full path of its copy
+    /// <summary>Original source -> full path of its copy. The exporter owns the dictionary.</summary>
     property Destinations: TDictionary<string, string> read FDestinations;
   end;
 
