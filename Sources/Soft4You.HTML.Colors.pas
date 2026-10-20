@@ -17,27 +17,49 @@ uses
   System.UITypes;
 
 type
+  /// <summary>A W3C color name with its color.</summary>
   TS4YHTMLNamedColor = record
+    /// <summary>Lowercase W3C name of the color.</summary>
     Name: string;
+    /// <summary>Color value.</summary>
     Color: TAlphaColor;
   end;
 
-// Parses any CSS color value: #RRGGBB, #RGB, rgb(r,g,b) or a W3C named color.
-// Returns True and sets AColor on success; on failure returns False and claNull.
+/// <summary>
+/// Parses a CSS color value.
+/// </summary>
+/// <param name="AValue">Value in the form #RRGGBB, #RGB, rgb(r,g,b) or a W3C color name.</param>
+/// <param name="AColor">Parsed color, opaque; claNull when the value cannot be parsed.</param>
+/// <returns>True when the value was parsed.</returns>
 function HTMLColorToAlphaColor(const AValue: string; out AColor: TAlphaColor): Boolean;
 
-// Returns True and sets AColor when AName is a recognised W3C/CSS color name.
-// AName is matched case-insensitively.
+/// <summary>
+/// Looks up a W3C color name.
+/// </summary>
+/// <param name="AName">Color name; the case is ignored.</param>
+/// <param name="AColor">Color of the name, when it is found.</param>
+/// <returns>True when the name is a recognised W3C color name.</returns>
 function HTMLColorNameToAlphaColor(const AName: string; out AColor: TAlphaColor): Boolean;
 
-// Returns all 148 W3C named colors sorted alphabetically by lowercase name.
+/// <summary>
+/// Returns the table of the W3C named colors.
+/// </summary>
+/// <returns>The 148 colors, sorted alphabetically by lowercase name.</returns>
 function HTMLNamedColors: TArray<TS4YHTMLNamedColor>;
 
-// Returns #RRGGBB for the given color (alpha channel ignored).
+/// <summary>
+/// Writes a color as #RRGGBB.
+/// </summary>
+/// <param name="AColor">Color to write; its alpha channel is ignored.</param>
+/// <returns>The color in the form #RRGGBB.</returns>
 function AlphaColorToHTMLHex(AColor: TAlphaColor): string;
 
-// Returns the W3C name if the color is in the table (e.g. 'cornflowerblue'),
-// otherwise returns #RRGGBB when FallbackToHex is True, or '' when False.
+/// <summary>
+/// Writes a color as its W3C name.
+/// </summary>
+/// <param name="AColor">Color to write.</param>
+/// <param name="FallbackToHex">True to return #RRGGBB when the color has no name.</param>
+/// <returns>The W3C name of the color (for example cornflowerblue); otherwise #RRGGBB when FallbackToHex is True, or an empty string when it is False.</returns>
 function AlphaColorToHTMLName(AColor: TAlphaColor; FallbackToHex: Boolean = True): string;
 
 implementation
