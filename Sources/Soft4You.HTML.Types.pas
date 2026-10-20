@@ -334,15 +334,33 @@ type
     FragmentStart: Integer; // index into FFrags array
     /// <summary>Number of fragments in the line.</summary>
     FragmentCount: Integer;
-    // Table cell geometry -- only valid when Para.IsTableCell is True
-    /// <summary>Left edge of the table cell.</summary>
-    CellX: Single;    // left edge of this cell
-    /// <summary>Width of the table cell.</summary>
-    CellWidth: Single;    // width of this cell
-    /// <summary>Height of the row of the table cell, used for the border rectangle.</summary>
-    CellRowHeight: Single; // total height of this cell's row (for border rect)
-    /// <summary>Top of the row of the table cell, used for the border rectangle.</summary>
-    CellRowY: Single; // top Y of this cell's row (for border rect)
+  end;
+
+  /// <summary>
+  /// The rectangle that the layout engine gives to a table cell.
+  /// </summary>
+  /// <remarks>
+  /// Coordinates are in pixels, relative to the document (without scrolling). A cell that spans rows or columns has one rectangle that covers all of them. The cells of nested tables have their own rectangles. Applications normally do not use this type.
+  /// </remarks>
+  TS4YLayoutCell = record
+    /// <summary>Identifier of the table of the cell.</summary>
+    TableID: Integer;
+    /// <summary>Zero-based row of the cell.</summary>
+    Row: Integer;
+    /// <summary>Zero-based column of the cell.</summary>
+    Column: Integer;
+    /// <summary>Index of the first paragraph of the cell, the one that holds its attributes.</summary>
+    FirstParagraphIndex: Integer;
+    /// <summary>Number of tables that contain the table of the cell; 0 when the table is not nested.</summary>
+    Depth: Integer;
+    /// <summary>Left edge of the cell.</summary>
+    X: Single;
+    /// <summary>Top edge of the cell.</summary>
+    Y: Single;
+    /// <summary>Width of the cell.</summary>
+    Width: Single;
+    /// <summary>Height of the cell.</summary>
+    Height: Single;
   end;
 
   // ===========================================================================
