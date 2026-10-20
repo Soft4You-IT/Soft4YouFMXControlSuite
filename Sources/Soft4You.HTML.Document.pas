@@ -116,7 +116,7 @@ type
     /// <summary>
     /// Tells whether the paragraph has no text.
     /// </summary>
-    /// <returns>True when no run has text. Line breaks and images do not count as text.</returns>
+    /// <returns>True when no run has text. Line breaks are ignored; an inline image counts as content because its Text is the object replacement character.</returns>
     function IsEmpty: Boolean;
 
     /// <summary>Horizontal alignment of the paragraph.</summary>

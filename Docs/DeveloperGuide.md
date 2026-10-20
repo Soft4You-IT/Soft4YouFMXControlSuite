@@ -11,10 +11,12 @@ Everything below was checked against the source code of the component. Where the
 1. The HTML is parsed into a **document model**: a list of paragraphs, each holding a list of styled runs.
 2. A **layout engine** turns the model into positioned fragments (pieces of text, images, rules) for the current width.
 3. The control draws the fragments into an off-screen **render cache** (a bitmap) and copies it to the screen.
-4. The caret, the selection and the list markers are part of that cache, so moving the caret redraws the cache.
+4. The selection and the list markers are part of that cache, so changing the selection redraws it. The caret is drawn over the cache: blinking it, or moving it without a selection, only repaints the caret.
 5. Everything runs on the **UI thread**. The control is not thread-safe: call it only from the main thread.
 
 What this means for you: the cost of a layout grows with the length of the document, while the cost of a repaint follows the size of the window (only what is near the visible area is drawn).
+
+The document model is described in [Architecture.md](Architecture.md#1-data-model-ts4yhtmldocument). The control does not expose it as a whole: from the outside you reach it through `CurrentRun` and `Placeholders`, and you can use the classes `TS4YHTMLParser` and `TS4YHTMLGenerator` on their own (see the recipe at the end of this guide).
 
 ---
 
@@ -58,7 +60,7 @@ One user action can fire `OnChange` more than once. For example, inserting an im
 `OnDrawListMarker`, `OnGetListMarker`, `OnDrawPlaceholder` and `OnGetPlaceholderLabel` are called from inside the painting code. Therefore:
 
 - **They are called only for the items near the visible area**, not for every item of the document. A list item that is scrolled far out of view does not trigger `OnDrawListMarker` or `OnGetListMarker`, and a placeholder far out of view does not trigger `OnDrawPlaceholder`. Do not use these events to count, collect or initialise something for all the items of the document; use `Placeholders` or the document itself for that.
-- **They are called repeatedly**, once for every time the render cache is redrawn: on each caret move, on each caret blink, on scroll, on selection change. The result must always be the same for the same input, and the handler must be fast (no I/O, no dialogs, no allocation of big objects).
+- **They are called repeatedly**, once for every time the render cache is redrawn: on scroll, on resize, on every edit, on selection change, and when the caret enters or leaves a placeholder. A caret blink, or a caret move without a selection, does not redraw the cache. The result must always be the same for the same input, and the handler must be fast (no I/O, no dialogs, no allocation of big objects).
 - **Do not modify the editor from inside them** (no `HTML :=`, no `Insert...`, no `Repaint` loops). Draw on the `Canvas` you receive and nothing else.
 - `OnGetPlaceholderLabel` is also called during layout, so it can be called for placeholders that are not visible. Treat it as a pure mapping from the raw text to the label.
 
@@ -122,7 +124,7 @@ Placeholders are non-editable chips for merge fields. `PlaceholderPrefix` and `P
 
 What is cheap:
 
-- Moving the caret, scrolling, selecting: the repaint cost follows the window size, not the document length.
+- Moving the caret, scrolling, selecting: the repaint cost follows the window size, not the document length. Blinking the caret and moving it without a selection only repaint the caret over the cache.
 - Reading `Placeholders`, `HasSelection`, `State`.
 
 What costs time, in proportion to the document length:
@@ -211,3 +213,45 @@ end;
 ```
 
 Set `FModified := False` (and refresh `FSavedHTML`) yourself after loading or saving.
+
+### Convert HTML without a control
+
+The parser and the generator do not need a visual control (they do not use FMX), so they can clean up or reformat HTML in a service or a console tool.
+
+```delphi
+uses
+  Soft4You.HTML.Document,
+  Soft4You.HTML.Parser,
+  Soft4You.HTML.Generator;
+
+function TidyHTML(const AHTML: string): string;
+var
+  LParser: TS4YHTMLParser;
+  LGenerator: TS4YHTMLGenerator;
+  LDocument: TS4YHTMLDocument;
+begin
+  LParser := TS4YHTMLParser.Create;
+  LGenerator := TS4YHTMLGenerator.Create;
+  try
+    LDocument := LParser.Parse(AHTML);
+    try
+      LGenerator.Pretty := True;
+      Result := LGenerator.Generate(LDocument);
+    finally
+      LDocument.Free;
+    end;
+  finally
+    LGenerator.Free;
+    LParser.Free;
+  end;
+end;
+```
+
+What to expect from the round trip:
+
+- `Parse` returns a new document that you must free, and it always has at least one paragraph (an empty input gives `<p></p>`).
+- Only the HTML the editor supports is kept (see the README). The text inside an unknown tag such as `section` is kept, the tag itself is dropped; `video` and similar elements are lost.
+- White space is collapsed, as a browser does outside `pre`.
+- In tables `colspan` and `rowspan` are ignored, and a row with fewer cells than the widest one is completed with empty cells.
+- `Generate` writes the content only, without the `html` and `body` elements. `Pretty := True` adds line breaks between the blocks and indents the rows of tables.
+- `ImageSourceConverter` is called for every image and returns the value to write in its `src`.
