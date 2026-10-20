@@ -419,9 +419,12 @@ var
       LParagraph := ADocument.Paragraphs[LParagraphIndex];
 
       if (ATableID <> 0) and (LParagraph.TableID = ATableID) and (LParagraph.Runs.Count = 0) and
-         (LParagraphIndex + 1 < LBlockEnd) and (ADocument.Paragraphs[LParagraphIndex + 1].TableID <> ATableID) then
+         (((LParagraphIndex + 1 < LBlockEnd) and (ADocument.Paragraphs[LParagraphIndex + 1].TableID <> ATableID)) or
+          ((LParagraphIndex + 1 = LBlockEnd) and (LParagraphIndex > 0) and
+           (ADocument.Paragraphs[LParagraphIndex - 1].TableID <> ATableID))) then
       begin
-        // The empty paragraph before a table nested in the cell only holds the attributes of the cell
+        // The empty paragraph before or after a table nested in the cell is not written: it only holds the
+        // attributes of the cell, or a place for the caret
         Inc(LParagraphIndex);
       end
       else if LParagraph.IsTableCell and (LParagraph.TableID <> ATableID) then

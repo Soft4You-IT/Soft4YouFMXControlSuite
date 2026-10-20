@@ -145,6 +145,14 @@ type
     /// <param name="AColumn">Zero-based column of the cell.</param>
     /// <returns>True when the paragraph belongs to that cell or to a table that sits in it.</returns>
     function IsInCell(ATableID, ARow, AColumn: Integer): Boolean;
+    /// <summary>
+    /// Gives the cell of a table that holds the paragraph, directly or through a table nested in that cell.
+    /// </summary>
+    /// <param name="ATableID">Identifier of the table.</param>
+    /// <param name="ARow">Zero-based row of the cell.</param>
+    /// <param name="AColumn">Zero-based column of the cell.</param>
+    /// <returns>True when the paragraph belongs to the table; ARow and AColumn are then valid.</returns>
+    function TryGetCellIn(ATableID: Integer; out ARow, AColumn: Integer): Boolean;
 
     /// <summary>Horizontal alignment of the paragraph.</summary>
     property Alignment: TS4YHTMLAlignment read FAlignment write FAlignment;
@@ -363,6 +371,30 @@ begin
   for LContainer in FTableContainers do
     if (LContainer.TableID = ATableID) and (LContainer.Row = ARow) and (LContainer.Column = AColumn) then
       Result := True;
+end;
+
+function TS4YHTMLParagraph.TryGetCellIn(ATableID: Integer; out ARow, AColumn: Integer): Boolean;
+var
+  LContainer: TS4YTableCellReference;
+begin
+  Result := (FTableID <> 0) and (FTableID = ATableID);
+  if Result then
+  begin
+    ARow := FTableRow;
+    AColumn := FTableCol;
+  end
+  else
+  begin
+    ARow := -1;
+    AColumn := -1;
+    for LContainer in FTableContainers do
+      if LContainer.TableID = ATableID then
+      begin
+        ARow := LContainer.Row;
+        AColumn := LContainer.Column;
+        Result := True;
+      end;
+  end;
 end;
 
 function TS4YHTMLParagraph.BelongsToTable(ATableID: Integer): Boolean;

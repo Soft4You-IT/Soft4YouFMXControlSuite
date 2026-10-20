@@ -674,6 +674,7 @@ type
     function InSameBlockScope(AFirstIndex, ASecondIndex: Integer): Boolean;
     function IsParagraphInLayoutCell(ACellIndex, AParagraphIndex: Integer): Boolean;
     function InSameTableCell(AFirstIndex, ASecondIndex: Integer): Boolean;
+    function TableHasNesting(ATableID: Integer): Boolean;
     function TableHasSpans(ATableID: Integer): Boolean;
 
     procedure Paint; override;
@@ -4274,7 +4275,8 @@ begin
     LCurrentCell := FDocument.Paragraphs[APosition.ParagraphIndex];
 
     // Within-cell: LLineIndex still belongs to this cell
-    if (LLineIndex >= 0) and InSameTableCell(APosition.ParagraphIndex, FLines[LLineIndex].ParagraphIndex) then
+    if (LLineIndex >= 0) and FDocument.Paragraphs[FLines[LLineIndex].ParagraphIndex].IsInCell(LCurrentCell.TableID,
+         LCurrentCell.TableRow, LCurrentCell.TableCol) then
     begin
       if not DocumentPositionToXY(APosition, LXPosition, LYPosition, LHeight) then
         Exit;
@@ -4297,7 +4299,8 @@ begin
       LSearchI := High(FLines);
       while (LSearchI >= 0) and (LLineIndex < 0) do
       begin
-        if InSameTableCell(LTargetPI, FLines[LSearchI].ParagraphIndex) then
+        if FDocument.Paragraphs[FLines[LSearchI].ParagraphIndex].IsInCell(FDocument.Paragraphs[LTargetPI].TableID,
+             FDocument.Paragraphs[LTargetPI].TableRow, FDocument.Paragraphs[LTargetPI].TableCol) then
           LLineIndex := LSearchI
         else
           Dec(LSearchI);
@@ -4369,7 +4372,8 @@ begin
 
     if LLineIndex >= Length(FLines) then
       LNeedRowBelow := True
-    else if InSameTableCell(APosition.ParagraphIndex, FLines[LLineIndex].ParagraphIndex) then
+    else if FDocument.Paragraphs[FLines[LLineIndex].ParagraphIndex].IsInCell(LCurrentCell.TableID,
+              LCurrentCell.TableRow, LCurrentCell.TableCol) then
     begin
       // Within-cell navigation
       if not DocumentPositionToXY(APosition, LXPosition, LYPosition, LHeight) then
@@ -4408,9 +4412,7 @@ begin
         // Last row: exit table downward.
         // Find the paragraph immediately after the last cell of this table.
         LSearchI := FDocument.Paragraphs.Count - 1;
-        while (LSearchI >= 0) and
-              not (FDocument.Paragraphs[LSearchI].IsTableCell and
-                   (FDocument.Paragraphs[LSearchI].TableID = LCurrentCell.TableID)) do
+        while (LSearchI >= 0) and not FDocument.Paragraphs[LSearchI].BelongsToTable(LCurrentCell.TableID) do
           Dec(LSearchI);
         if (LSearchI < 0) or (LSearchI + 1 >= FDocument.Paragraphs.Count) then
           Exit; // table ends at document end
@@ -5048,6 +5050,19 @@ begin
   end;
 end;
 
+// True when the table is nested in a cell of another table or has a table nested in one of its cells.
+function TS4YHTMLEditor.TableHasNesting(ATableID: Integer): Boolean;
+var
+  LParagraphIndex: Integer;
+begin
+  Result := False;
+  for LParagraphIndex := 0 to FDocument.Paragraphs.Count - 1 do
+    if FDocument.Paragraphs[LParagraphIndex].BelongsToTable(ATableID) and
+       ((FDocument.Paragraphs[LParagraphIndex].TableID <> ATableID) or
+        FDocument.Paragraphs[LParagraphIndex].IsNestedTableCell) then
+      Result := True;
+end;
+
 // True when at least one cell of the table covers more than one row or column.
 function TS4YHTMLEditor.TableHasSpans(ATableID: Integer): Boolean;
 var
@@ -5071,6 +5086,8 @@ var
   LTableID: Integer;
   LTableCols: Integer;
   LNewRow: Integer;
+  LPreviousRow: Integer;
+  LPreviousColumn: Integer;
 begin
   Result := False;
   if not FCaretPosition.IsValid or (FCaretPosition.ParagraphIndex >= FDocument.Paragraphs.Count) then
@@ -5084,14 +5101,17 @@ begin
 
   if ssShift in AShift then
   begin
-    // First paragraph of the previous cell
+    // First paragraph of the previous cell: go back over the current cell, with the tables nested in it,
+    // then over the cell that holds the paragraph before it
     LTargetIndex := FCaretPosition.ParagraphIndex;
-    while InSameTableCell(LTargetIndex - 1, FCaretPosition.ParagraphIndex) do
+    while (LTargetIndex > 0) and FDocument.Paragraphs[LTargetIndex - 1].IsInCell(LTableID, LCurrentParagraph.TableRow,
+            LCurrentParagraph.TableCol) do
       Dec(LTargetIndex);
     Dec(LTargetIndex);
-    if not IsTableCellOf(LTargetIndex, LTableID) then
+    if (LTargetIndex < 0) or not FDocument.Paragraphs[LTargetIndex].TryGetCellIn(LTableID, LPreviousRow, LPreviousColumn) then
       Exit;
-    while InSameTableCell(LTargetIndex - 1, LTargetIndex) do
+    while (LTargetIndex > 0) and FDocument.Paragraphs[LTargetIndex - 1].IsInCell(LTableID, LPreviousRow,
+            LPreviousColumn) do
       Dec(LTargetIndex);
     ResetSelection;
     SetCaretPosition(TS4YDocumentPosition.At(LTargetIndex, 0, 0), False);
@@ -5099,9 +5119,10 @@ begin
     Exit;
   end;
 
-  // First paragraph of the next cell
+  // First paragraph of the next cell: skip the rest of the current cell, with the tables nested in it
   LTargetIndex := FCaretPosition.ParagraphIndex + 1;
-  while InSameTableCell(FCaretPosition.ParagraphIndex, LTargetIndex) do
+  while (LTargetIndex < FDocument.Paragraphs.Count) and FDocument.Paragraphs[LTargetIndex].IsInCell(LTableID,
+          LCurrentParagraph.TableRow, LCurrentParagraph.TableCol) do
     Inc(LTargetIndex);
   if IsTableCellOf(LTargetIndex, LTableID) then
   begin
@@ -5127,6 +5148,7 @@ begin
     LNewCell := TS4YHTMLParagraph.Create;
     LNewCell.BlockType := btTableCell;
     LNewCell.TableID := LTableID;
+    LNewCell.TableContainers := System.Copy(LCurrentParagraph.TableContainers);
     LNewCell.TableRow := LNewRow;
     LNewCell.TableCol := I;
     LNewCell.TableCols := LTableCols;
@@ -7580,6 +7602,8 @@ var
   LCol: Integer;
   LTableID: Integer;
   LFirstCellIndex: Integer;
+  LCurrentParagraph: TS4YHTMLParagraph;
+  LContainers: TArray<TS4YTableCellReference>;
 begin
   if not FCaretPosition.IsValid then
     Exit;
@@ -7591,12 +7615,23 @@ begin
   LTableID := NextTableID;
   LInsertAt := FCaretPosition.ParagraphIndex + 1;
   LFirstCellIndex := LInsertAt;
+  // A table inserted while the caret is in a cell is nested in that cell
+  LCurrentParagraph := FDocument.Paragraphs[FCaretPosition.ParagraphIndex];
+  LContainers := nil;
+  if LCurrentParagraph.IsTableCell then
+  begin
+    LContainers := System.Copy(LCurrentParagraph.TableContainers);
+    SetLength(LContainers, Length(LContainers) + 1);
+    LContainers[High(LContainers)] := TS4YTableCellReference.At(LCurrentParagraph.TableID,
+      LCurrentParagraph.TableRow, LCurrentParagraph.TableCol);
+  end;
   for LRow := 0 to ARows - 1 do
     for LCol := 0 to ACols - 1 do
     begin
       LNewParagraph := TS4YHTMLParagraph.Create;
       LNewParagraph.BlockType := btTableCell;
       LNewParagraph.TableID := LTableID;
+      LNewParagraph.TableContainers := System.Copy(LContainers);
       LNewParagraph.TableRow := LRow;
       LNewParagraph.TableCol := LCol;
       LNewParagraph.TableCols := ACols;
@@ -7604,8 +7639,26 @@ begin
       Inc(LInsertAt);
     end;
   // Ensure a paragraph after the table for cursor placement
-  if (LInsertAt >= FDocument.Paragraphs.Count) or
-     FDocument.Paragraphs[LInsertAt].IsTableCell then
+  if LCurrentParagraph.IsTableCell then
+  begin
+    // In a cell the paragraph that follows the table belongs to the cell, unless the cell goes on
+    if (LInsertAt >= FDocument.Paragraphs.Count) or
+       not FDocument.Paragraphs[LInsertAt].IsInCell(LCurrentParagraph.TableID, LCurrentParagraph.TableRow,
+         LCurrentParagraph.TableCol) then
+    begin
+      LNewParagraph := TS4YHTMLParagraph.Create;
+      LNewParagraph.BlockType := btTableCell;
+      LNewParagraph.TableID := LCurrentParagraph.TableID;
+      LNewParagraph.TableContainers := System.Copy(LCurrentParagraph.TableContainers);
+      LNewParagraph.TableRow := LCurrentParagraph.TableRow;
+      LNewParagraph.TableCol := LCurrentParagraph.TableCol;
+      LNewParagraph.TableCols := LCurrentParagraph.TableCols;
+      LNewParagraph.IsHeader := LCurrentParagraph.IsHeader;
+      FDocument.Paragraphs.Insert(LInsertAt, LNewParagraph);
+    end;
+  end
+  else if (LInsertAt >= FDocument.Paragraphs.Count) or
+          FDocument.Paragraphs[LInsertAt].IsTableCell then
   begin
     LNewParagraph := TS4YHTMLParagraph.Create;
     LNewParagraph.BlockType := btParagraph;
@@ -7669,8 +7722,8 @@ begin
   if not LCurrentParagraph.IsTableCell then
     Exit;
 
-  // Rows and columns cannot be added or removed in a table that has merged cells
-  if TableHasSpans(LCurrentParagraph.TableID) then
+  // Rows and columns cannot be added or removed in a table that has merged cells or nested tables
+  if TableHasSpans(LCurrentParagraph.TableID) or TableHasNesting(LCurrentParagraph.TableID) then
     Exit;
 
   SaveUndo;
@@ -7731,8 +7784,8 @@ begin
   if not LCurrentParagraph.IsTableCell then
     Exit;
 
-  // Rows and columns cannot be added or removed in a table that has merged cells
-  if TableHasSpans(LCurrentParagraph.TableID) then
+  // Rows and columns cannot be added or removed in a table that has merged cells or nested tables
+  if TableHasSpans(LCurrentParagraph.TableID) or TableHasNesting(LCurrentParagraph.TableID) then
     Exit;
 
   SaveUndo;
@@ -7821,8 +7874,8 @@ begin
   if not LCurrentParagraph.IsTableCell then
     Exit;
 
-  // Rows and columns cannot be added or removed in a table that has merged cells
-  if TableHasSpans(LCurrentParagraph.TableID) then
+  // Rows and columns cannot be added or removed in a table that has merged cells or nested tables
+  if TableHasSpans(LCurrentParagraph.TableID) or TableHasNesting(LCurrentParagraph.TableID) then
     Exit;
 
   SaveUndo;
@@ -7910,8 +7963,8 @@ begin
   if not LCurrentParagraph.IsTableCell then
     Exit;
 
-  // Rows and columns cannot be added or removed in a table that has merged cells
-  if TableHasSpans(LCurrentParagraph.TableID) then
+  // Rows and columns cannot be added or removed in a table that has merged cells or nested tables
+  if TableHasSpans(LCurrentParagraph.TableID) or TableHasNesting(LCurrentParagraph.TableID) then
     Exit;
 
   SaveUndo;
