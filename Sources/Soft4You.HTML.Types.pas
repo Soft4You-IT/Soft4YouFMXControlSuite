@@ -399,6 +399,8 @@ type
     Row: Integer;
     /// <summary>Zero-based column of the cell.</summary>
     Column: Integer;
+    /// <summary>Number of columns that the cell covers.</summary>
+    ColumnSpan: Integer;
     /// <summary>Index of the first paragraph of the cell, the one that holds its attributes.</summary>
     FirstParagraphIndex: Integer;
     /// <summary>Number of tables that contain the table of the cell; 0 when the table is not nested.</summary>

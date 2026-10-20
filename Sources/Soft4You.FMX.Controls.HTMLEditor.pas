@@ -73,6 +73,7 @@ const
   C_EDITOR_CARET_BLINK = 530; // ms
   C_EDITOR_UNDO_LEVELS = 100;
   C_EDITOR_SCROLL_STEP = 40.0;
+  C_COLUMN_BORDER_TOLERANCE = 3.0;  // px from a column border where the mouse grabs it
   C_AUTO_SCROLL_ZONE = 40.0; // px from top/bottom edge that triggers auto-scroll on drag
 
   // Context popup menu items constants
@@ -454,6 +455,13 @@ type
     FCaretScreenY: Single;
     FCaretScreenH: Single;
     FDragging: Boolean;
+    FIsResizingColumn: Boolean;  // a column border of a table is being dragged
+    FIsResizeChanged: Boolean;  // the dragging has changed the widths already
+    FResizeTableID: Integer;
+    FResizeBoundary: Integer;  // the border between the columns FResizeBoundary - 1 and FResizeBoundary
+    FResizeStartX: Single;
+    FResizeStartWidths: TArray<Single>;  // width of the columns of the table when the dragging started
+    FIsOverColumnBorder: Boolean;
     FMouseDownPosition: TS4YDocumentPosition;
     FClickSeq: Integer; // consecutive click count (1=single, 2=double, 3=triple)
     FLastClickTime: TDateTime; // time of last click for triple-click detection
@@ -672,6 +680,12 @@ type
     function DoTableTab(AShift: TShiftState): Boolean;
     function IsTableCellOf(AParagraphIndex, ATableID: Integer): Boolean;
     function FindTableCellAt(ATableID, ARow, ACol: Integer): Integer;
+    function FindColumnBorderAt(ADocumentX, ADocumentY: Single; out ATableID, ABoundary: Integer): Boolean;
+    function GetColumnWidths(ATableID: Integer): TArray<Single>;
+    procedure ApplyColumnWidths(ATableID: Integer; const AWidths: TArray<Single>);
+    procedure StartColumnResize(ATableID, ABoundary: Integer; AX: Single);
+    procedure ContinueColumnResize(AX: Single);
+    procedure FinishColumnResize;
     function InSameBlockScope(AFirstIndex, ASecondIndex: Integer): Boolean;
     function IsParagraphInLayoutCell(ACellIndex, AParagraphIndex: Integer): Boolean;
     function InSameTableCell(AFirstIndex, ASecondIndex: Integer): Boolean;
@@ -2318,6 +2332,7 @@ begin
     LLayoutCell.HasBorder := LFirstParagraph.TableHasBorder;
     LLayoutCell.Y := LRowTop;
     LLayoutCell.Width := ColumnSpanWidth(LParagraph.TableCol, LColSpan);
+    LLayoutCell.ColumnSpan := LColSpan;
     LLayoutCell.Height := LSpanHeight;
     SetLength(ACells, Length(ACells) + 1);
     ACells[High(ACells)] := LLayoutCell;
@@ -4678,6 +4693,8 @@ var
   LDist2: Single;
   LSavedScrollY: Single;
   LClickParagraph: TS4YHTMLParagraph;
+  LBorderTableID: Integer;
+  LBorderBoundary: Integer;
 begin
   // Save scroll as the VERY FIRST operation: TControl.MouseDown (inherited) calls
   // SetFocusedControl -> DoEnter -> DoLayout -> EnsureCaretVisible and resets
@@ -4691,6 +4708,13 @@ begin
     DoLayout;
   ScrollTo(LSavedScrollY);
   FCaretAtImageRight := False;
+  // A click on the border between two columns grabs it instead of moving the caret
+  if (Button = TMouseButton.mbLeft) and not FReadOnly and
+     FindColumnBorderAt(X - ContentLeft, Y - ContentTop, LBorderTableID, LBorderBoundary) then
+  begin
+    StartColumnResize(LBorderTableID, LBorderBoundary, X - ContentLeft);
+    Exit;
+  end;
   LHitPosition := HitTest(X, Y);
   FMouseDownPosition := LHitPosition;
   FClickedLinkURL := '';
@@ -5024,8 +5048,18 @@ var
   LURL: String;
   LNewCursor: TCursor;
   LScrollStep: Single;
+  LBorderTableID: Integer;
+  LBorderBoundary: Integer;
 begin
   inherited;
+  if FIsResizingColumn then
+  begin
+    if ssLeft in Shift then
+      ContinueColumnResize(X - ContentLeft)
+    else
+      FinishColumnResize;
+    Exit;
+  end;
   if FDragging and (ssLeft in Shift) then
   begin
     if Y < C_AUTO_SCROLL_ZONE then
@@ -5055,8 +5089,19 @@ begin
       DoNotifyState;
     end;
   end
+  else if not FReadOnly and FindColumnBorderAt(X - ContentLeft, Y - ContentTop, LBorderTableID, LBorderBoundary) then
+  begin
+    FIsOverColumnBorder := True;
+    Cursor := crSizeWE;
+  end
   else
   begin
+    if FIsOverColumnBorder then
+    begin
+      FIsOverColumnBorder := False;
+      Cursor := crIBeam;
+      FHoverLinkURL := '';
+    end;
     LURL := LinkURLAt(X, Y);
     if LURL <> FHoverLinkURL then
     begin
@@ -5077,6 +5122,11 @@ end;
 procedure TS4YHTMLEditor.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Single);
 begin
   inherited;
+  if FIsResizingColumn then
+  begin
+    FinishColumnResize;
+    Exit;
+  end;
   if (Button = TMouseButton.mbLeft) and (FClickedLinkURL <> '') and not FHasSelection and (LinkURLAt(X, Y) = FClickedLinkURL)
   then
   begin
@@ -5142,6 +5192,171 @@ function TS4YHTMLEditor.InSameBlockScope(AFirstIndex, ASecondIndex: Integer): Bo
 begin
   Result := (FDocument.Paragraphs[AFirstIndex].IsTableCell = FDocument.Paragraphs[ASecondIndex].IsTableCell) and
     (not FDocument.Paragraphs[AFirstIndex].IsTableCell or InSameTableCell(AFirstIndex, ASecondIndex));
+end;
+
+// Finds the border between two columns of a table under a point of the document. The border that belongs to the
+// innermost table wins. A cell that spans several columns hides the borders that it crosses.
+function TS4YHTMLEditor.FindColumnBorderAt(ADocumentX, ADocumentY: Single; out ATableID, ABoundary: Integer): Boolean;
+var
+  LIndex: Integer;
+  LBestDepth: Integer;
+  LColumns: Integer;
+begin
+  Result := False;
+  ATableID := 0;
+  ABoundary := 0;
+  LBestDepth := -1;
+  for LIndex := 0 to High(FCells) do
+    if (ADocumentY >= FCells[LIndex].Y) and (ADocumentY < FCells[LIndex].Y + FCells[LIndex].Height) and
+       (FCells[LIndex].Depth >= LBestDepth) then
+    begin
+      LColumns := FDocument.Paragraphs[FCells[LIndex].FirstParagraphIndex].TableCols;
+      if (FCells[LIndex].Column + FCells[LIndex].ColumnSpan < LColumns) and
+         (Abs(ADocumentX - (FCells[LIndex].X + FCells[LIndex].Width)) <= C_COLUMN_BORDER_TOLERANCE) then
+      begin
+        Result := True;
+        ATableID := FCells[LIndex].TableID;
+        ABoundary := FCells[LIndex].Column + FCells[LIndex].ColumnSpan;
+        LBestDepth := FCells[LIndex].Depth;
+      end
+      else if (FCells[LIndex].Column > 0) and (Abs(ADocumentX - FCells[LIndex].X) <= C_COLUMN_BORDER_TOLERANCE) then
+      begin
+        Result := True;
+        ATableID := FCells[LIndex].TableID;
+        ABoundary := FCells[LIndex].Column;
+        LBestDepth := FCells[LIndex].Depth;
+      end;
+    end;
+end;
+
+// The width in pixels of every column of the table, as the last layout gave it. A column edge that no cell
+// starts or ends at (all the cells that cross it span columns) is placed between its neighbours.
+function TS4YHTMLEditor.GetColumnWidths(ATableID: Integer): TArray<Single>;
+var
+  LIndex: Integer;
+  LColumns: Integer;
+  LEdges: TArray<Single>;
+  LKnown: TArray<Boolean>;
+  LPrevious: Integer;
+  LNext: Integer;
+begin
+  LColumns := 0;
+  for LIndex := 0 to High(FCells) do
+    if FCells[LIndex].TableID = ATableID then
+      LColumns := FDocument.Paragraphs[FCells[LIndex].FirstParagraphIndex].TableCols;
+  SetLength(Result, LColumns);
+  if LColumns < 1 then
+    Exit;
+  SetLength(LEdges, LColumns + 1);
+  SetLength(LKnown, LColumns + 1);
+  for LIndex := 0 to High(FCells) do
+    if FCells[LIndex].TableID = ATableID then
+    begin
+      LEdges[FCells[LIndex].Column] := FCells[LIndex].X;
+      LKnown[FCells[LIndex].Column] := True;
+      if FCells[LIndex].Column + FCells[LIndex].ColumnSpan <= LColumns then
+      begin
+        LEdges[FCells[LIndex].Column + FCells[LIndex].ColumnSpan] := FCells[LIndex].X + FCells[LIndex].Width;
+        LKnown[FCells[LIndex].Column + FCells[LIndex].ColumnSpan] := True;
+      end;
+    end;
+  for LIndex := 0 to LColumns do
+    if not LKnown[LIndex] then
+    begin
+      LPrevious := LIndex - 1;
+      while (LPrevious > 0) and not LKnown[LPrevious] do
+        Dec(LPrevious);
+      LNext := LIndex + 1;
+      while (LNext < LColumns) and not LKnown[LNext] do
+        Inc(LNext);
+      if (LPrevious >= 0) and (LNext <= LColumns) and LKnown[LPrevious] and LKnown[LNext] then
+        LEdges[LIndex] := LEdges[LPrevious] + (LEdges[LNext] - LEdges[LPrevious]) * (LIndex - LPrevious) / (LNext - LPrevious);
+    end;
+  for LIndex := 0 to LColumns - 1 do
+    Result[LIndex] := LEdges[LIndex + 1] - LEdges[LIndex];
+end;
+
+// Gives the cells of the table the widths of the columns: a percentage of the table when its width is not in
+// pixels, so that the table keeps its proportions, and pixels otherwise.
+procedure TS4YHTMLEditor.ApplyColumnWidths(ATableID: Integer; const AWidths: TArray<Single>);
+var
+  LIndex: Integer;
+  LTotal: Single;
+  LWidth: Single;
+  LIsPixels: Boolean;
+begin
+  LTotal := 0;
+  for LWidth in AWidths do
+    LTotal := LTotal + LWidth;
+  if LTotal <= 0 then
+    Exit;
+  LIsPixels := False;
+  for LIndex := 0 to High(FCells) do
+    if FCells[LIndex].TableID = ATableID then
+      LIsPixels := FDocument.Paragraphs[FCells[LIndex].FirstParagraphIndex].TableWidth.Kind = tlkPixels;
+  for LIndex := 0 to High(FCells) do
+    if (FCells[LIndex].TableID = ATableID) and (FCells[LIndex].ColumnSpan = 1) and
+       (FCells[LIndex].Column < Length(AWidths)) then
+    begin
+      LWidth := AWidths[FCells[LIndex].Column];
+      if LIsPixels then
+        FDocument.Paragraphs[FCells[LIndex].FirstParagraphIndex].TableCellWidth := TS4YTableLength.Pixels(Round(LWidth))
+      else
+        FDocument.Paragraphs[FCells[LIndex].FirstParagraphIndex].TableCellWidth :=
+          TS4YTableLength.Percent(Round(LWidth / LTotal * 10000) / 100);
+    end;
+end;
+
+procedure TS4YHTMLEditor.StartColumnResize(ATableID, ABoundary: Integer; AX: Single);
+begin
+  FIsResizingColumn := True;
+  FIsResizeChanged := False;
+  FResizeTableID := ATableID;
+  FResizeBoundary := ABoundary;
+  FResizeStartX := AX;
+  FResizeStartWidths := GetColumnWidths(ATableID);
+  FDragging := False;
+end;
+
+// Moves the border to the mouse: the column on its left grows and the one on its right shrinks by the same amount,
+// each of them keeping at least C_MINIMUM_TABLE_COLUMN_WIDTH.
+procedure TS4YHTMLEditor.ContinueColumnResize(AX: Single);
+var
+  LDelta: Single;
+  LWidths: TArray<Single>;
+  LSavedScrollY: Single;
+begin
+  if (FResizeBoundary < 1) or (FResizeBoundary >= Length(FResizeStartWidths)) then
+    Exit;
+  LDelta := AX - FResizeStartX;
+  LDelta := Max(LDelta, C_MINIMUM_TABLE_COLUMN_WIDTH - FResizeStartWidths[FResizeBoundary - 1]);
+  LDelta := Min(LDelta, FResizeStartWidths[FResizeBoundary] - C_MINIMUM_TABLE_COLUMN_WIDTH);
+  if (LDelta = 0) and not FIsResizeChanged then
+    Exit;
+  if not FIsResizeChanged then
+  begin
+    SaveUndo;
+    FIsResizeChanged := True;
+  end;
+  LWidths := System.Copy(FResizeStartWidths);
+  LWidths[FResizeBoundary - 1] := LWidths[FResizeBoundary - 1] + LDelta;
+  LWidths[FResizeBoundary] := LWidths[FResizeBoundary] - LDelta;
+  ApplyColumnWidths(FResizeTableID, LWidths);
+  // DoLayout scrolls to the caret; the view must stay where the user is working
+  LSavedScrollY := FScrollY;
+  DoLayout;
+  ScrollTo(LSavedScrollY);
+end;
+
+procedure TS4YHTMLEditor.FinishColumnResize;
+begin
+  FIsResizingColumn := False;
+  if FIsResizeChanged then
+  begin
+    FIsResizeChanged := False;
+    DoChanged;
+    DoNotifyState;
+  end;
 end;
 
 // Finds the cell of the table that covers a position of the grid, also when it starts in a previous row or column.
