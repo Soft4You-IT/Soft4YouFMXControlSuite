@@ -243,6 +243,38 @@ type
   end;
 
   // ===========================================================================
+  // Table cell reference  (position of a cell in a table)
+  // ===========================================================================
+
+  /// <summary>
+  /// A reference to a cell of a table: the table and the position of the cell in it.
+  /// </summary>
+  /// <remarks>
+  /// A paragraph of a table that sits inside the cell of another table lists the cells that contain it as references.
+  /// </remarks>
+  TS4YTableCellReference = record
+    /// <summary>Identifier of the table, as in TS4YHTMLParagraph.TableID.</summary>
+    TableID: Integer;
+    /// <summary>Zero-based row of the cell.</summary>
+    Row: Integer;
+    /// <summary>Zero-based column of the cell.</summary>
+    Column: Integer;
+    /// <summary>
+    /// Creates a reference.
+    /// </summary>
+    /// <param name="ATableID">Identifier of the table.</param>
+    /// <param name="ARow">Zero-based row of the cell.</param>
+    /// <param name="AColumn">Zero-based column of the cell.</param>
+    class function At(ATableID, ARow, AColumn: Integer): TS4YTableCellReference; static; inline;
+    /// <summary>
+    /// Compares two references.
+    /// </summary>
+    /// <param name="AOther">The reference to compare with.</param>
+    /// <returns>True when table, row and column are all equal.</returns>
+    function Equals(const AOther: TS4YTableCellReference): Boolean; inline;
+  end;
+
+  // ===========================================================================
   // Layout types  (produced by TS4YLayoutEngine)
   // ===========================================================================
 
@@ -777,6 +809,22 @@ end;
 function TS4YDocumentPosition.Equals(const AOther: TS4YDocumentPosition): Boolean;
 begin
   Result := (ParagraphIndex = AOther.ParagraphIndex) and (RunIndex = AOther.RunIndex) and (CharIndex = AOther.CharIndex);
+end;
+
+// -----------------------------------------------------------------------------
+// TS4YTableCellReference
+// -----------------------------------------------------------------------------
+
+class function TS4YTableCellReference.At(ATableID, ARow, AColumn: Integer): TS4YTableCellReference;
+begin
+  Result.TableID := ATableID;
+  Result.Row := ARow;
+  Result.Column := AColumn;
+end;
+
+function TS4YTableCellReference.Equals(const AOther: TS4YTableCellReference): Boolean;
+begin
+  Result := (TableID = AOther.TableID) and (Row = AOther.Row) and (Column = AOther.Column);
 end;
 
 end.
