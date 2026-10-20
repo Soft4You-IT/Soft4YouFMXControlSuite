@@ -404,7 +404,18 @@ var
             LCellTag := 'th'
           else
             LCellTag := 'td';
+          // The padding is written in the shortest form; the default (4px) is written when the cell has none of its own
           LCellStyle := 'padding:4px;';
+          if LCell.TableCellPadding.IsSet then
+          begin
+            if (LCell.TableCellPadding.Top = LCell.TableCellPadding.Right) and
+               (LCell.TableCellPadding.Top = LCell.TableCellPadding.Bottom) and
+               (LCell.TableCellPadding.Top = LCell.TableCellPadding.Left) then
+              LCellStyle := Format('padding:%.0fpx;', [LCell.TableCellPadding.Top])
+            else
+              LCellStyle := Format('padding:%.0fpx %.0fpx %.0fpx %.0fpx;', [LCell.TableCellPadding.Top,
+                LCell.TableCellPadding.Right, LCell.TableCellPadding.Bottom, LCell.TableCellPadding.Left]);
+          end;
           case LCell.Alignment of
             haCenter:  LCellStyle := LCellStyle + 'text-align:center;';
             haRight:   LCellStyle := LCellStyle + 'text-align:right;';
@@ -412,6 +423,12 @@ var
           end;
           if not LCell.TableCellWidth.IsAuto then
             LCellStyle := LCellStyle + 'width:' + LengthToCSS(LCell.TableCellWidth) + ';';
+          if LCell.TableCellBackgroundColor <> claNull then
+            LCellStyle := LCellStyle + 'background-color:' + ColorToHex(LCell.TableCellBackgroundColor) + ';';
+          case LCell.TableCellVerticalAlignment of
+            tvaMiddle: LCellStyle := LCellStyle + 'vertical-align:middle;';
+            tvaBottom: LCellStyle := LCellStyle + 'vertical-align:bottom;';
+          end;
           if FPretty then
             LStringBuilder.Append('    ');
           LCellSpans := '';
