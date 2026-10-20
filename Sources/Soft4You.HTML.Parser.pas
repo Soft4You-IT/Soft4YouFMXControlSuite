@@ -67,6 +67,13 @@ type
         MaximumWidth: Single;
         Alignment: TS4YHTMLAlignment;
         HasBorder: Boolean;
+        CellBlockBase: Integer;
+        TableBlockBase: Integer;
+      end;
+      // A block whose style was looked at: its tag and whether a text style was pushed for it
+      TBlockStyleEntry = record
+        Tag: string;
+        IsPushed: Boolean;
       end;
   private
     FInput: string;
@@ -104,6 +111,9 @@ type
     FCellVerticalAlignment: TS4YTableVerticalAlignment;
     FTableBackground: TAlphaColor;  // background and padding that the cells of the table being read get by default
     FTablePadding: TS4YTablePadding;
+    FBlockStyles: TList<TBlockStyleEntry>;  // the blocks that are open (p, div, h1, li, ...), innermost last
+    FCellBlockBase: Integer;  // number of open blocks when the open cell started
+    FTableBlockBase: Integer;  // number of open blocks when the table being read started
     FCellStylePushed: Boolean;  // a text style was pushed for the open cell (bold of th, font and color of the cell)
     FTableStylePushed: Boolean;  // a text style was pushed for the table being read
     FCellAlignment: TS4YHTMLAlignment;  // text alignment written on the open cell or inherited from its table
@@ -139,6 +149,10 @@ type
     function ParsePadding(const AStyle: string): TS4YTablePadding;
     function ParseTextStyleOfBlock(const AStyle: string; var ATextStyle: TS4YHTMLTextStyle): Boolean;
     function ParseTextAlignment(const AText: string; out AAlignment: TS4YHTMLAlignment): Boolean;
+    function IsBlockStyleTag(const ATag: string): Boolean;
+    procedure OpenBlockStyle(const ATag, AAttributes: string);
+    procedure CloseBlockStyle(const ATag: string);
+    procedure UnwindBlockStyles(ABase: Integer);
     procedure EnsureParagraph(ABlockType: TS4YHTMLBlockType = btBodyText);
     procedure PushStyle(const ATextStyle: TS4YHTMLTextStyle; ABorderColor: TAlphaColor = claNull);
     procedure PopStyle;
@@ -590,6 +604,8 @@ begin
   LState.CellHasAlignment := FCellHasAlignment;
   LState.TableTextAlignment := FTableTextAlignment;
   LState.TableHasTextAlignment := FTableHasTextAlignment;
+  LState.CellBlockBase := FCellBlockBase;
+  LState.TableBlockBase := FTableBlockBase;
   LState.Containers := FTableContainers;
   LState.Width := FTableWidth;
   LState.MaximumWidth := FTableMaximumWidth;
@@ -635,6 +651,8 @@ begin
   FCellHasAlignment := LState.CellHasAlignment;
   FTableTextAlignment := LState.TableTextAlignment;
   FTableHasTextAlignment := LState.TableHasTextAlignment;
+  FCellBlockBase := LState.CellBlockBase;
+  FTableBlockBase := LState.TableBlockBase;
   FTableContainers := LState.Containers;
   FTableWidth := LState.Width;
   FTableMaximumWidth := LState.MaximumWidth;
@@ -657,6 +675,7 @@ begin
     AddParagraph(LEmptyParagraph);
   end;
   FCellOpen := False;
+  UnwindBlockStyles(FCellBlockBase);
   if FCellStylePushed then
     PopStyle;
   FCellStylePushed := False;
@@ -718,6 +737,53 @@ begin
     AAlignment := haLeft
   else
     Result := False;
+end;
+
+// True for the tags whose style attribute can give a text style to their content.
+function TS4YHTMLParser.IsBlockStyleTag(const ATag: string): Boolean;
+begin
+  Result := (ATag = 'p') or (ATag = 'div') or (ATag = 'blockquote') or (ATag = 'ul') or (ATag = 'ol') or
+    (ATag = 'li') or ((Length(ATag) = 2) and (ATag[Low(ATag)] = 'h') and CharInSet(ATag[Low(ATag) + 1], ['1' .. '6']));
+end;
+
+// A block starts: the font, size, weight and color of its style apply to its content until it ends. A p or an li
+// that is still open ends when the next one starts, as it does in a browser.
+procedure TS4YHTMLParser.OpenBlockStyle(const ATag, AAttributes: string);
+var
+  LEntry: TBlockStyleEntry;
+  LTextStyle: TS4YHTMLTextStyle;
+begin
+  if ((ATag = 'p') or (ATag = 'li')) and (FBlockStyles.Count > 0) and (FBlockStyles.Last.Tag = ATag) then
+    CloseBlockStyle(ATag);
+  LTextStyle := TopStyle;
+  LEntry.Tag := ATag;
+  LEntry.IsPushed := ParseTextStyleOfBlock(GetAttribute(AAttributes, 'style'), LTextStyle);
+  if LEntry.IsPushed then
+    PushStyle(LTextStyle, TopBorderColor);
+  FBlockStyles.Add(LEntry);
+end;
+
+// A block ends: the blocks that were opened inside it and never closed end with it.
+procedure TS4YHTMLParser.CloseBlockStyle(const ATag: string);
+var
+  LIndex: Integer;
+begin
+  LIndex := FBlockStyles.Count - 1;
+  while (LIndex >= 0) and (FBlockStyles[LIndex].Tag <> ATag) do
+    Dec(LIndex);
+  if LIndex >= 0 then
+    UnwindBlockStyles(LIndex);
+end;
+
+// Ends the open blocks from the one at position ABase on, taking back the text styles that they pushed.
+procedure TS4YHTMLParser.UnwindBlockStyles(ABase: Integer);
+begin
+  while FBlockStyles.Count > ABase do
+  begin
+    if FBlockStyles.Last.IsPushed then
+      PopStyle;
+    FBlockStyles.Delete(FBlockStyles.Count - 1);
+  end;
 end;
 
 // Applies the text properties of the style of a block, a cell or a table (font, size, weight, color, ...) to a
@@ -1065,6 +1131,13 @@ var
 begin
   if (ATag = '!--') or StartsWithCI(ATag, '!') then
     Exit; // comments/doctype
+  if IsBlockStyleTag(ATag) then
+  begin
+    if IsClose then
+      CloseBlockStyle(ATag)
+    else if not IsSelf then
+      OpenBlockStyle(ATag, AAttributes);
+  end;
   if ATag = 'head' then
   begin
     SkipUntil('</head>');
@@ -1365,6 +1438,7 @@ begin
             FDocument.Paragraphs[LIndex].TableRowSpan := FTableRow - FDocument.Paragraphs[LIndex].TableRow + 1;
         end;
       FInTable := False;
+      UnwindBlockStyles(FTableBlockBase);
       if FTableStylePushed then
         PopStyle;
       FTableStylePushed := False;
@@ -1382,9 +1456,10 @@ begin
       FTableID := NextTableID;
       ReadTableAttributes(AAttributes);
       LTextStyle := TopStyle;
+      FTableBlockBase := FBlockStyles.Count;
       FTableStylePushed := ParseTextStyleOfBlock(GetAttribute(AAttributes, 'style'), LTextStyle);
       if FTableStylePushed then
-        PushStyle(LTextStyle);
+        PushStyle(LTextStyle, TopBorderColor);
       FTableRow := -1;
       FTableColumn := 0;
       FTableColumns := 0;
@@ -1445,9 +1520,10 @@ begin
       LTextStyle := TopStyle;
       if FCellIsHeader then
         LTextStyle.Bold := True;
+      FCellBlockBase := FBlockStyles.Count;
       FCellStylePushed := ParseTextStyleOfBlock(GetAttribute(AAttributes, 'style'), LTextStyle) or FCellIsHeader;
       if FCellStylePushed then
-        PushStyle(LTextStyle);
+        PushStyle(LTextStyle, TopBorderColor);
       if Length(FTableCovered) < FTableColumn + FCellColSpan then
         SetLength(FTableCovered, FTableColumn + FCellColSpan);
       for var LColumn := FTableColumn to FTableColumn + FCellColSpan - 1 do
@@ -1755,6 +1831,7 @@ begin
   FStyleStack := TList<TS4YHTMLTextStyle>.Create;
   FBorderColorStack := TList<TAlphaColor>.Create;
   FTableStack := TList<TTableState>.Create;
+  FBlockStyles := TList<TBlockStyleEntry>.Create;
   FInTable := False;
   FCellOpen := False;
   FCellStylePushed := False;
@@ -1831,6 +1908,7 @@ begin
     FStyleStack.Free;
     FBorderColorStack.Free;
     FTableStack.Free;
+    FBlockStyles.Free;
     FCurrentParagraph.Free;
   end;
 end;
