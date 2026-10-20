@@ -461,6 +461,10 @@ type
     FResizeBoundary: Integer;  // the border between the columns FResizeBoundary - 1 and FResizeBoundary
     FResizeStartX: Single;
     FResizeStartWidths: TArray<Single>;  // width of the columns of the table when the dragging started
+    FIsResizingTable: Boolean;  // the outer edge of the table is dragged: the width of the table changes
+    FResizeAvailableWidth: Single;  // space that the table has
+    FResizeTableAlignment: TS4YHTMLAlignment;
+    FResizeIsPixels: Boolean;  // the width of the table is in pixels
     FIsOverColumnBorder: Boolean;
     FMouseDownPosition: TS4YDocumentPosition;
     FClickSeq: Integer; // consecutive click count (1=single, 2=double, 3=triple)
@@ -683,6 +687,7 @@ type
     function FindColumnBorderAt(ADocumentX, ADocumentY: Single; out ATableID, ABoundary: Integer): Boolean;
     function GetColumnWidths(ATableID: Integer): TArray<Single>;
     procedure ApplyColumnWidths(ATableID: Integer; const AWidths: TArray<Single>);
+    procedure ApplyTableWidth(ATableID: Integer; AWidth: Single);
     procedure StartColumnResize(ATableID, ABoundary: Integer; AX: Single);
     procedure ContinueColumnResize(AX: Single);
     procedure FinishColumnResize;
@@ -2333,6 +2338,7 @@ begin
     LLayoutCell.Y := LRowTop;
     LLayoutCell.Width := ColumnSpanWidth(LParagraph.TableCol, LColSpan);
     LLayoutCell.ColumnSpan := LColSpan;
+    LLayoutCell.TableAvailableWidth := AAvailableWidth;
     LLayoutCell.Height := LSpanHeight;
     SetLength(ACells, Length(ACells) + 1);
     ACells[High(ACells)] := LLayoutCell;
@@ -5201,6 +5207,7 @@ var
   LIndex: Integer;
   LBestDepth: Integer;
   LColumns: Integer;
+  LAlignment: TS4YHTMLAlignment;
 begin
   Result := False;
   ATableID := 0;
@@ -5211,7 +5218,10 @@ begin
        (FCells[LIndex].Depth >= LBestDepth) then
     begin
       LColumns := FDocument.Paragraphs[FCells[LIndex].FirstParagraphIndex].TableCols;
-      if (FCells[LIndex].Column + FCells[LIndex].ColumnSpan < LColumns) and
+      LAlignment := FDocument.Paragraphs[FCells[LIndex].FirstParagraphIndex].TableAlignment;
+      // The right edge of the last column is the edge of the table, which stays where it is in a table on the right
+      if ((FCells[LIndex].Column + FCells[LIndex].ColumnSpan < LColumns) or
+          ((FCells[LIndex].Column + FCells[LIndex].ColumnSpan = LColumns) and (LAlignment <> haRight))) and
          (Abs(ADocumentX - (FCells[LIndex].X + FCells[LIndex].Width)) <= C_COLUMN_BORDER_TOLERANCE) then
       begin
         Result := True;
@@ -5219,7 +5229,8 @@ begin
         ABoundary := FCells[LIndex].Column + FCells[LIndex].ColumnSpan;
         LBestDepth := FCells[LIndex].Depth;
       end
-      else if (FCells[LIndex].Column > 0) and (Abs(ADocumentX - FCells[LIndex].X) <= C_COLUMN_BORDER_TOLERANCE) then
+      else if ((FCells[LIndex].Column > 0) or ((FCells[LIndex].Column = 0) and (LAlignment = haRight))) and
+              (Abs(ADocumentX - FCells[LIndex].X) <= C_COLUMN_BORDER_TOLERANCE) then
       begin
         Result := True;
         ATableID := FCells[LIndex].TableID;
@@ -5307,6 +5318,25 @@ begin
     end;
 end;
 
+// Gives the table a width: a percentage of its space, or pixels when the width of the table is in pixels. A maximum
+// width that the new width goes past is dropped.
+procedure TS4YHTMLEditor.ApplyTableWidth(ATableID: Integer; AWidth: Single);
+var
+  LIndex: Integer;
+begin
+  for LIndex := 0 to FDocument.Paragraphs.Count - 1 do
+    if FDocument.Paragraphs[LIndex].TableID = ATableID then
+    begin
+      if FResizeIsPixels then
+        FDocument.Paragraphs[LIndex].TableWidth := TS4YTableLength.Pixels(Round(AWidth))
+      else
+        FDocument.Paragraphs[LIndex].TableWidth :=
+          TS4YTableLength.Percent(Round(AWidth / FResizeAvailableWidth * 10000) / 100);
+      if (FDocument.Paragraphs[LIndex].TableMaximumWidth > 0) and (AWidth > FDocument.Paragraphs[LIndex].TableMaximumWidth) then
+        FDocument.Paragraphs[LIndex].TableMaximumWidth := 0;
+    end;
+end;
+
 procedure TS4YHTMLEditor.StartColumnResize(ATableID, ABoundary: Integer; AX: Single);
 begin
   FIsResizingColumn := True;
@@ -5316,6 +5346,19 @@ begin
   FResizeStartX := AX;
   FResizeStartWidths := GetColumnWidths(ATableID);
   FDragging := False;
+  // The border at the start or at the end of the table changes the width of the whole table
+  FIsResizingTable := (ABoundary = 0) or (ABoundary >= Length(FResizeStartWidths));
+  if FIsResizingTable then
+  begin
+    FResizeAvailableWidth := 0;
+    for var I := 0 to High(FCells) do
+      if FCells[I].TableID = ATableID then
+      begin
+        FResizeAvailableWidth := FCells[I].TableAvailableWidth;
+        FResizeTableAlignment := FDocument.Paragraphs[FCells[I].FirstParagraphIndex].TableAlignment;
+        FResizeIsPixels := FDocument.Paragraphs[FCells[I].FirstParagraphIndex].TableWidth.Kind = tlkPixels;
+      end;
+  end;
 end;
 
 // Moves the border to the mouse: the column on its left grows and the one on its right shrinks by the same amount,
@@ -5325,7 +5368,44 @@ var
   LDelta: Single;
   LWidths: TArray<Single>;
   LSavedScrollY: Single;
+  LStartWidth: Single;
+  LNewWidth: Single;
+  LFactor: Single;
+  LWidth: Single;
 begin
+  if FIsResizingTable then
+  begin
+    // The edge that is dragged moves the table by the same amount in a table on the left, by half in a centered
+    // table (it grows on both sides) and in the other direction in a table on the right (its left edge is dragged)
+    LStartWidth := 0;
+    for LWidth in FResizeStartWidths do
+      LStartWidth := LStartWidth + LWidth;
+    case FResizeTableAlignment of
+      haCenter:
+        LFactor := 2;
+      haRight:
+        LFactor := -1;
+    else
+      LFactor := 1;
+    end;
+    if FResizeAvailableWidth <= 0 then
+      Exit;
+    LNewWidth := LStartWidth + LFactor * (AX - FResizeStartX);
+    LNewWidth := Max(LNewWidth, Length(FResizeStartWidths) * C_MINIMUM_TABLE_COLUMN_WIDTH);
+    LNewWidth := Min(LNewWidth, FResizeAvailableWidth);
+    if (Abs(LNewWidth - LStartWidth) < 0.5) and not FIsResizeChanged then
+      Exit;
+    if not FIsResizeChanged then
+    begin
+      SaveUndo;
+      FIsResizeChanged := True;
+    end;
+    ApplyTableWidth(FResizeTableID, LNewWidth);
+    LSavedScrollY := FScrollY;
+    DoLayout;
+    ScrollTo(LSavedScrollY);
+    Exit;
+  end;
   if (FResizeBoundary < 1) or (FResizeBoundary >= Length(FResizeStartWidths)) then
     Exit;
   LDelta := AX - FResizeStartX;

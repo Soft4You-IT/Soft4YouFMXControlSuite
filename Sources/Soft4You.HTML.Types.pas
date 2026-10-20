@@ -415,6 +415,8 @@ type
     Width: Single;
     /// <summary>Height of the cell.</summary>
     Height: Single;
+    /// <summary>Width of the space that the table of the cell was laid out in.</summary>
+    TableAvailableWidth: Single;
   end;
 
   // ===========================================================================
