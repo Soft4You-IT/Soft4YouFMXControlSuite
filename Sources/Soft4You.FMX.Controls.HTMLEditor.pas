@@ -662,6 +662,7 @@ type
     procedure SaveUndo;
     procedure SetCaretPosition(const APosition: TS4YDocumentPosition; ExtendSel: Boolean);
     procedure ApplyCaretPosition(const APosition: TS4YDocumentPosition; ExtendSel: Boolean);
+    procedure ResetSelection;
     procedure MoveCaretPosition(const APosition: TS4YDocumentPosition; ExtendSel: Boolean);
     function IsPlaceholderPosition(const APosition: TS4YDocumentPosition): Boolean;
 
@@ -3927,11 +3928,20 @@ begin
     end;
 end;
 
-procedure TS4YHTMLEditor.ClearSelection;
+procedure TS4YHTMLEditor.ResetSelection;
 begin
   FHasSelection := False;
   FSelectionStart := TS4YDocumentPosition.Invalid;
   FSelectionEnd := TS4YDocumentPosition.Invalid;
+end;
+
+procedure TS4YHTMLEditor.ClearSelection;
+begin
+  if not FHasSelection then
+    Exit;
+  ResetSelection;
+  InvalidateRender;
+  DoNotifyState;
 end;
 
 function TS4YHTMLEditor.DocumentStart: TS4YDocumentPosition;
@@ -4662,7 +4672,7 @@ begin
   if PositionCompare(LWordStart, LWordEnd) = 0 then
   begin
     FCaretPosition := LWordStart;
-    ClearSelection;
+    ResetSelection;
     FCaretOn := True;
     FInsertStyleSet := False;
     UpdateCaretXY;
@@ -4938,7 +4948,7 @@ begin
     LTargetIndex := FCaretPosition.ParagraphIndex - 1;
     if not IsTableCellOf(LTargetIndex, LTableID) then
       Exit;
-    ClearSelection;
+    ResetSelection;
     SetCaretPosition(TS4YDocumentPosition.At(LTargetIndex, 0, 0), False);
     Result := True;
     Exit;
@@ -4947,7 +4957,7 @@ begin
   LTargetIndex := FCaretPosition.ParagraphIndex + 1;
   if IsTableCellOf(LTargetIndex, LTableID) then
   begin
-    ClearSelection;
+    ResetSelection;
     SetCaretPosition(TS4YDocumentPosition.At(LTargetIndex, 0, 0), False);
     Result := True;
     Exit;
@@ -4956,7 +4966,7 @@ begin
   // Last cell: Tab appends a new row
   if FReadOnly then
     Exit;
-  ClearSelection;
+  ResetSelection;
   SaveUndo;
   LTableCols := LCurrentParagraph.TableCols;
   LNewRow := 0;
@@ -4988,6 +4998,17 @@ var
 begin
   inherited;
   LExtend := ssShift in Shift;
+
+  // Escape removes the selection; without one the key is left to the form (for example a cancel button)
+  if Key = vkEscape then
+  begin
+    if FHasSelection then
+    begin
+      ClearSelection;
+      Key := 0;
+    end;
+    Exit;
+  end;
 
   // Printable char
   if (KeyChar >= ' ') and (KeyChar <> #0) then
@@ -5762,7 +5783,7 @@ begin
   GetSelectionRange(LSelectionStart, LSelectionEnd);
   if PositionCompare(LSelectionStart, LSelectionEnd) = 0 then
   begin
-    ClearSelection;
+    ResetSelection;
     Exit;
   end;
 
@@ -5841,7 +5862,7 @@ begin
   end;
 
   RebuildPlaceholderList;
-  ClearSelection;
+  ResetSelection;
   DoLayout;
   DoChanged;
   InvalidateRender;
@@ -6343,7 +6364,7 @@ begin
   if Result > 0 then
   begin
     RebuildPlaceholderList;
-    ClearSelection;
+    ResetSelection;
     DoLayout;
     DoChanged;
     InvalidateRender;
@@ -8847,7 +8868,7 @@ begin
   end;
   PreloadImages;
   FCaretPosition := DocumentStart;
-  ClearSelection;
+  ResetSelection;
   FScrollY := 0;
   FInsertStyleSet := False;
   FLayoutEngine.ClearMeasureCache;

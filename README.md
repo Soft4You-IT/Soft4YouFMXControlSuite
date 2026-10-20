@@ -278,6 +278,7 @@ end;
 | Method | Description |
 |---|---|
 | `SelectAll` | Select the entire document |
+| `ClearSelection` | Remove the selection and keep the caret where it is |
 | `ClearSelection` | Deselect all — removes the selection without altering content |
 | `Undo` | Undo last change (up to 100 levels) |
 | `Redo` | Redo last undone change |
@@ -438,6 +439,7 @@ A refused image is not read; `OnLoadImage` still fires with a `nil` bitmap so a 
 | `Ctrl+Z` | Undo |
 | `Ctrl+Y` | Redo |
 | `Ctrl+A` | Select all |
+| `Esc` | Remove the selection (the key is left to the form when there is none) |
 | `Ctrl+C` | Copy |
 | `Ctrl+X` | Cut |
 | `Ctrl+V` | Paste |
