@@ -113,8 +113,8 @@ end;
 | `<blockquote>` | Indented quote |
 | `<ul>` / `<ol>` / `<li>` | Unordered and ordered lists |
 | `<hr>` | Horizontal rule |
-| `<img>` | Block-level image |
-| `<table>` / `<tr>` / `<td>` / `<th>` | Tables |
+| `<img>` | Inline image (a run inside the paragraph, so it can sit in the middle of a text) |
+| `<table>` / `<tr>` / `<td>` / `<th>` | Tables, including `colspan` and `rowspan` |
 | `<pre>` | Preformatted text |
 
 ### Inline elements
@@ -254,10 +254,10 @@ end;
 | `InsertInlineImage(Src[, Width, Height, Alt])` | Insert an inline image (as a run inside a paragraph) |
 | `UpdateImage(Src[, Width, Height, Alt])` | Replace the image under the caret (use `State.IsImage` to check) |
 | `InsertTable([Rows, Cols])` | Insert an empty table (default 2×2) |
-| `InsertTableRow` | Insert a new row after the row containing the caret |
-| `DeleteTableRow` | Delete the row containing the caret |
-| `InsertTableColumn` | Insert a new column after the column containing the caret |
-| `DeleteTableColumn` | Delete the column containing the caret |
+| `InsertTableRow` | Insert a new row after the row containing the caret (does nothing in a table with merged cells) |
+| `DeleteTableRow` | Delete the row containing the caret (does nothing in a table with merged cells) |
+| `InsertTableColumn` | Insert a new column after the column containing the caret (does nothing in a table with merged cells) |
+| `DeleteTableColumn` | Delete the column containing the caret (does nothing in a table with merged cells) |
 | `InsertPlaceholder(RawText[, DisplayName])` | Insert a non-editable placeholder chip |
 | `UpdatePlaceholder(NewRawText[, NewDisplayName])` | Replace the placeholder under the caret |
 | `ReloadImages` | Re-fetch all images from their source paths/URLs, with the same checks as the first load |
@@ -493,7 +493,7 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 ## Known Limitations
 
 - **Image security**: the editor reads local files and `file:` URLs named by the HTML without any check. When displaying content from untrusted sources (for example e-mail), set `LocalImageAccess` to `liaDocumentFolder` (or `AutoLoadLocalImages` to `False`) and filter with `OnBeforeLoadImage`.
-- **Tables**: `colspan` and `rowspan` are ignored on import, so merged cells lose their structure. Each cell is a single paragraph; `Enter` inserts a line break.
+- **Tables**: `colspan` and `rowspan` are read, drawn and written back, but merged cells cannot be created or split in the editor, and rows or columns cannot be inserted or deleted in a table that has them. Each cell is a single paragraph; `Enter` inserts a line break.
 - **IME**: input composition (CJK pre-edit text) is not supported, so the control is not usable with Chinese, Japanese or Korean input methods.
 - **Accessibility**: no VoiceOver / TalkBack support.
 - **CSS subset**: only the inline CSS properties listed above are supported. External stylesheets and CSS classes are ignored.

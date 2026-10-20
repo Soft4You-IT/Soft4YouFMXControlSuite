@@ -669,6 +669,8 @@ type
     // Table navigation
     function DoTableTab(AShift: TShiftState): Boolean;
     function IsTableCellOf(AParagraphIndex, ATableID: Integer): Boolean;
+    function FindTableCellAt(ATableID, ARow, ACol: Integer): Integer;
+    function TableHasSpans(ATableID: Integer): Boolean;
 
     procedure Paint; override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Single); override;
@@ -1971,10 +1973,15 @@ var
   LCellW: Single;
   LCellPad: Single;
   LRow: Integer;
-  LCol: Integer;
-  LCellParagraphIndex: Integer;
-  LRowStartY: Single;
-  LRowHeight: Single;
+  LCellIndex: Integer;
+  LCellCount: Integer;
+  LColSpan: Integer;
+  LRowSpan: Integer;
+  LCellHeight: Single;
+  LSpanHeight: Single;
+  LRowTop: Single;
+  LRowHeights: TArray<Single>;
+  LCellParagraphs: TArray<Integer>;
   LCellLocalLines: array of TArray<TS4YLayoutLine>;
   LCellLocalFrags: array of TArray<TS4YLayoutFragment>;
   LCellHeights: array of Single;
@@ -1988,6 +1995,27 @@ var
   LLine: TS4YLayoutLine;
   LFragment: TS4YLayoutFragment;
   LIndex: integer;
+
+  // Number of columns of the cell, limited to the columns of the table
+  function ColumnSpanOf(ACell: TS4YHTMLParagraph): Integer;
+  begin
+    Result := ACell.TableColSpan;
+    if Result < 1 then
+      Result := 1;
+    if ACell.TableCol + Result > LCols then
+      Result := LCols - ACell.TableCol;
+  end;
+
+  // Number of rows of the cell, limited to the rows of the table
+  function RowSpanOf(ACell: TS4YHTMLParagraph): Integer;
+  begin
+    Result := ACell.TableRowSpan;
+    if Result < 1 then
+      Result := 1;
+    if ACell.TableRow + Result - 1 > LMaximumRow then
+      Result := LMaximumRow - ACell.TableRow + 1;
+  end;
+
 begin
   LTableID := ADocument.Paragraphs[AFirstParagraphIndex].TableID;
   LCols := ADocument.Paragraphs[AFirstParagraphIndex].TableCols;
@@ -2016,87 +2044,107 @@ begin
 
   ANextParagraphIndex := LLastPI + 1;
 
-  SetLength(LCellLocalLines, LCols);
-  SetLength(LCellLocalFrags, LCols);
-  SetLength(LCellHeights, LCols);
+  // The cells that sit inside the grid, in document order (row by row)
+  LCellCount := 0;
+  SetLength(LCellParagraphs, LLastPI - AFirstParagraphIndex + 1);
+  for LParagraphIndex := AFirstParagraphIndex to LLastPI do
+    if ADocument.Paragraphs[LParagraphIndex].TableCol < LCols then
+    begin
+      LCellParagraphs[LCellCount] := LParagraphIndex;
+      Inc(LCellCount);
+    end;
+  SetLength(LCellParagraphs, LCellCount);
+  SetLength(LCellLocalLines, LCellCount);
+  SetLength(LCellLocalFrags, LCellCount);
+  SetLength(LCellHeights, LCellCount);
 
-  // Process row by row
-  for LRow := 0 to LMaximumRow do
+  // Layout each cell at the width of the columns it covers
+  for LCellIndex := 0 to LCellCount - 1 do
   begin
-    LRowStartY := AY;
-
-    // Layout each cell independently
-    for LCol := 0 to LCols - 1 do
-    begin
-      LCellLocalLines[LCol] := nil;
-      LCellLocalFrags[LCol] := nil;
-      LCellHeights[LCol] := 0;
-      // Find the para for (LRow, LCol)
-      LCellParagraphIndex := -1;
-      LParagraphIndex := AFirstParagraphIndex;
-      while (LParagraphIndex <= LLastPI) and (LCellParagraphIndex < 0) do
-      begin
-        LParagraph := ADocument.Paragraphs[LParagraphIndex];
-        if (LParagraph.TableID = LTableID) and (LParagraph.TableRow = LRow) and (LParagraph.TableCol = LCol) then
-          LCellParagraphIndex := LParagraphIndex
-        else
-          Inc(LParagraphIndex);
-      end;
-      if LCellParagraphIndex >= 0 then
-      begin
-        LLocalLines := nil;
-        LLocalFrags := nil;
-        LLocalY := 0;
-        LayoutParagraph(ADocument.Paragraphs[LCellParagraphIndex], LCellParagraphIndex,
-          LCellW - 2 * LCellPad, 0, LLocalLines, LLocalFrags, LLocalY);
-        LCellLocalLines[LCol] := LLocalLines;
-        LCellLocalFrags[LCol] := LLocalFrags;
-        LCellHeights[LCol] := LLocalY;
-      end;
-    end;
-
-    // Row height = max cell content height + 2*padding, minimum C_DEFAULT_TABLE_MIN_ROW_HEIGHT
-    LRowHeight := C_DEFAULT_TABLE_MIN_ROW_HEIGHT;
-    for LCol := 0 to LCols - 1 do
-      if LCellHeights[LCol] + 2 * LCellPad > LRowHeight then
-        LRowHeight := LCellHeights[LCol] + 2 * LCellPad;
-
-    // Merge each cell's layout into global arrays
-    for LCol := 0 to LCols - 1 do
-    begin
-      LXOffset := LCol * LCellW + LCellPad;
-      LYOffset := LRowStartY + LCellPad;
-      LGlobalFragmentOffset := Length(AFragments);
-      LGlobalLineOffset := Length(ALines);
-
-      // Append frags with adjusted X/Y and fixed LineIndex
-      SetLength(AFragments, Length(AFragments) + Length(LCellLocalFrags[LCol]));
-      for LIndex := 0 to High(LCellLocalFrags[LCol]) do
-      begin
-        LFragment := LCellLocalFrags[LCol][LIndex];
-        LFragment.X := LFragment.X + LXOffset;
-        LFragment.Y := LFragment.Y + LYOffset;
-        LFragment.LineIndex := LFragment.LineIndex + LGlobalLineOffset;
-        AFragments[LGlobalFragmentOffset + LIndex] := LFragment;
-      end;
-
-      // Append lines with adjusted Y, fixed FragmentStart, and cell geometry
-      SetLength(ALines, Length(ALines) + Length(LCellLocalLines[LCol]));
-      for LIndex := 0 to High(LCellLocalLines[LCol]) do
-      begin
-        LLine := LCellLocalLines[LCol][LIndex];
-        LLine.Y := LLine.Y + LYOffset;
-        LLine.FragmentStart := LLine.FragmentStart + LGlobalFragmentOffset;
-        LLine.CellX := LCol * LCellW;
-        LLine.CellWidth := LCellW;
-        LLine.CellRowY := LRowStartY;
-        LLine.CellRowHeight := LRowHeight;
-        ALines[LGlobalLineOffset + LIndex] := LLine;
-      end;
-    end;
-
-    AY := AY + LRowHeight;
+    LParagraph := ADocument.Paragraphs[LCellParagraphs[LCellIndex]];
+    LLocalLines := nil;
+    LLocalFrags := nil;
+    LLocalY := 0;
+    LayoutParagraph(LParagraph, LCellParagraphs[LCellIndex],
+      LCellW * ColumnSpanOf(LParagraph) - 2 * LCellPad, 0, LLocalLines, LLocalFrags, LLocalY);
+    LCellLocalLines[LCellIndex] := LLocalLines;
+    LCellLocalFrags[LCellIndex] := LLocalFrags;
+    LCellHeights[LCellIndex] := LLocalY;
   end;
+
+  // Row height = max content height of the cells that end in the row + 2*padding, minimum C_DEFAULT_TABLE_MIN_ROW_HEIGHT
+  SetLength(LRowHeights, LMaximumRow + 1);
+  for LRow := 0 to LMaximumRow do
+    LRowHeights[LRow] := C_DEFAULT_TABLE_MIN_ROW_HEIGHT;
+  for LCellIndex := 0 to LCellCount - 1 do
+  begin
+    LParagraph := ADocument.Paragraphs[LCellParagraphs[LCellIndex]];
+    if (RowSpanOf(LParagraph) = 1) and (LCellHeights[LCellIndex] + 2 * LCellPad > LRowHeights[LParagraph.TableRow]) then
+      LRowHeights[LParagraph.TableRow] := LCellHeights[LCellIndex] + 2 * LCellPad;
+  end;
+  // A cell that spans rows grows the last row it covers when its content does not fit
+  for LCellIndex := 0 to LCellCount - 1 do
+  begin
+    LParagraph := ADocument.Paragraphs[LCellParagraphs[LCellIndex]];
+    LRowSpan := RowSpanOf(LParagraph);
+    if LRowSpan > 1 then
+    begin
+      LSpanHeight := 0;
+      for LRow := LParagraph.TableRow to LParagraph.TableRow + LRowSpan - 1 do
+        LSpanHeight := LSpanHeight + LRowHeights[LRow];
+      LCellHeight := LCellHeights[LCellIndex] + 2 * LCellPad;
+      if LCellHeight > LSpanHeight then
+        LRowHeights[LParagraph.TableRow + LRowSpan - 1] :=
+          LRowHeights[LParagraph.TableRow + LRowSpan - 1] + LCellHeight - LSpanHeight;
+    end;
+  end;
+
+  // Merge each cell's layout into global arrays
+  for LCellIndex := 0 to LCellCount - 1 do
+  begin
+    LParagraph := ADocument.Paragraphs[LCellParagraphs[LCellIndex]];
+    LColSpan := ColumnSpanOf(LParagraph);
+    LRowSpan := RowSpanOf(LParagraph);
+    LRowTop := AY;
+    for LRow := 0 to LParagraph.TableRow - 1 do
+      LRowTop := LRowTop + LRowHeights[LRow];
+    LSpanHeight := 0;
+    for LRow := LParagraph.TableRow to LParagraph.TableRow + LRowSpan - 1 do
+      LSpanHeight := LSpanHeight + LRowHeights[LRow];
+
+    LXOffset := LParagraph.TableCol * LCellW + LCellPad;
+    LYOffset := LRowTop + LCellPad;
+    LGlobalFragmentOffset := Length(AFragments);
+    LGlobalLineOffset := Length(ALines);
+
+    // Append frags with adjusted X/Y and fixed LineIndex
+    SetLength(AFragments, Length(AFragments) + Length(LCellLocalFrags[LCellIndex]));
+    for LIndex := 0 to High(LCellLocalFrags[LCellIndex]) do
+    begin
+      LFragment := LCellLocalFrags[LCellIndex][LIndex];
+      LFragment.X := LFragment.X + LXOffset;
+      LFragment.Y := LFragment.Y + LYOffset;
+      LFragment.LineIndex := LFragment.LineIndex + LGlobalLineOffset;
+      AFragments[LGlobalFragmentOffset + LIndex] := LFragment;
+    end;
+
+    // Append lines with adjusted Y, fixed FragmentStart, and cell geometry
+    SetLength(ALines, Length(ALines) + Length(LCellLocalLines[LCellIndex]));
+    for LIndex := 0 to High(LCellLocalLines[LCellIndex]) do
+    begin
+      LLine := LCellLocalLines[LCellIndex][LIndex];
+      LLine.Y := LLine.Y + LYOffset;
+      LLine.FragmentStart := LLine.FragmentStart + LGlobalFragmentOffset;
+      LLine.CellX := LParagraph.TableCol * LCellW;
+      LLine.CellWidth := LCellW * LColSpan;
+      LLine.CellRowY := LRowTop;
+      LLine.CellRowHeight := LSpanHeight;
+      ALines[LGlobalLineOffset + LIndex] := LLine;
+    end;
+  end;
+
+  for LRow := 0 to LMaximumRow do
+    AY := AY + LRowHeights[LRow];
 
   // Add inter-table spacing
   AY := AY + FParagraphSpacing;
@@ -3617,17 +3665,20 @@ begin
     end;
   end;
 
-  // Pass 1: find minimum Y distance across all lines
+  // Pass 1: find minimum Y distance across all lines (only those of the clicked cell, when there is one)
   LBestLineY := MaxSingle;
   for var I := 0 to High(FLines) do
   begin
     LLine := FLines[I];
-    if (LDocumentY >= LLine.Y) and (LDocumentY < LLine.Y + LLine.Height) then
-      LDistance := 0
-    else
-      LDistance := Min(Abs(LDocumentY - LLine.Y), Abs(LDocumentY - (LLine.Y + LLine.Height)));
-    if LDistance < LBestLineY then
-      LBestLineY := LDistance;
+    if (LClickedCellParagraphIndex < 0) or (LLine.ParagraphIndex = LClickedCellParagraphIndex) then
+    begin
+      if (LDocumentY >= LLine.Y) and (LDocumentY < LLine.Y + LLine.Height) then
+        LDistance := 0
+      else
+        LDistance := Min(Abs(LDocumentY - LLine.Y), Abs(LDocumentY - (LLine.Y + LLine.Height)));
+      if LDistance < LBestLineY then
+        LBestLineY := LDistance;
+    end;
   end;
 
   // Pass 2: among all lines with that Y distance, pick best frag by combined Y+X dist
@@ -3640,7 +3691,8 @@ begin
       LDistance := 0
     else
       LDistance := Min(Abs(LDocumentY - LLine.Y), Abs(LDocumentY - (LLine.Y + LLine.Height)));
-    if LDistance <= LBestLineY + 0.1 then
+    if (LDistance <= LBestLineY + 0.1) and
+       ((LClickedCellParagraphIndex < 0) or (LLine.ParagraphIndex = LClickedCellParagraphIndex)) then
       for var J := LLine.FragmentStart to LLine.FragmentStart + LLine.FragmentCount - 1 do
       begin
         if (LClickedCellParagraphIndex < 0) or (FFrags[J].ParagraphIndex = LClickedCellParagraphIndex) then
@@ -4183,19 +4235,7 @@ begin
     // Try to navigate to the row above in the same column.
     LTargetPI := -1;
     if LCurrentCell.TableRow > 0 then
-    begin
-      LSearchI := 0;
-      while (LSearchI < FDocument.Paragraphs.Count) and (LTargetPI < 0) do
-      begin
-        if (FDocument.Paragraphs[LSearchI].BlockType = btTableCell) and
-           (FDocument.Paragraphs[LSearchI].TableID  = LCurrentCell.TableID) and
-           (FDocument.Paragraphs[LSearchI].TableCol = LCurrentCell.TableCol) and
-           (FDocument.Paragraphs[LSearchI].TableRow = LCurrentCell.TableRow - 1) then
-          LTargetPI := LSearchI
-        else
-          Inc(LSearchI);
-      end;
-    end;
+      LTargetPI := FindTableCellAt(LCurrentCell.TableID, LCurrentCell.TableRow - 1, LCurrentCell.TableCol);
 
     if LTargetPI >= 0 then
     begin
@@ -4292,18 +4332,8 @@ begin
     if LNeedRowBelow then
     begin
       // Try to find the cell in the row below, same column
-      LTargetPI := -1;
-      LSearchI := 0;
-      while (LSearchI < FDocument.Paragraphs.Count) and (LTargetPI < 0) do
-      begin
-        if (FDocument.Paragraphs[LSearchI].BlockType = btTableCell) and
-           (FDocument.Paragraphs[LSearchI].TableID  = LCurrentCell.TableID) and
-           (FDocument.Paragraphs[LSearchI].TableCol = LCurrentCell.TableCol) and
-           (FDocument.Paragraphs[LSearchI].TableRow = LCurrentCell.TableRow + 1) then
-          LTargetPI := LSearchI
-        else
-          Inc(LSearchI);
-      end;
+      LTargetPI := FindTableCellAt(LCurrentCell.TableID, LCurrentCell.TableRow + LCurrentCell.TableRowSpan,
+        LCurrentCell.TableCol);
 
       if LTargetPI >= 0 then
       begin
@@ -4919,6 +4949,36 @@ begin
   Result := (AParagraphIndex >= 0) and (AParagraphIndex < FDocument.Paragraphs.Count) and
     (FDocument.Paragraphs[AParagraphIndex].BlockType = btTableCell) and
     (FDocument.Paragraphs[AParagraphIndex].TableID = ATableID);
+end;
+
+// Finds the cell of the table that covers a position of the grid, also when it starts in a previous row or column.
+// Returns the index of its paragraph, or -1 when the position is empty.
+function TS4YHTMLEditor.FindTableCellAt(ATableID, ARow, ACol: Integer): Integer;
+var
+  LParagraphIndex: Integer;
+  LCell: TS4YHTMLParagraph;
+begin
+  Result := -1;
+  for LParagraphIndex := 0 to FDocument.Paragraphs.Count - 1 do
+  begin
+    LCell := FDocument.Paragraphs[LParagraphIndex];
+    if (Result < 0) and (LCell.BlockType = btTableCell) and (LCell.TableID = ATableID) and
+       (LCell.TableRow <= ARow) and (ARow < LCell.TableRow + LCell.TableRowSpan) and
+       (LCell.TableCol <= ACol) and (ACol < LCell.TableCol + LCell.TableColSpan) then
+      Result := LParagraphIndex;
+  end;
+end;
+
+// True when at least one cell of the table covers more than one row or column.
+function TS4YHTMLEditor.TableHasSpans(ATableID: Integer): Boolean;
+var
+  LParagraphIndex: Integer;
+begin
+  Result := False;
+  for LParagraphIndex := 0 to FDocument.Paragraphs.Count - 1 do
+    if IsTableCellOf(LParagraphIndex, ATableID) and
+       ((FDocument.Paragraphs[LParagraphIndex].TableColSpan > 1) or (FDocument.Paragraphs[LParagraphIndex].TableRowSpan > 1)) then
+      Result := True;
 end;
 
 // Moves the caret to the next/previous table cell. Returns False when Tab must
@@ -6450,6 +6510,8 @@ begin
     LNewParagraph.TableRow := LParagraph.TableRow;
     LNewParagraph.TableCol := LParagraph.TableCol;
     LNewParagraph.TableCols := LParagraph.TableCols;
+    LNewParagraph.TableColSpan := LParagraph.TableColSpan;
+    LNewParagraph.TableRowSpan := LParagraph.TableRowSpan;
     LNewParagraph.IsHeader := LParagraph.IsHeader;
   end;
 
@@ -7515,6 +7577,10 @@ begin
   if LCurrentParagraph.BlockType <> btTableCell then
     Exit;
 
+  // Rows and columns cannot be added or removed in a table that has merged cells
+  if TableHasSpans(LCurrentParagraph.TableID) then
+    Exit;
+
   SaveUndo;
   LTableID := LCurrentParagraph.TableID;
   LTargetRow := LCurrentParagraph.TableRow;
@@ -7571,6 +7637,10 @@ begin
     Exit;
   LCurrentParagraph := FDocument.Paragraphs[FCaretPosition.ParagraphIndex];
   if LCurrentParagraph.BlockType <> btTableCell then
+    Exit;
+
+  // Rows and columns cannot be added or removed in a table that has merged cells
+  if TableHasSpans(LCurrentParagraph.TableID) then
     Exit;
 
   SaveUndo;
@@ -7659,6 +7729,10 @@ begin
   if LCurrentParagraph.BlockType <> btTableCell then
     Exit;
 
+  // Rows and columns cannot be added or removed in a table that has merged cells
+  if TableHasSpans(LCurrentParagraph.TableID) then
+    Exit;
+
   SaveUndo;
   LTableID := LCurrentParagraph.TableID;
   LTargetCol := LCurrentParagraph.TableCol;
@@ -7742,6 +7816,10 @@ begin
     Exit;
   LCurrentParagraph := FDocument.Paragraphs[FCaretPosition.ParagraphIndex];
   if LCurrentParagraph.BlockType <> btTableCell then
+    Exit;
+
+  // Rows and columns cannot be added or removed in a table that has merged cells
+  if TableHasSpans(LCurrentParagraph.TableID) then
     Exit;
 
   SaveUndo;

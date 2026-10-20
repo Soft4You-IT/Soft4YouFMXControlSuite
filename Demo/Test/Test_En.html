@@ -132,6 +132,19 @@
 <td style="padding:4px;">Text <b>bold</b>, <i>italics</i>, and <u>underline</u></td>
 </tr>
 </table>
+<p>Table with merged cells (<code>colspan</code> and <code>rowspan</code>):</p>
+<table border="1" style="border-collapse:collapse;width:100%">
+<tr><th colspan="3" style="padding:4px;">Quarterly report</th></tr>
+<tr><td rowspan="2" style="padding:4px;">North</td><td style="padding:4px;">Q1</td><td style="padding:4px;">120</td></tr>
+<tr><td style="padding:4px;">Q2</td><td style="padding:4px;">135</td></tr>
+<tr><td style="padding:4px;">South</td><td colspan="2" style="padding:4px;">Q1 and Q2 together</td></tr>
+</table>
+<p>Cell that merges two rows and two columns, next to a tall cell:</p>
+<table border="1" style="border-collapse:collapse;width:100%">
+<tr><td rowspan="2" colspan="2" style="padding:4px;">2x2 merged cell</td><td rowspan="3" style="padding:4px;">C1</td></tr>
+<tr></tr>
+<tr><td style="padding:4px;">A3</td><td style="padding:4px;">B3</td></tr>
+</table>
 <h2>Emoji</h2>
 <p>Basic Emoji (BMP, U+1F300–U+1F5FF non-BMP but commonly supported): 😀 😁 😂 🤣 😎 😍 🥳 🤔 😴 😡</p>
 <p>Nature and Food: 🌍 🌈 ☀️ 🌙 ⭐ 🍕 🍔 🍣 🍷 ☕</p>

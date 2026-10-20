@@ -138,6 +138,19 @@ inline</b> come qualsiasi altro blocco.</blockquote>
 							<td style="padding:4px;">Testo con <b>grassetto</b>, <i>corsivo</i> e <u>sottolineato</u></td>
 						</tr>
 					</table>
+			<p>Tabella con celle unite (<code>colspan</code> e <code>rowspan</code>):</p>
+			<table border="1" style="border-collapse:collapse;width:100%">
+			<tr><th colspan="3" style="padding:4px;">Rapporto trimestrale</th></tr>
+			<tr><td rowspan="2" style="padding:4px;">Nord</td><td style="padding:4px;">T1</td><td style="padding:4px;">120</td></tr>
+			<tr><td style="padding:4px;">T2</td><td style="padding:4px;">135</td></tr>
+			<tr><td style="padding:4px;">Sud</td><td colspan="2" style="padding:4px;">T1 e T2 insieme</td></tr>
+			</table>
+			<p>Cella che unisce due righe e due colonne, accanto a una cella alta:</p>
+			<table border="1" style="border-collapse:collapse;width:100%">
+			<tr><td rowspan="2" colspan="2" style="padding:4px;">Cella 2x2 unita</td><td rowspan="3" style="padding:4px;">C1</td></tr>
+			<tr></tr>
+			<tr><td style="padding:4px;">A3</td><td style="padding:4px;">B3</td></tr>
+			</table>
 					<h2>Emoji</h2>
 					<p>Emoji di base (BMP, U+1F300–U+1F5FF non BMP ma comunemente supportate): 😀 😁 😂 🤣 😎 😍 🥳 🤔 😴 😡</p>
 					<p>Natura e cibo: 🌍 🌈 ☀️ 🌙 ⭐ 🍕 🍔 🍣 🍷 ☕</p>
