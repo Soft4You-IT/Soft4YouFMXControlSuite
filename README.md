@@ -455,7 +455,7 @@ A refused image is not read; `OnLoadImage` still fires with a `nil` bitmap so a 
 | `Backspace` / `Delete` | Delete character or selection |
 | `Ctrl+Backspace` | Delete word left |
 
-Mouse: single click places caret, double-click selects word, triple-click selects paragraph. Clicking on an image selects it. Drag to extend selection with auto-scroll near edges. Drag the border between two columns of a table to resize them (not in read-only mode).
+Mouse: single click places caret, double-click selects word, triple-click selects paragraph. Clicking on an image selects it. Drag to extend selection with auto-scroll near edges. Drag the border between two columns of a table to resize them, or the outer edge of the table to change its width (not in read-only mode).
 
 ---
 
@@ -493,7 +493,7 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 ## Known Limitations
 
 - **Image security**: the editor reads local files and `file:` URLs named by the HTML without any check. When displaying content from untrusted sources (for example e-mail), set `LocalImageAccess` to `liaDocumentFolder` (or `AutoLoadLocalImages` to `False`) and filter with `OnBeforeLoadImage`.
-- **Tables**: `colspan` and `rowspan` are read, drawn and written back, but merged cells cannot be created or split in the editor, and rows or columns cannot be inserted or deleted in a table that has them, or that is nested or has nested tables. A cell can hold several paragraphs, headings, lists and other tables. The width of a column comes from the first cell that sets one (`width` attribute or style); the columns without a width share the rest. Other cell and table styles (background color, padding, vertical alignment, `colgroup`) are not read, and the right edge of a table cannot be dragged to change its width yet.
+- **Tables**: `colspan` and `rowspan` are read, drawn and written back, but merged cells cannot be created or split in the editor, and rows or columns cannot be inserted or deleted in a table that has them, or that is nested or has nested tables. A cell can hold several paragraphs, headings, lists and other tables. The width of a column comes from the first cell that sets one (`width` attribute or style); the columns without a width share the rest. Other cell and table styles (background color, padding, vertical alignment, `colgroup`) are not read.
 - **IME**: input composition (CJK pre-edit text) is not supported, so the control is not usable with Chinese, Japanese or Korean input methods.
 - **Accessibility**: no VoiceOver / TalkBack support.
 - **CSS subset**: only the inline CSS properties listed above are supported. External stylesheets and CSS classes are ignored.
