@@ -2031,7 +2031,7 @@ begin
   while LParagraphIndex < ADocument.Paragraphs.Count do
   begin
     LParagraph := ADocument.Paragraphs[LParagraphIndex];
-    if (LParagraph.BlockType <> btTableCell) or (LParagraph.TableID <> LTableID) then
+    if not LParagraph.IsTableCell or (LParagraph.TableID <> LTableID) then
       LParagraphIndex := ADocument.Paragraphs.Count // exit condition
     else
     begin
@@ -2166,7 +2166,7 @@ begin
   while LParagraphIndex < ADocument.Paragraphs.Count do
   begin
     LParagraph := ADocument.Paragraphs[LParagraphIndex];
-    if LParagraph.BlockType = btTableCell then
+    if LParagraph.IsTableCell then
     begin
       LayoutTable(ADocument, LParagraphIndex, AAvailableWidth, ALines, AFragments, LYPosition, LNextIndex);
       LParagraphIndex := LNextIndex;
@@ -2642,7 +2642,7 @@ begin
     if LLine.IsFirst and (LLine.ParagraphIndex < FDocument.Paragraphs.Count) then
     begin
       LParagraph := FDocument.Paragraphs[LLine.ParagraphIndex];
-      if LParagraph.BlockType = btTableCell then
+      if LParagraph.IsTableCell then
       begin
         LRectangle := TRectF.Create(
           LLine.CellX + ContentLeft,
@@ -3657,7 +3657,7 @@ begin
   begin
     LLine := FLines[I];
     if LLine.IsFirst and (LLine.ParagraphIndex < FDocument.Paragraphs.Count) and
-       (FDocument.Paragraphs[LLine.ParagraphIndex].BlockType = btTableCell) then
+       FDocument.Paragraphs[LLine.ParagraphIndex].IsTableCell then
     begin
       if (LDocumentX >= LLine.CellX) and (LDocumentX < LLine.CellX + LLine.CellWidth) and
          (LDocumentY >= LLine.CellRowY) and (LDocumentY < LLine.CellRowY + LLine.CellRowHeight) then
@@ -4216,7 +4216,7 @@ begin
   LLineIndex := FFrags[LFragmentIndex].LineIndex - 1;
 
   if (APosition.ParagraphIndex < FDocument.Paragraphs.Count) and
-     (FDocument.Paragraphs[APosition.ParagraphIndex].BlockType = btTableCell) then
+     FDocument.Paragraphs[APosition.ParagraphIndex].IsTableCell then
   begin
     LCurrentCell := FDocument.Paragraphs[APosition.ParagraphIndex];
 
@@ -4258,7 +4258,7 @@ begin
       // Find the paragraph immediately before the first cell of this table.
       LSearchI := 0;
       while (LSearchI < FDocument.Paragraphs.Count) and
-            not ((FDocument.Paragraphs[LSearchI].BlockType = btTableCell) and
+            not (FDocument.Paragraphs[LSearchI].IsTableCell and
                  (FDocument.Paragraphs[LSearchI].TableID = LCurrentCell.TableID)) do
         Inc(LSearchI);
       if (LSearchI = 0) or (LSearchI >= FDocument.Paragraphs.Count) then
@@ -4309,7 +4309,7 @@ begin
   LLineIndex := FFrags[LFragmentIndex].LineIndex + 1;
 
   if (APosition.ParagraphIndex < FDocument.Paragraphs.Count) and
-     (FDocument.Paragraphs[APosition.ParagraphIndex].BlockType = btTableCell) then
+     FDocument.Paragraphs[APosition.ParagraphIndex].IsTableCell then
   begin
     LCurrentCell := FDocument.Paragraphs[APosition.ParagraphIndex];
     LNeedRowBelow := False;
@@ -4356,7 +4356,7 @@ begin
         // Find the paragraph immediately after the last cell of this table.
         LSearchI := FDocument.Paragraphs.Count - 1;
         while (LSearchI >= 0) and
-              not ((FDocument.Paragraphs[LSearchI].BlockType = btTableCell) and
+              not (FDocument.Paragraphs[LSearchI].IsTableCell and
                    (FDocument.Paragraphs[LSearchI].TableID = LCurrentCell.TableID)) do
           Dec(LSearchI);
         if (LSearchI < 0) or (LSearchI + 1 >= FDocument.Paragraphs.Count) then
@@ -4947,7 +4947,7 @@ end;
 function TS4YHTMLEditor.IsTableCellOf(AParagraphIndex, ATableID: Integer): Boolean;
 begin
   Result := (AParagraphIndex >= 0) and (AParagraphIndex < FDocument.Paragraphs.Count) and
-    (FDocument.Paragraphs[AParagraphIndex].BlockType = btTableCell) and
+    FDocument.Paragraphs[AParagraphIndex].IsTableCell and
     (FDocument.Paragraphs[AParagraphIndex].TableID = ATableID);
 end;
 
@@ -4962,7 +4962,7 @@ begin
   for LParagraphIndex := 0 to FDocument.Paragraphs.Count - 1 do
   begin
     LCell := FDocument.Paragraphs[LParagraphIndex];
-    if (Result < 0) and (LCell.BlockType = btTableCell) and (LCell.TableID = ATableID) and
+    if (Result < 0) and LCell.IsTableCell and (LCell.TableID = ATableID) and
        (LCell.TableRow <= ARow) and (ARow < LCell.TableRow + LCell.TableRowSpan) and
        (LCell.TableCol <= ACol) and (ACol < LCell.TableCol + LCell.TableColSpan) then
       Result := LParagraphIndex;
@@ -4999,7 +4999,7 @@ begin
   if (AShift * [ssCtrl, ssAlt, ssCommand]) <> [] then
     Exit;
   LCurrentParagraph := FDocument.Paragraphs[FCaretPosition.ParagraphIndex];
-  if LCurrentParagraph.BlockType <> btTableCell then
+  if not LCurrentParagraph.IsTableCell then
     Exit;
   LTableID := LCurrentParagraph.TableID;
 
@@ -5224,7 +5224,7 @@ begin
             DeleteSelection;
           // In a table cell, Enter inserts a line break instead of splitting the cell
           if FCaretPosition.IsValid and (FCaretPosition.ParagraphIndex < FDocument.Paragraphs.Count) and
-             (FDocument.Paragraphs[FCaretPosition.ParagraphIndex].BlockType = btTableCell) then
+             FDocument.Paragraphs[FCaretPosition.ParagraphIndex].IsTableCell then
             InsertLineBreak
           else
             InsertParagraphBreak;
@@ -5607,7 +5607,7 @@ begin
   if (LParagraph.Runs.Count = 0) or ((FCaretPosition.RunIndex = 0) and (FCaretPosition.CharIndex = 0)) then
   begin
     // Never merge table cells with adjacent paragraphs
-    if LParagraph.BlockType = btTableCell then
+    if LParagraph.IsTableCell then
       Exit;
 
     // Backspace on empty list item -> strip list marker, keep indentation
@@ -6504,7 +6504,7 @@ begin
   LNewParagraph.Alignment := LParagraph.Alignment;
   LNewParagraph.IndentLevel := LParagraph.IndentLevel;
   LNewParagraph.ListOrdered := LParagraph.ListOrdered;
-  if LParagraph.BlockType = btTableCell then
+  if LParagraph.IsTableCell then
   begin
     LNewParagraph.TableID := LParagraph.TableID;
     LNewParagraph.TableRow := LParagraph.TableRow;
@@ -7513,7 +7513,7 @@ begin
     end;
   // Ensure a paragraph after the table for cursor placement
   if (LInsertAt >= FDocument.Paragraphs.Count) or
-     (FDocument.Paragraphs[LInsertAt].BlockType = btTableCell) then
+     FDocument.Paragraphs[LInsertAt].IsTableCell then
   begin
     LNewParagraph := TS4YHTMLParagraph.Create;
     LNewParagraph.BlockType := btParagraph;
@@ -7531,7 +7531,7 @@ begin
   AFirstIndex := -1;
   ALastIndex := -1;
   for LParagraphIndex := 0 to FDocument.Paragraphs.Count - 1 do
-    if (FDocument.Paragraphs[LParagraphIndex].BlockType = btTableCell) and
+    if FDocument.Paragraphs[LParagraphIndex].IsTableCell and
        (FDocument.Paragraphs[LParagraphIndex].TableID = ATableID) then
     begin
       if AFirstIndex < 0 then
@@ -7548,7 +7548,7 @@ begin
   Result := -1;
   LFound := False;
   for LParagraphIndex := 0 to FDocument.Paragraphs.Count - 1 do
-    if (FDocument.Paragraphs[LParagraphIndex].BlockType = btTableCell) and
+    if FDocument.Paragraphs[LParagraphIndex].IsTableCell and
        (FDocument.Paragraphs[LParagraphIndex].TableID = ATableID) and
        (FDocument.Paragraphs[LParagraphIndex].TableRow = ARow) and not LFound then
     begin
@@ -7574,7 +7574,7 @@ begin
   if FCaretPosition.ParagraphIndex >= FDocument.Paragraphs.Count then
     Exit;
   LCurrentParagraph := FDocument.Paragraphs[FCaretPosition.ParagraphIndex];
-  if LCurrentParagraph.BlockType <> btTableCell then
+  if not LCurrentParagraph.IsTableCell then
     Exit;
 
   // Rows and columns cannot be added or removed in a table that has merged cells
@@ -7636,7 +7636,7 @@ begin
   if FCaretPosition.ParagraphIndex >= FDocument.Paragraphs.Count then
     Exit;
   LCurrentParagraph := FDocument.Paragraphs[FCaretPosition.ParagraphIndex];
-  if LCurrentParagraph.BlockType <> btTableCell then
+  if not LCurrentParagraph.IsTableCell then
     Exit;
 
   // Rows and columns cannot be added or removed in a table that has merged cells
@@ -7660,7 +7660,7 @@ begin
   for LParagraphIndex := LLastIndex downto LFirstIndex do
   begin
     LParagraph := FDocument.Paragraphs[LParagraphIndex];
-    if (LParagraph.BlockType = btTableCell) and (LParagraph.TableID = LTableID) and
+    if LParagraph.IsTableCell and (LParagraph.TableID = LTableID) and
        (LParagraph.TableRow = LTargetRow) then
       FDocument.Paragraphs.Delete(LParagraphIndex);
   end;
@@ -7672,7 +7672,7 @@ begin
     // Last row deleted -- ensure a normal paragraph exists at that position
     LNewCaretIndex := Max(0, Min(LFirstIndex, FDocument.Paragraphs.Count));
     if (LNewCaretIndex >= FDocument.Paragraphs.Count) or
-       (FDocument.Paragraphs[LNewCaretIndex].BlockType = btTableCell) then
+       FDocument.Paragraphs[LNewCaretIndex].IsTableCell then
     begin
       LNewParagraph := TS4YHTMLParagraph.Create;
       LNewParagraph.BlockType := btParagraph;
@@ -7726,7 +7726,7 @@ begin
   if FCaretPosition.ParagraphIndex >= FDocument.Paragraphs.Count then
     Exit;
   LCurrentParagraph := FDocument.Paragraphs[FCaretPosition.ParagraphIndex];
-  if LCurrentParagraph.BlockType <> btTableCell then
+  if not LCurrentParagraph.IsTableCell then
     Exit;
 
   // Rows and columns cannot be added or removed in a table that has merged cells
@@ -7815,7 +7815,7 @@ begin
   if FCaretPosition.ParagraphIndex >= FDocument.Paragraphs.Count then
     Exit;
   LCurrentParagraph := FDocument.Paragraphs[FCaretPosition.ParagraphIndex];
-  if LCurrentParagraph.BlockType <> btTableCell then
+  if not LCurrentParagraph.IsTableCell then
     Exit;
 
   // Rows and columns cannot be added or removed in a table that has merged cells
@@ -7844,7 +7844,7 @@ begin
     // Last column deleted -- ensure a normal paragraph at that position
     LNewCaretIndex := Max(0, Min(LFirstIndex, FDocument.Paragraphs.Count));
     if (LNewCaretIndex >= FDocument.Paragraphs.Count) or
-       (FDocument.Paragraphs[LNewCaretIndex].BlockType = btTableCell) then
+       FDocument.Paragraphs[LNewCaretIndex].IsTableCell then
     begin
       LNewParagraph := TS4YHTMLParagraph.Create;
       LNewParagraph.BlockType := btParagraph;
@@ -8471,7 +8471,7 @@ begin
       LCurrentParagraph := FDocument.Paragraphs[FCaretPosition.ParagraphIndex]
     else
       LCurrentParagraph := nil;
-    Result.IsInTable := Assigned(LCurrentParagraph) and (LCurrentParagraph.BlockType = btTableCell);
+    Result.IsInTable := Assigned(LCurrentParagraph) and LCurrentParagraph.IsTableCell;
     if Result.IsInTable then
     begin
       Result.TableRow := LCurrentParagraph.TableRow;

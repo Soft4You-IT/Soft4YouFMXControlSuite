@@ -317,7 +317,7 @@ var
     LMaximumRow := 0;
     LScanIndex := AFirstPI;
     while (LScanIndex < ADocument.Paragraphs.Count) and
-          (ADocument.Paragraphs[LScanIndex].BlockType = btTableCell) and
+          ADocument.Paragraphs[LScanIndex].IsTableCell and
           (ADocument.Paragraphs[LScanIndex].TableID = LTableID) do
     begin
       if ADocument.Paragraphs[LScanIndex].TableRow > LMaximumRow then
@@ -338,7 +338,7 @@ var
         LScanIndex := AFirstPI;
         while (LScanIndex < ADocument.Paragraphs.Count) and (LCell = nil) do
         begin
-          if (ADocument.Paragraphs[LScanIndex].BlockType = btTableCell) and
+          if ADocument.Paragraphs[LScanIndex].IsTableCell and
              (ADocument.Paragraphs[LScanIndex].TableID = LTableID) and
              (ADocument.Paragraphs[LScanIndex].TableRow = LRow) and
              (ADocument.Paragraphs[LScanIndex].TableCol = LCol) then
@@ -392,7 +392,7 @@ var
     LStringBuilder.Append('</table>' + LNewLine);
     LParagraphIndex := AFirstPI;
     while (LParagraphIndex < ADocument.Paragraphs.Count) and
-          (ADocument.Paragraphs[LParagraphIndex].BlockType = btTableCell) and
+          ADocument.Paragraphs[LParagraphIndex].IsTableCell and
           (ADocument.Paragraphs[LParagraphIndex].TableID = LTableID) do
       Inc(LParagraphIndex);
   end;
@@ -470,7 +470,7 @@ begin
         end;
         LStringBuilder.Append('</pre>' + LNewLine);
       end
-      else if LParagraph.BlockType = btTableCell then
+      else if LParagraph.IsTableCell then
       begin
         EmitTable(LParagraphIndex);
         // LParagraphIndex is already advanced by EmitTable

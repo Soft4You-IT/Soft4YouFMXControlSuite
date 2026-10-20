@@ -120,6 +120,11 @@ type
     /// </summary>
     /// <returns>True when no run has text. Line breaks are ignored; an inline image counts as content because its Text is the object replacement character.</returns>
     function IsEmpty: Boolean;
+    /// <summary>
+    /// Tells whether the paragraph belongs to a table cell.
+    /// </summary>
+    /// <returns>True when TableID is not 0.</returns>
+    function IsTableCell: Boolean;
 
     /// <summary>Horizontal alignment of the paragraph.</summary>
     property Alignment: TS4YHTMLAlignment read FAlignment write FAlignment;
@@ -310,6 +315,11 @@ begin
     if (not LRun.IsLineBreak) and (LRun.Text <> '') then
       Exit(False);
   Result := True;
+end;
+
+function TS4YHTMLParagraph.IsTableCell: Boolean;
+begin
+  Result := FTableID <> 0;
 end;
 
 // -----------------------------------------------------------------------------

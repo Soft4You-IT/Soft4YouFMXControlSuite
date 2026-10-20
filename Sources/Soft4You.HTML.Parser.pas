@@ -837,7 +837,7 @@ begin
       FlushParagraph;
       EndTableRow;
       for LIndex := 0 to FDocument.Paragraphs.Count - 1 do
-        if (FDocument.Paragraphs[LIndex].BlockType = btTableCell) and
+        if FDocument.Paragraphs[LIndex].IsTableCell and
            (FDocument.Paragraphs[LIndex].TableID = FTableID) then
         begin
           FDocument.Paragraphs[LIndex].TableCols := FTableColumns;
