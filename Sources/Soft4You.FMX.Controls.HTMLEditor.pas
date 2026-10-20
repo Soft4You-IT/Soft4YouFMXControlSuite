@@ -97,6 +97,7 @@ const
   C_DEFAULT_TABLE_BORDER_WIDTH = 1.0;
   C_DEFAULT_TABLE_CELL_PADDING = 4.0;
   C_DEFAULT_TABLE_MIN_ROW_HEIGHT = 20.0;
+  C_MINIMUM_TABLE_COLUMN_WIDTH = 24.0;  // narrowest column that a column without width gets
 
   // Mouse management constants
   C_TRIPLE_CLICK_MS = 600;
@@ -1975,7 +1976,18 @@ var
   LMaximumRow: Integer;
   LParagraphIndex: Integer;
   LParagraph: TS4YHTMLParagraph;
-  LCellW: Single;
+  LCellW: Single;  // width of a column when all the columns are equal
+  LIsUniform: Boolean;
+  LTableWidth: Single;
+  LTableLeft: Single;
+  LAutoWidth: Single;
+  LAutoCount: Integer;
+  LFixedSum: Single;
+  LTotalWidth: Single;
+  LFirstParagraph: TS4YHTMLParagraph;
+  LColumnWidths: TArray<Single>;
+  LColumnIsSet: TArray<Boolean>;
+  LColumnX: TArray<Single>;
   LCellPad: Single;
   LRow: Integer;
   LCellIndex: Integer;
@@ -2017,6 +2029,24 @@ var
       Result := LCols - ACell.TableCol;
   end;
 
+  // Left edge of a column, relative to the space of the table
+  function ColumnLeft(AColumn: Integer): Single;
+  begin
+    if LIsUniform then
+      Result := LTableLeft + AColumn * LCellW
+    else
+      Result := LColumnX[AColumn];
+  end;
+
+  // Width of a cell that starts in a column and covers ASpan columns
+  function ColumnSpanWidth(AColumn, ASpan: Integer): Single;
+  begin
+    if LIsUniform then
+      Result := LCellW * ASpan
+    else
+      Result := LColumnX[AColumn + ASpan] - LColumnX[AColumn];
+  end;
+
   // Number of rows of the cell, limited to the rows of the table
   function RowSpanOf(ACell: TS4YHTMLParagraph): Integer;
   begin
@@ -2033,7 +2063,6 @@ begin
   if LCols < 1 then
     LCols := 1;
   LCellPad := C_DEFAULT_TABLE_CELL_PADDING;
-  LCellW := AAvailableWidth / LCols;
 
   // Find last para index of this table and max row
   LLastPI := AFirstParagraphIndex;
@@ -2093,6 +2122,86 @@ begin
   SetLength(LCellLocalCells, LCellCount);
   SetLength(LCellHeights, LCellCount);
 
+  // Width of the table and of its columns
+  LFirstParagraph := ADocument.Paragraphs[AFirstParagraphIndex];
+  LTableWidth := AAvailableWidth;
+  case LFirstParagraph.TableWidth.Kind of
+    tlkPixels:
+      LTableWidth := Min(AAvailableWidth, LFirstParagraph.TableWidth.Value);
+    tlkPercent:
+      LTableWidth := AAvailableWidth * Min(LFirstParagraph.TableWidth.Value, 100) / 100;
+  end;
+  if (LFirstParagraph.TableMaximumWidth > 0) and (LTableWidth > LFirstParagraph.TableMaximumWidth) then
+    LTableWidth := LFirstParagraph.TableMaximumWidth;
+  // A column takes the width of the first cell that asks for one, ignoring the cells that span columns
+  SetLength(LColumnWidths, LCols);
+  SetLength(LColumnIsSet, LCols);
+  for LCellIndex := 0 to LCellCount - 1 do
+  begin
+    LParagraph := ADocument.Paragraphs[LCellParagraphs[LCellIndex]];
+    if (ColumnSpanOf(LParagraph) = 1) and not LParagraph.TableCellWidth.IsAuto and not LColumnIsSet[LParagraph.TableCol] then
+    begin
+      LColumnIsSet[LParagraph.TableCol] := True;
+      if LParagraph.TableCellWidth.Kind = tlkPixels then
+        LColumnWidths[LParagraph.TableCol] := LParagraph.TableCellWidth.Value
+      else
+        LColumnWidths[LParagraph.TableCol] := LTableWidth * Min(LParagraph.TableCellWidth.Value, 100) / 100;
+    end;
+  end;
+  LAutoCount := 0;
+  LFixedSum := 0;
+  for LIndex := 0 to LCols - 1 do
+    if LColumnIsSet[LIndex] then
+      LFixedSum := LFixedSum + LColumnWidths[LIndex]
+    else
+      Inc(LAutoCount);
+  LIsUniform := LAutoCount = LCols;
+  if LIsUniform then
+  begin
+    // No column has a width: all of them share the table
+    LCellW := LTableWidth / LCols;
+    LTableLeft := 0;
+    case LFirstParagraph.TableAlignment of
+      haCenter:
+        LTableLeft := (AAvailableWidth - LTableWidth) / 2;
+      haRight:
+        LTableLeft := AAvailableWidth - LTableWidth;
+    end;
+  end
+  else
+  begin
+    // The columns without width share what the others leave, and the columns are scaled to the table
+    if LAutoCount > 0 then
+    begin
+      LAutoWidth := (LTableWidth - LFixedSum) / LAutoCount;
+      if LAutoWidth < C_MINIMUM_TABLE_COLUMN_WIDTH then
+        LAutoWidth := C_MINIMUM_TABLE_COLUMN_WIDTH;
+      for LIndex := 0 to LCols - 1 do
+        if not LColumnIsSet[LIndex] then
+          LColumnWidths[LIndex] := LAutoWidth;
+    end;
+    LTotalWidth := 0;
+    for LIndex := 0 to LCols - 1 do
+      LTotalWidth := LTotalWidth + LColumnWidths[LIndex];
+    // When every column has a width and the table has none, the table is as wide as its columns
+    if (LAutoCount = 0) and LFirstParagraph.TableWidth.IsAuto and (LFirstParagraph.TableMaximumWidth <= 0) then
+      LTableWidth := Min(LTotalWidth, AAvailableWidth);
+    if (LTotalWidth > 0) and (Abs(LTotalWidth - LTableWidth) > 0.01) then
+      for LIndex := 0 to LCols - 1 do
+        LColumnWidths[LIndex] := LColumnWidths[LIndex] * LTableWidth / LTotalWidth;
+    LTableLeft := 0;
+    case LFirstParagraph.TableAlignment of
+      haCenter:
+        LTableLeft := (AAvailableWidth - LTableWidth) / 2;
+      haRight:
+        LTableLeft := AAvailableWidth - LTableWidth;
+    end;
+    SetLength(LColumnX, LCols + 1);
+    LColumnX[0] := LTableLeft;
+    for LIndex := 0 to LCols - 1 do
+      LColumnX[LIndex + 1] := LColumnX[LIndex] + LColumnWidths[LIndex];
+  end;
+
   // Layout each cell at the width of the columns it covers
   for LCellIndex := 0 to LCellCount - 1 do
   begin
@@ -2107,13 +2216,14 @@ begin
       if ADocument.Paragraphs[LParagraphIndex].TableID = LTableID then
       begin
         LayoutParagraph(ADocument.Paragraphs[LParagraphIndex], LParagraphIndex,
-          LCellW * ColumnSpanOf(LParagraph) - 2 * LCellPad, LLocalY, LLocalLines, LLocalFrags, LLocalY);
+          ColumnSpanWidth(LParagraph.TableCol, ColumnSpanOf(LParagraph)) - 2 * LCellPad, LLocalY, LLocalLines, LLocalFrags,
+          LLocalY);
         Inc(LParagraphIndex);
       end
       else
       begin
         // A table nested in the cell
-        LayoutTable(ADocument, LParagraphIndex, LCellW * ColumnSpanOf(LParagraph) - 2 * LCellPad,
+        LayoutTable(ADocument, LParagraphIndex, ColumnSpanWidth(LParagraph.TableCol, ColumnSpanOf(LParagraph)) - 2 * LCellPad,
           LLocalLines, LLocalFrags, LLocalY, LNextIndex, LLocalCells);
         LParagraphIndex := LNextIndex;
       end;
@@ -2164,7 +2274,7 @@ begin
     for LRow := LParagraph.TableRow to LParagraph.TableRow + LRowSpan - 1 do
       LSpanHeight := LSpanHeight + LRowHeights[LRow];
 
-    LXOffset := LParagraph.TableCol * LCellW + LCellPad;
+    LXOffset := ColumnLeft(LParagraph.TableCol) + LCellPad;
     LYOffset := LRowTop + LCellPad;
     LGlobalFragmentOffset := Length(AFragments);
     LGlobalLineOffset := Length(ALines);
@@ -2204,9 +2314,10 @@ begin
     LLayoutCell.Column := LParagraph.TableCol;
     LLayoutCell.FirstParagraphIndex := LCellParagraphs[LCellIndex];
     LLayoutCell.Depth := Length(LParagraph.TableContainers);
-    LLayoutCell.X := LParagraph.TableCol * LCellW;
+    LLayoutCell.X := ColumnLeft(LParagraph.TableCol);
+    LLayoutCell.HasBorder := LFirstParagraph.TableHasBorder;
     LLayoutCell.Y := LRowTop;
-    LLayoutCell.Width := LCellW * LColSpan;
+    LLayoutCell.Width := ColumnSpanWidth(LParagraph.TableCol, LColSpan);
     LLayoutCell.Height := LSpanHeight;
     SetLength(ACells, Length(ACells) + 1);
     ACells[High(ACells)] := LLayoutCell;
@@ -2705,14 +2816,15 @@ begin
   ACanvas.Stroke.Thickness := C_DEFAULT_TABLE_BORDER_WIDTH;
   ACanvas.Fill.Kind := TBrushKind.None;
   for var I := 0 to High(FCells) do
-  begin
-    LRectangle := TRectF.Create(
-      FCells[I].X + ContentLeft,
-      FCells[I].Y + ContentTop,
-      FCells[I].X + FCells[I].Width + ContentLeft,
-      FCells[I].Y + FCells[I].Height + ContentTop);
-    ACanvas.DrawRect(LRectangle, 0, 0, AllCorners, AbsoluteOpacity);
-  end;
+    if FCells[I].HasBorder then
+    begin
+      LRectangle := TRectF.Create(
+        FCells[I].X + ContentLeft,
+        FCells[I].Y + ContentTop,
+        FCells[I].X + FCells[I].Width + ContentLeft,
+        FCells[I].Y + FCells[I].Height + ContentTop);
+      ACanvas.DrawRect(LRectangle, 0, 0, AllCorners, AbsoluteOpacity);
+    end;
 end;
 
 procedure TS4YHTMLEditor.PaintHorizontalRule(ACanvas: TCanvas; AY, AWidth, AX: Single; AParagraph: TS4YHTMLParagraph);

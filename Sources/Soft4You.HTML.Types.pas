@@ -403,6 +403,8 @@ type
     FirstParagraphIndex: Integer;
     /// <summary>Number of tables that contain the table of the cell; 0 when the table is not nested.</summary>
     Depth: Integer;
+    /// <summary>Tells whether the border of the cell is drawn.</summary>
+    HasBorder: Boolean;
     /// <summary>Left edge of the cell.</summary>
     X: Single;
     /// <summary>Top edge of the cell.</summary>
