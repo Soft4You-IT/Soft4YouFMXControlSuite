@@ -508,6 +508,7 @@ type
     procedure PaintImage(ACanvas: TCanvas; const AFragment: TS4YLayoutFragment; AParagraph: TS4YHTMLParagraph);
     procedure PaintImageRun(ACanvas: TCanvas; const AFragment: TS4YLayoutFragment; ARun: TS4YHTMLRun);
     procedure PaintSelection(ACanvas: TCanvas);
+    procedure GetRenderCullLimits(out ACullTop, ACullBottom: Single);
     procedure PaintTableCellBorders(ACanvas: TCanvas);
 
     // State helpers
@@ -2412,8 +2413,7 @@ var
       // Painting is limited to the fragments near the visible area: the cost of a frame
       // follows the window, not the length of the document. PERFORMANCE-CRITICAL: do not
       // go back to painting every fragment (each one builds a text layout).
-      LCullTop := -C_RENDER_CULL_MARGIN - ContentTop;
-      LCullBottom := Height + C_RENDER_CULL_MARGIN - ContentTop;
+      GetRenderCullLimits(LCullTop, LCullBottom);
       for var I := 0 to High(FFrags) do
       begin
         if (FFrags[I].Y + FFrags[I].Height >= LCullTop) and (FFrags[I].Y <= LCullBottom) then
@@ -3039,8 +3039,18 @@ begin
   end;
 end;
 
+// Document-space limits of the area that is painted: the visible window plus a margin
+procedure TS4YHTMLEditor.GetRenderCullLimits(out ACullTop, ACullBottom: Single);
+begin
+  ACullTop := -C_RENDER_CULL_MARGIN - ContentTop;
+  ACullBottom := Height + C_RENDER_CULL_MARGIN - ContentTop;
+end;
+
 procedure TS4YHTMLEditor.PaintSelection(ACanvas: TCanvas);
 var
+  LCullTop: Single;
+  LCullBottom: Single;
+  LFirstLineHeight: TArray<Single>;
   LSelectionStart, LSelectionEnd: TS4YDocumentPosition;
   LFragment: TS4YLayoutFragment;
   LFStart: TS4YDocumentPosition;
@@ -3055,7 +3065,6 @@ var
   LEndX: Single;
   LStartY: Single;
   LLineH: Single;
-  LLineSearchIndex: Integer;
 begin
   if not FHasSelection then
     Exit;
@@ -3066,58 +3075,63 @@ begin
   ACanvas.Fill.Kind := TBrushKind.Solid;
   ACanvas.Fill.Color := C_DEFAULT_SELECTION_COLOR;
 
+  // PERFORMANCE-CRITICAL: like the fragments, the selection is painted only near the visible area,
+  // and the height of the first line of each paragraph is found in a single pass, not once per fragment
+  GetRenderCullLimits(LCullTop, LCullBottom);
+  SetLength(LFirstLineHeight, FDocument.Paragraphs.Count);
+  for var I := 0 to High(FLines) do
+    if (FLines[I].ParagraphIndex >= 0) and (FLines[I].ParagraphIndex < Length(LFirstLineHeight)) and
+       (LFirstLineHeight[FLines[I].ParagraphIndex] = 0) then
+      LFirstLineHeight[FLines[I].ParagraphIndex] := FLines[I].Height;
+
   for var I := 0 to High(FFrags) do
   begin
     LFragment := FFrags[I];
-    if LFragment.IsHR then
+    if (LFragment.Y + LFragment.Height >= LCullTop) and (LFragment.Y <= LCullBottom) then
     begin
-      LFStart := TS4YDocumentPosition.At(LFragment.ParagraphIndex, 0, 0);
-      if (PositionCompare(LSelectionStart, LFStart) <= 0) and (PositionCompare(LSelectionEnd, LFStart) > 0) then
+      if LFragment.IsHR then
       begin
-        LStartX := ContentLeft + LFragment.X;
-        LEndX := ContentLeft + LFragment.X + LFragment.Width;
-        LStartY := ContentTop + LFragment.Y;
-        ACanvas.FillRect(TRectF.Create(LStartX, LStartY, LEndX, LStartY + LFragment.Height), AbsoluteOpacity * 0.5);
-      end;
-    end
-    else if (not LFragment.IsImage) and (not LFragment.IsPlaceholder) then
-    begin
-      LFStart := TS4YDocumentPosition.At(LFragment.ParagraphIndex, LFragment.RunIndex, LFragment.CharStart);
-      LFragmentEnd := TS4YDocumentPosition.At(LFragment.ParagraphIndex, LFragment.RunIndex, LFragment.CharEnd);
-      if (PositionCompare(LFStart, LSelectionEnd) < 0) and (PositionCompare(LFragmentEnd, LSelectionStart) > 0) then
-      begin
-        LCharStart := Max(LFragment.CharStart, IfThen((LFragment.ParagraphIndex = LSelectionStart.ParagraphIndex) and (LFragment.RunIndex = LSelectionStart.RunIndex), LSelectionStart.CharIndex,
-          LFragment.CharStart));
-        LCharEnd := Min(LFragment.CharEnd, IfThen((LFragment.ParagraphIndex = LSelectionEnd.ParagraphIndex) and (LFragment.RunIndex = LSelectionEnd.RunIndex), LSelectionEnd.CharIndex, LFragment.CharEnd));
-        if LCharStart < LCharEnd then
+        LFStart := TS4YDocumentPosition.At(LFragment.ParagraphIndex, 0, 0);
+        if (PositionCompare(LSelectionStart, LFStart) <= 0) and (PositionCompare(LSelectionEnd, LFStart) > 0) then
         begin
-          LParagraph := FDocument.Paragraphs[LFragment.ParagraphIndex];
-          if (LFragment.RunIndex >= 0) and (LFragment.RunIndex < LParagraph.Runs.Count) then
+          LStartX := ContentLeft + LFragment.X;
+          LEndX := ContentLeft + LFragment.X + LFragment.Width;
+          LStartY := ContentTop + LFragment.Y;
+          ACanvas.FillRect(TRectF.Create(LStartX, LStartY, LEndX, LStartY + LFragment.Height), AbsoluteOpacity * 0.5);
+        end;
+      end
+      else if (not LFragment.IsImage) and (not LFragment.IsPlaceholder) then
+      begin
+        LFStart := TS4YDocumentPosition.At(LFragment.ParagraphIndex, LFragment.RunIndex, LFragment.CharStart);
+        LFragmentEnd := TS4YDocumentPosition.At(LFragment.ParagraphIndex, LFragment.RunIndex, LFragment.CharEnd);
+        if (PositionCompare(LFStart, LSelectionEnd) < 0) and (PositionCompare(LFragmentEnd, LSelectionStart) > 0) then
+        begin
+          LCharStart := Max(LFragment.CharStart, IfThen((LFragment.ParagraphIndex = LSelectionStart.ParagraphIndex) and (LFragment.RunIndex = LSelectionStart.RunIndex), LSelectionStart.CharIndex,
+            LFragment.CharStart));
+          LCharEnd := Min(LFragment.CharEnd, IfThen((LFragment.ParagraphIndex = LSelectionEnd.ParagraphIndex) and (LFragment.RunIndex = LSelectionEnd.RunIndex), LSelectionEnd.CharIndex, LFragment.CharEnd));
+          if LCharStart < LCharEnd then
           begin
-            LRun := LParagraph.Runs[LFragment.RunIndex];
-            LTextStyle := LRun.Style;
-            LHeadingSize := FLayoutEngine.HeadingSize(LParagraph.BlockType);
-            if LHeadingSize > 0 then
+            LParagraph := FDocument.Paragraphs[LFragment.ParagraphIndex];
+            if (LFragment.RunIndex >= 0) and (LFragment.RunIndex < LParagraph.Runs.Count) then
             begin
-              LTextStyle.FontSize := LHeadingSize;
-              LTextStyle.Bold := True;
+              LRun := LParagraph.Runs[LFragment.RunIndex];
+              LTextStyle := LRun.Style;
+              LHeadingSize := FLayoutEngine.HeadingSize(LParagraph.BlockType);
+              if LHeadingSize > 0 then
+              begin
+                LTextStyle.FontSize := LHeadingSize;
+                LTextStyle.Bold := True;
+              end;
+              LStartX := ContentLeft + LFragment.X + FLayoutEngine.MeasureCharOffset(LRun.Text.Substring(LFragment.CharStart),
+                LCharStart - LFragment.CharStart, LTextStyle);
+              LEndX := ContentLeft + LFragment.X + FLayoutEngine.MeasureCharOffset(LRun.Text.Substring(LFragment.CharStart),
+                LCharEnd - LFragment.CharStart, LTextStyle);
+              LStartY := ContentTop + LFragment.Y;
+              LLineH := LFirstLineHeight[LFragment.ParagraphIndex];
+              if LLineH = 0 then
+                LLineH := LFragment.Height;
+              ACanvas.FillRect(TRectF.Create(LStartX, LStartY, LEndX, LStartY + LLineH), AbsoluteOpacity * 0.5);
             end;
-            LStartX := ContentLeft + LFragment.X + FLayoutEngine.MeasureCharOffset(LRun.Text.Substring(LFragment.CharStart),
-              LCharStart - LFragment.CharStart, LTextStyle);
-            LEndX := ContentLeft + LFragment.X + FLayoutEngine.MeasureCharOffset(LRun.Text.Substring(LFragment.CharStart),
-              LCharEnd - LFragment.CharStart, LTextStyle);
-            LStartY := ContentTop + LFragment.Y;
-            LLineH := 0;
-            LLineSearchIndex := 0;
-            while (LLineSearchIndex <= High(FLines)) and (LLineH = 0) do
-            begin
-              if FLines[LLineSearchIndex].ParagraphIndex = LFragment.ParagraphIndex then
-                LLineH := FLines[LLineSearchIndex].Height;
-              Inc(LLineSearchIndex);
-            end;
-            if LLineH = 0 then
-              LLineH := LFragment.Height;
-            ACanvas.FillRect(TRectF.Create(LStartX, LStartY, LEndX, LStartY + LLineH), AbsoluteOpacity * 0.5);
           end;
         end;
       end;
