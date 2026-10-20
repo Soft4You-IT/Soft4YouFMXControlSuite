@@ -162,7 +162,7 @@ begin
     Inc(FPosition);
   LStringBuilder := TStringBuilder.Create;
   try
-    while (FPosition <= FLength) and not(PeekChar in ['>', '/', ' ', #9, #10, #13]) do
+    while (FPosition <= FLength) and not CharInSet(PeekChar, ['>', '/', ' ', #9, #10, #13]) do
       LStringBuilder.Append(ReadChar);
     ATagName := LStringBuilder.ToString.ToLower;
     LStringBuilder.Clear;
@@ -187,7 +187,7 @@ begin
           LInQuoteChar := #0;
         LStringBuilder.Append(LChar);
       end
-      else if LChar in ['"', ''''] then
+      else if CharInSet(LChar, ['"', '''']) then
       begin
         LInQuoteChar := LChar;
         LStringBuilder.Append(LChar);
@@ -240,7 +240,7 @@ begin
   while LScanPosition < LAttributeLength do
   begin
     // Skip whitespace between attributes
-    while (LScanPosition < LAttributeLength) and (LAttributesLower[Low(LAttributesLower) + LScanPosition] in [' ', #9, #10, #13]) do
+    while (LScanPosition < LAttributeLength) and CharInSet(LAttributesLower[Low(LAttributesLower) + LScanPosition], [' ', #9, #10, #13]) do
       Inc(LScanPosition);
     if LScanPosition >= LAttributeLength then
       Exit;
@@ -251,7 +251,7 @@ begin
       if LScanPosition >= LAttributeLength then
         Exit;
       LQuoteChar := LAttributesLower[Low(LAttributesLower) + LScanPosition];
-      if LQuoteChar in ['"', ''''] then
+      if CharInSet(LQuoteChar, ['"', '''']) then
       begin
         Inc(LScanPosition); // skip opening quote
         LValueEnd := LScanPosition;
@@ -262,20 +262,20 @@ begin
       else
       begin
         LValueEnd := LScanPosition;
-        while (LValueEnd < LAttributeLength) and not (LAttributesLower[Low(LAttributesLower) + LValueEnd] in [' ', '>']) do
+        while (LValueEnd < LAttributeLength) and not CharInSet(LAttributesLower[Low(LAttributesLower) + LValueEnd], [' ', '>']) do
           Inc(LValueEnd);
         Result := AAttributes.Substring(LScanPosition, LValueEnd - LScanPosition);
       end;
       Exit;
     end;
     // Not this attribute -- skip its name
-    while (LScanPosition < LAttributeLength) and not (LAttributesLower[Low(LAttributesLower) + LScanPosition] in [' ', '=']) do
+    while (LScanPosition < LAttributeLength) and not CharInSet(LAttributesLower[Low(LAttributesLower) + LScanPosition], [' ', '=']) do
       Inc(LScanPosition);
     // Skip optional =value
     if (LScanPosition < LAttributeLength) and (LAttributesLower[Low(LAttributesLower) + LScanPosition] = '=') then
     begin
       Inc(LScanPosition); // skip '='
-      if (LScanPosition < LAttributeLength) and (LAttributesLower[Low(LAttributesLower) + LScanPosition] in ['"', '''']) then
+      if (LScanPosition < LAttributeLength) and CharInSet(LAttributesLower[Low(LAttributesLower) + LScanPosition], ['"', '''']) then
       begin
         LQuoteChar := LAttributesLower[Low(LAttributesLower) + LScanPosition];
         Inc(LScanPosition); // skip opening quote
@@ -287,7 +287,7 @@ begin
       end
       else
       begin
-        while (LScanPosition < LAttributeLength) and not (LAttributesLower[Low(LAttributesLower) + LScanPosition] in [' ', '>']) do
+        while (LScanPosition < LAttributeLength) and not CharInSet(LAttributesLower[Low(LAttributesLower) + LScanPosition], [' ', '>']) do
           Inc(LScanPosition);
       end;
     end;
@@ -655,7 +655,7 @@ begin
 
   // Headings
   LBlockType := btParagraph;
-  if (Length(ATag) = 2) and (ATag[Low(ATag)] = 'h') and (ATag[Low(ATag) + 1] in ['1' .. '6']) then
+  if (Length(ATag) = 2) and (ATag[Low(ATag)] = 'h') and CharInSet(ATag[Low(ATag) + 1], ['1' .. '6']) then
   begin
     case ATag[Low(ATag) + 1] of
       '1': LBlockType := btH1;
@@ -1099,7 +1099,7 @@ begin
         else if (LEntity <> '') and (LEntity[Low(LEntity)] = '#') then
         begin
           try
-            if (LEntity.Length > 1) and (LEntity[Low(LEntity) + 1] in ['x', 'X']) then
+            if (LEntity.Length > 1) and CharInSet(LEntity[Low(LEntity) + 1], ['x', 'X']) then
               LCode := StrToInt('$' + LEntity.Substring(2))
             else
               LCode := LEntity.Substring(1).ToInteger;
