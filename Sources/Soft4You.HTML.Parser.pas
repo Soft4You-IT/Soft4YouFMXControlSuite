@@ -434,6 +434,11 @@ end;
 
 procedure TS4YHTMLParser.FlushParagraph;
 begin
+  // A space kept after the last inline element would only be a trailing space
+  if (FCurrentParagraph <> nil) and (FCurrentParagraph.Runs.Count > 1) and
+     not FCurrentParagraph.Runs.Last.IsImage and not FCurrentParagraph.Runs.Last.IsLineBreak and
+     (FCurrentParagraph.Runs.Last.Text = ' ') then
+    FCurrentParagraph.Runs.Delete(FCurrentParagraph.Runs.Count - 1);
   if (FCurrentParagraph <> nil) and (not FCurrentParagraph.IsEmpty or (FDocument.Paragraphs.Count = 0)) then
   begin
     FDocument.Paragraphs.Add(FCurrentParagraph);
@@ -1202,7 +1207,11 @@ begin
           while LTextNode.Contains('  ') do
             LTextNode := LTextNode.Replace('  ', ' ');
           if LTextNode.Trim <> '' then
-            AddTextRun(LTextNode);
+            AddTextRun(LTextNode)
+          else if (LTextNode = ' ') and (FCurrentParagraph <> nil) and (FCurrentParagraph.Runs.Count > 0) and
+                  not FCurrentParagraph.Runs.Last.IsLineBreak and not FCurrentParagraph.Runs.Last.Text.EndsWith(' ') then
+            // A space between two inline elements (<b>a</b> <i>b</i>) separates the words; between blocks it is dropped
+            AddTextRun(' ');
         end;
       end;
     end;
