@@ -670,6 +670,7 @@ type
     function DoTableTab(AShift: TShiftState): Boolean;
     function IsTableCellOf(AParagraphIndex, ATableID: Integer): Boolean;
     function FindTableCellAt(ATableID, ARow, ACol: Integer): Integer;
+    function InSameBlockScope(AFirstIndex, ASecondIndex: Integer): Boolean;
     function InSameTableCell(AFirstIndex, ASecondIndex: Integer): Boolean;
     function IsFirstInTableCell(AParagraphIndex: Integer): Boolean;
     function TableHasSpans(ATableID: Integer): Boolean;
@@ -3954,14 +3955,14 @@ begin
   LOrdered := FDocument.Paragraphs[AFirst].ListOrdered;
   LParagraphIndex := AFirst - 1;
   while (LParagraphIndex >= 0) and (FDocument.Paragraphs[LParagraphIndex].BlockType = btLI) and
-        (FDocument.Paragraphs[LParagraphIndex].ListOrdered = LOrdered) do
+        (FDocument.Paragraphs[LParagraphIndex].ListOrdered = LOrdered) and InSameBlockScope(LParagraphIndex, ALast) do
   begin
     AFirst := LParagraphIndex;
     Dec(LParagraphIndex);
   end;
   LParagraphIndex := ALast + 1;
   while (LParagraphIndex < FDocument.Paragraphs.Count) and (FDocument.Paragraphs[LParagraphIndex].BlockType = btLI) and
-        (FDocument.Paragraphs[LParagraphIndex].ListOrdered = LOrdered) do
+        (FDocument.Paragraphs[LParagraphIndex].ListOrdered = LOrdered) and InSameBlockScope(LParagraphIndex, AFirst) do
   begin
     ALast := LParagraphIndex;
     Inc(LParagraphIndex);
@@ -4236,8 +4237,8 @@ begin
   begin
     LCurrentCell := FDocument.Paragraphs[APosition.ParagraphIndex];
 
-    // Within-cell: LLineIndex still belongs to this paragraph
-    if (LLineIndex >= 0) and (FLines[LLineIndex].ParagraphIndex = APosition.ParagraphIndex) then
+    // Within-cell: LLineIndex still belongs to this cell
+    if (LLineIndex >= 0) and InSameTableCell(APosition.ParagraphIndex, FLines[LLineIndex].ParagraphIndex) then
     begin
       if not DocumentPositionToXY(APosition, LXPosition, LYPosition, LHeight) then
         Exit;
@@ -4260,7 +4261,7 @@ begin
       LSearchI := High(FLines);
       while (LSearchI >= 0) and (LLineIndex < 0) do
       begin
-        if FLines[LSearchI].ParagraphIndex = LTargetPI then
+        if InSameTableCell(LTargetPI, FLines[LSearchI].ParagraphIndex) then
           LLineIndex := LSearchI
         else
           Dec(LSearchI);
@@ -4332,7 +4333,7 @@ begin
 
     if LLineIndex >= Length(FLines) then
       LNeedRowBelow := True
-    else if FLines[LLineIndex].ParagraphIndex = APosition.ParagraphIndex then
+    else if InSameTableCell(APosition.ParagraphIndex, FLines[LLineIndex].ParagraphIndex) then
     begin
       // Within-cell navigation
       if not DocumentPositionToXY(APosition, LXPosition, LYPosition, LHeight) then
@@ -4978,6 +4979,13 @@ begin
     (FDocument.Paragraphs[AFirstIndex].TableCol = FDocument.Paragraphs[ASecondIndex].TableCol);
 end;
 
+// True when both paragraphs are outside tables or in the same table cell: lists and merges never cross a cell.
+function TS4YHTMLEditor.InSameBlockScope(AFirstIndex, ASecondIndex: Integer): Boolean;
+begin
+  Result := (FDocument.Paragraphs[AFirstIndex].IsTableCell = FDocument.Paragraphs[ASecondIndex].IsTableCell) and
+    (not FDocument.Paragraphs[AFirstIndex].IsTableCell or InSameTableCell(AFirstIndex, ASecondIndex));
+end;
+
 // True when the paragraph is a table cell and the paragraph before it does not belong to the same cell.
 function TS4YHTMLEditor.IsFirstInTableCell(AParagraphIndex: Integer): Boolean;
 begin
@@ -5039,16 +5047,25 @@ begin
 
   if ssShift in AShift then
   begin
-    LTargetIndex := FCaretPosition.ParagraphIndex - 1;
+    // First paragraph of the previous cell
+    LTargetIndex := FCaretPosition.ParagraphIndex;
+    while InSameTableCell(LTargetIndex - 1, FCaretPosition.ParagraphIndex) do
+      Dec(LTargetIndex);
+    Dec(LTargetIndex);
     if not IsTableCellOf(LTargetIndex, LTableID) then
       Exit;
+    while InSameTableCell(LTargetIndex - 1, LTargetIndex) do
+      Dec(LTargetIndex);
     ResetSelection;
     SetCaretPosition(TS4YDocumentPosition.At(LTargetIndex, 0, 0), False);
     Result := True;
     Exit;
   end;
 
+  // First paragraph of the next cell
   LTargetIndex := FCaretPosition.ParagraphIndex + 1;
+  while InSameTableCell(FCaretPosition.ParagraphIndex, LTargetIndex) do
+    Inc(LTargetIndex);
   if IsTableCellOf(LTargetIndex, LTableID) then
   begin
     ResetSelection;
@@ -5256,12 +5273,7 @@ begin
         begin
           if FHasSelection then
             DeleteSelection;
-          // In a table cell, Enter inserts a line break instead of splitting the cell
-          if FCaretPosition.IsValid and (FCaretPosition.ParagraphIndex < FDocument.Paragraphs.Count) and
-             FDocument.Paragraphs[FCaretPosition.ParagraphIndex].IsTableCell then
-            InsertLineBreak
-          else
-            InsertParagraphBreak;
+          InsertParagraphBreak;
         end;
       end;
     vkLeft:
@@ -5640,8 +5652,8 @@ begin
 
   if (LParagraph.Runs.Count = 0) or ((FCaretPosition.RunIndex = 0) and (FCaretPosition.CharIndex = 0)) then
   begin
-    // Never merge table cells with adjacent paragraphs
-    if LParagraph.IsTableCell then
+    // Never merge table cells with adjacent paragraphs; the paragraphs of the same cell can be merged
+    if LParagraph.IsTableCell and not InSameTableCell(FCaretPosition.ParagraphIndex - 1, FCaretPosition.ParagraphIndex) then
       Exit;
 
     // Backspace on empty list item -> strip list marker, keep indentation
@@ -6532,7 +6544,12 @@ begin
 
   LNewParagraph := TS4YHTMLParagraph.Create;
   if LParagraph.BlockType in [btH1 .. btH6] then
-    LNewParagraph.BlockType := btParagraph
+  begin
+    if LParagraph.IsTableCell then
+      LNewParagraph.BlockType := btTableCell
+    else
+      LNewParagraph.BlockType := btParagraph;
+  end
   else
     LNewParagraph.BlockType := LParagraph.BlockType;
   LNewParagraph.Alignment := LParagraph.Alignment;
@@ -6540,12 +6557,11 @@ begin
   LNewParagraph.ListOrdered := LParagraph.ListOrdered;
   if LParagraph.IsTableCell then
   begin
+    // The new paragraph joins the cell; the first paragraph keeps the spans of the cell
     LNewParagraph.TableID := LParagraph.TableID;
     LNewParagraph.TableRow := LParagraph.TableRow;
     LNewParagraph.TableCol := LParagraph.TableCol;
     LNewParagraph.TableCols := LParagraph.TableCols;
-    LNewParagraph.TableColSpan := LParagraph.TableColSpan;
-    LNewParagraph.TableRowSpan := LParagraph.TableRowSpan;
     LNewParagraph.IsHeader := LParagraph.IsHeader;
   end;
 
@@ -6564,10 +6580,12 @@ begin
   if LNewParagraph.BlockType = btLI then
   begin
     LFirst := LNewParagraphIndex;
-    while (LFirst > 0) and (FDocument.Paragraphs[LFirst - 1].BlockType = btLI) do
+    while (LFirst > 0) and (FDocument.Paragraphs[LFirst - 1].BlockType = btLI) and
+          InSameBlockScope(LFirst - 1, LNewParagraphIndex) do
       Dec(LFirst);
     LLast := LNewParagraphIndex;
-    while (LLast < FDocument.Paragraphs.Count - 1) and (FDocument.Paragraphs[LLast + 1].BlockType = btLI) do
+    while (LLast < FDocument.Paragraphs.Count - 1) and (FDocument.Paragraphs[LLast + 1].BlockType = btLI) and
+          InSameBlockScope(LLast + 1, LNewParagraphIndex) do
       Inc(LLast);
     RenumberListBlock(LFirst, LLast);
   end;
@@ -6690,6 +6708,9 @@ var
   LPreviousEndCharIndex: Integer;
 begin
   if (AParagraphIndex <= 0) or (AParagraphIndex >= FDocument.Paragraphs.Count) then
+    Exit;
+  // Paragraphs of different cells, or of a cell and the text around the table, are never merged
+  if not InSameBlockScope(AParagraphIndex - 1, AParagraphIndex) then
     Exit;
   LPreviousParagraph := FDocument.Paragraphs[AParagraphIndex - 1];
   LCurrentParagraph := FDocument.Paragraphs[AParagraphIndex];
