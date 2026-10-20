@@ -45,7 +45,7 @@ A **paragraph** is not only an HTML `<p>`: it is any block of the document. List
 | `btLI` | `<li>` | `ListOrdered`, `ListIndex` (1-based, ordered lists only), `IndentLevel` = list nesting depth minus 1 |
 | `btPre` | `<pre>` | none beyond the runs |
 | `btHR` | `<hr>` | `HRColor`, `HRThickness`; the paragraph has no runs |
-| `btTableCell` | `<td>`, `<th>` | `TableID`, `TableRow`, `TableCol`, `TableCols`, `IsHeader` |
+| `btTableCell` | Plain text inside `<td>` or `<th>`, also `<p>` inside a cell | `TableID`, `TableRow`, `TableCol`, `TableCols`, `IsHeader` (see Tables) |
 | `btImage` | Not created by the parser nor by `InsertImage`; see below | `ImageSource`, `ImageAlt`, `ImageWidth`, `ImageHeight` |
 | `btUL`, `btOL` | Never. `<ul>` and `<ol>` only change the nesting depth and the counter used while parsing: they do not produce paragraphs | - |
 
@@ -76,15 +76,15 @@ The parser drops the empty paragraphs it finds, except when the document would o
 
 ### Tables
 
-A table is a run of consecutive `btTableCell` paragraphs, one paragraph per cell, in row-major order:
+A table is a run of consecutive paragraphs that have a `TableID`, in row-major order. A paragraph belongs to a table cell when `IsTableCell` is True, that is when its `TableID` is not 0; the block type says what the paragraph is (`btTableCell` for plain text, but also `btH2`, `btLI`, `btHR` and so on):
 
 - `TableID` groups the cells of the same table. It comes from `NextTableID`, a counter shared by the parser and the editor, so two tables never share an identifier.
 - `TableRow` and `TableCol` are zero-based. `TableCols` is the number of columns of the table (the highest number of cells of a row); the parser fills it for every cell when it reaches `</table>`.
 - `TableColSpan` and `TableRowSpan` (both 1 for a normal cell) say how many columns and rows a cell covers. A merged cell is one paragraph, stored at its top-left position; the positions it covers have no paragraph. The parser skips the columns that a `rowspan` cell of a previous row still covers, limits both spans to 100, and shortens a `rowspan` that goes past the last row. `TableCols` counts the columns covered, not the cells.
-- A cell holds a single paragraph. Block elements inside a `<td>` are not represented as blocks. `<caption>` and `<colgroup>` are skipped and `<col>` is ignored.
+- A cell is a run of one or more paragraphs with the same `TableID`, `TableRow` and `TableCol`. The first one holds the attributes of the cell (`TableColSpan`, `TableRowSpan`); the others have both spans at 1. The parser gives the cell every paragraph that ends while the `<td>` is open, so `<p>`, headings, lists, blockquotes, `<hr>` and `<pre>` stay in the cell, and an empty cell keeps one empty paragraph. A table inside a cell is not represented yet: its cells are read as paragraphs of the outer cell. `<caption>` and `<colgroup>` are skipped and `<col>` is ignored.
 - A `<th>` has `IsHeader = True`, centered alignment and bold text.
-- The generator reads the cells by `TableRow` and `TableCol` and writes an empty `<td>` for a position that has no cell and is not covered by a merged cell. It writes `colspan` and `rowspan` only when they are greater than 1.
-- The layout gives a cell the width of the columns it covers. A cell that spans rows grows the last row it covers when its text does not fit. Moving the caret up or down finds the cell that covers the position above or below, also when it starts elsewhere. A mouse click inside a cell is resolved among the lines of that cell only, so a click in the empty part of a tall cell still lands in it. The commands that insert or delete a row or a column do nothing in a table that contains merged cells.
+- The generator reads the cells by `TableRow` and `TableCol`. A cell with one `btTableCell` paragraph is written as its runs, and a cell with several paragraphs or other blocks is written with the markup of each one inside the `<td>`. It writes an empty `<td>` for a position that has no cell and is not covered by a merged cell. It writes `colspan` and `rowspan` only when they are greater than 1.
+- The layout gives a cell the width of the columns it covers and stacks its paragraphs, and the row grows to hold them. A cell that spans rows grows the last row it covers when its text does not fit. Moving the caret up or down finds the cell that covers the position above or below, also when it starts elsewhere. A mouse click inside a cell is resolved among the lines of that cell only, so a click in the empty part of a tall cell still lands in it. The commands that insert or delete a row or a column do nothing in a table that contains merged cells. In a cell, `Enter` starts a new paragraph of the cell (`Shift+Enter` inserts a line break), `Backspace` and `Delete` merge only paragraphs of the same cell, and `Tab` moves to the first paragraph of the next cell.
 
 ### Positions
 

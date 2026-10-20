@@ -66,7 +66,7 @@ type
   /// <remarks>
   /// btParagraph and btBodyText are plain text blocks; btH1 to btH6 are headings; btBlockquote is an indented quote;
   /// btLI is a list item (the list type is given by the paragraph, btUL and btOL are the list containers used while parsing);
-  /// btHR is a horizontal rule; btImage is a block-level image; btTableCell is one cell of a table; btPre is preformatted text.
+  /// btHR is a horizontal rule; btImage is a block-level image; btTableCell is plain text inside a table cell (a cell can also hold headings, lists and other blocks); btPre is preformatted text.
   /// </remarks>
   TS4YHTMLBlockType = (btParagraph, btH1, btH2, btH3, btH4, btH5, btH6,
     btBlockquote, btUL, btOL, btLI, btHR, btImage, btTableCell, btBodyText, btPre);
@@ -283,7 +283,7 @@ type
   /// A line of text produced by the layout engine.
   /// </summary>
   /// <remarks>
-  /// The table cell fields are valid only for paragraphs of type btTableCell. Applications normally do not use this type.
+  /// The table cell fields are valid only for the paragraphs that belong to a table cell. Applications normally do not use this type.
   /// </remarks>
   TS4YLayoutLine = record
     /// <summary>Top of the line, relative to the document.</summary>
@@ -302,7 +302,7 @@ type
     FragmentStart: Integer; // index into FFrags array
     /// <summary>Number of fragments in the line.</summary>
     FragmentCount: Integer;
-    // Table cell geometry -- only valid when Para.BlockType = btTableCell
+    // Table cell geometry -- only valid when Para.IsTableCell is True
     /// <summary>Left edge of the table cell.</summary>
     CellX: Single;    // left edge of this cell
     /// <summary>Width of the table cell.</summary>
