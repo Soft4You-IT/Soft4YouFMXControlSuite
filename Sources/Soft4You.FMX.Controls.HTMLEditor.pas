@@ -6755,9 +6755,7 @@ begin
   LSrcs := FImageCache.Keys.ToArray;
   for LSource in LSrcs do
   begin
-    LBitmap := LoadBitmapFromSource(LSource);
-    if Assigned(FOnLoadImage) then
-      FOnLoadImage(Self, LSource, LBitmap, ilcReload);
+    LBitmap := LoadAllowedBitmap(LSource, ilcReload);
     if Assigned(LBitmap) then
       FImageCache.AddOrSetValue(LSource, LBitmap);
   end;

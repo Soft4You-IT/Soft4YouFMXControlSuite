@@ -254,7 +254,7 @@ end;
 | `DeleteTableColumn` | Delete the column containing the caret |
 | `InsertPlaceholder(RawText[, DisplayName])` | Insert a non-editable placeholder chip |
 | `UpdatePlaceholder(NewRawText[, NewDisplayName])` | Replace the placeholder under the caret |
-| `ReloadImages` | Re-fetch all images from their source paths/URLs |
+| `ReloadImages` | Re-fetch all images from their source paths/URLs, with the same checks as the first load |
 | `LoadLocalImages` | Load the local images skipped because `AutoLoadLocalImages` is `False` |
 | `LoadRemoteImages` | Load the remote images skipped because `AutoLoadRemoteImages` is `False` |
 | `ResolveImageSource(Src)` | Return the file path (or URL) that a `src` is read from, according to `ImagePathMode` and `DocumentPath` |
