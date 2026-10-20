@@ -243,6 +243,56 @@ type
   end;
 
   // ===========================================================================
+  // Table length  (width of a table or of a table cell)
+  // ===========================================================================
+
+  /// <summary>
+  /// How a width is given.
+  /// </summary>
+  /// <remarks>
+  /// tlkAuto means that the width was not set, tlkPixels is a width in pixels and tlkPercent a percentage of the available width.
+  /// </remarks>
+  TS4YTableLengthKind = (tlkAuto, tlkPixels, tlkPercent);
+
+  /// <summary>
+  /// A width of a table or of a table cell, in pixels or as a percentage.
+  /// </summary>
+  /// <remarks>
+  /// A record that is not set has Kind tlkAuto, so the default value means "not set".
+  /// </remarks>
+  TS4YTableLength = record
+    /// <summary>How the width is given.</summary>
+    Kind: TS4YTableLengthKind;
+    /// <summary>Width in pixels or in percent, depending on Kind. It is 0 when Kind is tlkAuto.</summary>
+    Value: Single;
+    /// <summary>
+    /// Returns a width that is not set.
+    /// </summary>
+    class function Auto: TS4YTableLength; static; inline;
+    /// <summary>
+    /// Creates a width in pixels.
+    /// </summary>
+    /// <param name="AValue">Width in pixels; a value that is not positive gives a width that is not set.</param>
+    class function Pixels(AValue: Single): TS4YTableLength; static;
+    /// <summary>
+    /// Creates a width as a percentage of the available width.
+    /// </summary>
+    /// <param name="AValue">Percentage; a value that is not positive gives a width that is not set.</param>
+    class function Percent(AValue: Single): TS4YTableLength; static;
+    /// <summary>
+    /// Tells whether the width was not set.
+    /// </summary>
+    /// <returns>True when Kind is tlkAuto.</returns>
+    function IsAuto: Boolean; inline;
+    /// <summary>
+    /// Compares two widths.
+    /// </summary>
+    /// <param name="AOther">The width to compare with.</param>
+    /// <returns>True when kind and value are equal.</returns>
+    function Equals(const AOther: TS4YTableLength): Boolean; inline;
+  end;
+
+  // ===========================================================================
   // Table cell reference  (position of a cell in a table)
   // ===========================================================================
 
@@ -827,6 +877,48 @@ end;
 function TS4YDocumentPosition.Equals(const AOther: TS4YDocumentPosition): Boolean;
 begin
   Result := (ParagraphIndex = AOther.ParagraphIndex) and (RunIndex = AOther.RunIndex) and (CharIndex = AOther.CharIndex);
+end;
+
+// -----------------------------------------------------------------------------
+// TS4YTableLength
+// -----------------------------------------------------------------------------
+
+class function TS4YTableLength.Auto: TS4YTableLength;
+begin
+  Result.Kind := tlkAuto;
+  Result.Value := 0;
+end;
+
+class function TS4YTableLength.Pixels(AValue: Single): TS4YTableLength;
+begin
+  if AValue > 0 then
+  begin
+    Result.Kind := tlkPixels;
+    Result.Value := AValue;
+  end
+  else
+    Result := Auto;
+end;
+
+class function TS4YTableLength.Percent(AValue: Single): TS4YTableLength;
+begin
+  if AValue > 0 then
+  begin
+    Result.Kind := tlkPercent;
+    Result.Value := AValue;
+  end
+  else
+    Result := Auto;
+end;
+
+function TS4YTableLength.IsAuto: Boolean;
+begin
+  Result := Kind = tlkAuto;
+end;
+
+function TS4YTableLength.Equals(const AOther: TS4YTableLength): Boolean;
+begin
+  Result := (Kind = AOther.Kind) and (Value = AOther.Value);
 end;
 
 // -----------------------------------------------------------------------------
