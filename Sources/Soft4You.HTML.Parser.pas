@@ -51,6 +51,11 @@ type
         CellRowSpan: Integer;
         CellParagraphCount: Integer;
         CellWidth: TS4YTableLength;
+        CellBackground: TAlphaColor;
+        CellPadding: TS4YTablePadding;
+        CellVerticalAlignment: TS4YTableVerticalAlignment;
+        TableBackground: TAlphaColor;
+        TablePadding: TS4YTablePadding;
         Containers: TArray<TS4YTableCellReference>;
         Width: TS4YTableLength;
         MaximumWidth: Single;
@@ -88,6 +93,11 @@ type
     FTableAlignment: TS4YHTMLAlignment;
     FTableHasBorder: Boolean;
     FCellWidth: TS4YTableLength;  // width asked for the open cell
+    FCellBackground: TAlphaColor;  // background, padding and vertical alignment of the open cell
+    FCellPadding: TS4YTablePadding;
+    FCellVerticalAlignment: TS4YTableVerticalAlignment;
+    FTableBackground: TAlphaColor;  // background and padding that the cells of the table being read get by default
+    FTablePadding: TS4YTablePadding;
     FTableStack: TList<TTableState>;  // the outer tables, while a table nested in one of their cells is read
     FInPreformatted: Boolean;
     FDivAlignment: TS4YHTMLAlignment;
@@ -112,6 +122,9 @@ type
     function ParseTableSpan(const AAttributes, AName: string): Integer;
     function ParseTableLength(const AText: string): TS4YTableLength;
     procedure ReadTableAttributes(const AAttributes: string);
+    procedure ReadCellAttributes(const AAttributes: string);
+    function ParseBackgroundColor(const AAttributes: string): TAlphaColor;
+    function ParsePadding(const AStyle: string): TS4YTablePadding;
     procedure EnsureParagraph(ABlockType: TS4YHTMLBlockType = btBodyText);
     procedure PushStyle(const ATextStyle: TS4YHTMLTextStyle; ABorderColor: TAlphaColor = claNull);
     procedure PopStyle;
@@ -508,6 +521,9 @@ begin
       AParagraph.TableColSpan := FCellColSpan;
       AParagraph.TableRowSpan := FCellRowSpan;
       AParagraph.TableCellWidth := FCellWidth;
+      AParagraph.TableCellBackgroundColor := FCellBackground;
+      AParagraph.TableCellPadding := FCellPadding;
+      AParagraph.TableCellVerticalAlignment := FCellVerticalAlignment;
     end;
     Inc(FCellParagraphCount);
   end;
@@ -543,6 +559,11 @@ begin
   LState.CellRowSpan := FCellRowSpan;
   LState.CellParagraphCount := FCellParagraphCount;
   LState.CellWidth := FCellWidth;
+  LState.CellBackground := FCellBackground;
+  LState.CellPadding := FCellPadding;
+  LState.CellVerticalAlignment := FCellVerticalAlignment;
+  LState.TableBackground := FTableBackground;
+  LState.TablePadding := FTablePadding;
   LState.Containers := FTableContainers;
   LState.Width := FTableWidth;
   LState.MaximumWidth := FTableMaximumWidth;
@@ -577,6 +598,11 @@ begin
   FCellRowSpan := LState.CellRowSpan;
   FCellParagraphCount := LState.CellParagraphCount;
   FCellWidth := LState.CellWidth;
+  FCellBackground := LState.CellBackground;
+  FCellPadding := LState.CellPadding;
+  FCellVerticalAlignment := LState.CellVerticalAlignment;
+  FTableBackground := LState.TableBackground;
+  FTablePadding := LState.TablePadding;
   FTableContainers := LState.Containers;
   FTableWidth := LState.Width;
   FTableMaximumWidth := LState.MaximumWidth;
@@ -642,6 +668,155 @@ begin
     Result := TS4YTableLength.Pixels(StrToFloatDef(LText, 0));
 end;
 
+// Reads the background color of an element from the bgcolor attribute and from the background-color and background
+// styles; the style wins. In the background shorthand the first part that is a color is used.
+function TS4YHTMLParser.ParseBackgroundColor(const AAttributes: string): TAlphaColor;
+var
+  LStyle: string;
+  LValue: string;
+  LPart: string;
+  LColor: TAlphaColor;
+begin
+  Result := ParseColor(GetAttribute(AAttributes, 'bgcolor'));
+  LStyle := GetAttribute(AAttributes, 'style').ToLower;
+  if LStyle = '' then
+    Exit;
+  LValue := ExtractCSSValue(LStyle, 'background-color');
+  if LValue = '' then
+    LValue := ExtractCSSValue(LStyle, 'background');
+  for LPart in LValue.Split([' ']) do
+  begin
+    LColor := ParseColor(LPart);
+    if LColor <> claNull then
+    begin
+      Result := LColor;
+      Exit;
+    end;
+  end;
+end;
+
+// Reads the padding of an element from the padding style (one to four values) and the padding-left, padding-top,
+// padding-right and padding-bottom styles. A padding that is not written gives a padding that is not set.
+function TS4YHTMLParser.ParsePadding(const AStyle: string): TS4YTablePadding;
+var
+  LTokens: TArray<string>;
+  LValue: string;
+  LLeft: Single;
+  LTop: Single;
+  LRight: Single;
+  LBottom: Single;
+  LIsSet: Boolean;
+
+  function PixelsOf(const AText: string): Single;
+  var
+    LLength: TS4YTableLength;
+  begin
+    LLength := ParseTableLength(AText);
+    if LLength.Kind = tlkPixels then
+      Result := LLength.Value
+    else
+      Result := 0;
+  end;
+
+begin
+  LLeft := 0;
+  LTop := 0;
+  LRight := 0;
+  LBottom := 0;
+  LIsSet := False;
+  LValue := ExtractCSSValue(AStyle, 'padding');
+  if LValue <> '' then
+  begin
+    LTokens := LValue.Split([' ']);
+    LIsSet := True;
+    case Length(LTokens) of
+      1:
+        begin
+          LTop := PixelsOf(LTokens[0]);
+          LRight := LTop;
+          LBottom := LTop;
+          LLeft := LTop;
+        end;
+      2:
+        begin
+          LTop := PixelsOf(LTokens[0]);
+          LBottom := LTop;
+          LRight := PixelsOf(LTokens[1]);
+          LLeft := LRight;
+        end;
+      3:
+        begin
+          LTop := PixelsOf(LTokens[0]);
+          LRight := PixelsOf(LTokens[1]);
+          LLeft := LRight;
+          LBottom := PixelsOf(LTokens[2]);
+        end;
+      4:
+        begin
+          LTop := PixelsOf(LTokens[0]);
+          LRight := PixelsOf(LTokens[1]);
+          LBottom := PixelsOf(LTokens[2]);
+          LLeft := PixelsOf(LTokens[3]);
+        end;
+    else
+      LIsSet := False;
+    end;
+  end;
+  LValue := ExtractCSSValue(AStyle, 'padding-left');
+  if LValue <> '' then
+  begin
+    LLeft := PixelsOf(LValue);
+    LIsSet := True;
+  end;
+  LValue := ExtractCSSValue(AStyle, 'padding-top');
+  if LValue <> '' then
+  begin
+    LTop := PixelsOf(LValue);
+    LIsSet := True;
+  end;
+  LValue := ExtractCSSValue(AStyle, 'padding-right');
+  if LValue <> '' then
+  begin
+    LRight := PixelsOf(LValue);
+    LIsSet := True;
+  end;
+  LValue := ExtractCSSValue(AStyle, 'padding-bottom');
+  if LValue <> '' then
+  begin
+    LBottom := PixelsOf(LValue);
+    LIsSet := True;
+  end;
+  if LIsSet then
+    Result := TS4YTablePadding.Sides(LLeft, LTop, LRight, LBottom)
+  else
+    Result := TS4YTablePadding.Default;
+end;
+
+// Reads the background, padding and vertical alignment of the cell that starts now. What the cell does not write
+// comes from the table: its bgcolor and its cellpadding.
+procedure TS4YHTMLParser.ReadCellAttributes(const AAttributes: string);
+var
+  LStyle: string;
+  LValue: string;
+begin
+  LStyle := GetAttribute(AAttributes, 'style').ToLower;
+  FCellBackground := ParseBackgroundColor(AAttributes);
+  if FCellBackground = claNull then
+    FCellBackground := FTableBackground;
+  FCellPadding := ParsePadding(LStyle);
+  if not FCellPadding.IsSet then
+    FCellPadding := FTablePadding;
+  FCellVerticalAlignment := tvaTop;
+  LValue := GetAttribute(AAttributes, 'valign').ToLower;
+  if LStyle <> '' then
+    if ExtractCSSValue(LStyle, 'vertical-align') <> '' then
+      LValue := ExtractCSSValue(LStyle, 'vertical-align');
+  if (LValue = 'middle') or (LValue = 'center') then
+    FCellVerticalAlignment := tvaMiddle
+  else if LValue = 'bottom' then
+    FCellVerticalAlignment := tvaBottom;
+end;
+
 // Reads the width, the maximum width, the alignment and the border of the table that starts now.
 procedure TS4YHTMLParser.ReadTableAttributes(const AAttributes: string);
 var
@@ -652,6 +827,11 @@ var
   LRight: string;
 begin
   FTableWidth := ParseTableLength(GetAttribute(AAttributes, 'width'));
+  FTableBackground := ParseBackgroundColor(AAttributes);
+  FTablePadding := TS4YTablePadding.Default;
+  LValue := GetAttribute(AAttributes, 'cellpadding');
+  if ParseTableLength(LValue).Kind = tlkPixels then
+    FTablePadding := TS4YTablePadding.Uniform(ParseTableLength(LValue).Value);
   FTableMaximumWidth := 0;
   FTableAlignment := haLeft;
   FTableHasBorder := True;
@@ -1167,6 +1347,7 @@ begin
         if LCellStyleWidth <> '' then
           FCellWidth := ParseTableLength(LCellStyleWidth);
       end;
+      ReadCellAttributes(AAttributes);
       FCellParagraphCount := 0;
       if FCellIsHeader then
       begin
