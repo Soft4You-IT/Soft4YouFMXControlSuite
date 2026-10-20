@@ -27,6 +27,7 @@ type
   // TS4YHTMLGenerator
   // ===========================================================================
 
+  /// <summary>Converts a TS4YHTMLDocument into HTML text.</summary>
   TS4YHTMLGenerator = class
   private
     FPretty: Boolean;
@@ -37,10 +38,33 @@ type
     function ColorToHex(AColor: TAlphaColor): string;
     function StyleDiff(const ACurrentStyle, ABaseStyle: TS4YHTMLTextStyle): string;
   public
+    /// <summary>
+    /// Writes the document as HTML.
+    /// </summary>
+    /// <param name="ADocument">Document to write.</param>
+    /// <returns>The HTML of the content, without the html and body elements.</returns>
     function Generate(ADocument: TS4YHTMLDocument): string;
 
+    /// <summary>
+    /// Function that maps the source of each image to the value written in its src attribute.
+    /// </summary>
+    /// <remarks>
+    /// It is called once for every image. When it is not assigned the source is written as it is.
+    /// </remarks>
     property ImageSourceConverter: TFunc<string, string> read FImageSourceConverter write FImageSourceConverter;
+    /// <summary>
+    /// Colors and sizes used to write the placeholders as styled elements.
+    /// </summary>
+    /// <remarks>
+    /// The colors of a single placeholder take precedence over these values.
+    /// </remarks>
     property PlaceholderStyle: TS4YPlaceholderGeneratorStyle read FPlaceholderStyle write FPlaceholderStyle;
+    /// <summary>
+    /// Tells whether the output is formatted for reading.
+    /// </summary>
+    /// <remarks>
+    /// When True the blocks are separated by line breaks and the rows of a table are indented. The default is False.
+    /// </remarks>
     property Pretty: Boolean read FPretty write FPretty;
   end;
 

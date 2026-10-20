@@ -30,6 +30,7 @@ type
   // TS4YHTMLParser
   // ===========================================================================
 
+  /// <summary>Converts HTML text into a TS4YHTMLDocument.</summary>
   TS4YHTMLParser = class
   private
     FInput: string;
@@ -72,6 +73,11 @@ type
     function HtmlDecode(const AText: string): string;
     function BaseStyle: TS4YHTMLTextStyle;
   public
+    /// <summary>
+    /// Parses a fragment of HTML.
+    /// </summary>
+    /// <param name="AHTML">HTML to parse.</param>
+    /// <returns>A new document that the caller owns and must free. It has at least one paragraph, also for an empty input.</returns>
     function Parse(const AHTML: string): TS4YHTMLDocument;
   end;
 
