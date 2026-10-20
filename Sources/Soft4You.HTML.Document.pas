@@ -137,6 +137,14 @@ type
     /// <param name="ATableID">Identifier of the table.</param>
     /// <returns>True when ATableID is the table of the paragraph or one of the tables that contain it.</returns>
     function BelongsToTable(ATableID: Integer): Boolean;
+    /// <summary>
+    /// Tells whether the paragraph is in a cell, directly or inside a table nested in that cell.
+    /// </summary>
+    /// <param name="ATableID">Identifier of the table of the cell.</param>
+    /// <param name="ARow">Zero-based row of the cell.</param>
+    /// <param name="AColumn">Zero-based column of the cell.</param>
+    /// <returns>True when the paragraph belongs to that cell or to a table that sits in it.</returns>
+    function IsInCell(ATableID, ARow, AColumn: Integer): Boolean;
 
     /// <summary>Horizontal alignment of the paragraph.</summary>
     property Alignment: TS4YHTMLAlignment read FAlignment write FAlignment;
@@ -345,6 +353,16 @@ end;
 function TS4YHTMLParagraph.IsNestedTableCell: Boolean;
 begin
   Result := Length(FTableContainers) > 0;
+end;
+
+function TS4YHTMLParagraph.IsInCell(ATableID, ARow, AColumn: Integer): Boolean;
+var
+  LContainer: TS4YTableCellReference;
+begin
+  Result := (FTableID <> 0) and (FTableID = ATableID) and (FTableRow = ARow) and (FTableCol = AColumn);
+  for LContainer in FTableContainers do
+    if (LContainer.TableID = ATableID) and (LContainer.Row = ARow) and (LContainer.Column = AColumn) then
+      Result := True;
 end;
 
 function TS4YHTMLParagraph.BelongsToTable(ATableID: Integer): Boolean;

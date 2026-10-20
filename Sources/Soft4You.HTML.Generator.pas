@@ -307,7 +307,7 @@ var
       for LCoverIndex := AFirstPI to LEndIndex - 1 do
       begin
         LCoverCell := ADocument.Paragraphs[LCoverIndex];
-        if (LCoverCell.TableRow <= ARow) and (ARow < LCoverCell.TableRow + LCoverCell.TableRowSpan) and
+        if (LCoverCell.TableID = LTableID) and (LCoverCell.TableRow <= ARow) and (ARow < LCoverCell.TableRow + LCoverCell.TableRowSpan) and
            (LCoverCell.TableCol <= ACol) and (ACol < LCoverCell.TableCol + LCoverCell.TableColSpan) then
           Result := True;
       end;
@@ -321,10 +321,11 @@ var
     LMaximumRow := 0;
     LScanIndex := AFirstPI;
     while (LScanIndex < ADocument.Paragraphs.Count) and
-          ADocument.Paragraphs[LScanIndex].IsTableCell and
-          (ADocument.Paragraphs[LScanIndex].TableID = LTableID) do
+          ADocument.Paragraphs[LScanIndex].BelongsToTable(LTableID) do
     begin
-      if ADocument.Paragraphs[LScanIndex].TableRow > LMaximumRow then
+      // The paragraphs of the tables nested in the cells belong to the extent of the table but not to its grid
+      if (ADocument.Paragraphs[LScanIndex].TableID = LTableID) and
+         (ADocument.Paragraphs[LScanIndex].TableRow > LMaximumRow) then
         LMaximumRow := ADocument.Paragraphs[LScanIndex].TableRow;
       Inc(LScanIndex);
     end;
@@ -383,8 +384,7 @@ var
           LStringBuilder.Append('<' + LCellTag + LCellSpans + ' style="' + LCellStyle + '">');
           // The paragraphs that follow the first one and have the same position belong to the same cell
           LCellEnd := LScanIndex + 1;
-          while (LCellEnd < LEndIndex) and
-                (ADocument.Paragraphs[LCellEnd].TableRow = LRow) and (ADocument.Paragraphs[LCellEnd].TableCol = LCol) do
+          while (LCellEnd < LEndIndex) and ADocument.Paragraphs[LCellEnd].IsInCell(LTableID, LRow, LCol) do
             Inc(LCellEnd);
           if (LCellEnd = LScanIndex + 1) and (LCell.BlockType = btTableCell) then
             EmitRuns(LCell)
@@ -405,11 +405,7 @@ var
       LStringBuilder.Append('</tr>' + LNewLine);
     end;
     LStringBuilder.Append('</table>' + LNewLine);
-    LParagraphIndex := AFirstPI;
-    while (LParagraphIndex < ADocument.Paragraphs.Count) and
-          ADocument.Paragraphs[LParagraphIndex].IsTableCell and
-          (ADocument.Paragraphs[LParagraphIndex].TableID = LTableID) do
-      Inc(LParagraphIndex);
+    LParagraphIndex := LEndIndex;
   end;
 
   procedure EmitBlocks(AEndIndex, ATableID: Integer);
@@ -422,7 +418,13 @@ var
     begin
       LParagraph := ADocument.Paragraphs[LParagraphIndex];
 
-      if LParagraph.IsTableCell and (LParagraph.TableID <> ATableID) then
+      if (ATableID <> 0) and (LParagraph.TableID = ATableID) and (LParagraph.Runs.Count = 0) and
+         (LParagraphIndex + 1 < LBlockEnd) and (ADocument.Paragraphs[LParagraphIndex + 1].TableID <> ATableID) then
+      begin
+        // The empty paragraph before a table nested in the cell only holds the attributes of the cell
+        Inc(LParagraphIndex);
+      end
+      else if LParagraph.IsTableCell and (LParagraph.TableID <> ATableID) then
       begin
         EmitTable(LParagraphIndex);
         // LParagraphIndex is already advanced by EmitTable
