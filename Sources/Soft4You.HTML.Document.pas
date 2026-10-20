@@ -25,6 +25,7 @@ type
   // TS4YHTMLRun
   // ===========================================================================
 
+  /// <summary>A piece of inline content of a paragraph: a text with one style, a line break, an inline image or a placeholder.</summary>
   TS4YHTMLRun = class
   private
     FDisplayText: string;
@@ -39,20 +40,36 @@ type
     FStyle: TS4YHTMLTextStyle;
     FText: string;
   public
+    /// <summary>Creates an empty run with the default text style.</summary>
     constructor Create;
 
+    /// <summary>
+    /// Creates an independent copy of the run.
+    /// </summary>
+    /// <returns>A new run that the caller owns.</returns>
     function Clone: TS4YHTMLRun;
 
+    /// <summary>Label shown instead of the raw text when the run is a placeholder. Empty means that the label comes from OnGetPlaceholderLabel or from Text.</summary>
     property DisplayText: string read FDisplayText write FDisplayText;
+    /// <summary>Alternative text of the inline image.</summary>
     property ImageAlt: string read FImageAlt write FImageAlt;
+    /// <summary>Height of the inline image in pixels; 0 uses the natural height.</summary>
     property ImageHeight: Integer read FImageHeight write FImageHeight;
+    /// <summary>Source of the inline image, as written in the src attribute.</summary>
     property ImageSource: string read FImageSource write FImageSource;
+    /// <summary>Width of the inline image in pixels; 0 uses the natural width.</summary>
     property ImageWidth: Integer read FImageWidth write FImageWidth;
+    /// <summary>True when the run is an inline image.</summary>
     property IsImage: Boolean read FIsImage write FIsImage;
+    /// <summary>True when the run is a line break (br).</summary>
     property IsLineBreak: Boolean read FIsLineBreak write FIsLineBreak;
+    /// <summary>True when the run is a placeholder, which is edited as a single unit.</summary>
     property IsPlaceholder: Boolean read FIsPlaceholder write FIsPlaceholder;
+    /// <summary>Border color of this placeholder; claNull uses the color derived from the placeholder appearance.</summary>
     property PlaceholderBorderColor: TAlphaColor read FPlaceholderBorderColor write FPlaceholderBorderColor;
+    /// <summary>Text style of the run.</summary>
     property Style: TS4YHTMLTextStyle read FStyle write FStyle;
+    /// <summary>Text of the run. For a placeholder it is the raw text as stored in the HTML.</summary>
     property Text: string read FText write FText;
   end;
 
@@ -60,6 +77,7 @@ type
   // TS4YHTMLParagraph
   // ===========================================================================
 
+  /// <summary>A block of the document: a paragraph, a heading, a list item, a table cell, an image, a horizontal rule and so on, with the runs that make up its content.</summary>
   TS4YHTMLParagraph = class
   private
     FBlockType: TS4YHTMLBlockType;
@@ -80,29 +98,60 @@ type
     FTableRow: Integer;     // 0-based row index (btTableCell only)
     FRuns: TObjectList<TS4YHTMLRun>;
   public
+    /// <summary>Creates an empty paragraph of type btBodyText.</summary>
     constructor Create;
+    /// <summary>Frees the paragraph and its runs.</summary>
     destructor Destroy; override;
 
+    /// <summary>
+    /// Creates an independent copy of the paragraph, runs included.
+    /// </summary>
+    /// <returns>A new paragraph that the caller owns.</returns>
     function Clone: TS4YHTMLParagraph;
+    /// <summary>
+    /// Returns the text of the paragraph without any formatting.
+    /// </summary>
+    /// <returns>The text of the runs in order. Line breaks become sLineBreak and an inline image contributes its alternative text.</returns>
     function PlainText: string;
+    /// <summary>
+    /// Tells whether the paragraph has no text.
+    /// </summary>
+    /// <returns>True when no run has text. Line breaks and images do not count as text.</returns>
     function IsEmpty: Boolean;
 
+    /// <summary>Horizontal alignment of the paragraph.</summary>
     property Alignment: TS4YHTMLAlignment read FAlignment write FAlignment;
+    /// <summary>Kind of block that the paragraph represents.</summary>
     property BlockType: TS4YHTMLBlockType read FBlockType write FBlockType;
+    /// <summary>Color of the horizontal rule, when BlockType is btHR; claNull uses the default color.</summary>
     property HRColor: TAlphaColor read FHRColor write FHRColor;  // claNull = use default
+    /// <summary>Thickness of the horizontal rule in pixels, when BlockType is btHR; 0 uses the default thickness.</summary>
     property HRThickness: Single read FHRThickness write FHRThickness;   // 0 = use default
+    /// <summary>Alternative text of the image, when BlockType is btImage.</summary>
     property ImageAlt: string read FImageAlt write FImageAlt;
+    /// <summary>Height of the image in pixels, when BlockType is btImage; 0 uses the natural height.</summary>
     property ImageHeight: Integer read FImageHeight write FImageHeight;  // 0 = natural height from bitmap
+    /// <summary>Source of the image, when BlockType is btImage, as written in the src attribute.</summary>
     property ImageSource: string read FImageSource write FImageSource;
+    /// <summary>Width of the image in pixels, when BlockType is btImage; 0 uses the natural width.</summary>
     property ImageWidth: Integer read FImageWidth write FImageWidth;   // 0 = natural width from bitmap
+    /// <summary>Nesting level of a list item or of a block quote; 0 is the outermost level.</summary>
     property IndentLevel: Integer read FIndentLevel write FIndentLevel;  // 0..N  (blockquote / list nesting)
+    /// <summary>True when the paragraph is a table header cell (th), drawn in bold and centered.</summary>
     property IsHeader: Boolean read FIsHeader write FIsHeader;     // <th> -- rendered bold + center
+    /// <summary>Number of the item in an ordered list, starting from 1.</summary>
     property ListIndex: Integer read FListIndex write FListIndex;    // 1-based counter for <ol>
+    /// <summary>True when the list item belongs to an ordered list (ol), False for a bulleted list (ul).</summary>
     property ListOrdered: Boolean read FListOrdered write FListOrdered;  // true = <ol>, used when BlockType = btLI
+    /// <summary>Runs that make up the content of the paragraph. The paragraph owns them.</summary>
     property Runs: TObjectList<TS4YHTMLRun> read FRuns;
+    /// <summary>Zero-based column of the cell, when BlockType is btTableCell.</summary>
     property TableCol: Integer read FTableCol write FTableCol;     // 0-based column index (btTableCell only)
+    /// <summary>Number of columns of the table that the cell belongs to, when BlockType is btTableCell.</summary>
     property TableCols: Integer read FTableCols write FTableCols;    // total columns in table (btTableCell only)
+    /// <summary>Identifier that groups the cells of the same table; 0 when the paragraph is not a table cell.</summary>
     property TableID: Integer read FTableID write FTableID;      // groups cells of same table; 0 = not a cell
+    /// <summary>Zero-based row of the cell, when BlockType is btTableCell.</summary>
     property TableRow: Integer read FTableRow write FTableRow;     // 0-based row index (btTableCell only)
   end;
 
@@ -110,20 +159,32 @@ type
   // TS4YHTMLDocument
   // ===========================================================================
 
+  /// <summary>A parsed HTML document: the ordered list of its blocks.</summary>
   TS4YHTMLDocument = class
   private
     FParagraphs: TObjectList<TS4YHTMLParagraph>;
   public
+    /// <summary>Creates an empty document.</summary>
     constructor Create;
+    /// <summary>Frees the document and its paragraphs.</summary>
     destructor Destroy; override;
 
+    /// <summary>Removes every paragraph.</summary>
     procedure Clear;
+    /// <summary>
+    /// Creates an independent copy of the document, paragraphs and runs included.
+    /// </summary>
+    /// <returns>A new document that the caller owns.</returns>
     function Clone: TS4YHTMLDocument;
 
+    /// <summary>Blocks of the document in order. The document owns them.</summary>
     property Paragraphs: TObjectList<TS4YHTMLParagraph> read FParagraphs;
   end;
 
-// Returns the next unique table ID (shared counter for parser and editor)
+/// <summary>
+/// Returns a new table identifier, unique in the process.
+/// </summary>
+/// <returns>The next value of a counter shared by the parser and the editor.</returns>
 function NextTableID: Integer;
 
 implementation
