@@ -84,7 +84,7 @@ A table is a run of consecutive `btTableCell` paragraphs, one paragraph per cell
 - A cell holds a single paragraph. Block elements inside a `<td>` are not represented as blocks. `<caption>` and `<colgroup>` are skipped and `<col>` is ignored.
 - A `<th>` has `IsHeader = True`, centered alignment and bold text.
 - The generator reads the cells by `TableRow` and `TableCol` and writes an empty `<td>` for a position that has no cell and is not covered by a merged cell. It writes `colspan` and `rowspan` only when they are greater than 1.
-- The layout gives a cell the width of the columns it covers. A cell that spans rows grows the last row it covers when its text does not fit. Moving the caret up or down finds the cell that covers the position above or below, also when it starts elsewhere. The commands that insert or delete a row or a column do nothing in a table that contains merged cells.
+- The layout gives a cell the width of the columns it covers. A cell that spans rows grows the last row it covers when its text does not fit. Moving the caret up or down finds the cell that covers the position above or below, also when it starts elsewhere. A mouse click inside a cell is resolved among the lines of that cell only, so a click in the empty part of a tall cell still lands in it. The commands that insert or delete a row or a column do nothing in a table that contains merged cells.
 
 ### Positions
 
