@@ -523,6 +523,7 @@ type
     procedure PaintImageRun(ACanvas: TCanvas; const AFragment: TS4YLayoutFragment; ARun: TS4YHTMLRun);
     procedure PaintSelection(ACanvas: TCanvas);
     procedure GetRenderCullLimits(out ACullTop, ACullBottom: Single);
+    procedure PaintTableCellBackgrounds(ACanvas: TCanvas);
     procedure PaintTableCellBorders(ACanvas: TCanvas);
 
     // State helpers
@@ -2007,7 +2008,8 @@ var
   LColumnWidths: TArray<Single>;
   LColumnIsSet: TArray<Boolean>;
   LColumnX: TArray<Single>;
-  LCellPad: Single;
+  LPadding: TS4YTablePadding;
+  LContentExtra: Single;
   LRow: Integer;
   LCellIndex: Integer;
   LCellCount: Integer;
@@ -2048,6 +2050,15 @@ var
       Result := LCols - ACell.TableCol;
   end;
 
+  // The padding of a cell: its own, or the default one when the cell has none
+  function PaddingOf(ACell: TS4YHTMLParagraph): TS4YTablePadding;
+  begin
+    if ACell.TableCellPadding.IsSet then
+      Result := ACell.TableCellPadding
+    else
+      Result := TS4YTablePadding.Uniform(C_DEFAULT_TABLE_CELL_PADDING);
+  end;
+
   // Left edge of a column, relative to the space of the table
   function ColumnLeft(AColumn: Integer): Single;
   begin
@@ -2081,7 +2092,6 @@ begin
   LCols := ADocument.Paragraphs[AFirstParagraphIndex].TableCols;
   if LCols < 1 then
     LCols := 1;
-  LCellPad := C_DEFAULT_TABLE_CELL_PADDING;
 
   // Find last para index of this table and max row
   LLastPI := AFirstParagraphIndex;
@@ -2229,20 +2239,23 @@ begin
     LLocalFrags := nil;
     LLocalCells := nil;
     LLocalY := 0;
+    LPadding := PaddingOf(LParagraph);
     LParagraphIndex := LCellParagraphs[LCellIndex];
     while LParagraphIndex <= LCellLastParagraphs[LCellIndex] do
     begin
       if ADocument.Paragraphs[LParagraphIndex].TableID = LTableID then
       begin
         LayoutParagraph(ADocument.Paragraphs[LParagraphIndex], LParagraphIndex,
-          ColumnSpanWidth(LParagraph.TableCol, ColumnSpanOf(LParagraph)) - 2 * LCellPad, LLocalY, LLocalLines, LLocalFrags,
+          ColumnSpanWidth(LParagraph.TableCol, ColumnSpanOf(LParagraph)) - LPadding.Left - LPadding.Right, LLocalY,
+          LLocalLines, LLocalFrags,
           LLocalY);
         Inc(LParagraphIndex);
       end
       else
       begin
         // A table nested in the cell
-        LayoutTable(ADocument, LParagraphIndex, ColumnSpanWidth(LParagraph.TableCol, ColumnSpanOf(LParagraph)) - 2 * LCellPad,
+        LayoutTable(ADocument, LParagraphIndex,
+          ColumnSpanWidth(LParagraph.TableCol, ColumnSpanOf(LParagraph)) - LPadding.Left - LPadding.Right,
           LLocalLines, LLocalFrags, LLocalY, LNextIndex, LLocalCells);
         LParagraphIndex := LNextIndex;
       end;
@@ -2260,8 +2273,10 @@ begin
   for LCellIndex := 0 to LCellCount - 1 do
   begin
     LParagraph := ADocument.Paragraphs[LCellParagraphs[LCellIndex]];
-    if (RowSpanOf(LParagraph) = 1) and (LCellHeights[LCellIndex] + 2 * LCellPad > LRowHeights[LParagraph.TableRow]) then
-      LRowHeights[LParagraph.TableRow] := LCellHeights[LCellIndex] + 2 * LCellPad;
+    LPadding := PaddingOf(LParagraph);
+    if (RowSpanOf(LParagraph) = 1) and
+       (LCellHeights[LCellIndex] + LPadding.Top + LPadding.Bottom > LRowHeights[LParagraph.TableRow]) then
+      LRowHeights[LParagraph.TableRow] := LCellHeights[LCellIndex] + LPadding.Top + LPadding.Bottom;
   end;
   // A cell that spans rows grows the last row it covers when its content does not fit
   for LCellIndex := 0 to LCellCount - 1 do
@@ -2273,7 +2288,8 @@ begin
       LSpanHeight := 0;
       for LRow := LParagraph.TableRow to LParagraph.TableRow + LRowSpan - 1 do
         LSpanHeight := LSpanHeight + LRowHeights[LRow];
-      LCellHeight := LCellHeights[LCellIndex] + 2 * LCellPad;
+      LPadding := PaddingOf(LParagraph);
+      LCellHeight := LCellHeights[LCellIndex] + LPadding.Top + LPadding.Bottom;
       if LCellHeight > LSpanHeight then
         LRowHeights[LParagraph.TableRow + LRowSpan - 1] :=
           LRowHeights[LParagraph.TableRow + LRowSpan - 1] + LCellHeight - LSpanHeight;
@@ -2293,8 +2309,18 @@ begin
     for LRow := LParagraph.TableRow to LParagraph.TableRow + LRowSpan - 1 do
       LSpanHeight := LSpanHeight + LRowHeights[LRow];
 
-    LXOffset := ColumnLeft(LParagraph.TableCol) + LCellPad;
-    LYOffset := LRowTop + LCellPad;
+    LPadding := PaddingOf(LParagraph);
+    LXOffset := ColumnLeft(LParagraph.TableCol) + LPadding.Left;
+    LYOffset := LRowTop + LPadding.Top;
+    // A cell taller than its content (the row, or a neighbor, is taller) puts the content in the middle or at the bottom
+    LContentExtra := LSpanHeight - (LCellHeights[LCellIndex] + LPadding.Top + LPadding.Bottom);
+    if LContentExtra > 0 then
+      case LParagraph.TableCellVerticalAlignment of
+        tvaMiddle:
+          LYOffset := LYOffset + LContentExtra / 2;
+        tvaBottom:
+          LYOffset := LYOffset + LContentExtra;
+      end;
     LGlobalFragmentOffset := Length(AFragments);
     LGlobalLineOffset := Length(ALines);
 
@@ -2339,6 +2365,7 @@ begin
     LLayoutCell.Width := ColumnSpanWidth(LParagraph.TableCol, LColSpan);
     LLayoutCell.ColumnSpan := LColSpan;
     LLayoutCell.TableAvailableWidth := AAvailableWidth;
+    LLayoutCell.BackgroundColor := LParagraph.TableCellBackgroundColor;
     LLayoutCell.Height := LSpanHeight;
     SetLength(ACells, Length(ACells) + 1);
     ACells[High(ACells)] := LLayoutCell;
@@ -2660,6 +2687,7 @@ var
     try
       ACanvas.IntersectClipRect(TRectF.Create(1, 1, Width - LScrollBarWidth - 1, Height - 1));
       PaintBackground(ACanvas);
+      PaintTableCellBackgrounds(ACanvas);
       PaintTableCellBorders(ACanvas);
       // Painting is limited to the fragments near the visible area: the cost of a frame
       // follows the window, not the length of the document. PERFORMANCE-CRITICAL: do not
@@ -2826,6 +2854,26 @@ begin
   ACanvas.Fill.Kind := TBrushKind.Solid;
   ACanvas.Fill.Color := FBackgroundColor;
   ACanvas.FillRect(TRectF.Create(0, 0, Width, Height), AbsoluteOpacity);
+end;
+
+// Fills the cells that have a background color. The cells of a nested table come before the cell that holds
+// them in FCells, so going backwards paints the outer cell first and the nested cells over it.
+procedure TS4YHTMLEditor.PaintTableCellBackgrounds(ACanvas: TCanvas);
+var
+  LRectangle: TRectF;
+begin
+  ACanvas.Fill.Kind := TBrushKind.Solid;
+  for var I := High(FCells) downto 0 do
+    if FCells[I].BackgroundColor <> claNull then
+    begin
+      ACanvas.Fill.Color := FCells[I].BackgroundColor;
+      LRectangle := TRectF.Create(
+        FCells[I].X + ContentLeft,
+        FCells[I].Y + ContentTop,
+        FCells[I].X + FCells[I].Width + ContentLeft,
+        FCells[I].Y + FCells[I].Height + ContentTop);
+      ACanvas.FillRect(LRectangle, 0, 0, AllCorners, AbsoluteOpacity);
+    end;
 end;
 
 procedure TS4YHTMLEditor.PaintTableCellBorders(ACanvas: TCanvas);

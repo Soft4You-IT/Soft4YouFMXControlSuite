@@ -15,6 +15,7 @@ interface
 
 uses
   System.SysUtils,
+  System.Math,
   System.UITypes,
   System.UIConsts;
 
@@ -293,6 +294,60 @@ type
   end;
 
   // ===========================================================================
+  // Table cell box  (padding and vertical alignment of a table cell)
+  // ===========================================================================
+
+  /// <summary>
+  /// Where the content of a table cell sits when the cell is taller than the content.
+  /// </summary>
+  /// <remarks>
+  /// tvaTop puts the content at the top of the cell (the default), tvaMiddle in the middle and tvaBottom at the bottom.
+  /// </remarks>
+  TS4YTableVerticalAlignment = (tvaTop, tvaMiddle, tvaBottom);
+
+  /// <summary>
+  /// The space between the border of a table cell and its content, in pixels.
+  /// </summary>
+  /// <remarks>
+  /// A record that is not set (IsSet is False) means that the cell has the default padding.
+  /// </remarks>
+  TS4YTablePadding = record
+    /// <summary>Tells whether the padding was set. When it is False the other fields are not used.</summary>
+    IsSet: Boolean;
+    /// <summary>Space on the left.</summary>
+    Left: Single;
+    /// <summary>Space above.</summary>
+    Top: Single;
+    /// <summary>Space on the right.</summary>
+    Right: Single;
+    /// <summary>Space below.</summary>
+    Bottom: Single;
+    /// <summary>
+    /// Returns a padding that is not set.
+    /// </summary>
+    class function Default: TS4YTablePadding; static; inline;
+    /// <summary>
+    /// Creates the same padding on the four sides.
+    /// </summary>
+    /// <param name="AValue">Space in pixels.</param>
+    class function Uniform(AValue: Single): TS4YTablePadding; static;
+    /// <summary>
+    /// Creates a padding with a value for each side.
+    /// </summary>
+    /// <param name="ALeft">Space on the left.</param>
+    /// <param name="ATop">Space above.</param>
+    /// <param name="ARight">Space on the right.</param>
+    /// <param name="ABottom">Space below.</param>
+    class function Sides(ALeft, ATop, ARight, ABottom: Single): TS4YTablePadding; static;
+    /// <summary>
+    /// Compares two paddings.
+    /// </summary>
+    /// <param name="AOther">The padding to compare with.</param>
+    /// <returns>True when both are not set, or when both are set with the same four values.</returns>
+    function Equals(const AOther: TS4YTablePadding): Boolean;
+  end;
+
+  // ===========================================================================
   // Table cell reference  (position of a cell in a table)
   // ===========================================================================
 
@@ -407,6 +462,8 @@ type
     Depth: Integer;
     /// <summary>Tells whether the border of the cell is drawn.</summary>
     HasBorder: Boolean;
+    /// <summary>Background color of the cell; claNull means none.</summary>
+    BackgroundColor: TAlphaColor;
     /// <summary>Left edge of the cell.</summary>
     X: Single;
     /// <summary>Top edge of the cell.</summary>
@@ -925,6 +982,43 @@ end;
 function TS4YTableLength.Equals(const AOther: TS4YTableLength): Boolean;
 begin
   Result := (Kind = AOther.Kind) and (Value = AOther.Value);
+end;
+
+// -----------------------------------------------------------------------------
+// TS4YTablePadding
+// -----------------------------------------------------------------------------
+
+class function TS4YTablePadding.Default: TS4YTablePadding;
+begin
+  Result.IsSet := False;
+  Result.Left := 0;
+  Result.Top := 0;
+  Result.Right := 0;
+  Result.Bottom := 0;
+end;
+
+class function TS4YTablePadding.Uniform(AValue: Single): TS4YTablePadding;
+begin
+  Result := Sides(AValue, AValue, AValue, AValue);
+end;
+
+class function TS4YTablePadding.Sides(ALeft, ATop, ARight, ABottom: Single): TS4YTablePadding;
+begin
+  Result.IsSet := True;
+  Result.Left := Max(0, ALeft);
+  Result.Top := Max(0, ATop);
+  Result.Right := Max(0, ARight);
+  Result.Bottom := Max(0, ABottom);
+end;
+
+function TS4YTablePadding.Equals(const AOther: TS4YTablePadding): Boolean;
+begin
+  if IsSet <> AOther.IsSet then
+    Result := False
+  else if not IsSet then
+    Result := True
+  else
+    Result := (Left = AOther.Left) and (Top = AOther.Top) and (Right = AOther.Right) and (Bottom = AOther.Bottom);
 end;
 
 // -----------------------------------------------------------------------------

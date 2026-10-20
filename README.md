@@ -108,13 +108,13 @@ end;
 
 | Tag | Description |
 |---|---|
-| `<p>` | Paragraph |
+| `<p>` | Paragraph. The `style` of `p`, `div`, `h1`-`h6`, `li`, `blockquote`, `ul` and `ol` can give a font, size, weight and color to its content |
 | `<h1>` … `<h6>` | Headings |
 | `<blockquote>` | Indented quote |
 | `<ul>` / `<ol>` / `<li>` | Unordered and ordered lists |
 | `<hr>` | Horizontal rule |
 | `<img>` | Inline image (a run inside the paragraph, so it can sit in the middle of a text) |
-| `<table>` / `<tr>` / `<td>` / `<th>` | Tables, including `colspan`, `rowspan`, nested tables, widths (`width`, `max-width`, in pixels or percent), `align` and `border="0"` |
+| `<table>` / `<tr>` / `<td>` / `<th>` | Tables, including `colspan`, `rowspan`, nested tables, widths (`width`, `max-width`, in pixels or percent), `align`, `border="0"`, cell background (`bgcolor`, `background-color`), padding (`padding`, `cellpadding`), vertical alignment (`valign`, `vertical-align`), text alignment and the text style of the cell or table (font, size, weight, color) |
 | `<pre>` | Preformatted text |
 
 ### Inline elements
@@ -493,7 +493,7 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 ## Known Limitations
 
 - **Image security**: the editor reads local files and `file:` URLs named by the HTML without any check. When displaying content from untrusted sources (for example e-mail), set `LocalImageAccess` to `liaDocumentFolder` (or `AutoLoadLocalImages` to `False`) and filter with `OnBeforeLoadImage`.
-- **Tables**: `colspan` and `rowspan` are read, drawn and written back, but merged cells cannot be created or split in the editor, and rows or columns cannot be inserted or deleted in a table that has them, or that is nested or has nested tables. A cell can hold several paragraphs, headings, lists and other tables. The width of a column comes from the first cell that sets one (`width` attribute or style); the columns without a width share the rest. Other cell and table styles (background color, padding, vertical alignment, `colgroup`) are not read.
+- **Tables**: `colspan` and `rowspan` are read, drawn and written back, but merged cells cannot be created or split in the editor, and rows or columns cannot be inserted or deleted in a table that has them, or that is nested or has nested tables. A cell can hold several paragraphs, headings, lists and other tables. The width of a column comes from the first cell that sets one (`width` attribute or style); the columns without a width share the rest. `colgroup` and `col`, borders of a single cell and `cellspacing` are not read.
 - **IME**: input composition (CJK pre-edit text) is not supported, so the control is not usable with Chinese, Japanese or Korean input methods.
 - **Accessibility**: no VoiceOver / TalkBack support.
 - **CSS subset**: only the inline CSS properties listed above are supported. External stylesheets and CSS classes are ignored.
