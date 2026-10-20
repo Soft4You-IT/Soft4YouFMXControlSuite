@@ -29,14 +29,39 @@ uses
   System.RTTI,
   FMX.Platform;
 
-// Returns True when S looks like an HTML fragment (contains an angle-bracket tag).
+/// <summary>
+/// Tells whether a text looks like an HTML fragment.
+/// </summary>
+/// <param name="AText">Text to check.</param>
+/// <returns>True when the text contains an angle-bracket tag.</returns>
 function LooksLikeHTML(const AText: string): Boolean;
 
 type
+  /// <summary>Reads and writes HTML on the system clipboard.</summary>
   TS4YHTMLClipboard = class
   public
+    /// <summary>
+    /// Puts an HTML fragment on the clipboard.
+    /// </summary>
+    /// <param name="AFragment">HTML fragment.</param>
+    /// <param name="APlainText">Plain text version, for the applications that do not read HTML.</param>
+    /// <remarks>
+    /// On Windows both formats are written (HTML Format and Unicode text). On the other platforms only AFragment is written.
+    /// </remarks>
     class procedure SetHTML(const AFragment, APlainText: string);
+    /// <summary>
+    /// Reads an HTML fragment from the clipboard.
+    /// </summary>
+    /// <param name="AFragment">HTML fragment found on the clipboard; empty when there is none.</param>
+    /// <returns>True when a fragment was found.</returns>
+    /// <remarks>
+    /// On Windows the HTML Format is read. On the other platforms the clipboard text is returned when it looks like HTML.
+    /// </remarks>
     class function GetHTML(out AFragment: string): Boolean;
+    /// <summary>
+    /// Tells whether the clipboard holds an image.
+    /// </summary>
+    /// <returns>True when an image is available.</returns>
     class function HasImage: Boolean;
   end;
 

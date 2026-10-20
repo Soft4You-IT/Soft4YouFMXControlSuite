@@ -22,12 +22,17 @@ interface
 // -- Public types --------------------------------------------------------------
 
 type
+  /// <summary>An emoji with its name.</summary>
   TS4YEmoji = record
+    /// <summary>The emoji as a UTF-16 string; emoji outside the basic plane are a surrogate pair.</summary>
     Glyph: string; // UTF-16 string (SMP emoji = 2 WideChar surrogate pair)
+    /// <summary>Human-readable name, localizable.</summary>
     Name:  string; // Human-readable name, populated from resourcestring
   end;
 
+  /// <summary>Kind of emoji category.</summary>
   TS4YEmojiCategoryKind = (
+    /// <summary>Every category together.</summary>
     eckAll,
     eckActivities,
     eckAnimals,
@@ -39,18 +44,32 @@ type
     eckTravel
   );
 
+  /// <summary>A category of emoji.</summary>
   TS4YEmojiCategory = record
+    /// <summary>Kind of the category.</summary>
     Kind:  TS4YEmojiCategoryKind;
+    /// <summary>Emoji of the category.</summary>
     Items: TArray<TS4YEmoji>;
+    /// <summary>Localizable name of the category.</summary>
     Name:  string;
   end;
 
+  /// <summary>The emoji offered by the editor, grouped by category.</summary>
   TS4YEmojiData = class
   private
     class var FCategories: TArray<TS4YEmojiCategory>;
     class function Build: TArray<TS4YEmojiCategory>;
   public
+    /// <summary>
+    /// Returns the emoji categories.
+    /// </summary>
+    /// <returns>The categories with their emoji. The list is built the first time and then reused.</returns>
     class function Categories: TArray<TS4YEmojiCategory>;
+    /// <summary>
+    /// Returns the emoji of a category.
+    /// </summary>
+    /// <param name="ACategory">Category to read; eckAll returns the emoji of every category, one after the other.</param>
+    /// <returns>The emoji of the category; an empty array when the category does not exist.</returns>
     class function Emojis(ACategory: TS4YEmojiCategoryKind = eckAll): TArray<TS4YEmoji>;
   end;
 
