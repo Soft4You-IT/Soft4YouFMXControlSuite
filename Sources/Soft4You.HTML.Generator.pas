@@ -420,6 +420,10 @@ var
             haCenter:  LCellStyle := LCellStyle + 'text-align:center;';
             haRight:   LCellStyle := LCellStyle + 'text-align:right;';
             haJustify: LCellStyle := LCellStyle + 'text-align:justify;';
+          else
+            // A th is centered unless it says otherwise
+            if LCell.IsHeader then
+              LCellStyle := LCellStyle + 'text-align:left;';
           end;
           if not LCell.TableCellWidth.IsAuto then
             LCellStyle := LCellStyle + 'width:' + LengthToCSS(LCell.TableCellWidth) + ';';

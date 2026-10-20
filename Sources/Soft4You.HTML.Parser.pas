@@ -56,6 +56,12 @@ type
         CellVerticalAlignment: TS4YTableVerticalAlignment;
         TableBackground: TAlphaColor;
         TablePadding: TS4YTablePadding;
+        CellStylePushed: Boolean;
+        TableStylePushed: Boolean;
+        CellAlignment: TS4YHTMLAlignment;
+        CellHasAlignment: Boolean;
+        TableTextAlignment: TS4YHTMLAlignment;
+        TableHasTextAlignment: Boolean;
         Containers: TArray<TS4YTableCellReference>;
         Width: TS4YTableLength;
         MaximumWidth: Single;
@@ -98,6 +104,12 @@ type
     FCellVerticalAlignment: TS4YTableVerticalAlignment;
     FTableBackground: TAlphaColor;  // background and padding that the cells of the table being read get by default
     FTablePadding: TS4YTablePadding;
+    FCellStylePushed: Boolean;  // a text style was pushed for the open cell (bold of th, font and color of the cell)
+    FTableStylePushed: Boolean;  // a text style was pushed for the table being read
+    FCellAlignment: TS4YHTMLAlignment;  // text alignment written on the open cell or inherited from its table
+    FCellHasAlignment: Boolean;
+    FTableTextAlignment: TS4YHTMLAlignment;  // text alignment written on the table being read
+    FTableHasTextAlignment: Boolean;
     FTableStack: TList<TTableState>;  // the outer tables, while a table nested in one of their cells is read
     FInPreformatted: Boolean;
     FDivAlignment: TS4YHTMLAlignment;
@@ -125,6 +137,8 @@ type
     procedure ReadCellAttributes(const AAttributes: string);
     function ParseBackgroundColor(const AAttributes: string): TAlphaColor;
     function ParsePadding(const AStyle: string): TS4YTablePadding;
+    function ParseTextStyleOfBlock(const AStyle: string; var ATextStyle: TS4YHTMLTextStyle): Boolean;
+    function ParseTextAlignment(const AText: string; out AAlignment: TS4YHTMLAlignment): Boolean;
     procedure EnsureParagraph(ABlockType: TS4YHTMLBlockType = btBodyText);
     procedure PushStyle(const ATextStyle: TS4YHTMLTextStyle; ABorderColor: TAlphaColor = claNull);
     procedure PopStyle;
@@ -513,7 +527,13 @@ begin
     AParagraph.TableRow := FCellRow;
     AParagraph.TableCol := FCellColumn;
     AParagraph.IsHeader := FCellIsHeader;
-    if FCellIsHeader and (AParagraph.Alignment = haLeft) then
+    // A text alignment written on the cell (or its table) wins over the centering of a th
+    if FCellHasAlignment then
+    begin
+      if AParagraph.Alignment = haLeft then
+        AParagraph.Alignment := FCellAlignment;
+    end
+    else if FCellIsHeader and (AParagraph.Alignment = haLeft) then
       AParagraph.Alignment := haCenter;
     // The attributes of the cell are kept by its first paragraph
     if FCellParagraphCount = 0 then
@@ -564,6 +584,12 @@ begin
   LState.CellVerticalAlignment := FCellVerticalAlignment;
   LState.TableBackground := FTableBackground;
   LState.TablePadding := FTablePadding;
+  LState.CellStylePushed := FCellStylePushed;
+  LState.TableStylePushed := FTableStylePushed;
+  LState.CellAlignment := FCellAlignment;
+  LState.CellHasAlignment := FCellHasAlignment;
+  LState.TableTextAlignment := FTableTextAlignment;
+  LState.TableHasTextAlignment := FTableHasTextAlignment;
   LState.Containers := FTableContainers;
   LState.Width := FTableWidth;
   LState.MaximumWidth := FTableMaximumWidth;
@@ -603,6 +629,12 @@ begin
   FCellVerticalAlignment := LState.CellVerticalAlignment;
   FTableBackground := LState.TableBackground;
   FTablePadding := LState.TablePadding;
+  FCellStylePushed := LState.CellStylePushed;
+  FTableStylePushed := LState.TableStylePushed;
+  FCellAlignment := LState.CellAlignment;
+  FCellHasAlignment := LState.CellHasAlignment;
+  FTableTextAlignment := LState.TableTextAlignment;
+  FTableHasTextAlignment := LState.TableHasTextAlignment;
   FTableContainers := LState.Containers;
   FTableWidth := LState.Width;
   FTableMaximumWidth := LState.MaximumWidth;
@@ -625,8 +657,9 @@ begin
     AddParagraph(LEmptyParagraph);
   end;
   FCellOpen := False;
-  if FCellIsHeader then
+  if FCellStylePushed then
     PopStyle;
+  FCellStylePushed := False;
 end;
 
 // Closes the current table row: records the width of the row and lets the rowspan cells advance by one row.
@@ -666,6 +699,48 @@ begin
     Result := TS4YTableLength.Pixels(StrToFloatDef(TrimS(LText.Replace('px', '')), 0))
   else
     Result := TS4YTableLength.Pixels(StrToFloatDef(LText, 0));
+end;
+
+// Reads a text alignment written as left, center, right or justify.
+function TS4YHTMLParser.ParseTextAlignment(const AText: string; out AAlignment: TS4YHTMLAlignment): Boolean;
+var
+  LText: string;
+begin
+  Result := True;
+  LText := TrimS(AText.ToLower);
+  if LText = 'center' then
+    AAlignment := haCenter
+  else if LText = 'right' then
+    AAlignment := haRight
+  else if LText = 'justify' then
+    AAlignment := haJustify
+  else if LText = 'left' then
+    AAlignment := haLeft
+  else
+    Result := False;
+end;
+
+// Applies the text properties of the style of a block, a cell or a table (font, size, weight, color, ...) to a
+// text style. The background properties are left out: on a block they color the block, not the text.
+// Returns True when the text style changed.
+function TS4YHTMLParser.ParseTextStyleOfBlock(const AStyle: string; var ATextStyle: TS4YHTMLTextStyle): Boolean;
+var
+  LParts: TArray<string>;
+  LPart: string;
+  LFiltered: string;
+  LBefore: TS4YHTMLTextStyle;
+begin
+  Result := False;
+  if AStyle = '' then
+    Exit;
+  LFiltered := '';
+  LParts := AStyle.Split([';']);
+  for LPart in LParts do
+    if not TrimS(LPart.ToLower).StartsWith('background') then
+      LFiltered := LFiltered + LPart + ';';
+  LBefore := ATextStyle;
+  ParseInlineStyle(LFiltered, ATextStyle);
+  Result := not ATextStyle.EqualsFormat(LBefore);
 end;
 
 // Reads the background color of an element from the bgcolor attribute and from the background-color and background
@@ -806,6 +881,13 @@ begin
   FCellPadding := ParsePadding(LStyle);
   if not FCellPadding.IsSet then
     FCellPadding := FTablePadding;
+  // The text alignment of the cell, or of its table
+  FCellHasAlignment := FTableHasTextAlignment;
+  FCellAlignment := FTableTextAlignment;
+  if ParseTextAlignment(GetAttribute(AAttributes, 'align'), FCellAlignment) then
+    FCellHasAlignment := True;
+  if (LStyle <> '') and ParseTextAlignment(ExtractCSSValue(LStyle, 'text-align'), FCellAlignment) then
+    FCellHasAlignment := True;
   FCellVerticalAlignment := tvaTop;
   LValue := GetAttribute(AAttributes, 'valign').ToLower;
   if LStyle <> '' then
@@ -827,6 +909,7 @@ var
   LRight: string;
 begin
   FTableWidth := ParseTableLength(GetAttribute(AAttributes, 'width'));
+  FTableHasTextAlignment := False;
   FTableBackground := ParseBackgroundColor(AAttributes);
   FTablePadding := TS4YTablePadding.Default;
   LValue := GetAttribute(AAttributes, 'cellpadding');
@@ -882,6 +965,8 @@ begin
        LValue.StartsWith('none') or (ExtractCSSValue(LStyle, 'border-style') = 'none') then
       FTableHasBorder := False;
   end;
+  if LStyle <> '' then
+    FTableHasTextAlignment := ParseTextAlignment(ExtractCSSValue(LStyle, 'text-align'), FTableTextAlignment);
   LValue := GetAttribute(AAttributes, 'align').ToLower;
   if LValue = 'center' then
     FTableAlignment := haCenter
@@ -1280,6 +1365,9 @@ begin
             FDocument.Paragraphs[LIndex].TableRowSpan := FTableRow - FDocument.Paragraphs[LIndex].TableRow + 1;
         end;
       FInTable := False;
+      if FTableStylePushed then
+        PopStyle;
+      FTableStylePushed := False;
       // A table nested in a cell ends: the outer table goes on
       if FTableStack.Count > 0 then
         LeaveNestedTable;
@@ -1293,6 +1381,10 @@ begin
         FTableContainers := nil;
       FTableID := NextTableID;
       ReadTableAttributes(AAttributes);
+      LTextStyle := TopStyle;
+      FTableStylePushed := ParseTextStyleOfBlock(GetAttribute(AAttributes, 'style'), LTextStyle);
+      if FTableStylePushed then
+        PushStyle(LTextStyle);
       FTableRow := -1;
       FTableColumn := 0;
       FTableColumns := 0;
@@ -1349,12 +1441,13 @@ begin
       end;
       ReadCellAttributes(AAttributes);
       FCellParagraphCount := 0;
+      // The text of the cell takes the style of the cell: bold for a th, and the font and color that it writes
+      LTextStyle := TopStyle;
       if FCellIsHeader then
-      begin
-        LTextStyle := TopStyle;
         LTextStyle.Bold := True;
+      FCellStylePushed := ParseTextStyleOfBlock(GetAttribute(AAttributes, 'style'), LTextStyle) or FCellIsHeader;
+      if FCellStylePushed then
         PushStyle(LTextStyle);
-      end;
       if Length(FTableCovered) < FTableColumn + FCellColSpan then
         SetLength(FTableCovered, FTableColumn + FCellColSpan);
       for var LColumn := FTableColumn to FTableColumn + FCellColSpan - 1 do
@@ -1664,6 +1757,8 @@ begin
   FTableStack := TList<TTableState>.Create;
   FInTable := False;
   FCellOpen := False;
+  FCellStylePushed := False;
+  FTableStylePushed := False;
   FTableContainers := nil;
   FCurrentParagraph := nil;
   FDivAlignment := haLeft;
