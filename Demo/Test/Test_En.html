@@ -155,6 +155,18 @@
 <table border="1" style="border-collapse:collapse;width:100%">
 <tr><td style="padding:4px;"><p>Text before the nested table.</p><table border="1" style="border-collapse:collapse;width:100%"><tr><th style="padding:4px;">Qty</th><th style="padding:4px;">Item</th></tr><tr><td style="padding:4px;">2</td><td style="padding:4px;">Pens</td></tr><tr><td style="padding:4px;">5</td><td style="padding:4px;">Notebooks</td></tr></table><p>Text after the nested table.</p></td><td style="padding:4px;">Plain cell on the right.</td></tr>
 </table>
+<p>Column widths: 20%, 30% and the rest:</p>
+<table border="1" style="border-collapse:collapse;width:100%">
+<tr><td width="20%" style="padding:4px;">20%</td><td width="30%" style="padding:4px;">30%</td><td style="padding:4px;">The rest of the table (50%)</td></tr>
+</table>
+<p>Table 320 pixels wide, centered, with a first column of 100 pixels:</p>
+<table border="1" width="320" align="center" style="border-collapse:collapse">
+<tr><td width="100" style="padding:4px;">100 px</td><td style="padding:4px;">The other column takes what is left</td></tr>
+</table>
+<p>Table without border and 360 pixels at most (the layout tables of e-mails look like this):</p>
+<table border="0" width="100%" style="max-width:360px">
+<tr><td width="50%" style="padding:4px;">Left half</td><td style="padding:4px;">Right half</td></tr>
+</table>
 <h2>Emoji</h2>
 <p>Basic Emoji (BMP, U+1F300–U+1F5FF non-BMP but commonly supported): 😀 😁 😂 🤣 😎 😍 🥳 🤔 😴 😡</p>
 <p>Nature and Food: 🌍 🌈 ☀️ 🌙 ⭐ 🍕 🍔 🍣 🍷 ☕</p>

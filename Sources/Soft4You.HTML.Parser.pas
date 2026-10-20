@@ -50,7 +50,12 @@ type
         CellColSpan: Integer;
         CellRowSpan: Integer;
         CellParagraphCount: Integer;
+        CellWidth: TS4YTableLength;
         Containers: TArray<TS4YTableCellReference>;
+        Width: TS4YTableLength;
+        MaximumWidth: Single;
+        Alignment: TS4YHTMLAlignment;
+        HasBorder: Boolean;
       end;
   private
     FInput: string;
@@ -78,6 +83,11 @@ type
     FCellRowSpan: Integer;
     FCellParagraphCount: Integer;  // paragraphs added to the open cell so far
     FTableContainers: TArray<TS4YTableCellReference>;  // cells that contain the table being read, outermost first
+    FTableWidth: TS4YTableLength;  // width, maximum width, alignment and border of the table being read
+    FTableMaximumWidth: Single;
+    FTableAlignment: TS4YHTMLAlignment;
+    FTableHasBorder: Boolean;
+    FCellWidth: TS4YTableLength;  // width asked for the open cell
     FTableStack: TList<TTableState>;  // the outer tables, while a table nested in one of their cells is read
     FInPreformatted: Boolean;
     FDivAlignment: TS4YHTMLAlignment;
@@ -100,6 +110,8 @@ type
     procedure LeaveNestedTable;
     procedure AddParagraph(AParagraph: TS4YHTMLParagraph);
     function ParseTableSpan(const AAttributes, AName: string): Integer;
+    function ParseTableLength(const AText: string): TS4YTableLength;
+    procedure ReadTableAttributes(const AAttributes: string);
     procedure EnsureParagraph(ABlockType: TS4YHTMLBlockType = btBodyText);
     procedure PushStyle(const ATextStyle: TS4YHTMLTextStyle; ABorderColor: TAlphaColor = claNull);
     procedure PopStyle;
@@ -481,6 +493,10 @@ begin
       AParagraph.BlockType := btTableCell;
     AParagraph.TableID := FTableID;
     AParagraph.TableContainers := Copy(FTableContainers);
+    AParagraph.TableWidth := FTableWidth;
+    AParagraph.TableMaximumWidth := FTableMaximumWidth;
+    AParagraph.TableAlignment := FTableAlignment;
+    AParagraph.TableHasBorder := FTableHasBorder;
     AParagraph.TableRow := FCellRow;
     AParagraph.TableCol := FCellColumn;
     AParagraph.IsHeader := FCellIsHeader;
@@ -491,6 +507,7 @@ begin
     begin
       AParagraph.TableColSpan := FCellColSpan;
       AParagraph.TableRowSpan := FCellRowSpan;
+      AParagraph.TableCellWidth := FCellWidth;
     end;
     Inc(FCellParagraphCount);
   end;
@@ -525,7 +542,12 @@ begin
   LState.CellColSpan := FCellColSpan;
   LState.CellRowSpan := FCellRowSpan;
   LState.CellParagraphCount := FCellParagraphCount;
+  LState.CellWidth := FCellWidth;
   LState.Containers := FTableContainers;
+  LState.Width := FTableWidth;
+  LState.MaximumWidth := FTableMaximumWidth;
+  LState.Alignment := FTableAlignment;
+  LState.HasBorder := FTableHasBorder;
   FTableStack.Add(LState);
   LContainers := Copy(FTableContainers);
   SetLength(LContainers, Length(LContainers) + 1);
@@ -554,7 +576,12 @@ begin
   FCellColSpan := LState.CellColSpan;
   FCellRowSpan := LState.CellRowSpan;
   FCellParagraphCount := LState.CellParagraphCount;
+  FCellWidth := LState.CellWidth;
   FTableContainers := LState.Containers;
+  FTableWidth := LState.Width;
+  FTableMaximumWidth := LState.MaximumWidth;
+  FTableAlignment := LState.Alignment;
+  FTableHasBorder := LState.HasBorder;
 end;
 
 // Closes the open cell. A cell with no content keeps one empty paragraph.
@@ -596,6 +623,94 @@ begin
 end;
 
 // Reads the colspan or rowspan attribute of a cell: 1 when missing or not valid, never above C_MAXIMUM_TABLE_SPAN.
+// Reads a width written as 120, 120px, 120pt or 50%. Anything else (auto, em, ...) is a width that is not set.
+function TS4YHTMLParser.ParseTableLength(const AText: string): TS4YTableLength;
+var
+  LText: string;
+begin
+  Result := TS4YTableLength.Auto;
+  LText := TrimS(AText.ToLower);
+  if LText = '' then
+    Exit;
+  if LText.EndsWith('%') then
+    Result := TS4YTableLength.Percent(StrToFloatDef(TrimS(LText.Replace('%', '')), 0))
+  else if LText.EndsWith('pt') then
+    Result := TS4YTableLength.Pixels(StrToFloatDef(TrimS(LText.Replace('pt', '')), 0) * 1.33)
+  else if LText.EndsWith('px') then
+    Result := TS4YTableLength.Pixels(StrToFloatDef(TrimS(LText.Replace('px', '')), 0))
+  else
+    Result := TS4YTableLength.Pixels(StrToFloatDef(LText, 0));
+end;
+
+// Reads the width, the maximum width, the alignment and the border of the table that starts now.
+procedure TS4YHTMLParser.ReadTableAttributes(const AAttributes: string);
+var
+  LStyle: string;
+  LValue: string;
+  LTokens: TArray<string>;
+  LLeft: string;
+  LRight: string;
+begin
+  FTableWidth := ParseTableLength(GetAttribute(AAttributes, 'width'));
+  FTableMaximumWidth := 0;
+  FTableAlignment := haLeft;
+  FTableHasBorder := True;
+  LStyle := GetAttribute(AAttributes, 'style').ToLower;
+  if LStyle <> '' then
+  begin
+    LValue := ExtractCSSValue(LStyle, 'width');
+    if LValue <> '' then
+      FTableWidth := ParseTableLength(LValue);
+    LValue := ExtractCSSValue(LStyle, 'max-width');
+    if LValue <> '' then
+    begin
+      // Only a maximum in pixels is used
+      if ParseTableLength(LValue).Kind = tlkPixels then
+        FTableMaximumWidth := ParseTableLength(LValue).Value;
+    end;
+    // Automatic horizontal margins center the table, an automatic left margin alone puts it on the right
+    LLeft := ExtractCSSValue(LStyle, 'margin-left');
+    LRight := ExtractCSSValue(LStyle, 'margin-right');
+    LValue := ExtractCSSValue(LStyle, 'margin');
+    if LValue <> '' then
+    begin
+      LTokens := LValue.Split([' ']);
+      case Length(LTokens) of
+        1:
+          begin
+            LLeft := LTokens[0];
+            LRight := LTokens[0];
+          end;
+        2, 3:
+          begin
+            LLeft := LTokens[1];
+            LRight := LTokens[1];
+          end;
+        4:
+          begin
+            LLeft := LTokens[3];
+            LRight := LTokens[1];
+          end;
+      end;
+    end;
+    if (LLeft = 'auto') and (LRight = 'auto') then
+      FTableAlignment := haCenter
+    else if LLeft = 'auto' then
+      FTableAlignment := haRight;
+    LValue := ExtractCSSValue(LStyle, 'border');
+    if (LValue = 'none') or (LValue = '0') or LValue.StartsWith('0 ') or LValue.StartsWith('0px') or
+       LValue.StartsWith('none') or (ExtractCSSValue(LStyle, 'border-style') = 'none') then
+      FTableHasBorder := False;
+  end;
+  LValue := GetAttribute(AAttributes, 'align').ToLower;
+  if LValue = 'center' then
+    FTableAlignment := haCenter
+  else if LValue = 'right' then
+    FTableAlignment := haRight;
+  if TrimS(GetAttribute(AAttributes, 'border')) = '0' then
+    FTableHasBorder := False;
+end;
+
 function TS4YHTMLParser.ParseTableSpan(const AAttributes, AName: string): Integer;
 begin
   Result := StrToIntDef(Trim(GetAttribute(AAttributes, AName)), 1);
@@ -681,6 +796,7 @@ var
   LIndex: Integer;
   LPixelSize: Integer;
   LColor: TAlphaColor;
+  LCellStyleWidth: string;
 begin
   if (ATag = '!--') or StartsWithCI(ATag, '!') then
     Exit; // comments/doctype
@@ -996,6 +1112,7 @@ begin
       else
         FTableContainers := nil;
       FTableID := NextTableID;
+      ReadTableAttributes(AAttributes);
       FTableRow := -1;
       FTableColumn := 0;
       FTableColumns := 0;
@@ -1043,6 +1160,13 @@ begin
       FCellColumn := FTableColumn;
       FCellColSpan := ParseTableSpan(AAttributes, 'colspan');
       FCellRowSpan := ParseTableSpan(AAttributes, 'rowspan');
+      FCellWidth := ParseTableLength(GetAttribute(AAttributes, 'width'));
+      if GetAttribute(AAttributes, 'style') <> '' then
+      begin
+        LCellStyleWidth := ExtractCSSValue(GetAttribute(AAttributes, 'style').ToLower, 'width');
+        if LCellStyleWidth <> '' then
+          FCellWidth := ParseTableLength(LCellStyleWidth);
+      end;
       FCellParagraphCount := 0;
       if FCellIsHeader then
       begin

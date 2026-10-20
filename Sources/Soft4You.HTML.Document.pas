@@ -93,12 +93,17 @@ type
     FImageHeight: Integer;  // 0 = natural height from bitmap
     FIsHeader: Boolean;     // <th> -- rendered bold + center
     FTableCol: Integer;     // 0-based column index (table cell paragraphs only)
+    FTableAlignment: TS4YHTMLAlignment;  // placement of the table when it is narrower than the space (table cell paragraphs only)
+    FTableCellWidth: TS4YTableLength;  // width asked for the cell (first paragraph of the cell only)
     FTableCols: Integer;    // total columns in table (table cell paragraphs only)
     FTableColSpan: Integer; // columns covered by the cell, 1 or more (table cell paragraphs only)
     FTableContainers: TArray<TS4YTableCellReference>;  // cells that contain the table, outermost first (nested tables only)
+    FTableHasBorder: Boolean;  // False for a table written with border=0 (table cell paragraphs only)
+    FTableMaximumWidth: Single;  // upper limit of the width of the table in pixels, 0 = none (table cell paragraphs only)
     FTableID: Integer;      // groups cells of same table; 0 = not a cell
     FTableRow: Integer;     // 0-based row index (table cell paragraphs only)
     FTableRowSpan: Integer; // rows covered by the cell, 1 or more (table cell paragraphs only)
+    FTableWidth: TS4YTableLength;  // width asked for the table (table cell paragraphs only)
     FRuns: TObjectList<TS4YHTMLRun>;
   public
     /// <summary>Creates an empty paragraph of type btBodyText.</summary>
@@ -137,6 +142,11 @@ type
     /// <param name="ATableID">Identifier of the table.</param>
     /// <returns>True when ATableID is the table of the paragraph or one of the tables that contain it.</returns>
     function BelongsToTable(ATableID: Integer): Boolean;
+    /// <summary>
+    /// Copies the properties that every paragraph of a table shares: width, maximum width, alignment and border.
+    /// </summary>
+    /// <param name="ASource">A paragraph of the same table.</param>
+    procedure CopyTableLayoutFrom(ASource: TS4YHTMLParagraph);
     /// <summary>
     /// Tells whether the paragraph is in a cell, directly or inside a table nested in that cell.
     /// </summary>
@@ -180,6 +190,20 @@ type
     property ListOrdered: Boolean read FListOrdered write FListOrdered;  // true = <ol>, used when BlockType = btLI
     /// <summary>Runs that make up the content of the paragraph. The paragraph owns them.</summary>
     property Runs: TObjectList<TS4YHTMLRun> read FRuns;
+    /// <summary>
+    /// Where the table sits when it is narrower than the space it has, when IsTableCell is True.
+    /// </summary>
+    /// <remarks>
+    /// Every paragraph of the table has the same value. The default is haLeft.
+    /// </remarks>
+    property TableAlignment: TS4YHTMLAlignment read FTableAlignment write FTableAlignment;
+    /// <summary>
+    /// Width asked for the cell, when IsTableCell is True; tlkAuto when it was not set.
+    /// </summary>
+    /// <remarks>
+    /// Only the first paragraph of the cell holds it, and a cell that spans several columns is ignored when the widths of the columns are worked out.
+    /// </remarks>
+    property TableCellWidth: TS4YTableLength read FTableCellWidth write FTableCellWidth;
     /// <summary>Zero-based column of the cell, when IsTableCell is True.</summary>
     property TableCol: Integer read FTableCol write FTableCol;     // 0-based column index (table cell paragraphs only)
     /// <summary>Number of columns of the table that the cell belongs to, when IsTableCell is True.</summary>
@@ -199,7 +223,21 @@ type
     /// </remarks>
     property TableContainers: TArray<TS4YTableCellReference> read FTableContainers write FTableContainers;
     /// <summary>Identifier that groups the cells of the same table; 0 when the paragraph is not a table cell.</summary>
+    /// <summary>
+    /// Tells whether the borders of the table are drawn, when IsTableCell is True. It is False only for a table written with border=0.
+    /// </summary>
+    /// <remarks>
+    /// Every paragraph of the table has the same value. The default is True.
+    /// </remarks>
+    property TableHasBorder: Boolean read FTableHasBorder write FTableHasBorder;
     property TableID: Integer read FTableID write FTableID;      // groups cells of same table; 0 = not a cell
+    /// <summary>
+    /// Upper limit of the width of the table in pixels, when IsTableCell is True; 0 means no limit.
+    /// </summary>
+    /// <remarks>
+    /// Every paragraph of the table has the same value. It comes from max-width.
+    /// </remarks>
+    property TableMaximumWidth: Single read FTableMaximumWidth write FTableMaximumWidth;
     /// <summary>Zero-based row of the cell, when IsTableCell is True.</summary>
     property TableRow: Integer read FTableRow write FTableRow;     // 0-based row index (table cell paragraphs only)
     /// <summary>
@@ -209,6 +247,13 @@ type
     /// The cell sits in the row TableRow; the rows below it that it covers have no paragraph of their own in the covered columns.
     /// </remarks>
     property TableRowSpan: Integer read FTableRowSpan write FTableRowSpan;  // rows covered by the cell, 1 or more (table cell paragraphs only)
+    /// <summary>
+    /// Width asked for the table, when IsTableCell is True; tlkAuto when it was not set, which makes the table as wide as the space it has.
+    /// </summary>
+    /// <remarks>
+    /// Every paragraph of the table has the same value.
+    /// </remarks>
+    property TableWidth: TS4YTableLength read FTableWidth write FTableWidth;
   end;
 
   // ===========================================================================
@@ -291,6 +336,7 @@ begin
   FBlockType := btBodyText;
   FTableColSpan := 1;
   FTableRowSpan := 1;
+  FTableHasBorder := True;
 end;
 
 destructor TS4YHTMLParagraph.Destroy;
@@ -320,6 +366,11 @@ begin
   Result.TableCols := TableCols;
   Result.TableColSpan := TableColSpan;
   Result.TableContainers := Copy(TableContainers);
+  Result.TableAlignment := TableAlignment;
+  Result.TableCellWidth := TableCellWidth;
+  Result.TableHasBorder := TableHasBorder;
+  Result.TableMaximumWidth := TableMaximumWidth;
+  Result.TableWidth := TableWidth;
   Result.TableID := TableID;
   Result.TableRow := TableRow;
   Result.TableRowSpan := TableRowSpan;
@@ -395,6 +446,14 @@ begin
         Result := True;
       end;
   end;
+end;
+
+procedure TS4YHTMLParagraph.CopyTableLayoutFrom(ASource: TS4YHTMLParagraph);
+begin
+  FTableWidth := ASource.TableWidth;
+  FTableMaximumWidth := ASource.TableMaximumWidth;
+  FTableAlignment := ASource.TableAlignment;
+  FTableHasBorder := ASource.TableHasBorder;
 end;
 
 function TS4YHTMLParagraph.BelongsToTable(ATableID: Integer): Boolean;

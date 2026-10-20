@@ -114,7 +114,7 @@ end;
 | `<ul>` / `<ol>` / `<li>` | Unordered and ordered lists |
 | `<hr>` | Horizontal rule |
 | `<img>` | Inline image (a run inside the paragraph, so it can sit in the middle of a text) |
-| `<table>` / `<tr>` / `<td>` / `<th>` | Tables, including `colspan` and `rowspan` |
+| `<table>` / `<tr>` / `<td>` / `<th>` | Tables, including `colspan`, `rowspan`, nested tables, widths (`width`, `max-width`, in pixels or percent), `align` and `border="0"` |
 | `<pre>` | Preformatted text |
 
 ### Inline elements
@@ -493,7 +493,7 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 ## Known Limitations
 
 - **Image security**: the editor reads local files and `file:` URLs named by the HTML without any check. When displaying content from untrusted sources (for example e-mail), set `LocalImageAccess` to `liaDocumentFolder` (or `AutoLoadLocalImages` to `False`) and filter with `OnBeforeLoadImage`.
-- **Tables**: `colspan` and `rowspan` are read, drawn and written back, but merged cells cannot be created or split in the editor, and rows or columns cannot be inserted or deleted in a table that has them, or that is nested or has nested tables. A cell can hold several paragraphs, headings, lists and other tables. Column widths are not read: the columns of a table have the same width.
+- **Tables**: `colspan` and `rowspan` are read, drawn and written back, but merged cells cannot be created or split in the editor, and rows or columns cannot be inserted or deleted in a table that has them, or that is nested or has nested tables. A cell can hold several paragraphs, headings, lists and other tables. The width of a column comes from the first cell that sets one (`width` attribute or style); the columns without a width share the rest. Other cell and table styles (background color, padding, vertical alignment, `colgroup`) are not read, and the columns cannot be resized in the editor yet.
 - **IME**: input composition (CJK pre-edit text) is not supported, so the control is not usable with Chinese, Japanese or Korean input methods.
 - **Accessibility**: no VoiceOver / TalkBack support.
 - **CSS subset**: only the inline CSS properties listed above are supported. External stylesheets and CSS classes are ignored.

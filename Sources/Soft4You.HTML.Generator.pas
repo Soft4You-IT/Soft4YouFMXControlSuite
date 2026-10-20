@@ -296,6 +296,18 @@ var
     LScanIndex: Integer;
     LEndIndex: Integer;
     LCellEnd: Integer;
+    LTableStyle: string;
+    LTableAttributes: string;
+    LFirstCell: TS4YHTMLParagraph;
+
+    // A width as written in a style: 120px or 30%
+    function LengthToCSS(const ALength: TS4YTableLength): string;
+    begin
+      if ALength.Kind = tlkPercent then
+        Result := FloatToStr(Round(ALength.Value * 100) / 100, TFormatSettings.Invariant) + '%'
+      else
+        Result := Format('%.0fpx', [ALength.Value]);
+    end;
 
     // True when a cell that starts in another position covers the given one
     function IsCovered(ARow, ACol: Integer): Boolean;
@@ -330,7 +342,31 @@ var
       Inc(LScanIndex);
     end;
     LEndIndex := LScanIndex;
-    LStringBuilder.Append('<table border="1" style="border-collapse:collapse;width:100%">' + LNewLine);
+    // The width of the table is 100% when it was not set; the border is on unless the table was written without it
+    LFirstCell := ADocument.Paragraphs[AFirstPI];
+    LTableStyle := 'border-collapse:collapse;';
+    if LFirstCell.TableWidth.IsAuto then
+      LTableStyle := LTableStyle + 'width:100%'
+    else
+      LTableStyle := LTableStyle + 'width:' + LengthToCSS(LFirstCell.TableWidth);
+    if LFirstCell.TableMaximumWidth > 0 then
+      LTableStyle := LTableStyle + ';max-width:' + LengthToCSS(TS4YTableLength.Pixels(LFirstCell.TableMaximumWidth));
+    LTableAttributes := ' border="1"';
+    if not LFirstCell.TableHasBorder then
+      LTableAttributes := ' border="0"';
+    case LFirstCell.TableAlignment of
+      haCenter:
+        begin
+          LTableAttributes := LTableAttributes + ' align="center"';
+          LTableStyle := LTableStyle + ';margin-left:auto;margin-right:auto';
+        end;
+      haRight:
+        begin
+          LTableAttributes := LTableAttributes + ' align="right"';
+          LTableStyle := LTableStyle + ';margin-left:auto';
+        end;
+    end;
+    LStringBuilder.Append('<table' + LTableAttributes + ' style="' + LTableStyle + '">' + LNewLine);
     for LRow := 0 to LMaximumRow do
     begin
       if FPretty then
@@ -374,6 +410,8 @@ var
             haRight:   LCellStyle := LCellStyle + 'text-align:right;';
             haJustify: LCellStyle := LCellStyle + 'text-align:justify;';
           end;
+          if not LCell.TableCellWidth.IsAuto then
+            LCellStyle := LCellStyle + 'width:' + LengthToCSS(LCell.TableCellWidth) + ';';
           if FPretty then
             LStringBuilder.Append('    ');
           LCellSpans := '';
