@@ -473,6 +473,7 @@ begin
   LBorderColor := TopBorderColor;
   if (FCurrentParagraph.Runs.Count > 0) and FCurrentParagraph.Runs.Last.Style.EqualsFormat(LTextStyle) and
      not FCurrentParagraph.Runs.Last.IsLineBreak and
+     not FCurrentParagraph.Runs.Last.IsImage and
      (FCurrentParagraph.Runs.Last.PlaceholderBorderColor = LBorderColor) then
     FCurrentParagraph.Runs.Last.Text := FCurrentParagraph.Runs.Last.Text + AText
   else
