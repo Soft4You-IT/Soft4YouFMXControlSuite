@@ -670,6 +670,8 @@ type
     function DoTableTab(AShift: TShiftState): Boolean;
     function IsTableCellOf(AParagraphIndex, ATableID: Integer): Boolean;
     function FindTableCellAt(ATableID, ARow, ACol: Integer): Integer;
+    function InSameTableCell(AFirstIndex, ASecondIndex: Integer): Boolean;
+    function IsFirstInTableCell(AParagraphIndex: Integer): Boolean;
     function TableHasSpans(ATableID: Integer): Boolean;
 
     procedure Paint; override;
@@ -1981,7 +1983,8 @@ var
   LSpanHeight: Single;
   LRowTop: Single;
   LRowHeights: TArray<Single>;
-  LCellParagraphs: TArray<Integer>;
+  LCellParagraphs: TArray<Integer>;      // first paragraph of each cell
+  LCellLastParagraphs: TArray<Integer>;  // last paragraph of each cell
   LCellLocalLines: array of TArray<TS4YLayoutLine>;
   LCellLocalFrags: array of TArray<TS4YLayoutFragment>;
   LCellHeights: array of Single;
@@ -2044,16 +2047,30 @@ begin
 
   ANextParagraphIndex := LLastPI + 1;
 
-  // The cells that sit inside the grid, in document order (row by row)
+  // The cells that sit inside the grid, in document order (row by row). A cell is a run of paragraphs
+  // that have the same position: the first one holds the attributes of the cell.
   LCellCount := 0;
   SetLength(LCellParagraphs, LLastPI - AFirstParagraphIndex + 1);
+  SetLength(LCellLastParagraphs, LLastPI - AFirstParagraphIndex + 1);
   for LParagraphIndex := AFirstParagraphIndex to LLastPI do
-    if ADocument.Paragraphs[LParagraphIndex].TableCol < LCols then
+  begin
+    LParagraph := ADocument.Paragraphs[LParagraphIndex];
+    if LParagraph.TableCol < LCols then
     begin
-      LCellParagraphs[LCellCount] := LParagraphIndex;
-      Inc(LCellCount);
+      if (LCellCount > 0) and (LParagraphIndex = LCellLastParagraphs[LCellCount - 1] + 1) and
+         (LParagraph.TableRow = ADocument.Paragraphs[LCellParagraphs[LCellCount - 1]].TableRow) and
+         (LParagraph.TableCol = ADocument.Paragraphs[LCellParagraphs[LCellCount - 1]].TableCol) then
+        LCellLastParagraphs[LCellCount - 1] := LParagraphIndex
+      else
+      begin
+        LCellParagraphs[LCellCount] := LParagraphIndex;
+        LCellLastParagraphs[LCellCount] := LParagraphIndex;
+        Inc(LCellCount);
+      end;
     end;
+  end;
   SetLength(LCellParagraphs, LCellCount);
+  SetLength(LCellLastParagraphs, LCellCount);
   SetLength(LCellLocalLines, LCellCount);
   SetLength(LCellLocalFrags, LCellCount);
   SetLength(LCellHeights, LCellCount);
@@ -2065,8 +2082,9 @@ begin
     LLocalLines := nil;
     LLocalFrags := nil;
     LLocalY := 0;
-    LayoutParagraph(LParagraph, LCellParagraphs[LCellIndex],
-      LCellW * ColumnSpanOf(LParagraph) - 2 * LCellPad, 0, LLocalLines, LLocalFrags, LLocalY);
+    for LParagraphIndex := LCellParagraphs[LCellIndex] to LCellLastParagraphs[LCellIndex] do
+      LayoutParagraph(ADocument.Paragraphs[LParagraphIndex], LParagraphIndex,
+        LCellW * ColumnSpanOf(LParagraph) - 2 * LCellPad, LLocalY, LLocalLines, LLocalFrags, LLocalY);
     LCellLocalLines[LCellIndex] := LLocalLines;
     LCellLocalFrags[LCellIndex] := LLocalFrags;
     LCellHeights[LCellIndex] := LLocalY;
@@ -2629,7 +2647,6 @@ end;
 procedure TS4YHTMLEditor.PaintTableCellBorders(ACanvas: TCanvas);
 var
   LLine: TS4YLayoutLine;
-  LParagraph: TS4YHTMLParagraph;
   LRectangle: TRectF;
 begin
   ACanvas.Stroke.Kind := TBrushKind.Solid;
@@ -2641,8 +2658,7 @@ begin
     LLine := FLines[I];
     if LLine.IsFirst and (LLine.ParagraphIndex < FDocument.Paragraphs.Count) then
     begin
-      LParagraph := FDocument.Paragraphs[LLine.ParagraphIndex];
-      if LParagraph.IsTableCell then
+      if IsFirstInTableCell(LLine.ParagraphIndex) then
       begin
         LRectangle := TRectF.Create(
           LLine.CellX + ContentLeft,
@@ -3670,7 +3686,7 @@ begin
   for var I := 0 to High(FLines) do
   begin
     LLine := FLines[I];
-    if (LClickedCellParagraphIndex < 0) or (LLine.ParagraphIndex = LClickedCellParagraphIndex) then
+    if (LClickedCellParagraphIndex < 0) or InSameTableCell(LClickedCellParagraphIndex, LLine.ParagraphIndex) then
     begin
       if (LDocumentY >= LLine.Y) and (LDocumentY < LLine.Y + LLine.Height) then
         LDistance := 0
@@ -3692,10 +3708,10 @@ begin
     else
       LDistance := Min(Abs(LDocumentY - LLine.Y), Abs(LDocumentY - (LLine.Y + LLine.Height)));
     if (LDistance <= LBestLineY + 0.1) and
-       ((LClickedCellParagraphIndex < 0) or (LLine.ParagraphIndex = LClickedCellParagraphIndex)) then
+       ((LClickedCellParagraphIndex < 0) or InSameTableCell(LClickedCellParagraphIndex, LLine.ParagraphIndex)) then
       for var J := LLine.FragmentStart to LLine.FragmentStart + LLine.FragmentCount - 1 do
       begin
-        if (LClickedCellParagraphIndex < 0) or (FFrags[J].ParagraphIndex = LClickedCellParagraphIndex) then
+        if (LClickedCellParagraphIndex < 0) or InSameTableCell(LClickedCellParagraphIndex, FFrags[J].ParagraphIndex) then
         begin
           LFragment := FFrags[J];
           if LDocumentX < LFragment.X then
@@ -4949,6 +4965,24 @@ begin
   Result := (AParagraphIndex >= 0) and (AParagraphIndex < FDocument.Paragraphs.Count) and
     FDocument.Paragraphs[AParagraphIndex].IsTableCell and
     (FDocument.Paragraphs[AParagraphIndex].TableID = ATableID);
+end;
+
+// True when both paragraphs belong to the same table cell.
+function TS4YHTMLEditor.InSameTableCell(AFirstIndex, ASecondIndex: Integer): Boolean;
+begin
+  Result := (AFirstIndex >= 0) and (AFirstIndex < FDocument.Paragraphs.Count) and
+    (ASecondIndex >= 0) and (ASecondIndex < FDocument.Paragraphs.Count) and
+    FDocument.Paragraphs[AFirstIndex].IsTableCell and FDocument.Paragraphs[ASecondIndex].IsTableCell and
+    (FDocument.Paragraphs[AFirstIndex].TableID = FDocument.Paragraphs[ASecondIndex].TableID) and
+    (FDocument.Paragraphs[AFirstIndex].TableRow = FDocument.Paragraphs[ASecondIndex].TableRow) and
+    (FDocument.Paragraphs[AFirstIndex].TableCol = FDocument.Paragraphs[ASecondIndex].TableCol);
+end;
+
+// True when the paragraph is a table cell and the paragraph before it does not belong to the same cell.
+function TS4YHTMLEditor.IsFirstInTableCell(AParagraphIndex: Integer): Boolean;
+begin
+  Result := (AParagraphIndex >= 0) and (AParagraphIndex < FDocument.Paragraphs.Count) and
+    FDocument.Paragraphs[AParagraphIndex].IsTableCell and not InSameTableCell(AParagraphIndex - 1, AParagraphIndex);
 end;
 
 // Finds the cell of the table that covers a position of the grid, also when it starts in a previous row or column.
