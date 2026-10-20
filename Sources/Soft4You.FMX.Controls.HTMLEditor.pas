@@ -2271,7 +2271,7 @@ end;
 procedure TS4YHTMLEditor.OnCaretTick(Sender: TObject);
 begin
   FCaretOn := not FCaretOn;
-  InvalidateRender;
+  Repaint;
 end;
 
 // -- Layout -------------------------------------------------------------------
@@ -2381,6 +2381,7 @@ procedure TS4YHTMLEditor.Paint;
 var
   LScrollBarWidth: Single;
   LState: TCanvasSaveState;
+  LCaretState: TCanvasSaveState;
   LListParagraph: TS4YHTMLParagraph;
   LMarkerX: Single;
   LMarkerY: Single;
@@ -2520,7 +2521,6 @@ var
           end;
         end;
       end;
-      PaintCaret(ACanvas);
     finally
       ACanvas.RestoreState(LState);
     end;
@@ -2556,6 +2556,15 @@ begin
     TRectF.Create(0, 0, LPhysW, LPhysH),
     TRectF.Create(0, 0, Width, Height),
     1.0, False);
+
+  // The caret is drawn over the cache, not into it: a blink only repaints, it does not render the document again
+  LCaretState := Canvas.SaveState;
+  try
+    Canvas.IntersectClipRect(TRectF.Create(1, 1, Width - LScrollBarWidth - 1, Height - 1));
+    PaintCaret(Canvas);
+  finally
+    Canvas.RestoreState(LCaretState);
+  end;
 end;
 
 procedure TS4YHTMLEditor.PaintBackground(ACanvas: TCanvas);
