@@ -131,6 +131,7 @@ var
   LBorderColor: TAlphaColor;
   LChipBold: Boolean;
   LChipCSS: string;
+  LBlockEnd: Integer;  // the paragraphs from LParagraphIndex up to here are being written
 
   procedure EmitRuns(AParagraph: TS4YHTMLParagraph);
   begin
@@ -244,7 +245,7 @@ var
     LStringBuilder.Append('<' + LListTag + '>' + LNewLine);
     LContinueList := True;
     while LContinueList and
-          (LParagraphIndex < ADocument.Paragraphs.Count) and
+          (LParagraphIndex < LBlockEnd) and
           (ADocument.Paragraphs[LParagraphIndex].BlockType = btLI) and
           (ADocument.Paragraphs[LParagraphIndex].IndentLevel >= ABaseLevel) do
     begin
@@ -266,7 +267,7 @@ var
         EmitRuns(LListItem);
         Inc(LParagraphIndex);
         // If next items are deeper, nest a sub-list inside this <li>
-        if (LParagraphIndex < ADocument.Paragraphs.Count) and
+        if (LParagraphIndex < LBlockEnd) and
            (ADocument.Paragraphs[LParagraphIndex].BlockType = btLI) and
            (ADocument.Paragraphs[LParagraphIndex].IndentLevel > ABaseLevel) then
         begin
@@ -278,6 +279,8 @@ var
     end;
     LStringBuilder.Append('</' + LListTag + '>' + LNewLine);
   end;
+
+  procedure EmitBlocks(AEndIndex, ATableID: Integer); forward;
 
   procedure EmitTable(AFirstPI: Integer);
   var
@@ -292,6 +295,7 @@ var
     LCellSpans: string;
     LScanIndex: Integer;
     LEndIndex: Integer;
+    LCellEnd: Integer;
 
     // True when a cell that starts in another position covers the given one
     function IsCovered(ARow, ACol: Integer): Boolean;
@@ -317,7 +321,7 @@ var
     LMaximumRow := 0;
     LScanIndex := AFirstPI;
     while (LScanIndex < ADocument.Paragraphs.Count) and
-          (ADocument.Paragraphs[LScanIndex].BlockType = btTableCell) and
+          ADocument.Paragraphs[LScanIndex].IsTableCell and
           (ADocument.Paragraphs[LScanIndex].TableID = LTableID) do
     begin
       if ADocument.Paragraphs[LScanIndex].TableRow > LMaximumRow then
@@ -338,7 +342,7 @@ var
         LScanIndex := AFirstPI;
         while (LScanIndex < ADocument.Paragraphs.Count) and (LCell = nil) do
         begin
-          if (ADocument.Paragraphs[LScanIndex].BlockType = btTableCell) and
+          if ADocument.Paragraphs[LScanIndex].IsTableCell and
              (ADocument.Paragraphs[LScanIndex].TableID = LTableID) and
              (ADocument.Paragraphs[LScanIndex].TableRow = LRow) and
              (ADocument.Paragraphs[LScanIndex].TableCol = LCol) then
@@ -377,7 +381,18 @@ var
           if LCell.TableRowSpan > 1 then
             LCellSpans := LCellSpans + ' rowspan="' + IntToStr(LCell.TableRowSpan) + '"';
           LStringBuilder.Append('<' + LCellTag + LCellSpans + ' style="' + LCellStyle + '">');
-          EmitRuns(LCell);
+          // The paragraphs that follow the first one and have the same position belong to the same cell
+          LCellEnd := LScanIndex + 1;
+          while (LCellEnd < LEndIndex) and
+                (ADocument.Paragraphs[LCellEnd].TableRow = LRow) and (ADocument.Paragraphs[LCellEnd].TableCol = LCol) do
+            Inc(LCellEnd);
+          if (LCellEnd = LScanIndex + 1) and (LCell.BlockType = btTableCell) then
+            EmitRuns(LCell)
+          else
+          begin
+            LParagraphIndex := LScanIndex;
+            EmitBlocks(LCellEnd, LTableID);
+          end;
           LStringBuilder.Append('</' + LCellTag + '>' + LNewLine);
           if LCell.TableColSpan > 1 then
             Inc(LCol, LCell.TableColSpan)
@@ -392,25 +407,27 @@ var
     LStringBuilder.Append('</table>' + LNewLine);
     LParagraphIndex := AFirstPI;
     while (LParagraphIndex < ADocument.Paragraphs.Count) and
-          (ADocument.Paragraphs[LParagraphIndex].BlockType = btTableCell) and
+          ADocument.Paragraphs[LParagraphIndex].IsTableCell and
           (ADocument.Paragraphs[LParagraphIndex].TableID = LTableID) do
       Inc(LParagraphIndex);
   end;
 
-begin
-  LBase.Init;
-  LStringBuilder := TStringBuilder.Create;
-  LParagraphIndex := 0;
-  if FPretty then
-    LNewLine := sLineBreak
-  else
-    LNewLine := '';
-  try
-    while LParagraphIndex < ADocument.Paragraphs.Count do
+  procedure EmitBlocks(AEndIndex, ATableID: Integer);
+  var
+    LSavedEnd: Integer;
+  begin
+    LSavedEnd := LBlockEnd;
+    LBlockEnd := AEndIndex;
+    while LParagraphIndex < LBlockEnd do
     begin
       LParagraph := ADocument.Paragraphs[LParagraphIndex];
 
-      if LParagraph.BlockType = btHR then
+      if LParagraph.IsTableCell and (LParagraph.TableID <> ATableID) then
+      begin
+        EmitTable(LParagraphIndex);
+        // LParagraphIndex is already advanced by EmitTable
+      end
+      else if LParagraph.BlockType = btHR then
       begin
         LStyleAttribute := '';
         if LParagraph.HRColor <> claNull then
@@ -453,7 +470,7 @@ begin
           haCenter, haRight, haJustify: LStringBuilder.Append('</div>');
         end;
         Inc(LParagraphIndex);
-        if (LParagraphIndex < ADocument.Paragraphs.Count) and (ADocument.Paragraphs[LParagraphIndex].BlockType = btBodyText) then
+        if (LParagraphIndex < LBlockEnd) and (ADocument.Paragraphs[LParagraphIndex].BlockType = btBodyText) then
           LStringBuilder.Append('<br>' + LNewLine)
         else
           LStringBuilder.Append(LNewLine);
@@ -461,19 +478,14 @@ begin
       else if LParagraph.BlockType = btPre then
       begin
         LStringBuilder.Append('<pre>');
-        while (LParagraphIndex < ADocument.Paragraphs.Count) and (ADocument.Paragraphs[LParagraphIndex].BlockType = btPre) do
+        while (LParagraphIndex < LBlockEnd) and (ADocument.Paragraphs[LParagraphIndex].BlockType = btPre) do
         begin
           EmitRuns(ADocument.Paragraphs[LParagraphIndex]);
           Inc(LParagraphIndex);
-          if (LParagraphIndex < ADocument.Paragraphs.Count) and (ADocument.Paragraphs[LParagraphIndex].BlockType = btPre) then
+          if (LParagraphIndex < LBlockEnd) and (ADocument.Paragraphs[LParagraphIndex].BlockType = btPre) then
             LStringBuilder.Append(#10);
         end;
         LStringBuilder.Append('</pre>' + LNewLine);
-      end
-      else if LParagraph.BlockType = btTableCell then
-      begin
-        EmitTable(LParagraphIndex);
-        // LParagraphIndex is already advanced by EmitTable
       end
       else if LParagraph.BlockType = btLI then
       begin
@@ -547,6 +559,19 @@ begin
         Inc(LParagraphIndex);
       end;
     end;
+    LBlockEnd := LSavedEnd;
+  end;
+
+begin
+  LBase.Init;
+  LStringBuilder := TStringBuilder.Create;
+  LParagraphIndex := 0;
+  if FPretty then
+    LNewLine := sLineBreak
+  else
+    LNewLine := '';
+  try
+    EmitBlocks(ADocument.Paragraphs.Count, 0);
 
     Result := LStringBuilder.ToString;
   finally
