@@ -121,7 +121,7 @@ end;
 
 procedure Register;
 begin
-  RegisterComponents('Email', [TS4YHTMLEditor]);
+  RegisterComponents('Soft4You Ctrls', [TS4YHTMLEditor]);
   RegisterObservableMember([TS4YHTMLEditor], 'HTML', 'OnChange');
   RegisterPropertyEditor(TypeInfo(string), TS4YHTMLEditor, 'HTML', TS4YHTMLPropertyEditor);
 end;
