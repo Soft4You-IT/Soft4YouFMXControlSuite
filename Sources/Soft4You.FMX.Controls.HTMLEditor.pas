@@ -94,8 +94,6 @@ const
   C_DEFAULT_SELECTION_COLOR = $ff95cbff; //$FF316AC5;
   C_DEFAULT_HR_TAG_STROKE_COLOR = $FFB0B0B0;
   C_DEFAULT_HR_THICKNESS = 1.0;
-  C_DEFAULT_TABLE_BORDER_COLOR = $FFB0B0B0;
-  C_DEFAULT_TABLE_BORDER_WIDTH = 1.0;
   C_DEFAULT_TABLE_CELL_PADDING = 4.0;
   C_DEFAULT_TABLE_MIN_ROW_HEIGHT = 20.0;
   C_MINIMUM_TABLE_COLUMN_WIDTH = 24.0;  // narrowest column that a column without width gets
@@ -352,6 +350,8 @@ type
     TableAlignment: TS4YHTMLAlignment;
     /// <summary>Background color of the table cell at the caret; claNull when it has none or the caret is not in a table.</summary>
     TableCellBackgroundColor: TAlphaColor;
+    /// <summary>Borders that are drawn around the table cell at the caret, always set; not set when the caret is not in a table.</summary>
+    TableCellBorders: TS4YTableBorders;
     /// <summary>Padding of the table cell at the caret; not set when it has the default one or the caret is not in a table.</summary>
     TableCellPadding: TS4YTablePadding;
     /// <summary>Vertical alignment of the table cell at the caret; tvaTop when the caret is not in a table.</summary>
@@ -914,6 +914,18 @@ type
     /// </remarks>
     procedure SetTableCellBackgroundColor(AColor: TAlphaColor);
     /// <summary>
+    /// Sets the border of some sides of a table cell.
+    /// </summary>
+    /// <param name="ASides">The sides to change; the other sides keep their border.</param>
+    /// <param name="ABorder">The border of those sides; TS4YTableBorderSide.None removes it.</param>
+    /// <remarks>
+    /// It acts on the cell that contains the caret. With a selection it acts on every cell that the selection touches,
+    /// in the table where the selection starts. A cell that followed its table now has its own borders, with the
+    /// sides that are not in ASides as they were drawn. It does nothing when the caret is not in a table or when
+    /// ReadOnly is True.
+    /// </remarks>
+    procedure SetTableCellBorder(ASides: TS4YTableSides; const ABorder: TS4YTableBorderSide);
+    /// <summary>
     /// Sets the space between the border of a table cell and its content.
     /// </summary>
     /// <param name="APadding">The padding in pixels; TS4YTablePadding.Default goes back to the default padding.</param>
@@ -1332,7 +1344,8 @@ type
 implementation
 
 uses
-  System.IOUtils;
+  System.IOUtils,
+  System.Generics.Defaults;
 
 // -----------------------------------------------------------------------------
 // FMX helper for TS4YHTMLTextStyle
@@ -2426,7 +2439,7 @@ begin
     LLayoutCell.FirstParagraphIndex := LCellParagraphs[LCellIndex];
     LLayoutCell.Depth := Length(LParagraph.TableContainers);
     LLayoutCell.X := ColumnLeft(LParagraph.TableCol);
-    LLayoutCell.HasBorder := LFirstParagraph.TableHasBorder;
+    LLayoutCell.Borders := LParagraph.EffectiveTableCellBorders;
     LLayoutCell.Y := LRowTop;
     LLayoutCell.Width := ColumnSpanWidth(LParagraph.TableCol, LColSpan);
     LLayoutCell.ColumnSpan := LColSpan;
@@ -2942,24 +2955,84 @@ begin
     end;
 end;
 
+type
+  TBorderLine = record
+    StartPoint: TPointF;
+    EndPoint: TPointF;
+    Width: Single;
+    Color: TAlphaColor;
+  end;
+
+// Draws the borders of the cells, one line for each side. Two cells that share an edge draw it both, so the lines
+// are drawn from the thinnest to the widest: the widest border of an edge is the one that shows, as in a table
+// with collapsed borders. A line reaches the corner only where the line of the next side is drawn too.
 procedure TS4YHTMLEditor.PaintTableCellBorders(ACanvas: TCanvas);
 var
-  LRectangle: TRectF;
-begin
-  ACanvas.Stroke.Kind := TBrushKind.Solid;
-  ACanvas.Stroke.Color := C_DEFAULT_TABLE_BORDER_COLOR;
-  ACanvas.Stroke.Thickness := C_DEFAULT_TABLE_BORDER_WIDTH;
-  ACanvas.Fill.Kind := TBrushKind.None;
-  for var I := 0 to High(FCells) do
-    if FCells[I].HasBorder then
+  LLines: TList<TBorderLine>;
+  LLine: TBorderLine;
+  LBorders: TS4YTableBorders;
+  LLeft: Single;
+  LTop: Single;
+  LRight: Single;
+  LBottom: Single;
+  LStartExtension: Single;
+  LEndExtension: Single;
+
+  function ExtensionOf(const ASide: TS4YTableBorderSide): Single;
+  begin
+    if ASide.IsVisible then
+      Result := ASide.Width / 2
+    else
+      Result := 0;
+  end;
+
+  procedure AddLine(const ASide: TS4YTableBorderSide; const AStartPoint, AEndPoint: TPointF);
+  begin
+    if ASide.IsVisible then
     begin
-      LRectangle := TRectF.Create(
-        FCells[I].X + ContentLeft,
-        FCells[I].Y + ContentTop,
-        FCells[I].X + FCells[I].Width + ContentLeft,
-        FCells[I].Y + FCells[I].Height + ContentTop);
-      ACanvas.DrawRect(LRectangle, 0, 0, AllCorners, AbsoluteOpacity);
+      LLine.StartPoint := AStartPoint;
+      LLine.EndPoint := AEndPoint;
+      LLine.Width := ASide.Width;
+      LLine.Color := ASide.Color;
+      LLines.Add(LLine);
     end;
+  end;
+
+begin
+  LLines := TList<TBorderLine>.Create;
+  try
+    for var I := 0 to High(FCells) do
+    begin
+      LBorders := FCells[I].Borders;
+      LLeft := FCells[I].X + ContentLeft;
+      LTop := FCells[I].Y + ContentTop;
+      LRight := LLeft + FCells[I].Width;
+      LBottom := LTop + FCells[I].Height;
+      LStartExtension := ExtensionOf(LBorders.Left);
+      LEndExtension := ExtensionOf(LBorders.Right);
+      AddLine(LBorders.Top, TPointF.Create(LLeft - LStartExtension, LTop), TPointF.Create(LRight + LEndExtension, LTop));
+      AddLine(LBorders.Bottom, TPointF.Create(LLeft - LStartExtension, LBottom), TPointF.Create(LRight + LEndExtension, LBottom));
+      LStartExtension := ExtensionOf(LBorders.Top);
+      LEndExtension := ExtensionOf(LBorders.Bottom);
+      AddLine(LBorders.Left, TPointF.Create(LLeft, LTop - LStartExtension), TPointF.Create(LLeft, LBottom + LEndExtension));
+      AddLine(LBorders.Right, TPointF.Create(LRight, LTop - LStartExtension), TPointF.Create(LRight, LBottom + LEndExtension));
+    end;
+    LLines.Sort(TComparer<TBorderLine>.Construct(
+      function(const ALeft, ARight: TBorderLine): Integer
+      begin
+        Result := CompareValue(ALeft.Width, ARight.Width);
+      end));
+    ACanvas.Stroke.Kind := TBrushKind.Solid;
+    ACanvas.Fill.Kind := TBrushKind.None;
+    for LLine in LLines do
+    begin
+      ACanvas.Stroke.Color := LLine.Color;
+      ACanvas.Stroke.Thickness := LLine.Width;
+      ACanvas.DrawLine(LLine.StartPoint, LLine.EndPoint, AbsoluteOpacity);
+    end;
+  finally
+    LLines.Free;
+  end;
 end;
 
 procedure TS4YHTMLEditor.PaintHorizontalRule(ACanvas: TCanvas; AY, AWidth, AX: Single; AParagraph: TS4YHTMLParagraph);
@@ -8308,6 +8381,37 @@ begin
   FinishTableStyleChange;
 end;
 
+procedure TS4YHTMLEditor.SetTableCellBorder(ASides: TS4YTableSides; const ABorder: TS4YTableBorderSide);
+var
+  LTableID: Integer;
+  LCells: TArray<TS4YTableCellReference>;
+  LCell: TS4YTableCellReference;
+  LIndex: Integer;
+  LBorders: TS4YTableBorders;
+begin
+  if not GetTableTarget(LTableID, LCells) then
+    Exit;
+  SaveUndo;
+  for LCell in LCells do
+  begin
+    LIndex := FindTableCellAt(LCell.TableID, LCell.Row, LCell.Column);
+    if LIndex >= 0 then
+    begin
+      LBorders := FDocument.Paragraphs[LIndex].EffectiveTableCellBorders;
+      if tsTop in ASides then
+        LBorders.Top := ABorder;
+      if tsRight in ASides then
+        LBorders.Right := ABorder;
+      if tsBottom in ASides then
+        LBorders.Bottom := ABorder;
+      if tsLeft in ASides then
+        LBorders.Left := ABorder;
+      FDocument.Paragraphs[LIndex].TableCellBorders := LBorders;
+    end;
+  end;
+  FinishTableStyleChange;
+end;
+
 procedure TS4YHTMLEditor.SetTableCellPadding(const APadding: TS4YTablePadding);
 var
   LTableID: Integer;
@@ -9317,6 +9421,7 @@ begin
     Result.IsInTable := Assigned(LCurrentParagraph) and LCurrentParagraph.IsTableCell;
     Result.TableAlignment := haLeft;
     Result.TableCellBackgroundColor := claNull;
+    Result.TableCellBorders := TS4YTableBorders.Default;
     Result.TableCellPadding := TS4YTablePadding.Default;
     Result.TableCellVerticalAlignment := tvaTop;
     Result.TableHasBorder := True;
@@ -9332,6 +9437,7 @@ begin
         Dec(LParagraphIndex);
       Result.TableAlignment := FDocument.Paragraphs[LParagraphIndex].TableAlignment;
       Result.TableCellBackgroundColor := FDocument.Paragraphs[LParagraphIndex].TableCellBackgroundColor;
+      Result.TableCellBorders := FDocument.Paragraphs[LParagraphIndex].EffectiveTableCellBorders;
       Result.TableCellPadding := FDocument.Paragraphs[LParagraphIndex].TableCellPadding;
       Result.TableCellVerticalAlignment := FDocument.Paragraphs[LParagraphIndex].TableCellVerticalAlignment;
       Result.TableHasBorder := FDocument.Paragraphs[LParagraphIndex].TableHasBorder;

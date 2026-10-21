@@ -36,6 +36,7 @@ type
     function ConvertImageSource(const ASource: string): string;
     function HtmlEncode(const AText: string): string;
     function ColorToHex(AColor: TAlphaColor): string;
+    function BorderSideToCSS(const ASide: TS4YTableBorderSide): string;
     function StyleDiff(const ACurrentStyle, ABaseStyle: TS4YHTMLTextStyle): string;
   public
     /// <summary>
@@ -89,6 +90,15 @@ end;
 function TS4YHTMLGenerator.ColorToHex(AColor: TAlphaColor): string;
 begin
   Result := Format('#%.2x%.2x%.2x', [TAlphaColorRec(AColor).R, TAlphaColorRec(AColor).G, TAlphaColorRec(AColor).B]);
+end;
+
+// The border of one side as the value of a border style: none, or width, solid and color
+function TS4YHTMLGenerator.BorderSideToCSS(const ASide: TS4YTableBorderSide): string;
+begin
+  if ASide.IsVisible then
+    Result := Format('%.0fpx solid %s', [ASide.Width, ColorToHex(ASide.Color)])
+  else
+    Result := 'none';
 end;
 
 function TS4YHTMLGenerator.StyleDiff(const ACurrentStyle, ABaseStyle: TS4YHTMLTextStyle): string;
@@ -429,6 +439,20 @@ var
             LCellStyle := LCellStyle + 'width:' + LengthToCSS(LCell.TableCellWidth) + ';';
           if LCell.TableCellBackgroundColor <> claNull then
             LCellStyle := LCellStyle + 'background-color:' + ColorToHex(LCell.TableCellBackgroundColor) + ';';
+          // Borders are written only when the cell has its own; the four sides are given, in the shortest form
+          if LCell.TableCellBorders.IsSet then
+          begin
+            if LCell.TableCellBorders.Top.Equals(LCell.TableCellBorders.Right) and
+               LCell.TableCellBorders.Top.Equals(LCell.TableCellBorders.Bottom) and
+               LCell.TableCellBorders.Top.Equals(LCell.TableCellBorders.Left) then
+              LCellStyle := LCellStyle + 'border:' + BorderSideToCSS(LCell.TableCellBorders.Top) + ';'
+            else
+              LCellStyle := LCellStyle +
+                'border-top:' + BorderSideToCSS(LCell.TableCellBorders.Top) + ';' +
+                'border-right:' + BorderSideToCSS(LCell.TableCellBorders.Right) + ';' +
+                'border-bottom:' + BorderSideToCSS(LCell.TableCellBorders.Bottom) + ';' +
+                'border-left:' + BorderSideToCSS(LCell.TableCellBorders.Left) + ';';
+          end;
           case LCell.TableCellVerticalAlignment of
             tvaMiddle: LCellStyle := LCellStyle + 'vertical-align:middle;';
             tvaBottom: LCellStyle := LCellStyle + 'vertical-align:bottom;';
