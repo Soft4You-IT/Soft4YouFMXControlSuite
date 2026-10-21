@@ -68,6 +68,7 @@ type
         MaximumWidth: Single;
         Alignment: TS4YHTMLAlignment;
         HasBorder: Boolean;
+        CellSpacing: Single;
         CellBlockBase: Integer;
         TableBlockBase: Integer;
       end;
@@ -102,10 +103,11 @@ type
     FCellRowSpan: Integer;
     FCellParagraphCount: Integer;  // paragraphs added to the open cell so far
     FTableContainers: TArray<TS4YTableCellReference>;  // cells that contain the table being read, outermost first
-    FTableWidth: TS4YTableLength;  // width, maximum width, alignment and border of the table being read
+    FTableWidth: TS4YTableLength;  // width, maximum width, alignment, border and cell spacing of the table being read
     FTableMaximumWidth: Single;
     FTableAlignment: TS4YHTMLAlignment;
     FTableHasBorder: Boolean;
+    FTableCellSpacing: Single;
     FCellWidth: TS4YTableLength;  // width asked for the open cell
     FCellBackground: TAlphaColor;  // background, padding, vertical alignment and borders of the open cell
     FCellPadding: TS4YTablePadding;
@@ -544,6 +546,7 @@ begin
     AParagraph.TableMaximumWidth := FTableMaximumWidth;
     AParagraph.TableAlignment := FTableAlignment;
     AParagraph.TableHasBorder := FTableHasBorder;
+    AParagraph.TableCellSpacing := FTableCellSpacing;
     AParagraph.TableRow := FCellRow;
     AParagraph.TableCol := FCellColumn;
     AParagraph.IsHeader := FCellIsHeader;
@@ -619,6 +622,7 @@ begin
   LState.MaximumWidth := FTableMaximumWidth;
   LState.Alignment := FTableAlignment;
   LState.HasBorder := FTableHasBorder;
+  LState.CellSpacing := FTableCellSpacing;
   FTableStack.Add(LState);
   LContainers := Copy(FTableContainers);
   SetLength(LContainers, Length(LContainers) + 1);
@@ -667,6 +671,7 @@ begin
   FTableMaximumWidth := LState.MaximumWidth;
   FTableAlignment := LState.Alignment;
   FTableHasBorder := LState.HasBorder;
+  FTableCellSpacing := LState.CellSpacing;
 end;
 
 // Closes the open cell. A cell with no content keeps one empty paragraph.
@@ -1392,6 +1397,21 @@ begin
     FTableAlignment := haRight;
   if TrimS(GetAttribute(AAttributes, 'border')) = '0' then
     FTableHasBorder := False;
+  // The space between the cells comes from cellspacing, or from the first value of border-spacing, which wins. A table
+  // with collapsed borders has none: that is how a browser draws it, whatever cellspacing says.
+  FTableCellSpacing := 0;
+  LValue := TrimS(GetAttribute(AAttributes, 'cellspacing'));
+  if (LValue <> '') and CharInSet(LValue[1], ['0'..'9', '.']) then
+    ParseBorderWidth(LValue, FTableCellSpacing);
+  if LStyle <> '' then
+  begin
+    LTokens := SplitCSSValue(ExtractCSSValue(LStyle, 'border-spacing'));
+    if (Length(LTokens) > 0) and CharInSet(LTokens[0][1], ['0'..'9', '.']) then
+      ParseBorderWidth(LTokens[0], FTableCellSpacing);
+    if ExtractCSSValue(LStyle, 'border-collapse') = 'collapse' then
+      FTableCellSpacing := 0;
+  end;
+  FTableCellSpacing := Min(Max(FTableCellSpacing, 0), C_MAXIMUM_TABLE_CELL_SPACING);
 end;
 
 function TS4YHTMLParser.ParseTableSpan(const AAttributes, AName: string): Integer;

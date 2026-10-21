@@ -97,6 +97,7 @@ type
     FTableCellBackgroundColor: TAlphaColor;  // background color of the cell, claNull = none (first paragraph of the cell only)
     FTableCellBorders: TS4YTableBorders;  // borders of the cell, not set = follows the table (first paragraph of the cell only)
     FTableCellPadding: TS4YTablePadding;  // padding of the cell (first paragraph of the cell only)
+    FTableCellSpacing: Single;  // space between the cells of the table and around them in pixels, 0 = none (table cell paragraphs only)
     FTableCellVerticalAlignment: TS4YTableVerticalAlignment;  // where the content sits in a taller cell (first paragraph of the cell only)
     FTableCellWidth: TS4YTableLength;  // width asked for the cell (first paragraph of the cell only)
     FTableCols: Integer;    // total columns in table (table cell paragraphs only)
@@ -147,7 +148,7 @@ type
     /// <returns>True when ATableID is the table of the paragraph or one of the tables that contain it.</returns>
     function BelongsToTable(ATableID: Integer): Boolean;
     /// <summary>
-    /// Copies the properties that every paragraph of a table shares: width, maximum width, alignment and border.
+    /// Copies the properties that every paragraph of a table shares: width, maximum width, alignment, border and cell spacing.
     /// </summary>
     /// <param name="ASource">A paragraph of the same table.</param>
     procedure CopyTableLayoutFrom(ASource: TS4YHTMLParagraph);
@@ -231,6 +232,14 @@ type
     /// Only the first paragraph of the cell holds it.
     /// </remarks>
     property TableCellPadding: TS4YTablePadding read FTableCellPadding write FTableCellPadding;
+    /// <summary>
+    /// Space in pixels between the cells of the table and between the cells and the edge of the table, when IsTableCell is True.
+    /// The default is 0: the cells touch.
+    /// </summary>
+    /// <remarks>
+    /// Every paragraph of the table has the same value.
+    /// </remarks>
+    property TableCellSpacing: Single read FTableCellSpacing write FTableCellSpacing;
     /// <summary>
     /// Where the content sits when the cell is taller than the content, when IsTableCell is True. The default is tvaTop.
     /// </summary>
@@ -411,6 +420,7 @@ begin
   Result.TableCellBackgroundColor := TableCellBackgroundColor;
   Result.TableCellBorders := TableCellBorders;
   Result.TableCellPadding := TableCellPadding;
+  Result.TableCellSpacing := TableCellSpacing;
   Result.TableCellVerticalAlignment := TableCellVerticalAlignment;
   Result.TableCellWidth := TableCellWidth;
   Result.TableHasBorder := TableHasBorder;
@@ -499,6 +509,7 @@ begin
   FTableMaximumWidth := ASource.TableMaximumWidth;
   FTableAlignment := ASource.TableAlignment;
   FTableHasBorder := ASource.TableHasBorder;
+  FTableCellSpacing := ASource.TableCellSpacing;
 end;
 
 function TS4YHTMLParagraph.EffectiveTableCellBorders: TS4YTableBorders;

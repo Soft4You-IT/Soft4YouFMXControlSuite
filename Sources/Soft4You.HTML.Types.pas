@@ -52,6 +52,8 @@ const
   C_DEFAULT_TABLE_BORDER_COLOR = $FFB0B0B0;
   /// <summary>Width of the border of a table cell, in pixels, when the table has borders and the cell does not say otherwise.</summary>
   C_DEFAULT_TABLE_BORDER_WIDTH = 1.0;
+  /// <summary>Largest space between the cells of a table, in pixels.</summary>
+  C_MAXIMUM_TABLE_CELL_SPACING = 50.0;
 
 // ===========================================================================
 // Enumerations
