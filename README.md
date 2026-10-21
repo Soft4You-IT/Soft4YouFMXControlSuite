@@ -12,6 +12,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 |---|---|
 | `Sources` | All component units (`.pas`) |
 | `Packages` | Runtime and design-time packages, project group |
+| `Graphics` | Source artwork: `Icons\S4YHTMLEditor.svg` is the master of the Tool Palette icon (`TS4YHTMLEditor.bmp`, 24x24, compiled with `S4YFMXHTMLEditorD.rc` into `Packages\S4YFMXHTMLEditorD.dcr`) |
 | `Demo` | Sample FMX application |
 | `Docs` | Additional documentation: [`DeveloperGuide.md`](Docs/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals, in Italian) |
 

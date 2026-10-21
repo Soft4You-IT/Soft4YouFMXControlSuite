@@ -1,6 +1,7 @@
 package S4YFMXHTMLEditorD;
 
 {$R *.res}
+{$R 'S4YFMXHTMLEditorD.dcr'}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
 {$ASSERTIONS ON}
