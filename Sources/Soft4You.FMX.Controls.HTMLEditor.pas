@@ -348,10 +348,22 @@ type
     LinkURL: string;
     /// <summary>Format of the paragraph at the caret.</summary>
     ParagraphFormat: TS4YParagraphFormat;
+    /// <summary>Where the table at the caret sits when it is narrower than its space; haLeft when the caret is not in a table.</summary>
+    TableAlignment: TS4YHTMLAlignment;
+    /// <summary>Background color of the table cell at the caret; claNull when it has none or the caret is not in a table.</summary>
+    TableCellBackgroundColor: TAlphaColor;
+    /// <summary>Padding of the table cell at the caret; not set when it has the default one or the caret is not in a table.</summary>
+    TableCellPadding: TS4YTablePadding;
+    /// <summary>Vertical alignment of the table cell at the caret; tvaTop when the caret is not in a table.</summary>
+    TableCellVerticalAlignment: TS4YTableVerticalAlignment;
     /// <summary>0-based column of the table cell at the caret; -1 when not in a table.</summary>
     TableCol: Integer;      // 0-based, -1 when not in table
+    /// <summary>Tells whether the borders of the table at the caret are drawn; True when the caret is not in a table.</summary>
+    TableHasBorder: Boolean;
     /// <summary>0-based row of the table cell at the caret; -1 when not in a table.</summary>
     TableRow: Integer;      // 0-based, -1 when not in table
+    /// <summary>Width asked for the table at the caret; not set when the caret is not in a table.</summary>
+    TableWidth: TS4YTableLength;
   end;
 
   /// <summary>
@@ -696,6 +708,8 @@ type
     function IsParagraphInLayoutCell(ACellIndex, AParagraphIndex: Integer): Boolean;
     function InSameTableCell(AFirstIndex, ASecondIndex: Integer): Boolean;
     function TableHasNesting(ATableID: Integer): Boolean;
+    function GetTableTarget(out ATableID: Integer; out ACells: TArray<TS4YTableCellReference>): Boolean;
+    procedure FinishTableStyleChange;
     function TableHasSpans(ATableID: Integer): Boolean;
 
     procedure Paint; override;
@@ -874,6 +888,58 @@ type
     /// It does nothing when ReadOnly is True.
     /// </remarks>
     procedure DeleteTableColumn;
+    /// <summary>
+    /// Sets where the table that contains the caret sits when it is narrower than its space.
+    /// </summary>
+    /// <param name="AAlignment">haLeft, haCenter or haRight.</param>
+    /// <remarks>
+    /// It does nothing when the caret is not in a table or when ReadOnly is True. The innermost table is used.
+    /// </remarks>
+    procedure SetTableAlignment(AAlignment: TS4YHTMLAlignment);
+    /// <summary>
+    /// Shows or hides the borders of the table that contains the caret.
+    /// </summary>
+    /// <param name="Visible">True to draw the borders, False to write the table with border=0.</param>
+    /// <remarks>
+    /// It does nothing when the caret is not in a table or when ReadOnly is True. The innermost table is used.
+    /// </remarks>
+    procedure SetTableBorder(Visible: Boolean);
+    /// <summary>
+    /// Sets the background color of a table cell.
+    /// </summary>
+    /// <param name="AColor">The color; claNull removes the background.</param>
+    /// <remarks>
+    /// It acts on the cell that contains the caret. With a selection it acts on every cell that the selection touches,
+    /// in the table where the selection starts. It does nothing when the caret is not in a table or when ReadOnly is True.
+    /// </remarks>
+    procedure SetTableCellBackgroundColor(AColor: TAlphaColor);
+    /// <summary>
+    /// Sets the space between the border of a table cell and its content.
+    /// </summary>
+    /// <param name="APadding">The padding in pixels; TS4YTablePadding.Default goes back to the default padding.</param>
+    /// <remarks>
+    /// It acts on the cell that contains the caret. With a selection it acts on every cell that the selection touches,
+    /// in the table where the selection starts. It does nothing when the caret is not in a table or when ReadOnly is True.
+    /// </remarks>
+    procedure SetTableCellPadding(const APadding: TS4YTablePadding);
+    /// <summary>
+    /// Sets where the content of a table cell sits when the cell is taller than the content.
+    /// </summary>
+    /// <param name="AAlignment">tvaTop, tvaMiddle or tvaBottom.</param>
+    /// <remarks>
+    /// It acts on the cell that contains the caret. With a selection it acts on every cell that the selection touches,
+    /// in the table where the selection starts. It does nothing when the caret is not in a table or when ReadOnly is True.
+    /// </remarks>
+    procedure SetTableCellVerticalAlignment(AAlignment: TS4YTableVerticalAlignment);
+    /// <summary>
+    /// Sets the width of the table that contains the caret.
+    /// </summary>
+    /// <param name="AWidth">The width in pixels or in percent of the space; a width that is not set makes the table as wide as its space.</param>
+    /// <remarks>
+    /// The maximum width of the table (max-width) is removed, so that the new width is not limited by it. It does
+    /// nothing when the caret is not in a table or when ReadOnly is True. The innermost table is used.
+    /// </remarks>
+    procedure SetTableWidth(const AWidth: TS4YTableLength);
     /// <summary>
     /// Inserts text as a new hyperlink at the caret.
     /// </summary>
@@ -8158,6 +8224,180 @@ begin
     end;
 end;
 
+// Finds what a table style command acts on. ATableID is the table of the caret, or the first table that a selection
+// touches; ACells are the cells of that table that hold the caret or that the selection touches. Returns False when
+// there is nothing to act on or when the editor is read-only.
+function TS4YHTMLEditor.GetTableTarget(out ATableID: Integer; out ACells: TArray<TS4YTableCellReference>): Boolean;
+var
+  LFirst: Integer;
+  LLast: Integer;
+  LIndex: Integer;
+  LRow: Integer;
+  LColumn: Integer;
+  LCell: TS4YTableCellReference;
+  LIsKnown: Boolean;
+  LKnown: TS4YTableCellReference;
+begin
+  Result := False;
+  ATableID := 0;
+  ACells := nil;
+  if FReadOnly or not FCaretPosition.IsValid or (FCaretPosition.ParagraphIndex >= FDocument.Paragraphs.Count) then
+    Exit;
+  if FHasSelection then
+  begin
+    LFirst := Min(FSelectionStart.ParagraphIndex, FSelectionEnd.ParagraphIndex);
+    LLast := Max(FSelectionStart.ParagraphIndex, FSelectionEnd.ParagraphIndex);
+    LLast := Min(LLast, FDocument.Paragraphs.Count - 1);
+  end
+  else
+  begin
+    LFirst := FCaretPosition.ParagraphIndex;
+    LLast := LFirst;
+  end;
+  // The table is the one of the first paragraph in the range that is in a table
+  for LIndex := LFirst to LLast do
+    if (ATableID = 0) and FDocument.Paragraphs[LIndex].IsTableCell then
+      ATableID := FDocument.Paragraphs[LIndex].TableID;
+  if ATableID = 0 then
+    Exit;
+  for LIndex := LFirst to LLast do
+    if FDocument.Paragraphs[LIndex].TryGetCellIn(ATableID, LRow, LColumn) then
+    begin
+      LCell := TS4YTableCellReference.At(ATableID, LRow, LColumn);
+      LIsKnown := False;
+      for LKnown in ACells do
+        if LKnown.Equals(LCell) then
+          LIsKnown := True;
+      if not LIsKnown then
+      begin
+        SetLength(ACells, Length(ACells) + 1);
+        ACells[High(ACells)] := LCell;
+      end;
+    end;
+  Result := Length(ACells) > 0;
+end;
+
+// What follows a change of a table style: layout, the change notification and the state for a toolbar.
+procedure TS4YHTMLEditor.FinishTableStyleChange;
+var
+  LSavedScrollY: Single;
+begin
+  LSavedScrollY := FScrollY;
+  DoLayout;
+  ScrollTo(LSavedScrollY);
+  DoChanged;
+  DoNotifyState;
+end;
+
+procedure TS4YHTMLEditor.SetTableCellBackgroundColor(AColor: TAlphaColor);
+var
+  LTableID: Integer;
+  LCells: TArray<TS4YTableCellReference>;
+  LCell: TS4YTableCellReference;
+  LIndex: Integer;
+begin
+  if not GetTableTarget(LTableID, LCells) then
+    Exit;
+  SaveUndo;
+  for LCell in LCells do
+  begin
+    LIndex := FindTableCellAt(LCell.TableID, LCell.Row, LCell.Column);
+    if LIndex >= 0 then
+      FDocument.Paragraphs[LIndex].TableCellBackgroundColor := AColor;
+  end;
+  FinishTableStyleChange;
+end;
+
+procedure TS4YHTMLEditor.SetTableCellPadding(const APadding: TS4YTablePadding);
+var
+  LTableID: Integer;
+  LCells: TArray<TS4YTableCellReference>;
+  LCell: TS4YTableCellReference;
+  LIndex: Integer;
+begin
+  if not GetTableTarget(LTableID, LCells) then
+    Exit;
+  SaveUndo;
+  for LCell in LCells do
+  begin
+    LIndex := FindTableCellAt(LCell.TableID, LCell.Row, LCell.Column);
+    if LIndex >= 0 then
+      FDocument.Paragraphs[LIndex].TableCellPadding := APadding;
+  end;
+  FinishTableStyleChange;
+end;
+
+procedure TS4YHTMLEditor.SetTableCellVerticalAlignment(AAlignment: TS4YTableVerticalAlignment);
+var
+  LTableID: Integer;
+  LCells: TArray<TS4YTableCellReference>;
+  LCell: TS4YTableCellReference;
+  LIndex: Integer;
+begin
+  if not GetTableTarget(LTableID, LCells) then
+    Exit;
+  SaveUndo;
+  for LCell in LCells do
+  begin
+    LIndex := FindTableCellAt(LCell.TableID, LCell.Row, LCell.Column);
+    if LIndex >= 0 then
+      FDocument.Paragraphs[LIndex].TableCellVerticalAlignment := AAlignment;
+  end;
+  FinishTableStyleChange;
+end;
+
+// The table of the caret, not of a selection: the innermost one
+procedure TS4YHTMLEditor.SetTableAlignment(AAlignment: TS4YHTMLAlignment);
+var
+  LTableID: Integer;
+  LIndex: Integer;
+begin
+  if FReadOnly or not FCaretPosition.IsValid or (FCaretPosition.ParagraphIndex >= FDocument.Paragraphs.Count) or
+     not FDocument.Paragraphs[FCaretPosition.ParagraphIndex].IsTableCell then
+    Exit;
+  LTableID := FDocument.Paragraphs[FCaretPosition.ParagraphIndex].TableID;
+  SaveUndo;
+  for LIndex := 0 to FDocument.Paragraphs.Count - 1 do
+    if FDocument.Paragraphs[LIndex].TableID = LTableID then
+      FDocument.Paragraphs[LIndex].TableAlignment := AAlignment;
+  FinishTableStyleChange;
+end;
+
+procedure TS4YHTMLEditor.SetTableBorder(Visible: Boolean);
+var
+  LTableID: Integer;
+  LIndex: Integer;
+begin
+  if FReadOnly or not FCaretPosition.IsValid or (FCaretPosition.ParagraphIndex >= FDocument.Paragraphs.Count) or
+     not FDocument.Paragraphs[FCaretPosition.ParagraphIndex].IsTableCell then
+    Exit;
+  LTableID := FDocument.Paragraphs[FCaretPosition.ParagraphIndex].TableID;
+  SaveUndo;
+  for LIndex := 0 to FDocument.Paragraphs.Count - 1 do
+    if FDocument.Paragraphs[LIndex].TableID = LTableID then
+      FDocument.Paragraphs[LIndex].TableHasBorder := Visible;
+  FinishTableStyleChange;
+end;
+
+procedure TS4YHTMLEditor.SetTableWidth(const AWidth: TS4YTableLength);
+var
+  LTableID: Integer;
+  LIndex: Integer;
+begin
+  if FReadOnly or not FCaretPosition.IsValid or (FCaretPosition.ParagraphIndex >= FDocument.Paragraphs.Count) or
+     not FDocument.Paragraphs[FCaretPosition.ParagraphIndex].IsTableCell then
+    Exit;
+  LTableID := FDocument.Paragraphs[FCaretPosition.ParagraphIndex].TableID;
+  SaveUndo;
+  for LIndex := 0 to FDocument.Paragraphs.Count - 1 do
+    if FDocument.Paragraphs[LIndex].TableID = LTableID then
+    begin
+      FDocument.Paragraphs[LIndex].TableWidth := AWidth;
+      FDocument.Paragraphs[LIndex].TableMaximumWidth := 0;
+    end;
+  FinishTableStyleChange;
+end;
+
 procedure TS4YHTMLEditor.InsertTableRow;
 var
   LCurrentParagraph: TS4YHTMLParagraph;
@@ -9075,10 +9315,27 @@ begin
     else
       LCurrentParagraph := nil;
     Result.IsInTable := Assigned(LCurrentParagraph) and LCurrentParagraph.IsTableCell;
+    Result.TableAlignment := haLeft;
+    Result.TableCellBackgroundColor := claNull;
+    Result.TableCellPadding := TS4YTablePadding.Default;
+    Result.TableCellVerticalAlignment := tvaTop;
+    Result.TableHasBorder := True;
+    Result.TableWidth := TS4YTableLength.Auto;
     if Result.IsInTable then
     begin
       Result.TableRow := LCurrentParagraph.TableRow;
       Result.TableCol := LCurrentParagraph.TableCol;
+      // The first paragraph of the cell holds its style: go back to it from the caret
+      LParagraphIndex := FCaretPosition.ParagraphIndex;
+      while (LParagraphIndex > 0) and FDocument.Paragraphs[LParagraphIndex - 1].IsInCell(LCurrentParagraph.TableID,
+              LCurrentParagraph.TableRow, LCurrentParagraph.TableCol) do
+        Dec(LParagraphIndex);
+      Result.TableAlignment := FDocument.Paragraphs[LParagraphIndex].TableAlignment;
+      Result.TableCellBackgroundColor := FDocument.Paragraphs[LParagraphIndex].TableCellBackgroundColor;
+      Result.TableCellPadding := FDocument.Paragraphs[LParagraphIndex].TableCellPadding;
+      Result.TableCellVerticalAlignment := FDocument.Paragraphs[LParagraphIndex].TableCellVerticalAlignment;
+      Result.TableHasBorder := FDocument.Paragraphs[LParagraphIndex].TableHasBorder;
+      Result.TableWidth := FDocument.Paragraphs[LParagraphIndex].TableWidth;
     end
     else
     begin

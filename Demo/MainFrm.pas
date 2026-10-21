@@ -92,6 +92,31 @@ type
     miDeleteTableRow: TMenuItem;
     miInsertTableColumn: TMenuItem;
     miDeleteTableColumn: TMenuItem;
+    miTableStyleSeparator: TMenuItem;
+    miTableCellBackground: TMenuItem;
+    miTableCellBackgroundColor: TMenuItem;
+    miTableCellBackgroundNone: TMenuItem;
+    miTableCellPadding: TMenuItem;
+    miTableCellPaddingDefault: TMenuItem;
+    miTableCellPadding4: TMenuItem;
+    miTableCellPadding8: TMenuItem;
+    miTableCellPadding16: TMenuItem;
+    miTableCellVerticalAlignment: TMenuItem;
+    miTableCellVerticalAlignmentTop: TMenuItem;
+    miTableCellVerticalAlignmentMiddle: TMenuItem;
+    miTableCellVerticalAlignmentBottom: TMenuItem;
+    miTableAlignment: TMenuItem;
+    miTableAlignmentLeft: TMenuItem;
+    miTableAlignmentCenter: TMenuItem;
+    miTableAlignmentRight: TMenuItem;
+    miTableBorder: TMenuItem;
+    miTableBorderShow: TMenuItem;
+    miTableBorderHide: TMenuItem;
+    miTableWidth: TMenuItem;
+    miTableWidthAuto: TMenuItem;
+    miTableWidth50Percent: TMenuItem;
+    miTableWidth100Percent: TMenuItem;
+    miTableWidth400Pixels: TMenuItem;
     MenuItem1: TMenuItem;
     miInsertTable: TMenuItem;
     MenuItem3: TMenuItem;
@@ -140,6 +165,15 @@ type
     procedure miDeleteTableRowClick(Sender: TObject);
     procedure miDeleteTableColumnClick(Sender: TObject);
     procedure miInsertTableClick(Sender: TObject);
+    procedure miTableCellBackgroundColorClick(Sender: TObject);
+    procedure miTableCellBackgroundNoneClick(Sender: TObject);
+    procedure miTableCellPaddingClick(Sender: TObject);
+    procedure miTableCellVerticalAlignmentClick(Sender: TObject);
+    procedure miTableAlignmentClick(Sender: TObject);
+    procedure miTableBorderClick(Sender: TObject);
+    procedure miTableWidthAutoClick(Sender: TObject);
+    procedure miTableWidthPercentClick(Sender: TObject);
+    procedure miTableWidthPixelsClick(Sender: TObject);
     procedure btnTableClick(Sender: TObject);
     procedure btnInsertEmojiClick(Sender: TObject);
     procedure btnDecreaseFontSizeClick(Sender: TObject);
@@ -168,6 +202,7 @@ type
     procedure UpdateEditorControls(const AState: TS4YEditorState);
     procedure UpdateReadOnlyControls;
     procedure UpdateStatusBar;
+    procedure UpdateTableMenuItems(const AState: TS4YEditorState);
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -369,6 +404,67 @@ end;
 procedure TfrmMain.miInsertTableRowClick(Sender: TObject);
 begin
   HTMLEditor.InsertTableRow;
+end;
+
+procedure TfrmMain.miTableAlignmentClick(Sender: TObject);
+begin
+  HTMLEditor.SetTableAlignment(TS4YHTMLAlignment(TMenuItem(Sender).Tag));
+end;
+
+procedure TfrmMain.miTableBorderClick(Sender: TObject);
+begin
+  HTMLEditor.SetTableBorder(TMenuItem(Sender).Tag <> 0);
+end;
+
+procedure TfrmMain.miTableCellBackgroundColorClick(Sender: TObject);
+var
+  LColor: TAlphaColor;
+begin
+  LColor := TAlphaColors.White;
+  if not TColorSelection.Execute(LColor) then
+    Exit;
+
+  HTMLEditor.SetTableCellBackgroundColor(LColor);
+end;
+
+procedure TfrmMain.miTableCellBackgroundNoneClick(Sender: TObject);
+begin
+  HTMLEditor.SetTableCellBackgroundColor(TAlphaColors.Null);
+end;
+
+procedure TfrmMain.miTableCellPaddingClick(Sender: TObject);
+var
+  LPixels: Integer;
+begin
+  LPixels := TMenuItem(Sender).Tag;
+  if LPixels < 0 then
+  begin
+    HTMLEditor.SetTableCellPadding(TS4YTablePadding.Default);
+  end
+  else
+  begin
+    HTMLEditor.SetTableCellPadding(TS4YTablePadding.Uniform(LPixels));
+  end;
+end;
+
+procedure TfrmMain.miTableCellVerticalAlignmentClick(Sender: TObject);
+begin
+  HTMLEditor.SetTableCellVerticalAlignment(TS4YTableVerticalAlignment(TMenuItem(Sender).Tag));
+end;
+
+procedure TfrmMain.miTableWidthAutoClick(Sender: TObject);
+begin
+  HTMLEditor.SetTableWidth(TS4YTableLength.Auto);
+end;
+
+procedure TfrmMain.miTableWidthPercentClick(Sender: TObject);
+begin
+  HTMLEditor.SetTableWidth(TS4YTableLength.Percent(TMenuItem(Sender).Tag));
+end;
+
+procedure TfrmMain.miTableWidthPixelsClick(Sender: TObject);
+begin
+  HTMLEditor.SetTableWidth(TS4YTableLength.Pixels(TMenuItem(Sender).Tag));
 end;
 
 procedure TfrmMain.btnFontColorClick(Sender: TObject);
@@ -574,9 +670,47 @@ begin
     btnOutdent.Enabled := AState.CanOutdent and not HTMLEditor.ReadOnly;
     shapeFontColor.Fill.Color := AState.FontColor;
     shapeBackgroundColor.Fill.Color := AState.BackgroundColor;
+    UpdateTableMenuItems(AState);
   finally
     FUpdatingUI := False;
   end;
+end;
+
+function IsUniformPadding(const APadding: TS4YTablePadding; const APixels: Integer): Boolean;
+begin
+  Result := APadding.IsSet and
+    (APadding.Left = APixels) and
+    (APadding.Top = APixels) and
+    (APadding.Right = APixels) and
+    (APadding.Bottom = APixels);
+end;
+
+procedure TfrmMain.UpdateTableMenuItems(const AState: TS4YEditorState);
+var
+  LInTable: Boolean;
+begin
+  LInTable := AState.TableRow >= 0;
+
+  miTableCellPaddingDefault.IsChecked := LInTable and not AState.TableCellPadding.IsSet;
+  miTableCellPadding4.IsChecked := LInTable and IsUniformPadding(AState.TableCellPadding, 4);
+  miTableCellPadding8.IsChecked := LInTable and IsUniformPadding(AState.TableCellPadding, 8);
+  miTableCellPadding16.IsChecked := LInTable and IsUniformPadding(AState.TableCellPadding, 16);
+
+  miTableCellVerticalAlignmentTop.IsChecked := LInTable and (AState.TableCellVerticalAlignment = tvaTop);
+  miTableCellVerticalAlignmentMiddle.IsChecked := LInTable and (AState.TableCellVerticalAlignment = tvaMiddle);
+  miTableCellVerticalAlignmentBottom.IsChecked := LInTable and (AState.TableCellVerticalAlignment = tvaBottom);
+
+  miTableAlignmentLeft.IsChecked := LInTable and (AState.TableAlignment = haLeft);
+  miTableAlignmentCenter.IsChecked := LInTable and (AState.TableAlignment = haCenter);
+  miTableAlignmentRight.IsChecked := LInTable and (AState.TableAlignment = haRight);
+
+  miTableBorderShow.IsChecked := LInTable and AState.TableHasBorder;
+  miTableBorderHide.IsChecked := LInTable and not AState.TableHasBorder;
+
+  miTableWidthAuto.IsChecked := LInTable and AState.TableWidth.IsAuto;
+  miTableWidth50Percent.IsChecked := LInTable and (AState.TableWidth.Kind = tlkPercent) and (AState.TableWidth.Value = 50);
+  miTableWidth100Percent.IsChecked := LInTable and (AState.TableWidth.Kind = tlkPercent) and (AState.TableWidth.Value = 100);
+  miTableWidth400Pixels.IsChecked := LInTable and (AState.TableWidth.Kind = tlkPixels) and (AState.TableWidth.Value = 400);
 end;
 
 procedure TfrmMain.swReadOnlySwitch(Sender: TObject);
