@@ -12,7 +12,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 |---|---|
 | `Sources` | All component units (`.pas`) |
 | `Packages` | Runtime and design-time packages, project group |
-| `Demo` | Sample FMX application |
+| `Demo` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files) |
 | `Docs` | Additional documentation: [`DeveloperGuide.md`](Docs/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals, in Italian) |
 
 ---
@@ -522,7 +522,7 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 
 ## Demo
 
-The `Demo` folder contains a sample FMX application (`Demo\S4YHTMLEditorDemo.dproj`, also part of the project group in `Packages`) with a complete toolbar, emoji picker, placeholder and color dialogs. The table button opens a menu that inserts and deletes rows and columns and styles the table under the caret (cell background, borders, padding and vertical alignment, table alignment, spacing, border and width). Install the component package first.
+The `Demo\Desktop` folder contains a sample FMX application (`Demo\Desktop\S4YHTMLEditorDemo.dproj`, also part of the project group in `Packages`) with a complete toolbar, emoji picker, placeholder and color dialogs. The table button opens a menu that inserts and deletes rows and columns and styles the table under the caret (cell background, borders, padding and vertical alignment, table alignment, spacing, border and width). Install the component package first.
 
 ---
 
