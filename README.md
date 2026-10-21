@@ -518,7 +518,7 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 
 ## Demo
 
-The `Demo` folder contains a sample FMX application (`Demo\S4YHTMLEditorDemo.dproj`, also part of the project group in `Packages`) with a complete toolbar, emoji picker, placeholder and color dialogs. Install the component package first.
+The `Demo` folder contains a sample FMX application (`Demo\S4YHTMLEditorDemo.dproj`, also part of the project group in `Packages`) with a complete toolbar, emoji picker, placeholder and color dialogs. The table button opens a menu that inserts and deletes rows and columns and styles the table under the caret (cell background, padding and vertical alignment, table alignment, border and width). Install the component package first.
 
 ---
 
