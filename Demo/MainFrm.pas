@@ -96,6 +96,19 @@ type
     miTableCellBackground: TMenuItem;
     miTableCellBackgroundColor: TMenuItem;
     miTableCellBackgroundNone: TMenuItem;
+    miTableCellBorder: TMenuItem;
+    miTableCellBorderAll: TMenuItem;
+    miTableCellBorderNone: TMenuItem;
+    miTableCellBorderSeparatorSides: TMenuItem;
+    miTableCellBorderTop: TMenuItem;
+    miTableCellBorderRight: TMenuItem;
+    miTableCellBorderBottom: TMenuItem;
+    miTableCellBorderLeft: TMenuItem;
+    miTableCellBorderSeparatorStyle: TMenuItem;
+    miTableCellBorderColor: TMenuItem;
+    miTableCellBorderWidth1: TMenuItem;
+    miTableCellBorderWidth2: TMenuItem;
+    miTableCellBorderWidth3: TMenuItem;
     miTableCellPadding: TMenuItem;
     miTableCellPaddingDefault: TMenuItem;
     miTableCellPadding4: TMenuItem;
@@ -167,6 +180,11 @@ type
     procedure miInsertTableClick(Sender: TObject);
     procedure miTableCellBackgroundColorClick(Sender: TObject);
     procedure miTableCellBackgroundNoneClick(Sender: TObject);
+    procedure miTableCellBorderAllClick(Sender: TObject);
+    procedure miTableCellBorderNoneClick(Sender: TObject);
+    procedure miTableCellBorderSideClick(Sender: TObject);
+    procedure miTableCellBorderColorClick(Sender: TObject);
+    procedure miTableCellBorderWidthClick(Sender: TObject);
     procedure miTableCellPaddingClick(Sender: TObject);
     procedure miTableCellVerticalAlignmentClick(Sender: TObject);
     procedure miTableAlignmentClick(Sender: TObject);
@@ -194,6 +212,7 @@ type
   private
     FUpdatingUI: Boolean;
     procedure ApplyColorButtonTextStyle(const AButton: TSpeedButton);
+    procedure RestyleVisibleBorders(AWidth: Single; AColor: TAlphaColor);
     procedure BuildEmojisList;
     procedure EmojiClick(Sender: TObject);
     procedure ShowControlPopup(const AControl: TControl);
@@ -404,6 +423,111 @@ end;
 procedure TfrmMain.miInsertTableRowClick(Sender: TObject);
 begin
   HTMLEditor.InsertTableRow;
+end;
+
+function BorderSideOf(const ABorders: TS4YTableBorders; ASide: TS4YTableSide): TS4YTableBorderSide;
+begin
+  case ASide of
+    tsTop: Result := ABorders.Top;
+    tsRight: Result := ABorders.Right;
+    tsBottom: Result := ABorders.Bottom;
+  else
+    Result := ABorders.Left;
+  end;
+end;
+
+// Changes the width and the color of the sides that have a border; a width of 0 or TAlphaColors.Null keeps the current one.
+// The sides that end up with the same border are changed together, so that one change is one undo step.
+procedure TfrmMain.RestyleVisibleBorders(AWidth: Single; AColor: TAlphaColor);
+var
+  LBorders: TS4YTableBorders;
+  LDone: TS4YTableSides;
+  LGroup: TS4YTableSides;
+  LSide: TS4YTableSide;
+  LOtherSide: TS4YTableSide;
+  LCurrent: TS4YTableBorderSide;
+  LNew: TS4YTableBorderSide;
+  LOtherNew: TS4YTableBorderSide;
+
+  function Restyled(const ASide: TS4YTableBorderSide): TS4YTableBorderSide;
+  begin
+    Result := ASide;
+    if AWidth > 0 then
+      Result.Width := AWidth;
+    if AColor <> TAlphaColors.Null then
+      Result.Color := AColor;
+  end;
+
+begin
+  LBorders := HTMLEditor.State.TableCellBorders;
+  LDone := [];
+  for LSide := Low(TS4YTableSide) to High(TS4YTableSide) do
+  begin
+    LCurrent := BorderSideOf(LBorders, LSide);
+    if LCurrent.IsVisible and not (LSide in LDone) then
+    begin
+      LNew := Restyled(LCurrent);
+      LGroup := [LSide];
+      for LOtherSide := Low(TS4YTableSide) to High(TS4YTableSide) do
+      begin
+        LOtherNew := Restyled(BorderSideOf(LBorders, LOtherSide));
+        if (LOtherSide > LSide) and BorderSideOf(LBorders, LOtherSide).IsVisible and LOtherNew.Equals(LNew) then
+          Include(LGroup, LOtherSide);
+      end;
+      HTMLEditor.SetTableCellBorder(LGroup, LNew);
+      LDone := LDone + LGroup;
+    end;
+  end;
+end;
+
+procedure TfrmMain.miTableCellBorderAllClick(Sender: TObject);
+begin
+  HTMLEditor.SetTableCellBorder([tsTop, tsRight, tsBottom, tsLeft], TS4YTableBorderSide.Default);
+end;
+
+procedure TfrmMain.miTableCellBorderColorClick(Sender: TObject);
+var
+  LBorders: TS4YTableBorders;
+  LColor: TAlphaColor;
+  LSide: TS4YTableSide;
+begin
+  LBorders := HTMLEditor.State.TableCellBorders;
+  LColor := C_DEFAULT_TABLE_BORDER_COLOR;
+  for LSide := High(TS4YTableSide) downto Low(TS4YTableSide) do
+  begin
+    if BorderSideOf(LBorders, LSide).IsVisible then
+      LColor := BorderSideOf(LBorders, LSide).Color;
+  end;
+  if not TColorSelection.Execute(LColor) then
+    Exit;
+
+  RestyleVisibleBorders(0, LColor);
+end;
+
+procedure TfrmMain.miTableCellBorderNoneClick(Sender: TObject);
+begin
+  HTMLEditor.SetTableCellBorder([tsTop, tsRight, tsBottom, tsLeft], TS4YTableBorderSide.None);
+end;
+
+// Each side switches: a side with a border loses it, a side without one gets the default border
+procedure TfrmMain.miTableCellBorderSideClick(Sender: TObject);
+var
+  LSide: TS4YTableSide;
+begin
+  LSide := TS4YTableSide(TMenuItem(Sender).Tag);
+  if BorderSideOf(HTMLEditor.State.TableCellBorders, LSide).IsVisible then
+  begin
+    HTMLEditor.SetTableCellBorder([LSide], TS4YTableBorderSide.None);
+  end
+  else
+  begin
+    HTMLEditor.SetTableCellBorder([LSide], TS4YTableBorderSide.Default);
+  end;
+end;
+
+procedure TfrmMain.miTableCellBorderWidthClick(Sender: TObject);
+begin
+  RestyleVisibleBorders(TMenuItem(Sender).Tag, TAlphaColors.Null);
 end;
 
 procedure TfrmMain.miTableAlignmentClick(Sender: TObject);
@@ -685,11 +809,39 @@ begin
     (APadding.Bottom = APixels);
 end;
 
+// True when at least one side has a border and every side that has one is APixels wide
+function HasVisibleBorderWidth(const ABorders: TS4YTableBorders; APixels: Single): Boolean;
+var
+  LSide: TS4YTableSide;
+begin
+  Result := False;
+  for LSide := Low(TS4YTableSide) to High(TS4YTableSide) do
+  begin
+    if BorderSideOf(ABorders, LSide).IsVisible then
+    begin
+      if BorderSideOf(ABorders, LSide).Width <> APixels then
+      begin
+        Result := False;
+        Exit;
+      end;
+      Result := True;
+    end;
+  end;
+end;
+
 procedure TfrmMain.UpdateTableMenuItems(const AState: TS4YEditorState);
 var
   LInTable: Boolean;
 begin
   LInTable := AState.TableRow >= 0;
+
+  miTableCellBorderTop.IsChecked := LInTable and AState.TableCellBorders.Top.IsVisible;
+  miTableCellBorderRight.IsChecked := LInTable and AState.TableCellBorders.Right.IsVisible;
+  miTableCellBorderBottom.IsChecked := LInTable and AState.TableCellBorders.Bottom.IsVisible;
+  miTableCellBorderLeft.IsChecked := LInTable and AState.TableCellBorders.Left.IsVisible;
+  miTableCellBorderWidth1.IsChecked := LInTable and HasVisibleBorderWidth(AState.TableCellBorders, 1);
+  miTableCellBorderWidth2.IsChecked := LInTable and HasVisibleBorderWidth(AState.TableCellBorders, 2);
+  miTableCellBorderWidth3.IsChecked := LInTable and HasVisibleBorderWidth(AState.TableCellBorders, 3);
 
   miTableCellPaddingDefault.IsChecked := LInTable and not AState.TableCellPadding.IsSet;
   miTableCellPadding4.IsChecked := LInTable and IsUniformPadding(AState.TableCellPadding, 4);

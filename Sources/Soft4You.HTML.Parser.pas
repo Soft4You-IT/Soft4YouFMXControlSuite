@@ -54,6 +54,7 @@ type
         CellBackground: TAlphaColor;
         CellPadding: TS4YTablePadding;
         CellVerticalAlignment: TS4YTableVerticalAlignment;
+        CellBorders: TS4YTableBorders;
         TableBackground: TAlphaColor;
         TablePadding: TS4YTablePadding;
         CellStylePushed: Boolean;
@@ -106,9 +107,10 @@ type
     FTableAlignment: TS4YHTMLAlignment;
     FTableHasBorder: Boolean;
     FCellWidth: TS4YTableLength;  // width asked for the open cell
-    FCellBackground: TAlphaColor;  // background, padding and vertical alignment of the open cell
+    FCellBackground: TAlphaColor;  // background, padding, vertical alignment and borders of the open cell
     FCellPadding: TS4YTablePadding;
     FCellVerticalAlignment: TS4YTableVerticalAlignment;
+    FCellBorders: TS4YTableBorders;
     FTableBackground: TAlphaColor;  // background and padding that the cells of the table being read get by default
     FTablePadding: TS4YTablePadding;
     FBlockStyles: TList<TBlockStyleEntry>;  // the blocks that are open (p, div, h1, li, ...), innermost last
@@ -147,6 +149,10 @@ type
     procedure ReadCellAttributes(const AAttributes: string);
     function ParseBackgroundColor(const AAttributes: string): TAlphaColor;
     function ParsePadding(const AStyle: string): TS4YTablePadding;
+    function SplitCSSValue(const AText: string): TArray<string>;
+    function ParseBorderLineStyle(const AText: string): Integer;
+    function ParseBorderWidth(const AText: string; out AWidth: Single): Boolean;
+    function ParseBorders(const AStyle: string): TS4YTableBorders;
     function ParseTextStyleOfBlock(const AStyle: string; var ATextStyle: TS4YHTMLTextStyle): Boolean;
     function ParseTextAlignment(const AText: string; out AAlignment: TS4YHTMLAlignment): Boolean;
     function IsBlockStyleTag(const ATag: string): Boolean;
@@ -558,6 +564,7 @@ begin
       AParagraph.TableCellBackgroundColor := FCellBackground;
       AParagraph.TableCellPadding := FCellPadding;
       AParagraph.TableCellVerticalAlignment := FCellVerticalAlignment;
+      AParagraph.TableCellBorders := FCellBorders;
     end;
     Inc(FCellParagraphCount);
   end;
@@ -596,6 +603,7 @@ begin
   LState.CellBackground := FCellBackground;
   LState.CellPadding := FCellPadding;
   LState.CellVerticalAlignment := FCellVerticalAlignment;
+  LState.CellBorders := FCellBorders;
   LState.TableBackground := FTableBackground;
   LState.TablePadding := FTablePadding;
   LState.CellStylePushed := FCellStylePushed;
@@ -643,6 +651,7 @@ begin
   FCellBackground := LState.CellBackground;
   FCellPadding := LState.CellPadding;
   FCellVerticalAlignment := LState.CellVerticalAlignment;
+  FCellBorders := LState.CellBorders;
   FTableBackground := LState.TableBackground;
   FTablePadding := LState.TablePadding;
   FCellStylePushed := LState.CellStylePushed;
@@ -933,8 +942,350 @@ begin
     Result := TS4YTablePadding.Default;
 end;
 
-// Reads the background, padding and vertical alignment of the cell that starts now. What the cell does not write
-// comes from the table: its bgcolor and its cellpadding.
+// Splits the value of a CSS property at the spaces that are not inside parentheses, so that rgb(1, 2, 3) is one token.
+function TS4YHTMLParser.SplitCSSValue(const AText: string): TArray<string>;
+var
+  LTokens: TList<string>;
+  LCurrent: string;
+  LDepth: Integer;
+  LChar: Char;
+begin
+  LTokens := TList<string>.Create;
+  try
+    LCurrent := '';
+    LDepth := 0;
+    for LChar in AText do
+    begin
+      if LChar = '(' then
+      begin
+        Inc(LDepth);
+      end
+      else if LChar = ')' then
+      begin
+        Dec(LDepth);
+      end;
+      if (LChar = ' ') and (LDepth <= 0) then
+      begin
+        if LCurrent <> '' then
+        begin
+          LTokens.Add(LCurrent);
+        end;
+        LCurrent := '';
+      end
+      else
+      begin
+        LCurrent := LCurrent + LChar;
+      end;
+    end;
+    if LCurrent <> '' then
+    begin
+      LTokens.Add(LCurrent);
+    end;
+    Result := LTokens.ToArray;
+  finally
+    LTokens.Free;
+  end;
+end;
+
+// Reads the style of a border line: 1 for none and hidden, 2 for a line (solid, dashed, dotted, ...), 0 when the text
+// is not a border style. Every kind of line is drawn as a solid one.
+function TS4YHTMLParser.ParseBorderLineStyle(const AText: string): Integer;
+var
+  LText: string;
+begin
+  LText := TrimS(AText.ToLower);
+  if (LText = 'none') or (LText = 'hidden') then
+  begin
+    Result := 1;
+  end
+  else if (LText = 'solid') or (LText = 'dashed') or (LText = 'dotted') or (LText = 'double') or
+          (LText = 'groove') or (LText = 'ridge') or (LText = 'inset') or (LText = 'outset') then
+  begin
+    Result := 2;
+  end
+  else
+  begin
+    Result := 0;
+  end;
+end;
+
+// Reads the width of a border written as thin, medium, thick, 2, 2px or 2pt. Zero is a valid width.
+function TS4YHTMLParser.ParseBorderWidth(const AText: string; out AWidth: Single): Boolean;
+var
+  LText: string;
+  LFactor: Single;
+begin
+  Result := True;
+  AWidth := 0;
+  LText := TrimS(AText.ToLower);
+  if LText = 'thin' then
+  begin
+    AWidth := 1;
+  end
+  else if LText = 'medium' then
+  begin
+    AWidth := 3;
+  end
+  else if LText = 'thick' then
+  begin
+    AWidth := 5;
+  end
+  else if (LText <> '') and CharInSet(LText[1], ['0'..'9', '.']) then
+  begin
+    LFactor := 1;
+    if LText.EndsWith('px') then
+    begin
+      LText := TrimS(LText.Substring(0, Length(LText) - 2));
+    end
+    else if LText.EndsWith('pt') then
+    begin
+      LText := TrimS(LText.Substring(0, Length(LText) - 2));
+      LFactor := 1.33;
+    end;
+    AWidth := StrToFloatDef(LText, -1) * LFactor;
+    Result := AWidth >= 0;
+  end
+  else
+  begin
+    Result := False;
+  end;
+end;
+
+// Reads the borders of a cell from the border, border-width, border-style, border-color, border-top, border-right,
+// border-bottom and border-left styles and from their width, style and color forms (border-top-width, ...).
+// A side that is not written keeps the border of its table: the default one when the table has borders, none otherwise.
+// No border style at all gives borders that are not set.
+function TS4YHTMLParser.ParseBorders(const AStyle: string): TS4YTableBorders;
+const
+  C_SIDE_NAMES: array[0..3] of string = ('top', 'right', 'bottom', 'left');
+var
+  LWidth: array[0..3] of Single;
+  LLineStyle: array[0..3] of Integer;  // 0 = not written, 1 = none, 2 = a line
+  LColor: array[0..3] of TAlphaColor;
+  LHasColor: array[0..3] of Boolean;
+  LSides: array[0..3] of TS4YTableBorderSide;
+  LBase: TS4YTableBorderSide;
+  LIsSet: Boolean;
+  LValue: string;
+  LSide: Integer;
+
+  procedure SetWidth(ASide: Integer; const AText: string);
+  var
+    LParsed: Single;
+  begin
+    if ParseBorderWidth(AText, LParsed) then
+    begin
+      LWidth[ASide] := LParsed;
+      LIsSet := True;
+    end;
+  end;
+
+  procedure SetLineStyle(ASide: Integer; const AText: string);
+  begin
+    if ParseBorderLineStyle(AText) <> 0 then
+    begin
+      LLineStyle[ASide] := ParseBorderLineStyle(AText);
+      LIsSet := True;
+    end;
+  end;
+
+  procedure SetColor(ASide: Integer; const AText: string);
+  var
+    LParsed: TAlphaColor;
+  begin
+    LParsed := ParseColor(TrimS(AText));
+    if LParsed <> claNull then
+    begin
+      LColor[ASide] := LParsed;
+      LHasColor[ASide] := True;
+      LIsSet := True;
+    end;
+  end;
+
+  // border and border-top, ...: the width, the style and the color in any order. What is missing is the initial
+  // value of the property: no line, medium width, no color of its own.
+  procedure SetShorthand(ASide: Integer; const AText: string);
+  var
+    LToken: string;
+    LParsed: Single;
+    LParsedColor: TAlphaColor;
+  begin
+    LLineStyle[ASide] := 1;
+    LWidth[ASide] := 3;
+    LHasColor[ASide] := False;
+    for LToken in SplitCSSValue(AText) do
+    begin
+      if ParseBorderWidth(LToken, LParsed) then
+      begin
+        LWidth[ASide] := LParsed;
+      end
+      else if ParseBorderLineStyle(LToken) <> 0 then
+      begin
+        LLineStyle[ASide] := ParseBorderLineStyle(LToken);
+      end
+      else
+      begin
+        LParsedColor := ParseColor(LToken);
+        if LParsedColor <> claNull then
+        begin
+          LColor[ASide] := LParsedColor;
+          LHasColor[ASide] := True;
+        end;
+      end;
+    end;
+    LIsSet := True;
+  end;
+
+  // border-width, border-style and border-color: one to four values in the order top, right, bottom, left.
+  // AKind is 0 for the width, 1 for the style and 2 for the color.
+  procedure SetAllSides(const AText: string; AKind: Integer);
+  var
+    LTokens: TArray<string>;
+    LValues: array[0..3] of string;
+    LIndex: Integer;
+  begin
+    LTokens := SplitCSSValue(AText);
+    case Length(LTokens) of
+      1:
+        begin
+          LValues[0] := LTokens[0];
+          LValues[1] := LTokens[0];
+          LValues[2] := LTokens[0];
+          LValues[3] := LTokens[0];
+        end;
+      2:
+        begin
+          LValues[0] := LTokens[0];
+          LValues[1] := LTokens[1];
+          LValues[2] := LTokens[0];
+          LValues[3] := LTokens[1];
+        end;
+      3:
+        begin
+          LValues[0] := LTokens[0];
+          LValues[1] := LTokens[1];
+          LValues[2] := LTokens[2];
+          LValues[3] := LTokens[1];
+        end;
+      4:
+        begin
+          LValues[0] := LTokens[0];
+          LValues[1] := LTokens[1];
+          LValues[2] := LTokens[2];
+          LValues[3] := LTokens[3];
+        end;
+    else
+      Exit;
+    end;
+    for LIndex := 0 to 3 do
+    begin
+      case AKind of
+        0: SetWidth(LIndex, LValues[LIndex]);
+        1: SetLineStyle(LIndex, LValues[LIndex]);
+      else
+        SetColor(LIndex, LValues[LIndex]);
+      end;
+    end;
+  end;
+
+begin
+  LIsSet := False;
+  for LSide := 0 to 3 do
+  begin
+    LWidth[LSide] := -1;
+    LLineStyle[LSide] := 0;
+    LColor[LSide] := claNull;
+    LHasColor[LSide] := False;
+  end;
+  // From the most general to the most specific, so that the specific form wins
+  LValue := ExtractCSSValue(AStyle, 'border');
+  if LValue <> '' then
+  begin
+    for LSide := 0 to 3 do
+    begin
+      SetShorthand(LSide, LValue);
+    end;
+  end;
+  LValue := ExtractCSSValue(AStyle, 'border-width');
+  if LValue <> '' then
+  begin
+    SetAllSides(LValue, 0);
+  end;
+  LValue := ExtractCSSValue(AStyle, 'border-style');
+  if LValue <> '' then
+  begin
+    SetAllSides(LValue, 1);
+  end;
+  LValue := ExtractCSSValue(AStyle, 'border-color');
+  if LValue <> '' then
+  begin
+    SetAllSides(LValue, 2);
+  end;
+  for LSide := 0 to 3 do
+  begin
+    LValue := ExtractCSSValue(AStyle, 'border-' + C_SIDE_NAMES[LSide]);
+    if LValue <> '' then
+    begin
+      SetShorthand(LSide, LValue);
+    end;
+    LValue := ExtractCSSValue(AStyle, 'border-' + C_SIDE_NAMES[LSide] + '-width');
+    if LValue <> '' then
+    begin
+      SetWidth(LSide, LValue);
+    end;
+    LValue := ExtractCSSValue(AStyle, 'border-' + C_SIDE_NAMES[LSide] + '-style');
+    if LValue <> '' then
+    begin
+      SetLineStyle(LSide, LValue);
+    end;
+    LValue := ExtractCSSValue(AStyle, 'border-' + C_SIDE_NAMES[LSide] + '-color');
+    if LValue <> '' then
+    begin
+      SetColor(LSide, LValue);
+    end;
+  end;
+  if not LIsSet then
+  begin
+    Result := TS4YTableBorders.Default;
+    Exit;
+  end;
+  if FTableHasBorder then
+  begin
+    LBase := TS4YTableBorderSide.Default;
+  end
+  else
+  begin
+    LBase := TS4YTableBorderSide.None;
+  end;
+  for LSide := 0 to 3 do
+  begin
+    LSides[LSide] := LBase;
+    if LLineStyle[LSide] = 1 then
+    begin
+      LSides[LSide] := TS4YTableBorderSide.None;
+    end
+    else
+    begin
+      // A line where the table had none: medium and black until the width and the color say otherwise
+      if (LLineStyle[LSide] = 2) and not LSides[LSide].IsVisible then
+      begin
+        LSides[LSide] := TS4YTableBorderSide.Solid(3, TAlphaColors.Black);
+      end;
+      if (LWidth[LSide] >= 0) and LSides[LSide].IsVisible then
+      begin
+        LSides[LSide] := TS4YTableBorderSide.Solid(LWidth[LSide], LSides[LSide].Color);
+      end;
+      if LHasColor[LSide] and LSides[LSide].IsVisible then
+      begin
+        LSides[LSide].Color := LColor[LSide];
+      end;
+    end;
+  end;
+  Result := TS4YTableBorders.Sides(LSides[0], LSides[1], LSides[2], LSides[3]);
+end;
+
+// Reads the background, padding, vertical alignment and borders of the cell that starts now. What the cell does not
+// write comes from the table: its bgcolor, its cellpadding and its border.
 procedure TS4YHTMLParser.ReadCellAttributes(const AAttributes: string);
 var
   LStyle: string;
@@ -947,6 +1298,7 @@ begin
   FCellPadding := ParsePadding(LStyle);
   if not FCellPadding.IsSet then
     FCellPadding := FTablePadding;
+  FCellBorders := ParseBorders(LStyle);
   // The text alignment of the cell, or of its table
   FCellHasAlignment := FTableHasTextAlignment;
   FCellAlignment := FTableTextAlignment;

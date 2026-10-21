@@ -95,6 +95,7 @@ type
     FTableCol: Integer;     // 0-based column index (table cell paragraphs only)
     FTableAlignment: TS4YHTMLAlignment;  // placement of the table when it is narrower than the space (table cell paragraphs only)
     FTableCellBackgroundColor: TAlphaColor;  // background color of the cell, claNull = none (first paragraph of the cell only)
+    FTableCellBorders: TS4YTableBorders;  // borders of the cell, not set = follows the table (first paragraph of the cell only)
     FTableCellPadding: TS4YTablePadding;  // padding of the cell (first paragraph of the cell only)
     FTableCellVerticalAlignment: TS4YTableVerticalAlignment;  // where the content sits in a taller cell (first paragraph of the cell only)
     FTableCellWidth: TS4YTableLength;  // width asked for the cell (first paragraph of the cell only)
@@ -150,6 +151,14 @@ type
     /// </summary>
     /// <param name="ASource">A paragraph of the same table.</param>
     procedure CopyTableLayoutFrom(ASource: TS4YHTMLParagraph);
+    /// <summary>
+    /// Returns the borders that are drawn around the cell of the paragraph.
+    /// </summary>
+    /// <returns>
+    /// TableCellBorders when they are set; otherwise the default border on each side when TableHasBorder is True and none
+    /// when it is False. The result is always set. Meant for the first paragraph of a cell, the one that holds its borders.
+    /// </returns>
+    function EffectiveTableCellBorders: TS4YTableBorders;
     /// <summary>
     /// Tells whether the paragraph is in a cell, directly or inside a table nested in that cell.
     /// </summary>
@@ -207,6 +216,14 @@ type
     /// Only the first paragraph of the cell holds it. A cell without its own color gets the color of the table when it is read.
     /// </remarks>
     property TableCellBackgroundColor: TAlphaColor read FTableCellBackgroundColor write FTableCellBackgroundColor;
+    /// <summary>
+    /// Borders of the cell, one for each side, when IsTableCell is True; not set means that the cell follows its table.
+    /// </summary>
+    /// <remarks>
+    /// Only the first paragraph of the cell holds it. A cell that follows its table has the default border on each side
+    /// when TableHasBorder is True and none otherwise.
+    /// </remarks>
+    property TableCellBorders: TS4YTableBorders read FTableCellBorders write FTableCellBorders;
     /// <summary>
     /// Space between the border of the cell and its content, when IsTableCell is True; not set means the default padding.
     /// </summary>
@@ -392,6 +409,7 @@ begin
   Result.TableContainers := Copy(TableContainers);
   Result.TableAlignment := TableAlignment;
   Result.TableCellBackgroundColor := TableCellBackgroundColor;
+  Result.TableCellBorders := TableCellBorders;
   Result.TableCellPadding := TableCellPadding;
   Result.TableCellVerticalAlignment := TableCellVerticalAlignment;
   Result.TableCellWidth := TableCellWidth;
@@ -481,6 +499,16 @@ begin
   FTableMaximumWidth := ASource.TableMaximumWidth;
   FTableAlignment := ASource.TableAlignment;
   FTableHasBorder := ASource.TableHasBorder;
+end;
+
+function TS4YHTMLParagraph.EffectiveTableCellBorders: TS4YTableBorders;
+begin
+  if FTableCellBorders.IsSet then
+    Result := FTableCellBorders
+  else if FTableHasBorder then
+    Result := TS4YTableBorders.Uniform(TS4YTableBorderSide.Default)
+  else
+    Result := TS4YTableBorders.None;
 end;
 
 function TS4YHTMLParagraph.BelongsToTable(ATableID: Integer): Boolean;

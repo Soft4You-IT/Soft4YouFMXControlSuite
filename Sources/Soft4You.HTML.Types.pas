@@ -47,6 +47,12 @@ resourcestring
   S_FONT_SIZE_VERY_LARGE = 'Molto grande';
   S_FONT_SIZE_HUGE       = 'Enorme';
 
+const
+  /// <summary>Color of the border of a table cell when the table has borders and the cell does not say otherwise.</summary>
+  C_DEFAULT_TABLE_BORDER_COLOR = $FFB0B0B0;
+  /// <summary>Width of the border of a table cell, in pixels, when the table has borders and the cell does not say otherwise.</summary>
+  C_DEFAULT_TABLE_BORDER_WIDTH = 1.0;
+
 // ===========================================================================
 // Enumerations
 // ===========================================================================
@@ -348,6 +354,105 @@ type
   end;
 
   // ===========================================================================
+  // Table cell borders  (one border for each side of a table cell)
+  // ===========================================================================
+
+  /// <summary>
+  /// A side of a table cell.
+  /// </summary>
+  TS4YTableSide = (tsTop, tsRight, tsBottom, tsLeft);
+
+  /// <summary>
+  /// A set of sides of a table cell.
+  /// </summary>
+  TS4YTableSides = set of TS4YTableSide;
+
+  /// <summary>
+  /// One side of the border of a table cell: its width in pixels and its color.
+  /// </summary>
+  /// <remarks>
+  /// A width of 0 means that the side has no border.
+  /// </remarks>
+  TS4YTableBorderSide = record
+    /// <summary>Width in pixels; 0 means no border.</summary>
+    Width: Single;
+    /// <summary>Color of the border.</summary>
+    Color: TAlphaColor;
+    /// <summary>
+    /// Returns the border that a table with borders draws on each side of its cells.
+    /// </summary>
+    class function Default: TS4YTableBorderSide; static;
+    /// <summary>
+    /// Returns a side without border.
+    /// </summary>
+    class function None: TS4YTableBorderSide; static;
+    /// <summary>
+    /// Creates a side with a solid border.
+    /// </summary>
+    /// <param name="AWidth">Width in pixels; a value that is not positive gives a side without border.</param>
+    /// <param name="AColor">Color of the border.</param>
+    class function Solid(AWidth: Single; AColor: TAlphaColor): TS4YTableBorderSide; static;
+    /// <summary>
+    /// Tells whether the side has a border that is drawn.
+    /// </summary>
+    /// <returns>True when the width is positive and the color is not claNull.</returns>
+    function IsVisible: Boolean;
+    /// <summary>
+    /// Compares two sides.
+    /// </summary>
+    /// <param name="AOther">The side to compare with.</param>
+    /// <returns>True when both are not drawn, or when width and color are equal.</returns>
+    function Equals(const AOther: TS4YTableBorderSide): Boolean;
+  end;
+
+  /// <summary>
+  /// The borders of a table cell, one for each side.
+  /// </summary>
+  /// <remarks>
+  /// A record that is not set (IsSet is False) means that the cell follows its table: it has the default border on each
+  /// side when the table has borders and none otherwise. A record that is set gives the four sides explicitly.
+  /// </remarks>
+  TS4YTableBorders = record
+    /// <summary>Tells whether the borders were set. When it is False the other fields are not used.</summary>
+    IsSet: Boolean;
+    /// <summary>Border above.</summary>
+    Top: TS4YTableBorderSide;
+    /// <summary>Border on the right.</summary>
+    Right: TS4YTableBorderSide;
+    /// <summary>Border below.</summary>
+    Bottom: TS4YTableBorderSide;
+    /// <summary>Border on the left.</summary>
+    Left: TS4YTableBorderSide;
+    /// <summary>
+    /// Returns borders that are not set, so that the cell follows its table.
+    /// </summary>
+    class function Default: TS4YTableBorders; static; inline;
+    /// <summary>
+    /// Returns borders that are set and have no border on any side.
+    /// </summary>
+    class function None: TS4YTableBorders; static;
+    /// <summary>
+    /// Creates the same border on the four sides.
+    /// </summary>
+    /// <param name="ASide">The border of each side.</param>
+    class function Uniform(const ASide: TS4YTableBorderSide): TS4YTableBorders; static;
+    /// <summary>
+    /// Creates borders with a border for each side.
+    /// </summary>
+    /// <param name="ATop">Border above.</param>
+    /// <param name="ARight">Border on the right.</param>
+    /// <param name="ABottom">Border below.</param>
+    /// <param name="ALeft">Border on the left.</param>
+    class function Sides(const ATop, ARight, ABottom, ALeft: TS4YTableBorderSide): TS4YTableBorders; static;
+    /// <summary>
+    /// Compares two sets of borders.
+    /// </summary>
+    /// <param name="AOther">The borders to compare with.</param>
+    /// <returns>True when both are not set, or when both are set with equal sides.</returns>
+    function Equals(const AOther: TS4YTableBorders): Boolean;
+  end;
+
+  // ===========================================================================
   // Table cell reference  (position of a cell in a table)
   // ===========================================================================
 
@@ -460,8 +565,8 @@ type
     FirstParagraphIndex: Integer;
     /// <summary>Number of tables that contain the table of the cell; 0 when the table is not nested.</summary>
     Depth: Integer;
-    /// <summary>Tells whether the border of the cell is drawn.</summary>
-    HasBorder: Boolean;
+    /// <summary>Borders of the cell that are drawn: always set, a side without border has a width of 0.</summary>
+    Borders: TS4YTableBorders;
     /// <summary>Background color of the cell; claNull means none.</summary>
     BackgroundColor: TAlphaColor;
     /// <summary>Left edge of the cell.</summary>
@@ -1019,6 +1124,92 @@ begin
     Result := True
   else
     Result := (Left = AOther.Left) and (Top = AOther.Top) and (Right = AOther.Right) and (Bottom = AOther.Bottom);
+end;
+
+// -----------------------------------------------------------------------------
+// TS4YTableBorderSide
+// -----------------------------------------------------------------------------
+
+class function TS4YTableBorderSide.Default: TS4YTableBorderSide;
+begin
+  Result := Solid(C_DEFAULT_TABLE_BORDER_WIDTH, C_DEFAULT_TABLE_BORDER_COLOR);
+end;
+
+class function TS4YTableBorderSide.None: TS4YTableBorderSide;
+begin
+  Result.Width := 0;
+  Result.Color := claNull;
+end;
+
+class function TS4YTableBorderSide.Solid(AWidth: Single; AColor: TAlphaColor): TS4YTableBorderSide;
+begin
+  if AWidth > 0 then
+  begin
+    Result.Width := AWidth;
+    Result.Color := AColor;
+  end
+  else
+  begin
+    Result := None;
+  end;
+end;
+
+function TS4YTableBorderSide.IsVisible: Boolean;
+begin
+  Result := (Width > 0) and (Color <> claNull);
+end;
+
+function TS4YTableBorderSide.Equals(const AOther: TS4YTableBorderSide): Boolean;
+begin
+  if IsVisible <> AOther.IsVisible then
+    Result := False
+  else if not IsVisible then
+    Result := True
+  else
+    Result := (Width = AOther.Width) and (Color = AOther.Color);
+end;
+
+// -----------------------------------------------------------------------------
+// TS4YTableBorders
+// -----------------------------------------------------------------------------
+
+class function TS4YTableBorders.Default: TS4YTableBorders;
+begin
+  Result.IsSet := False;
+  Result.Top := TS4YTableBorderSide.None;
+  Result.Right := TS4YTableBorderSide.None;
+  Result.Bottom := TS4YTableBorderSide.None;
+  Result.Left := TS4YTableBorderSide.None;
+end;
+
+class function TS4YTableBorders.None: TS4YTableBorders;
+begin
+  Result := Uniform(TS4YTableBorderSide.None);
+end;
+
+class function TS4YTableBorders.Uniform(const ASide: TS4YTableBorderSide): TS4YTableBorders;
+begin
+  Result := Sides(ASide, ASide, ASide, ASide);
+end;
+
+class function TS4YTableBorders.Sides(const ATop, ARight, ABottom, ALeft: TS4YTableBorderSide): TS4YTableBorders;
+begin
+  Result.IsSet := True;
+  Result.Top := ATop;
+  Result.Right := ARight;
+  Result.Bottom := ABottom;
+  Result.Left := ALeft;
+end;
+
+function TS4YTableBorders.Equals(const AOther: TS4YTableBorders): Boolean;
+begin
+  if IsSet <> AOther.IsSet then
+    Result := False
+  else if not IsSet then
+    Result := True
+  else
+    Result := Top.Equals(AOther.Top) and Right.Equals(AOther.Right) and Bottom.Equals(AOther.Bottom) and
+      Left.Equals(AOther.Left);
 end;
 
 // -----------------------------------------------------------------------------

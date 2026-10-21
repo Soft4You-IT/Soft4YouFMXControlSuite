@@ -1057,6 +1057,65 @@ object frmMain: TfrmMain
         OnClick = miTableCellBackgroundNoneClick
       end
     end
+    object miTableCellBorder: TMenuItem
+      Text = 'Cell borders'
+      object miTableCellBorderAll: TMenuItem
+        Text = 'All sides'
+        OnClick = miTableCellBorderAllClick
+      end
+      object miTableCellBorderNone: TMenuItem
+        Text = 'None'
+        OnClick = miTableCellBorderNoneClick
+      end
+      object miTableCellBorderSeparatorSides: TMenuItem
+        Text = '-'
+      end
+      object miTableCellBorderTop: TMenuItem
+        Tag = 0
+        Text = 'Top'
+        OnClick = miTableCellBorderSideClick
+      end
+      object miTableCellBorderRight: TMenuItem
+        Tag = 1
+        Text = 'Right'
+        OnClick = miTableCellBorderSideClick
+      end
+      object miTableCellBorderBottom: TMenuItem
+        Tag = 2
+        Text = 'Bottom'
+        OnClick = miTableCellBorderSideClick
+      end
+      object miTableCellBorderLeft: TMenuItem
+        Tag = 3
+        Text = 'Left'
+        OnClick = miTableCellBorderSideClick
+      end
+      object miTableCellBorderSeparatorStyle: TMenuItem
+        Text = '-'
+      end
+      object miTableCellBorderColor: TMenuItem
+        Text = 'Color...'
+        OnClick = miTableCellBorderColorClick
+      end
+      object miTableCellBorderWidth1: TMenuItem
+        Tag = 1
+        RadioItem = True
+        Text = '1 px'
+        OnClick = miTableCellBorderWidthClick
+      end
+      object miTableCellBorderWidth2: TMenuItem
+        Tag = 2
+        RadioItem = True
+        Text = '2 px'
+        OnClick = miTableCellBorderWidthClick
+      end
+      object miTableCellBorderWidth3: TMenuItem
+        Tag = 3
+        RadioItem = True
+        Text = '3 px'
+        OnClick = miTableCellBorderWidthClick
+      end
+    end
     object miTableCellPadding: TMenuItem
       Text = 'Cell padding'
       object miTableCellPaddingDefault: TMenuItem
