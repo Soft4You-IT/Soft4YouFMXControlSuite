@@ -38,6 +38,7 @@ requires
   S4YFMXHTMLEditor;
 
 contains
-  Soft4You.FMX.Controls.HTMLEditor.Design in '..\Sources\Soft4You.FMX.Controls.HTMLEditor.Design.pas';
+  Soft4You.FMX.Controls.HTMLEditor.Design in '..\Sources\Soft4You.FMX.Controls.HTMLEditor.Design.pas',
+  Soft4You.FMX.Controls.HTMLEditor.Splash in '..\Sources\Soft4You.FMX.Controls.HTMLEditor.Splash.pas';
 
 end.
