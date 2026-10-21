@@ -2,6 +2,7 @@ package S4YFMXHTMLEditorD;
 
 {$R *.res}
 {$R 'S4YFMXHTMLEditorD.dcr'}
+{$DESCRIPTION 'Soft4You FMX HTML Editor (design-time)'}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
 {$ASSERTIONS ON}
@@ -26,6 +27,7 @@ package S4YFMXHTMLEditorD;
 {$IMAGEBASE $400000}
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
+{$LIBSUFFIX AUTO}
 {$DESIGNONLY}
 {$IMPLICITBUILD OFF}
 
