@@ -114,7 +114,7 @@ end;
 | `<ul>` / `<ol>` / `<li>` | Unordered and ordered lists |
 | `<hr>` | Horizontal rule |
 | `<img>` | Inline image (a run inside the paragraph, so it can sit in the middle of a text) |
-| `<table>` / `<tr>` / `<td>` / `<th>` | Tables, including `colspan`, `rowspan`, nested tables, widths (`width`, `max-width`, in pixels or percent), `align`, `border="0"`, borders of each side of a cell (`border`, `border-top`, `border-right`, `border-bottom`, `border-left`, `border-width`, `border-style`, `border-color` and the forms like `border-top-width`; every line style is drawn as a solid line), cell background (`bgcolor`, `background-color`), padding (`padding`, `cellpadding`), vertical alignment (`valign`, `vertical-align`), text alignment and the text style of the cell or table (font, size, weight, color) |
+| `<table>` / `<tr>` / `<td>` / `<th>` | Tables, including `colspan`, `rowspan`, nested tables, widths (`width`, `max-width`, in pixels or percent), `align`, `border="0"`, borders of each side of a cell (`border`, `border-top`, `border-right`, `border-bottom`, `border-left`, `border-width`, `border-style`, `border-color` and the forms like `border-top-width`; every line style is drawn as a solid line), cell background (`bgcolor`, `background-color`), padding (`padding`, `cellpadding`), space between the cells (`cellspacing`, `border-spacing`; none with `border-collapse:collapse`), vertical alignment (`valign`, `vertical-align`), text alignment and the text style of the cell or table (font, size, weight, color) |
 | `<pre>` | Preformatted text |
 
 ### Inline elements
@@ -212,6 +212,7 @@ TS4YEditorState = record
   TableCellBackgroundColor: TAlphaColor;  // background of the cell at caret (claNull = none)
   TableCellBorders: TS4YTableBorders;     // borders drawn around the cell at caret (always set in a table)
   TableCellPadding: TS4YTablePadding;     // padding of the cell at caret (IsSet = False: default)
+  TableCellSpacing: Single;           // space in pixels between the cells of the table at caret (0 = they touch)
   TableCellVerticalAlignment: TS4YTableVerticalAlignment;  // tvaTop, tvaMiddle, tvaBottom
   TableAlignment: TS4YHTMLAlignment;  // placement of the table at caret when it is narrower than its space
   TableHasBorder: Boolean;            // False for a table written with border=0
@@ -270,6 +271,7 @@ end;
 | `SetTableCellBackgroundColor(Color)` | Background color of the cell at the caret, or of every cell that the selection touches (`claNull` removes it) |
 | `SetTableCellBorder(Sides, Border)` | Border of some sides of the cell(s): `Sides` is a set of `tsTop`, `tsRight`, `tsBottom`, `tsLeft`, `Border` a `TS4YTableBorderSide` (`.Solid(Width, Color)`, `.Default` or `.None`); the other sides keep theirs |
 | `SetTableCellPadding(Padding)` | Padding of the cell(s), a `TS4YTablePadding` (`TS4YTablePadding.Default` goes back to the default) |
+| `SetTableCellSpacing(Pixels)` | Space between the cells of the table that contains the caret, and between the cells and the edge of the table (0 makes them touch) |
 | `SetTableCellVerticalAlignment(Alignment)` | `tvaTop`, `tvaMiddle` or `tvaBottom` for the cell(s) |
 | `SetTableBorder(Visible)` | Show or hide the borders of the table that contains the caret |
 | `SetTableAlignment(Alignment)` | `haLeft`, `haCenter` or `haRight`, for a table that is narrower than its space |
@@ -520,7 +522,7 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 
 ## Demo
 
-The `Demo` folder contains a sample FMX application (`Demo\S4YHTMLEditorDemo.dproj`, also part of the project group in `Packages`) with a complete toolbar, emoji picker, placeholder and color dialogs. The table button opens a menu that inserts and deletes rows and columns and styles the table under the caret (cell background, borders, padding and vertical alignment, table alignment, border and width). Install the component package first.
+The `Demo` folder contains a sample FMX application (`Demo\S4YHTMLEditorDemo.dproj`, also part of the project group in `Packages`) with a complete toolbar, emoji picker, placeholder and color dialogs. The table button opens a menu that inserts and deletes rows and columns and styles the table under the caret (cell background, borders, padding and vertical alignment, table alignment, spacing, border and width). Install the component package first.
 
 ---
 

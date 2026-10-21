@@ -354,6 +354,8 @@ type
     TableCellBorders: TS4YTableBorders;
     /// <summary>Padding of the table cell at the caret; not set when it has the default one or the caret is not in a table.</summary>
     TableCellPadding: TS4YTablePadding;
+    /// <summary>Space in pixels between the cells of the table at the caret; 0 when they touch or the caret is not in a table.</summary>
+    TableCellSpacing: Single;
     /// <summary>Vertical alignment of the table cell at the caret; tvaTop when the caret is not in a table.</summary>
     TableCellVerticalAlignment: TS4YTableVerticalAlignment;
     /// <summary>0-based column of the table cell at the caret; -1 when not in a table.</summary>
@@ -476,6 +478,7 @@ type
     FIsResizingTable: Boolean;  // the outer edge of the table is dragged: the width of the table changes
     FResizeAvailableWidth: Single;  // space that the table has
     FResizeTableAlignment: TS4YHTMLAlignment;
+    FResizeSpacing: Single;  // space between the cells of the table
     FResizeIsPixels: Boolean;  // the width of the table is in pixels
     FIsOverColumnBorder: Boolean;
     FMouseDownPosition: TS4YDocumentPosition;
@@ -934,6 +937,15 @@ type
     /// in the table where the selection starts. It does nothing when the caret is not in a table or when ReadOnly is True.
     /// </remarks>
     procedure SetTableCellPadding(const APadding: TS4YTablePadding);
+    /// <summary>
+    /// Sets the space between the cells of the table that contains the caret, and between the cells and the edge of the table.
+    /// </summary>
+    /// <param name="APixels">The space in pixels; 0 makes the cells touch. A negative value is taken as 0 and a value
+    /// above C_MAXIMUM_TABLE_CELL_SPACING as that limit.</param>
+    /// <remarks>
+    /// It does nothing when the caret is not in a table or when ReadOnly is True. The innermost table is used.
+    /// </remarks>
+    procedure SetTableCellSpacing(APixels: Single);
     /// <summary>
     /// Sets where the content of a table cell sits when the cell is taller than the content.
     /// </summary>
@@ -2079,6 +2091,7 @@ var
   LIsUniform: Boolean;
   LTableWidth: Single;
   LTableLeft: Single;
+  LSpacing: Single;  // space between the cells and between the cells and the edge of the table
   LAutoWidth: Single;
   LAutoCount: Integer;
   LFixedSum: Single;
@@ -2138,22 +2151,28 @@ var
       Result := TS4YTablePadding.Uniform(C_DEFAULT_TABLE_CELL_PADDING);
   end;
 
+  // Width that is left to the columns of a table of the given width once the spaces between the cells are taken away
+  function SpaceForColumns(ATableWidth: Single): Single;
+  begin
+    Result := Max(ATableWidth - (LCols + 1) * LSpacing, Single(LCols));
+  end;
+
   // Left edge of a column, relative to the space of the table
   function ColumnLeft(AColumn: Integer): Single;
   begin
     if LIsUniform then
-      Result := LTableLeft + AColumn * LCellW
+      Result := LTableLeft + LSpacing + AColumn * (LCellW + LSpacing)
     else
       Result := LColumnX[AColumn];
   end;
 
-  // Width of a cell that starts in a column and covers ASpan columns
+  // Width of a cell that starts in a column and covers ASpan columns, the spaces between those columns included
   function ColumnSpanWidth(AColumn, ASpan: Integer): Single;
   begin
     if LIsUniform then
-      Result := LCellW * ASpan
+      Result := LCellW * ASpan + LSpacing * (ASpan - 1)
     else
-      Result := LColumnX[AColumn + ASpan] - LColumnX[AColumn];
+      Result := LColumnX[AColumn + ASpan] - LColumnX[AColumn] - LSpacing;
   end;
 
   // Number of rows of the cell, limited to the rows of the table
@@ -2232,6 +2251,7 @@ begin
 
   // Width of the table and of its columns
   LFirstParagraph := ADocument.Paragraphs[AFirstParagraphIndex];
+  LSpacing := LFirstParagraph.TableCellSpacing;
   LTableWidth := AAvailableWidth;
   case LFirstParagraph.TableWidth.Kind of
     tlkPixels:
@@ -2267,7 +2287,7 @@ begin
   if LIsUniform then
   begin
     // No column has a width: all of them share the table
-    LCellW := LTableWidth / LCols;
+    LCellW := SpaceForColumns(LTableWidth) / LCols;
     LTableLeft := 0;
     case LFirstParagraph.TableAlignment of
       haCenter:
@@ -2281,7 +2301,7 @@ begin
     // The columns without width share what the others leave, and the columns are scaled to the table
     if LAutoCount > 0 then
     begin
-      LAutoWidth := (LTableWidth - LFixedSum) / LAutoCount;
+      LAutoWidth := (SpaceForColumns(LTableWidth) - LFixedSum) / LAutoCount;
       if LAutoWidth < C_MINIMUM_TABLE_COLUMN_WIDTH then
         LAutoWidth := C_MINIMUM_TABLE_COLUMN_WIDTH;
       for LIndex := 0 to LCols - 1 do
@@ -2293,10 +2313,10 @@ begin
       LTotalWidth := LTotalWidth + LColumnWidths[LIndex];
     // When every column has a width and the table has none, the table is as wide as its columns
     if (LAutoCount = 0) and LFirstParagraph.TableWidth.IsAuto and (LFirstParagraph.TableMaximumWidth <= 0) then
-      LTableWidth := Min(LTotalWidth, AAvailableWidth);
-    if (LTotalWidth > 0) and (Abs(LTotalWidth - LTableWidth) > 0.01) then
+      LTableWidth := Min(LTotalWidth + (LCols + 1) * LSpacing, AAvailableWidth);
+    if (LTotalWidth > 0) and (Abs(LTotalWidth - SpaceForColumns(LTableWidth)) > 0.01) then
       for LIndex := 0 to LCols - 1 do
-        LColumnWidths[LIndex] := LColumnWidths[LIndex] * LTableWidth / LTotalWidth;
+        LColumnWidths[LIndex] := LColumnWidths[LIndex] * SpaceForColumns(LTableWidth) / LTotalWidth;
     LTableLeft := 0;
     case LFirstParagraph.TableAlignment of
       haCenter:
@@ -2305,9 +2325,9 @@ begin
         LTableLeft := AAvailableWidth - LTableWidth;
     end;
     SetLength(LColumnX, LCols + 1);
-    LColumnX[0] := LTableLeft;
+    LColumnX[0] := LTableLeft + LSpacing;
     for LIndex := 0 to LCols - 1 do
-      LColumnX[LIndex + 1] := LColumnX[LIndex] + LColumnWidths[LIndex];
+      LColumnX[LIndex + 1] := LColumnX[LIndex] + LColumnWidths[LIndex] + LSpacing;
   end;
 
   // Layout each cell at the width of the columns it covers
@@ -2364,7 +2384,7 @@ begin
     LRowSpan := RowSpanOf(LParagraph);
     if LRowSpan > 1 then
     begin
-      LSpanHeight := 0;
+      LSpanHeight := (LRowSpan - 1) * LSpacing;
       for LRow := LParagraph.TableRow to LParagraph.TableRow + LRowSpan - 1 do
         LSpanHeight := LSpanHeight + LRowHeights[LRow];
       LPadding := PaddingOf(LParagraph);
@@ -2381,10 +2401,10 @@ begin
     LParagraph := ADocument.Paragraphs[LCellParagraphs[LCellIndex]];
     LColSpan := ColumnSpanOf(LParagraph);
     LRowSpan := RowSpanOf(LParagraph);
-    LRowTop := AY;
+    LRowTop := AY + LSpacing;
     for LRow := 0 to LParagraph.TableRow - 1 do
-      LRowTop := LRowTop + LRowHeights[LRow];
-    LSpanHeight := 0;
+      LRowTop := LRowTop + LRowHeights[LRow] + LSpacing;
+    LSpanHeight := (LRowSpan - 1) * LSpacing;
     for LRow := LParagraph.TableRow to LParagraph.TableRow + LRowSpan - 1 do
       LSpanHeight := LSpanHeight + LRowHeights[LRow];
 
@@ -2450,8 +2470,9 @@ begin
     ACells[High(ACells)] := LLayoutCell;
   end;
 
+  AY := AY + LSpacing;
   for LRow := 0 to LMaximumRow do
-    AY := AY + LRowHeights[LRow];
+    AY := AY + LRowHeights[LRow] + LSpacing;
 
   // Add inter-table spacing
   AY := AY + FParagraphSpacing;
@@ -5432,6 +5453,7 @@ end;
 function TS4YHTMLEditor.GetColumnWidths(ATableID: Integer): TArray<Single>;
 var
   LIndex: Integer;
+  LSpacing: Single;
   LColumns: Integer;
   LEdges: TArray<Single>;
   LKnown: TArray<Boolean>;
@@ -5439,9 +5461,13 @@ var
   LNext: Integer;
 begin
   LColumns := 0;
+  LSpacing := 0;
   for LIndex := 0 to High(FCells) do
     if FCells[LIndex].TableID = ATableID then
+    begin
       LColumns := FDocument.Paragraphs[FCells[LIndex].FirstParagraphIndex].TableCols;
+      LSpacing := FDocument.Paragraphs[FCells[LIndex].FirstParagraphIndex].TableCellSpacing;
+    end;
   SetLength(Result, LColumns);
   if LColumns < 1 then
     Exit;
@@ -5450,11 +5476,13 @@ begin
   for LIndex := 0 to High(FCells) do
     if FCells[LIndex].TableID = ATableID then
     begin
-      LEdges[FCells[LIndex].Column] := FCells[LIndex].X;
+      // The spaces between the cells are taken out, so that an edge is the sum of the widths of the columns before it
+      LEdges[FCells[LIndex].Column] := FCells[LIndex].X - (FCells[LIndex].Column + 1) * LSpacing;
       LKnown[FCells[LIndex].Column] := True;
       if FCells[LIndex].Column + FCells[LIndex].ColumnSpan <= LColumns then
       begin
-        LEdges[FCells[LIndex].Column + FCells[LIndex].ColumnSpan] := FCells[LIndex].X + FCells[LIndex].Width;
+        LEdges[FCells[LIndex].Column + FCells[LIndex].ColumnSpan] :=
+          FCells[LIndex].X + FCells[LIndex].Width - (FCells[LIndex].Column + FCells[LIndex].ColumnSpan) * LSpacing;
         LKnown[FCells[LIndex].Column + FCells[LIndex].ColumnSpan] := True;
       end;
     end;
@@ -5543,6 +5571,7 @@ begin
       begin
         FResizeAvailableWidth := FCells[I].TableAvailableWidth;
         FResizeTableAlignment := FDocument.Paragraphs[FCells[I].FirstParagraphIndex].TableAlignment;
+        FResizeSpacing := FDocument.Paragraphs[FCells[I].FirstParagraphIndex].TableCellSpacing;
         FResizeIsPixels := FDocument.Paragraphs[FCells[I].FirstParagraphIndex].TableWidth.Kind = tlkPixels;
       end;
   end;
@@ -5564,7 +5593,7 @@ begin
   begin
     // The edge that is dragged moves the table by the same amount in a table on the left, by half in a centered
     // table (it grows on both sides) and in the other direction in a table on the right (its left edge is dragged)
-    LStartWidth := 0;
+    LStartWidth := (Length(FResizeStartWidths) + 1) * FResizeSpacing;
     for LWidth in FResizeStartWidths do
       LStartWidth := LStartWidth + LWidth;
     case FResizeTableAlignment of
@@ -5578,7 +5607,8 @@ begin
     if FResizeAvailableWidth <= 0 then
       Exit;
     LNewWidth := LStartWidth + LFactor * (AX - FResizeStartX);
-    LNewWidth := Max(LNewWidth, Length(FResizeStartWidths) * C_MINIMUM_TABLE_COLUMN_WIDTH);
+    LNewWidth := Max(LNewWidth, Length(FResizeStartWidths) * C_MINIMUM_TABLE_COLUMN_WIDTH +
+      (Length(FResizeStartWidths) + 1) * FResizeSpacing);
     LNewWidth := Min(LNewWidth, FResizeAvailableWidth);
     if (Abs(LNewWidth - LStartWidth) < 0.5) and not FIsResizeChanged then
       Exit;
@@ -8431,6 +8461,23 @@ begin
   FinishTableStyleChange;
 end;
 
+procedure TS4YHTMLEditor.SetTableCellSpacing(APixels: Single);
+var
+  LTableID: Integer;
+  LIndex: Integer;
+begin
+  if FReadOnly or not FCaretPosition.IsValid or (FCaretPosition.ParagraphIndex >= FDocument.Paragraphs.Count) or
+     not FDocument.Paragraphs[FCaretPosition.ParagraphIndex].IsTableCell then
+    Exit;
+  LTableID := FDocument.Paragraphs[FCaretPosition.ParagraphIndex].TableID;
+  APixels := Min(Max(APixels, 0), C_MAXIMUM_TABLE_CELL_SPACING);
+  SaveUndo;
+  for LIndex := 0 to FDocument.Paragraphs.Count - 1 do
+    if FDocument.Paragraphs[LIndex].TableID = LTableID then
+      FDocument.Paragraphs[LIndex].TableCellSpacing := APixels;
+  FinishTableStyleChange;
+end;
+
 procedure TS4YHTMLEditor.SetTableCellVerticalAlignment(AAlignment: TS4YTableVerticalAlignment);
 var
   LTableID: Integer;
@@ -9423,6 +9470,7 @@ begin
     Result.TableCellBackgroundColor := claNull;
     Result.TableCellBorders := TS4YTableBorders.Default;
     Result.TableCellPadding := TS4YTablePadding.Default;
+    Result.TableCellSpacing := 0;
     Result.TableCellVerticalAlignment := tvaTop;
     Result.TableHasBorder := True;
     Result.TableWidth := TS4YTableLength.Auto;
@@ -9439,6 +9487,7 @@ begin
       Result.TableCellBackgroundColor := FDocument.Paragraphs[LParagraphIndex].TableCellBackgroundColor;
       Result.TableCellBorders := FDocument.Paragraphs[LParagraphIndex].EffectiveTableCellBorders;
       Result.TableCellPadding := FDocument.Paragraphs[LParagraphIndex].TableCellPadding;
+      Result.TableCellSpacing := FDocument.Paragraphs[LParagraphIndex].TableCellSpacing;
       Result.TableCellVerticalAlignment := FDocument.Paragraphs[LParagraphIndex].TableCellVerticalAlignment;
       Result.TableHasBorder := FDocument.Paragraphs[LParagraphIndex].TableHasBorder;
       Result.TableWidth := FDocument.Paragraphs[LParagraphIndex].TableWidth;

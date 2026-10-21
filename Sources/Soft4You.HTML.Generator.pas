@@ -354,7 +354,11 @@ var
     LEndIndex := LScanIndex;
     // The width of the table is 100% when it was not set; the border is on unless the table was written without it
     LFirstCell := ADocument.Paragraphs[AFirstPI];
-    LTableStyle := 'border-collapse:collapse;';
+    // The cells touch (collapsed borders) unless the table has a space between its cells
+    if LFirstCell.TableCellSpacing > 0 then
+      LTableStyle := Format('border-collapse:separate;border-spacing:%.0fpx;', [LFirstCell.TableCellSpacing])
+    else
+      LTableStyle := 'border-collapse:collapse;';
     if LFirstCell.TableWidth.IsAuto then
       LTableStyle := LTableStyle + 'width:100%'
     else
@@ -364,6 +368,9 @@ var
     LTableAttributes := ' border="1"';
     if not LFirstCell.TableHasBorder then
       LTableAttributes := ' border="0"';
+    // Outlook ignores border-spacing, so the attribute is written too
+    if LFirstCell.TableCellSpacing > 0 then
+      LTableAttributes := LTableAttributes + Format(' cellspacing="%.0f"', [LFirstCell.TableCellSpacing]);
     case LFirstCell.TableAlignment of
       haCenter:
         begin

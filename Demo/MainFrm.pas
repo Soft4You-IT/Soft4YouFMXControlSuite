@@ -122,6 +122,11 @@ type
     miTableAlignmentLeft: TMenuItem;
     miTableAlignmentCenter: TMenuItem;
     miTableAlignmentRight: TMenuItem;
+    miTableSpacing: TMenuItem;
+    miTableSpacing0: TMenuItem;
+    miTableSpacing2: TMenuItem;
+    miTableSpacing4: TMenuItem;
+    miTableSpacing8: TMenuItem;
     miTableBorder: TMenuItem;
     miTableBorderShow: TMenuItem;
     miTableBorderHide: TMenuItem;
@@ -188,6 +193,7 @@ type
     procedure miTableCellPaddingClick(Sender: TObject);
     procedure miTableCellVerticalAlignmentClick(Sender: TObject);
     procedure miTableAlignmentClick(Sender: TObject);
+    procedure miTableSpacingClick(Sender: TObject);
     procedure miTableBorderClick(Sender: TObject);
     procedure miTableWidthAutoClick(Sender: TObject);
     procedure miTableWidthPercentClick(Sender: TObject);
@@ -535,6 +541,11 @@ begin
   HTMLEditor.SetTableAlignment(TS4YHTMLAlignment(TMenuItem(Sender).Tag));
 end;
 
+procedure TfrmMain.miTableSpacingClick(Sender: TObject);
+begin
+  HTMLEditor.SetTableCellSpacing(TMenuItem(Sender).Tag);
+end;
+
 procedure TfrmMain.miTableBorderClick(Sender: TObject);
 begin
   HTMLEditor.SetTableBorder(TMenuItem(Sender).Tag <> 0);
@@ -855,6 +866,11 @@ begin
   miTableAlignmentLeft.IsChecked := LInTable and (AState.TableAlignment = haLeft);
   miTableAlignmentCenter.IsChecked := LInTable and (AState.TableAlignment = haCenter);
   miTableAlignmentRight.IsChecked := LInTable and (AState.TableAlignment = haRight);
+
+  miTableSpacing0.IsChecked := LInTable and (AState.TableCellSpacing = 0);
+  miTableSpacing2.IsChecked := LInTable and (AState.TableCellSpacing = 2);
+  miTableSpacing4.IsChecked := LInTable and (AState.TableCellSpacing = 4);
+  miTableSpacing8.IsChecked := LInTable and (AState.TableCellSpacing = 8);
 
   miTableBorderShow.IsChecked := LInTable and AState.TableHasBorder;
   miTableBorderHide.IsChecked := LInTable and not AState.TableHasBorder;

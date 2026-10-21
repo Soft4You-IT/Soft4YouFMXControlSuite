@@ -1193,6 +1193,32 @@ object frmMain: TfrmMain
         OnClick = miTableAlignmentClick
       end
     end
+    object miTableSpacing: TMenuItem
+      Text = 'Table spacing'
+      object miTableSpacing0: TMenuItem
+        RadioItem = True
+        Text = '0 px'
+        OnClick = miTableSpacingClick
+      end
+      object miTableSpacing2: TMenuItem
+        Tag = 2
+        RadioItem = True
+        Text = '2 px'
+        OnClick = miTableSpacingClick
+      end
+      object miTableSpacing4: TMenuItem
+        Tag = 4
+        RadioItem = True
+        Text = '4 px'
+        OnClick = miTableSpacingClick
+      end
+      object miTableSpacing8: TMenuItem
+        Tag = 8
+        RadioItem = True
+        Text = '8 px'
+        OnClick = miTableSpacingClick
+      end
+    end
     object miTableBorder: TMenuItem
       Text = 'Table border'
       object miTableBorderShow: TMenuItem
