@@ -12,6 +12,9 @@
         <Projects Include="..\Demo\S4YHTMLEditorDemo.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\Demo\Mobile\S4YHTMLEditorMobile.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -47,14 +50,23 @@
     <Target Name="S4YHTMLEditorDemo:Make">
         <MSBuild Projects="..\Demo\S4YHTMLEditorDemo.dproj" Targets="Make"/>
     </Target>
+    <Target Name="S4YHTMLEditorMobile">
+        <MSBuild Projects="..\Demo\Mobile\S4YHTMLEditorMobile.dproj"/>
+    </Target>
+    <Target Name="S4YHTMLEditorMobile:Clean">
+        <MSBuild Projects="..\Demo\Mobile\S4YHTMLEditorMobile.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YHTMLEditorMobile:Make">
+        <MSBuild Projects="..\Demo\Mobile\S4YHTMLEditorMobile.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="S4YFMXHTMLEditor;S4YFMXHTMLEditorD;S4YHTMLEditorDemo"/>
+        <CallTarget Targets="S4YFMXHTMLEditor;S4YFMXHTMLEditorD;S4YHTMLEditorDemo;S4YHTMLEditorMobile"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="S4YFMXHTMLEditor:Clean;S4YFMXHTMLEditorD:Clean;S4YHTMLEditorDemo:Clean"/>
+        <CallTarget Targets="S4YFMXHTMLEditor:Clean;S4YFMXHTMLEditorD:Clean;S4YHTMLEditorDemo:Clean;S4YHTMLEditorMobile:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="S4YFMXHTMLEditor:Make;S4YFMXHTMLEditorD:Make;S4YHTMLEditorDemo:Make"/>
+        <CallTarget Targets="S4YFMXHTMLEditor:Make;S4YFMXHTMLEditorD:Make;S4YHTMLEditorDemo:Make;S4YHTMLEditorMobile:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
