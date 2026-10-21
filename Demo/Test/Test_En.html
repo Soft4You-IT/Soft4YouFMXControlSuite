@@ -66,19 +66,19 @@
 <p>Image sized by CSS:</p>
 <img src="photo.jpg" style="width:225px;height:225px;" alt="Product Photo"/>
 <p>Image centered via align:</p>
-<img src="banner.png" width="450" ​​height="112" alt="Centered Banner" align="center"/>
+<img src="banner.png" width="450" height="112" alt="Centered Banner" align="center"/>
 <p>Image aligned right:</p>
 <img src="icon.png" width="64" height="64" alt="Icon" align="right"/>
 <p>Image without dimensions (uses natural file size, or 100px placeholder if not found):</p>
 <img src="big_image.jpg" alt="Image without width/height"/>
-<!-- data URI inline: SVG is not a raster format, the editor displays the placeholder with the alt text -->
-<p>Image inline data URI – SVG URL-encoded (expected: placeholder with alt):</p> 
-<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='60'%3E%3Crect width='160' height='60' fill='%234a90d9' rx='4'/%3E%3C/svg%3E" width="160" height="60" alt="SVG inline blue"/> 
-<p>Image inline data URI – SVG basee64 (expected: placeholder with alt):</p> 
-<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='50'%3E%3Crect width='120' height='50' fill='%23228800' rx='4'/%3E%3Ctext x='60' y='32' font-family='Arial' font-size='14' fill='white' text-anchor='middle'%3EINLINE%3C/text%3E%3C/svg%3E" width="120" height="50" alt="Green inline SVG with text"/> 
-<!-- GIF base64: raster format, the editor decodes and displays the pixel scaled to 48x48 -->
-<p>Inline image data URI – GIF 1×1 base64 (expected: 48×48 raster image):</p>
-<img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" width="48" height="48" alt="GIF 1×1 base64 transparent"/>
+<!-- data URI inline: SVG rendered via Skia4Delphi -->
+<p>Image inline data URI – SVG URL-encoded (expected: blue rectangle 160×60):</p>
+<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%234a90d9'/%3E%3C/svg%3E" width="160" height="60" alt="SVG inline blue"/>
+<p>Image inline data URI – SVG base64 (expected: green rectangle 120×50):</p>
+<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMyMjg4MDAiLz48L3N2Zz4=" width="120" height="50" alt="SVG inline green"/>
+<!-- GIF base64: opaque raster format (1×1 red), the editor decodes and displays the pixel scaled to 48x48 -->
+<p>Inline image data URI – GIF 1×1 base64 red (expected: 48×48 red raster image):</p>
+<img src="data:image/gif;base64,R0lGODlhAQABAIAAAP8AAAAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" width="48" height="48" alt="GIF 1×1 base64 red"/>
 <h2>Placeholder</h2>
 <p>Letter with variable fields: Dear {{:name}} {{:surname}}, we inform you that your order no. {{:order_number}} of {{:order_date}} has been shipped.</p>
 <p>Placeholder at the beginning of the paragraph: {{:title}} — followed by plain text and then {{:signature}} at the end.</p>
@@ -179,6 +179,11 @@
 <tr><td style="border-bottom:2px solid #223355;font-weight:bold">Item</td><td style="border-bottom:2px solid #223355;font-weight:bold;text-align:right">Amount</td></tr>
 <tr><td style="border-bottom:1px solid #cccccc">Consulting</td><td style="border-bottom:1px solid #cccccc;text-align:right">1,200.00</td></tr>
 <tr><td style="border:1px dashed #aa3300">Boxed cell (dashed is drawn as solid)</td><td style="border-left:3px solid #007700">Left border only</td></tr>
+</table>
+<p>Table with a space between the cells (cellspacing) and cells that span columns:</p>
+<table cellspacing="8" cellpadding="6" style="width:100%;max-width:420px">
+<tr><td bgcolor="#e8f0ff" style="border:1px solid #223355">One</td><td bgcolor="#e8f0ff" style="border:1px solid #223355">Two</td></tr>
+<tr><td colspan="2" bgcolor="#fff2cc" style="border:1px solid #aa3300">Spans both columns</td></tr>
 </table>
 <h2>Emoji</h2>
 <p>Basic Emoji (BMP, U+1F300–U+1F5FF non-BMP but commonly supported): 😀 😁 😂 🤣 😎 😍 🥳 🤔 😴 😡</p>
