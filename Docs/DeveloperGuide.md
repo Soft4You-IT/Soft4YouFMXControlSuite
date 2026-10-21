@@ -174,7 +174,7 @@ end;
 
 ### Style the cells of a table from a toolbar
 
-The commands act on the cell that holds the caret, or on every cell that the selection touches (in the table where the selection starts). The commands for the borders, the alignment and the width of the table use the innermost table that holds the caret. All of them do nothing outside a table and in read-only mode, and each one is a single undo step and raises `OnChange` once. `State` tells the current values, so that a toolbar can follow the caret.
+The commands act on the cell that holds the caret, or on every cell that the selection touches (in the table where the selection starts). The commands for the borders, the alignment and the width of the table use the innermost table that holds the caret. All of them do nothing outside a table and in read-only mode, and each one is a single undo step and raises `OnChange` once. `State` tells the current values, so that a toolbar can follow the caret. `SetTableCellBorder` changes only the sides it is given: a cell that followed its table gets its own borders, with the other sides as they were drawn, and `TS4YTableBorderSide.None` removes a side. `State.TableCellBorders` gives the borders that are drawn around the cell at the caret.
 
 ```delphi
 procedure TfrmMain.HTMLEditorStateChange(Sender: TObject; const State: TS4YEditorState);
@@ -188,6 +188,7 @@ procedure TfrmMain.btnCellColorClick(Sender: TObject);
 begin
   HTMLEditor.SetTableCellBackgroundColor(TAlphaColors.Lightyellow);
   HTMLEditor.SetTableCellPadding(TS4YTablePadding.Uniform(8));
+  HTMLEditor.SetTableCellBorder([tsBottom], TS4YTableBorderSide.Solid(2, TAlphaColors.Navy));
   HTMLEditor.SetTableWidth(TS4YTableLength.Percent(80));
 end;
 ```

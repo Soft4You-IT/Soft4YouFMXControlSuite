@@ -114,7 +114,7 @@ end;
 | `<ul>` / `<ol>` / `<li>` | Unordered and ordered lists |
 | `<hr>` | Horizontal rule |
 | `<img>` | Inline image (a run inside the paragraph, so it can sit in the middle of a text) |
-| `<table>` / `<tr>` / `<td>` / `<th>` | Tables, including `colspan`, `rowspan`, nested tables, widths (`width`, `max-width`, in pixels or percent), `align`, `border="0"`, cell background (`bgcolor`, `background-color`), padding (`padding`, `cellpadding`), vertical alignment (`valign`, `vertical-align`), text alignment and the text style of the cell or table (font, size, weight, color) |
+| `<table>` / `<tr>` / `<td>` / `<th>` | Tables, including `colspan`, `rowspan`, nested tables, widths (`width`, `max-width`, in pixels or percent), `align`, `border="0"`, borders of each side of a cell (`border`, `border-top`, `border-right`, `border-bottom`, `border-left`, `border-width`, `border-style`, `border-color` and the forms like `border-top-width`; every line style is drawn as a solid line), cell background (`bgcolor`, `background-color`), padding (`padding`, `cellpadding`), vertical alignment (`valign`, `vertical-align`), text alignment and the text style of the cell or table (font, size, weight, color) |
 | `<pre>` | Preformatted text |
 
 ### Inline elements
@@ -210,6 +210,7 @@ TS4YEditorState = record
   IsInTable: Boolean;                 // True when the caret is in a table cell
   TableRow, TableCol: Integer;        // 0-based position of the cell at caret (-1 when not in a table)
   TableCellBackgroundColor: TAlphaColor;  // background of the cell at caret (claNull = none)
+  TableCellBorders: TS4YTableBorders;     // borders drawn around the cell at caret (always set in a table)
   TableCellPadding: TS4YTablePadding;     // padding of the cell at caret (IsSet = False: default)
   TableCellVerticalAlignment: TS4YTableVerticalAlignment;  // tvaTop, tvaMiddle, tvaBottom
   TableAlignment: TS4YHTMLAlignment;  // placement of the table at caret when it is narrower than its space
@@ -267,6 +268,7 @@ end;
 | `InsertTableColumn` | Insert a new column after the column containing the caret (does nothing in a table with merged cells) |
 | `DeleteTableColumn` | Delete the column containing the caret (does nothing in a table with merged cells) |
 | `SetTableCellBackgroundColor(Color)` | Background color of the cell at the caret, or of every cell that the selection touches (`claNull` removes it) |
+| `SetTableCellBorder(Sides, Border)` | Border of some sides of the cell(s): `Sides` is a set of `tsTop`, `tsRight`, `tsBottom`, `tsLeft`, `Border` a `TS4YTableBorderSide` (`.Solid(Width, Color)`, `.Default` or `.None`); the other sides keep theirs |
 | `SetTableCellPadding(Padding)` | Padding of the cell(s), a `TS4YTablePadding` (`TS4YTablePadding.Default` goes back to the default) |
 | `SetTableCellVerticalAlignment(Alignment)` | `tvaTop`, `tvaMiddle` or `tvaBottom` for the cell(s) |
 | `SetTableBorder(Visible)` | Show or hide the borders of the table that contains the caret |
@@ -518,7 +520,7 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 
 ## Demo
 
-The `Demo` folder contains a sample FMX application (`Demo\S4YHTMLEditorDemo.dproj`, also part of the project group in `Packages`) with a complete toolbar, emoji picker, placeholder and color dialogs. The table button opens a menu that inserts and deletes rows and columns and styles the table under the caret (cell background, padding and vertical alignment, table alignment, border and width). Install the component package first.
+The `Demo` folder contains a sample FMX application (`Demo\S4YHTMLEditorDemo.dproj`, also part of the project group in `Packages`) with a complete toolbar, emoji picker, placeholder and color dialogs. The table button opens a menu that inserts and deletes rows and columns and styles the table under the caret (cell background, borders, padding and vertical alignment, table alignment, border and width). Install the component package first.
 
 ---
 
