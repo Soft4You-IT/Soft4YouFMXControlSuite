@@ -1,0 +1,26 @@
+inherited frmMain_Moto360: TfrmMain_Moto360
+  ClientHeight = 218
+  ClientWidth = 240
+  DesignerMasterStyle = 3
+  inherited layButtons: TFlowLayout
+    Size.Width = 240.000000000000000000
+    inherited btnTable: TButton
+      Position.X = 4.000000000000000000
+      Position.Y = 52.000000000000000000
+    end
+    inherited btnShowKeyboard: TButton
+      Position.X = 80.000000000000000000
+    end
+    inherited btnHideKeyboard: TButton
+      Position.X = 156.000000000000000000
+    end
+  end
+  inherited lblStatus: TLabel
+    Position.Y = 134.000000000000000000
+    Size.Width = 224.000000000000000000
+  end
+  inherited HTMLEditor: TS4YHTMLEditor
+    Size.Width = 240.000000000000000000
+    Size.Height = 30.000000000000000000
+  end
+end

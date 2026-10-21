@@ -3,12 +3,12 @@ program  S4YHTMLEditorMobile;
 uses
   System.StartUpCopy,
   FMX.Forms,
-  frmMain in 'frmMain.pas' {Form1};
+  MainFrm in 'MainFrm.pas' {frmMain};
 
 {$R *.res}
 
 begin
   Application.Initialize;
-  Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TfrmMain, frmMain);
   Application.Run;
 end.
