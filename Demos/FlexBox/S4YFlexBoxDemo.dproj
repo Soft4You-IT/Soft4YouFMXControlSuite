@@ -8,7 +8,7 @@
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>693267</TargetedPlatforms>
         <AppType>Application</AppType>
-        <MainSource>S4YFelxBoxDemo.dpr</MainSource>
+        <MainSource>S4YFlexBoxDemo.dpr</MainSource>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
         <Base>true</Base>
@@ -88,8 +88,8 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
-        <DCC_DcuOutput>.\$(Platform)\$(Config)</DCC_DcuOutput>
-        <DCC_ExeOutput>.\$(Platform)\$(Config)</DCC_ExeOutput>
+        <DCC_DcuOutput>..\..\Bin\Demos\FlexBox\$(Platform)\$(Config)\Dcu</DCC_DcuOutput>
+        <DCC_ExeOutput>..\..\Bin\Demos\FlexBox\$(Platform)\$(Config)</DCC_ExeOutput>
         <DCC_E>false</DCC_E>
         <DCC_N>false</DCC_N>
         <DCC_S>false</DCC_S>
@@ -106,7 +106,7 @@
         <AUP_READ_PHONE_STATE>true</AUP_READ_PHONE_STATE>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <SanitizedProjectName>S4YFelxBoxDemo</SanitizedProjectName>
+        <SanitizedProjectName>S4YFlexBoxDemo</SanitizedProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
         <DCC_UsePackage>fmx;DbxCommonDriver;bindengine;IndyIPCommon;FireDACCommonDriver;IndyProtocols;Skia.Package.RTL;IndyIPClient;dbxcds;FmxTeeUI;bindcompfmx;FireDACSqliteDriver;DbxClientDriver;soapmidas;fmxFireDAC;dbexpress;inet;Python;fmxase;dbrtl;iORM_CORE_RT;Skia.Package.FMX;CustomIPTransport;LockBox3DR;DBXInterBaseDriver;IndySystem;bindcomp;FireDACCommon;IndyCore;RESTBackendComponents;bindcompdbx;rtl;RESTComponents;DBXSqliteDriver;IndyIPServer;dsnapxml;DTelegram;FireDAC;xmlrtl;tethering;dsnap;CloudService;P4DEnvironment;FMXTee;PythonFmx;soaprtl;soapserver;FireDACIBDriver;$(DCC_UsePackage)</DCC_UsePackage>
@@ -219,7 +219,7 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
-        <DCC_UsePackage>JvNet;WiRL;vclwinx;fmx;vclie;DbxCommonDriver;bindengine;IndyIPCommon;VCLRESTComponents;FireDACCommonODBC;tb2k;S4YFMXHTMLEditor;FireDACCommonDriver;appanalytics;IndyProtocols;vclx;Skia.Package.RTL;frxe28;IndyIPClient;dbxcds;vcledge;frxTee28;Soft4You.FMX.Controls;bindcompvclwinx;FmxTeeUI;tiOPFVirtualCtrlsR;bindcompfmx;JvBands;fsDB28;inetdb;JvAppFrm;frxADO28;FireDACSqliteDriver;DbxClientDriver;GR32_R;tiOPFCore;Tee;soapmidas;JclVcl;SVGIconImageListFMX;vclactnband;TeeUI;frxIntIO28;fmxFireDAC;dbexpress;Jcl;JvManagedThreads;FMXfrx28;frxDBX28;NxCommonDsgn;DBXMySQLDriver;NxSheetRun;OpenOffice_writer;VclSmp;inet;KastriAdMob;JvPascalInterpreter;CEF4DelphiVCLRTL;OnGuardDR;Python;vcltouch;fmxase;frx28;PythonVcl;JvPluginSystem;JvDB;JvTimeFramework;dbrtl;tiOPFGUI;iORM_CORE_RT;Skia.Package.FMX;fmxdae;TeeDB;FireDACMSAccDriver;JvCustom;CustomIPTransport;JvSystem;LockBox3DR;CEF4DelphiFMXRTL;JclDeveloperTools;JvControls;Excel4DelphiLib;NxCommonRun;vcldsnap;JvCrypt;DBXInterBaseDriver;JvJans;frxDB28;JvMM;IndySystem;JvWizards;NxInspectorRun;KastriFMX;NxDBGridDsgn;Skia.Package.VCL;JvGlobus;vcldb;frxIntIOIndy28;IconFontsImageList;JclContainers;NxDBGridRun;VirtualTreesR;NxCollectionDsgn;JvPageComps;SpTBXLib;vclFireDAC;JvCore;fs28;bindcomp;FireDACCommon;S4YFlexBox;NxGridRun;IndyCore;RESTBackendComponents;dmvcframeworkDT;fsTee28;NxInspectorDsgn;OnGuardFMXDR;s4yFastReportCtrlsR;bindcompdbx;OpenOffice_Calc;iORM_FMX_RT;frxHTML28;rtl;FireDACMySQLDriver;FireDACADSDriver;RESTComponents;DBXSqliteDriver;vcl;IndyIPServer;dsnapxml;dsnapcon;adortl;JvDotNetCtrls;JvHMI;NxCollectionRun;LockBoxDR;NxGridDsgn;JvRuntimeDesign;DTelegram;JvXPCtrls;vclimg;FireDACPgDriver;FireDAC;inetdbxpress;dmvcframeworkRT;xmlrtl;tethering;JvStdCtrls;JvDlgs;JvDocking;JvPrintPreview;bindcompvcl;dsnap;FMXfrxDB28;JvCmp;frxPDF28;CloudService;fsADO28;P4DEnvironment;iORM_VCL_RT;IconFontsImageListFMX;fmxobj;bindcompvclsmp;FMXTee;YxdUI;PythonFmx;SVGIconImageList;soaprtl;Spring.Data;iORM_FMX_FRX_RT;soapserver;FireDACIBDriver;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>JvNet;WiRL;vclwinx;fmx;vclie;DbxCommonDriver;bindengine;IndyIPCommon;VCLRESTComponents;FireDACCommonODBC;tb2k;Soft4You.FMX.Controls.Suite;FireDACCommonDriver;appanalytics;IndyProtocols;vclx;Skia.Package.RTL;frxe28;IndyIPClient;dbxcds;vcledge;frxTee28;Soft4You.FMX.Controls;bindcompvclwinx;FmxTeeUI;tiOPFVirtualCtrlsR;bindcompfmx;JvBands;fsDB28;inetdb;JvAppFrm;frxADO28;FireDACSqliteDriver;DbxClientDriver;GR32_R;tiOPFCore;Tee;soapmidas;JclVcl;SVGIconImageListFMX;vclactnband;TeeUI;frxIntIO28;fmxFireDAC;dbexpress;Jcl;JvManagedThreads;FMXfrx28;frxDBX28;NxCommonDsgn;DBXMySQLDriver;NxSheetRun;OpenOffice_writer;VclSmp;inet;KastriAdMob;JvPascalInterpreter;CEF4DelphiVCLRTL;OnGuardDR;Python;vcltouch;fmxase;frx28;PythonVcl;JvPluginSystem;JvDB;JvTimeFramework;dbrtl;tiOPFGUI;iORM_CORE_RT;Skia.Package.FMX;fmxdae;TeeDB;FireDACMSAccDriver;JvCustom;CustomIPTransport;JvSystem;LockBox3DR;CEF4DelphiFMXRTL;JclDeveloperTools;JvControls;Excel4DelphiLib;NxCommonRun;vcldsnap;JvCrypt;DBXInterBaseDriver;JvJans;frxDB28;JvMM;IndySystem;JvWizards;NxInspectorRun;KastriFMX;NxDBGridDsgn;Skia.Package.VCL;JvGlobus;vcldb;frxIntIOIndy28;IconFontsImageList;JclContainers;NxDBGridRun;VirtualTreesR;NxCollectionDsgn;JvPageComps;SpTBXLib;vclFireDAC;JvCore;fs28;bindcomp;FireDACCommon;NxGridRun;IndyCore;RESTBackendComponents;dmvcframeworkDT;fsTee28;NxInspectorDsgn;OnGuardFMXDR;s4yFastReportCtrlsR;bindcompdbx;OpenOffice_Calc;iORM_FMX_RT;frxHTML28;rtl;FireDACMySQLDriver;FireDACADSDriver;RESTComponents;DBXSqliteDriver;vcl;IndyIPServer;dsnapxml;dsnapcon;adortl;JvDotNetCtrls;JvHMI;NxCollectionRun;LockBoxDR;NxGridDsgn;JvRuntimeDesign;DTelegram;JvXPCtrls;vclimg;FireDACPgDriver;FireDAC;inetdbxpress;dmvcframeworkRT;xmlrtl;tethering;JvStdCtrls;JvDlgs;JvDocking;JvPrintPreview;bindcompvcl;dsnap;FMXfrxDB28;JvCmp;frxPDF28;CloudService;fsADO28;P4DEnvironment;iORM_VCL_RT;IconFontsImageListFMX;fmxobj;bindcompvclsmp;FMXTee;YxdUI;PythonFmx;SVGIconImageList;soaprtl;Spring.Data;iORM_FMX_FRX_RT;soapserver;FireDACIBDriver;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <BT_BuildType>Debug</BT_BuildType>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
@@ -295,7 +295,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">S4YFelxBoxDemo.dpr</Source>
+                    <Source Name="MainSource">S4YFlexBoxDemo.dpr</Source>
                 </Source>
             </Delphi.Personality>
             <Deployment Version="4">
@@ -314,9 +314,9 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Win32\Debug\S4YFelxBoxDemo.exe" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="Win32\Debug\S4YFlexBoxDemo.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>S4YFelxBoxDemo.exe</RemoteName>
+                        <RemoteName>S4YFlexBoxDemo.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

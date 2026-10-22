@@ -15,6 +15,9 @@
         <Projects Include="..\..\Demos\HTMLEditor\Mobile\S4YHTMLEditorMobile.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\..\Demos\FlexBox\S4YFlexBoxDemo.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -59,14 +62,23 @@
     <Target Name="S4YHTMLEditorMobile:Make">
         <MSBuild Projects="..\..\Demos\HTMLEditor\Mobile\S4YHTMLEditorMobile.dproj" Targets="Make"/>
     </Target>
+    <Target Name="S4YFlexBoxDemo">
+        <MSBuild Projects="..\..\Demos\FlexBox\S4YFlexBoxDemo.dproj"/>
+    </Target>
+    <Target Name="S4YFlexBoxDemo:Clean">
+        <MSBuild Projects="..\..\Demos\FlexBox\S4YFlexBoxDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YFlexBoxDemo:Make">
+        <MSBuild Projects="..\..\Demos\FlexBox\S4YFlexBoxDemo.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="Soft4You_FMX_Controls_Suite;Soft4You_FMX_Controls_SuiteD;S4YHTMLEditorDemo;S4YHTMLEditorMobile"/>
+        <CallTarget Targets="Soft4You_FMX_Controls_Suite;Soft4You_FMX_Controls_SuiteD;S4YHTMLEditorDemo;S4YHTMLEditorMobile;S4YFlexBoxDemo"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="Soft4You_FMX_Controls_Suite:Clean;Soft4You_FMX_Controls_SuiteD:Clean;S4YHTMLEditorDemo:Clean;S4YHTMLEditorMobile:Clean"/>
+        <CallTarget Targets="Soft4You_FMX_Controls_Suite:Clean;Soft4You_FMX_Controls_SuiteD:Clean;S4YHTMLEditorDemo:Clean;S4YHTMLEditorMobile:Clean;S4YFlexBoxDemo:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="Soft4You_FMX_Controls_Suite:Make;Soft4You_FMX_Controls_SuiteD:Make;S4YHTMLEditorDemo:Make;S4YHTMLEditorMobile:Make"/>
+        <CallTarget Targets="Soft4You_FMX_Controls_Suite:Make;Soft4You_FMX_Controls_SuiteD:Make;S4YHTMLEditorDemo:Make;S4YHTMLEditorMobile:Make;S4YFlexBoxDemo:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

@@ -1,4 +1,4 @@
-program S4YFelxBoxDemo;
+program S4YFlexBoxDemo;
 
 uses
   System.StartUpCopy,
