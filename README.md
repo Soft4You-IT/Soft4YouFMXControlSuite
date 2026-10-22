@@ -529,7 +529,7 @@ A refused image is not read; `OnLoadImage` still fires with a `nil` bitmap so a 
 | `Backspace` / `Delete` | Delete character or selection |
 | `Ctrl+Backspace` | Delete word left |
 
-The keys the editor does not use (function keys, `Ctrl` + letter combinations it does not define, modifier keys alone) are left to the form: the `ShortCut` of an action of the application, such as `F3` or `Ctrl+S`, works while the editor has the focus.
+The keys the editor does not use (function keys, `Ctrl` + letter combinations it does not define, modifier keys alone) are left to the form, which receives them in its `OnKeyDown` event, and the `ShortCut` of an action of the application, such as `Ctrl+S`, works while the editor has the focus. The function keys F1-F11 are the exception for the actions in Delphi 11 only (10.4, 12 and 13 are not affected): FMX does not match them with the `ShortCut` of an action, so handle them in the `OnKeyDown` of the form (the demo does so for `F3` and `Shift+F3`).
 
 Mouse: single click places caret, double-click selects word, triple-click selects paragraph. Clicking on an image selects it. Drag to extend selection with auto-scroll near edges. Drag the border between two columns of a table to resize them, or the outer edge of the table to change its width (not in read-only mode).
 
