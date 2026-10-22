@@ -137,6 +137,7 @@ begin
 
   try
     EmptyClipboard;
+
     // CF_HTML (UTF-8 with byte-offset header)
     LData := BuildCFHTML(AFragment);
     LGlobalMemory := GlobalAlloc(GMEM_MOVEABLE, NativeUInt(Length(LData)) + 1);

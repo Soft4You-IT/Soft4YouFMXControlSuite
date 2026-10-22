@@ -279,6 +279,7 @@ begin
 
     ATagName := LStringBuilder.ToString.ToLower;
     LStringBuilder.Clear;
+
     // HTML comments: skip until --> without quote tracking, which avoids
     // apostrophes in comment text being misread as attribute delimiters.
     if ATagName = '!--' then
@@ -597,6 +598,7 @@ begin
     AParagraph.TableRow := FCellRow;
     AParagraph.TableCol := FCellColumn;
     AParagraph.IsHeader := FCellIsHeader;
+
     // A text alignment written on the cell (or its table) wins over the centering of a th
     if FCellHasAlignment then
     begin
@@ -1434,6 +1436,7 @@ begin
     FCellPadding := FTablePadding;
 
   FCellBorders := ParseBorders(LStyle);
+
   // The text alignment of the cell, or of its table
   FCellHasAlignment := FTableHasTextAlignment;
   FCellAlignment := FTableTextAlignment;
@@ -2016,6 +2019,7 @@ begin
            (FDocument.Paragraphs[LIndex].TableID = FTableID) then
         begin
           FDocument.Paragraphs[LIndex].TableCols := FTableColumns;
+
           // A rowspan cannot go past the last row of the table
           if FDocument.Paragraphs[LIndex].TableRow + FDocument.Paragraphs[LIndex].TableRowSpan - 1 > FTableRow then
             FDocument.Paragraphs[LIndex].TableRowSpan := FTableRow - FDocument.Paragraphs[LIndex].TableRow + 1;
@@ -2028,6 +2032,7 @@ begin
         PopStyle;
 
       FTableStylePushed := False;
+
       // A table nested in a cell ends: the outer table goes on
       if FTableStack.Count > 0 then
         LeaveNestedTable;
@@ -2091,6 +2096,7 @@ begin
     begin
       EndTableCell; // the previous cell, when its closing tag was omitted
       FlushParagraph;
+
       // Skip the columns that a cell of a previous row still covers
       while (FTableColumn < Length(FTableCovered)) and (FTableCovered[FTableColumn] > 0) do
         Inc(FTableColumn);
@@ -2113,6 +2119,7 @@ begin
 
       ReadCellAttributes(AAttributes);
       FCellParagraphCount := 0;
+
       // The text of the cell takes the style of the cell: bold for a th, and the font and color that it writes
       LTextStyle := TopStyle;
 
