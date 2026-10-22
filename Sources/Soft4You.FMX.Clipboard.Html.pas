@@ -78,6 +78,7 @@ uses
 function LooksLikeHTML(const AText: string): Boolean;
 begin
   Result := False;
+
   for var LIndex := 1 to AText.Length - 1 do
     if (AText[LIndex] = '<') and (AText[LIndex + 1].IsLetter or (AText[LIndex + 1] = '/') or (AText[LIndex + 1] = '!')) then
       Exit(True);
@@ -130,16 +131,21 @@ var
   LPointer:    Pointer;
 begin
   LCFHtml := RegisterClipboardFormat('HTML Format');
+
   if not OpenClipboard(0) then
     Exit;
+
   try
     EmptyClipboard;
+
     // CF_HTML (UTF-8 with byte-offset header)
     LData := BuildCFHTML(AFragment);
     LGlobalMemory := GlobalAlloc(GMEM_MOVEABLE, NativeUInt(Length(LData)) + 1);
+
     if LGlobalMemory <> 0 then
     begin
       LPointer := GlobalLock(LGlobalMemory);
+
       if LPointer <> nil then
       begin
         Move(LData[Low(LData)], LPointer^, Length(LData));
@@ -148,15 +154,19 @@ begin
         SetClipboardData(LCFHtml, LGlobalMemory);
       end;
     end;
+
     // CF_UNICODETEXT (plain text fallback for apps that don't read CF_HTML)
     LGlobalMemory := GlobalAlloc(GMEM_MOVEABLE, NativeUInt(Length(APlainText) + 1) * SizeOf(WideChar));
+
     if LGlobalMemory <> 0 then
     begin
       LPointer := GlobalLock(LGlobalMemory);
+
       if LPointer <> nil then
       begin
         if Length(APlainText) > 0 then
           Move(APlainText[Low(APlainText)], LPointer^, Length(APlainText) * SizeOf(WideChar));
+
         PWideChar(PWideChar(LPointer) + Length(APlainText))^ := #0;
         GlobalUnlock(LGlobalMemory);
         SetClipboardData(CF_UNICODETEXT, LGlobalMemory);
@@ -182,17 +192,24 @@ begin
   Result   := False;
   AFragment := '';
   LCFHtml  := RegisterClipboardFormat('HTML Format');
+
   if not IsClipboardFormatAvailable(LCFHtml) then
     Exit;
+
   if not OpenClipboard(0) then
     Exit;
+
   try
     LGlobalMemory := GetClipboardData(LCFHtml);
+
     if LGlobalMemory = 0 then
       Exit;
+
     LPointer := GlobalLock(LGlobalMemory);
+
     if LPointer = nil then
       Exit;
+
     try
       LSize := GlobalSize(LGlobalMemory);
       SetLength(LRaw, LSize);
@@ -203,10 +220,12 @@ begin
   finally
     CloseClipboard;
   end;
+
   LFull      := UTF8ToString(LRaw);
   LLower     := LFull.ToLower;
   LStartFragment := LLower.IndexOf('<!--startfragment-->');
   LEndFragment   := LLower.IndexOf('<!--endfragment-->');
+
   if (LStartFragment >= 0) and (LEndFragment > LStartFragment) then
   begin
     Inc(LStartFragment, Length('<!--startfragment-->'));
@@ -240,12 +259,17 @@ var
 begin
   Result    := False;
   AFragment := '';
+
   if not TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, LClipboardService) then
     Exit;
+
   LV := LClipboardService.GetClipboard;
+
   if LV.IsEmpty then
     Exit;
+
   LS := LV.ToString;
+
   if LooksLikeHTML(LS) then
   begin
     AFragment := LS;
@@ -259,8 +283,10 @@ var
   LValue: TValue;
 begin
   Result := False;
+
   if not TPlatformServices.Current.SupportsPlatformService(IFMXClipboardService, LClipboardService) then
     Exit;
+
   LValue := LClipboardService.GetClipboard;
   Result := not LValue.IsEmpty and not LValue.IsType<string>;
 end;

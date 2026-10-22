@@ -248,6 +248,7 @@ var
   LFoundIndex: Integer;
 begin
   LFoundIndex := FInput.IndexOf(AText, FPosition - 1);
+
   if LFoundIndex >= 0 then
     FPosition := LFoundIndex + Length(AText) + 1
   else
@@ -262,17 +263,23 @@ var
   LFoundEnd: Boolean;
 begin
   Inc(FPosition);
+
   if FPosition > FLength then
     Exit(False);
+
   IsClose := PeekChar = '/';
+
   if IsClose then
     Inc(FPosition);
+
   LStringBuilder := TStringBuilder.Create;
   try
     while (FPosition <= FLength) and not CharInSet(PeekChar, ['>', '/', ' ', #9, #10, #13]) do
       LStringBuilder.Append(ReadChar);
+
     ATagName := LStringBuilder.ToString.ToLower;
     LStringBuilder.Clear;
+
     // HTML comments: skip until --> without quote tracking, which avoids
     // apostrophes in comment text being misread as attribute delimiters.
     if ATagName = '!--' then
@@ -283,15 +290,19 @@ begin
       Result := ATagName <> '';
       Exit;
     end;
+
     LInQuoteChar := #0;
     LFoundEnd := False;
+
     while (FPosition <= FLength) and not LFoundEnd do
     begin
       LChar := ReadChar;
+
       if LInQuoteChar <> #0 then
       begin
         if LChar = LInQuoteChar then
           LInQuoteChar := #0;
+
         LStringBuilder.Append(LChar);
       end
       else if CharInSet(LChar, ['"', '''']) then
@@ -304,10 +315,13 @@ begin
       else
         LStringBuilder.Append(LChar);
     end;
+
     AAttributes := LStringBuilder.ToString.Trim;
     IsSelf := (AAttributes.EndsWith('/')) or (ATagName = 'br') or (ATagName = 'hr') or (ATagName = 'img');
+
     if AAttributes.EndsWith('/') then
       AAttributes := AAttributes.Substring(0, AAttributes.Length - 1).Trim;
+
     Result := ATagName <> '';
   finally
     LStringBuilder.Free;
@@ -326,6 +340,7 @@ begin
       LChar := ReadChar;
       LStringBuilder.Append(LChar);
     end;
+
     Result := HtmlDecode(LStringBuilder.ToString);
   finally
     LStringBuilder.Free;
@@ -344,44 +359,58 @@ begin
   LAttributesLower := AAttributes.ToLower;
   LAttributeLength := LAttributesLower.Length;
   LScanPosition := 0;
+
   while LScanPosition < LAttributeLength do
   begin
     // Skip whitespace between attributes
     while (LScanPosition < LAttributeLength) and CharInSet(LAttributesLower[Low(LAttributesLower) + LScanPosition], [' ', #9, #10, #13]) do
       Inc(LScanPosition);
+
     if LScanPosition >= LAttributeLength then
       Exit;
+
     // Try to match the attribute name at this exact token boundary
     if LAttributesLower.Substring(LScanPosition, LNameWithEquals.Length) = LNameWithEquals then
     begin
       Inc(LScanPosition, LNameWithEquals.Length);
+
       if LScanPosition >= LAttributeLength then
         Exit;
+
       LQuoteChar := LAttributesLower[Low(LAttributesLower) + LScanPosition];
+
       if CharInSet(LQuoteChar, ['"', '''']) then
       begin
         Inc(LScanPosition); // skip opening quote
         LValueEnd := LScanPosition;
+
         while (LValueEnd < LAttributeLength) and (LAttributesLower[Low(LAttributesLower) + LValueEnd] <> LQuoteChar) do
           Inc(LValueEnd);
+
         Result := AAttributes.Substring(LScanPosition, LValueEnd - LScanPosition);
       end
       else
       begin
         LValueEnd := LScanPosition;
+
         while (LValueEnd < LAttributeLength) and not CharInSet(LAttributesLower[Low(LAttributesLower) + LValueEnd], [' ', '>']) do
           Inc(LValueEnd);
+
         Result := AAttributes.Substring(LScanPosition, LValueEnd - LScanPosition);
       end;
+
       Exit;
     end;
+
     // Not this attribute -- skip its name
     while (LScanPosition < LAttributeLength) and not CharInSet(LAttributesLower[Low(LAttributesLower) + LScanPosition], [' ', '=']) do
       Inc(LScanPosition);
+
     // Skip optional =value
     if (LScanPosition < LAttributeLength) and (LAttributesLower[Low(LAttributesLower) + LScanPosition] = '=') then
     begin
       Inc(LScanPosition); // skip '='
+
       if (LScanPosition < LAttributeLength) and CharInSet(LAttributesLower[Low(LAttributesLower) + LScanPosition], ['"', '''']) then
       begin
         LQuoteChar := LAttributesLower[Low(LAttributesLower) + LScanPosition];
@@ -389,6 +418,7 @@ begin
         // Skip until closing quote -- this prevents matching inside attribute values
         while (LScanPosition < LAttributeLength) and (LAttributesLower[Low(LAttributesLower) + LScanPosition] <> LQuoteChar) do
           Inc(LScanPosition);
+
         if LScanPosition < LAttributeLength then
           Inc(LScanPosition); // skip closing quote
       end
@@ -409,9 +439,11 @@ var
 begin
   Result := '';
   LParts := ACSS.Split([';']);
+
   for LPart in LParts do
   begin
     LPair := LPart.Split([':'], 2);
+
     if (Length(LPair) >= 2) and (TrimS(LPair[0]) = AProp) then
     begin
       Result := TrimS(LPair[1]);
@@ -433,8 +465,10 @@ var
 begin
   Result := ABaseSize;
   LValue := TrimS(AText.ToLower);
+
   if LValue = '' then
     Exit;
+
   if LValue.EndsWith('pt') then
     Result := StrToFloatDef(TrimS(LValue.Replace('pt', '')), ABaseSize)
   else if LValue.EndsWith('px') then
@@ -446,6 +480,7 @@ begin
   else
   begin
     LNumericValue := StrToFloatDef(LValue, 0);
+
     if LNumericValue > 0 then
       Result := LNumericValue;
   end;
@@ -461,13 +496,16 @@ var
   LColor: TAlphaColor;
 begin
   LParts := ACSS.Split([';']);
+
   for LPart in LParts do
   begin
     LPair := LPart.Split([':'], 2);
+
     if Length(LPair) >= 2 then
     begin
       LProp := TrimS(LPair[0].ToLower);
       LPropertyValue := TrimS(LPair[1]);
+
       if LProp = 'font-family' then
         ATextStyle.FontName := LPropertyValue.Trim(['"', '''', ' '])
       else if LProp = 'font-size' then
@@ -489,12 +527,14 @@ begin
       else if LProp = 'color' then
       begin
         LColor := ParseColor(LPropertyValue);
+
         if LColor <> claNull then
           ATextStyle.Color := LColor;
       end
       else if (LProp = 'background-color') or (LProp = 'background') then
       begin
         LColor := ParseColor(LPropertyValue);
+
         if LColor <> claNull then
           ATextStyle.BackgroundColor := LColor;
       end;
@@ -512,19 +552,26 @@ var
 begin
   Result := claNull;
   LColorValue := ExtractCSSValue(ACSS.ToLower, 'border-color');
+
   if LColorValue <> '' then
   begin
     Result := ParseColor(LColorValue);
+
     if Result <> claNull then
       Exit;
   end;
+
   LBorderValue := ExtractCSSValue(ACSS.ToLower, 'border');
+
   if LBorderValue = '' then
     Exit;
+
   LParts := LBorderValue.Trim.Split([' ']);
+
   for LPart in LParts do
   begin
     LCandidate := ParseColor(TrimS(LPart));
+
     if LCandidate <> claNull then
     begin
       Result := LCandidate;
@@ -540,6 +587,7 @@ begin
   begin
     if AParagraph.BlockType in [btBodyText, btParagraph] then
       AParagraph.BlockType := btTableCell;
+
     AParagraph.TableID := FTableID;
     AParagraph.TableContainers := Copy(FTableContainers);
     AParagraph.TableWidth := FTableWidth;
@@ -550,6 +598,7 @@ begin
     AParagraph.TableRow := FCellRow;
     AParagraph.TableCol := FCellColumn;
     AParagraph.IsHeader := FCellIsHeader;
+
     // A text alignment written on the cell (or its table) wins over the centering of a th
     if FCellHasAlignment then
     begin
@@ -558,6 +607,7 @@ begin
     end
     else if FCellIsHeader and (AParagraph.Alignment = haLeft) then
       AParagraph.Alignment := haCenter;
+
     // The attributes of the cell are kept by its first paragraph
     if FCellParagraphCount = 0 then
     begin
@@ -569,8 +619,10 @@ begin
       AParagraph.TableCellVerticalAlignment := FCellVerticalAlignment;
       AParagraph.TableCellBorders := FCellBorders;
     end;
+
     Inc(FCellParagraphCount);
   end;
+
   FDocument.Paragraphs.Add(AParagraph);
 end;
 
@@ -588,6 +640,7 @@ begin
     LEmptyParagraph.BlockType := btTableCell;
     AddParagraph(LEmptyParagraph);
   end;
+
   LState.TableID := FTableID;
   LState.Row := FTableRow;
   LState.Column := FTableColumn;
@@ -681,17 +734,22 @@ var
 begin
   if not FCellOpen then
     Exit;
+
   FlushParagraph;
+
   if FCellParagraphCount = 0 then
   begin
     LEmptyParagraph := TS4YHTMLParagraph.Create;
     LEmptyParagraph.BlockType := btTableCell;
     AddParagraph(LEmptyParagraph);
   end;
+
   FCellOpen := False;
   UnwindBlockStyles(FCellBlockBase);
+
   if FCellStylePushed then
     PopStyle;
+
   FCellStylePushed := False;
 end;
 
@@ -700,15 +758,19 @@ procedure TS4YHTMLParser.EndTableRow;
 begin
   if not FTableRowOpen then
     Exit;
+
   FTableRowOpen := False;
+
   if FTableColumn > FTableColumns then
     FTableColumns := FTableColumn;
+
   for var LColumn := 0 to High(FTableCovered) do
   begin
     if FTableCovered[LColumn] > 0 then
     begin
       if LColumn + 1 > FTableColumns then
         FTableColumns := LColumn + 1;
+
       Dec(FTableCovered[LColumn]);
     end;
   end;
@@ -722,8 +784,10 @@ var
 begin
   Result := TS4YTableLength.Auto;
   LText := TrimS(AText.ToLower);
+
   if LText = '' then
     Exit;
+
   if LText.EndsWith('%') then
     Result := TS4YTableLength.Percent(StrToFloatDef(TrimS(LText.Replace('%', '')), 0))
   else if LText.EndsWith('pt') then
@@ -741,6 +805,7 @@ var
 begin
   Result := True;
   LText := TrimS(AText.ToLower);
+
   if LText = 'center' then
     AAlignment := haCenter
   else if LText = 'right' then
@@ -769,11 +834,14 @@ var
 begin
   if ((ATag = 'p') or (ATag = 'li')) and (FBlockStyles.Count > 0) and (FBlockStyles.Last.Tag = ATag) then
     CloseBlockStyle(ATag);
+
   LTextStyle := TopStyle;
   LEntry.Tag := ATag;
   LEntry.IsPushed := ParseTextStyleOfBlock(GetAttribute(AAttributes, 'style'), LTextStyle);
+
   if LEntry.IsPushed then
     PushStyle(LTextStyle, TopBorderColor);
+
   FBlockStyles.Add(LEntry);
 end;
 
@@ -783,8 +851,10 @@ var
   LIndex: Integer;
 begin
   LIndex := FBlockStyles.Count - 1;
+
   while (LIndex >= 0) and (FBlockStyles[LIndex].Tag <> ATag) do
     Dec(LIndex);
+
   if LIndex >= 0 then
     UnwindBlockStyles(LIndex);
 end;
@@ -796,6 +866,7 @@ begin
   begin
     if FBlockStyles.Last.IsPushed then
       PopStyle;
+
     FBlockStyles.Delete(FBlockStyles.Count - 1);
   end;
 end;
@@ -811,13 +882,17 @@ var
   LBefore: TS4YHTMLTextStyle;
 begin
   Result := False;
+
   if AStyle = '' then
     Exit;
+
   LFiltered := '';
   LParts := AStyle.Split([';']);
+
   for LPart in LParts do
     if not TrimS(LPart.ToLower).StartsWith('background') then
       LFiltered := LFiltered + LPart + ';';
+
   LBefore := ATextStyle;
   ParseInlineStyle(LFiltered, ATextStyle);
   Result := not ATextStyle.EqualsFormat(LBefore);
@@ -834,14 +909,18 @@ var
 begin
   Result := ParseColor(GetAttribute(AAttributes, 'bgcolor'));
   LStyle := GetAttribute(AAttributes, 'style').ToLower;
+
   if LStyle = '' then
     Exit;
+
   LValue := ExtractCSSValue(LStyle, 'background-color');
   if LValue = '' then
     LValue := ExtractCSSValue(LStyle, 'background');
+
   for LPart in LValue.Split([' ']) do
   begin
     LColor := ParseColor(LPart);
+
     if LColor <> claNull then
     begin
       Result := LColor;
@@ -867,6 +946,7 @@ var
     LLength: TS4YTableLength;
   begin
     LLength := ParseTableLength(AText);
+
     if LLength.Kind = tlkPixels then
       Result := LLength.Value
     else
@@ -880,10 +960,12 @@ begin
   LBottom := 0;
   LIsSet := False;
   LValue := ExtractCSSValue(AStyle, 'padding');
+
   if LValue <> '' then
   begin
     LTokens := LValue.Split([' ']);
     LIsSet := True;
+
     case Length(LTokens) of
       1:
         begin
@@ -917,30 +999,39 @@ begin
       LIsSet := False;
     end;
   end;
+
   LValue := ExtractCSSValue(AStyle, 'padding-left');
+
   if LValue <> '' then
   begin
     LLeft := PixelsOf(LValue);
     LIsSet := True;
   end;
+
   LValue := ExtractCSSValue(AStyle, 'padding-top');
+
   if LValue <> '' then
   begin
     LTop := PixelsOf(LValue);
     LIsSet := True;
   end;
+
   LValue := ExtractCSSValue(AStyle, 'padding-right');
+
   if LValue <> '' then
   begin
     LRight := PixelsOf(LValue);
     LIsSet := True;
   end;
+
   LValue := ExtractCSSValue(AStyle, 'padding-bottom');
+
   if LValue <> '' then
   begin
     LBottom := PixelsOf(LValue);
     LIsSet := True;
   end;
+
   if LIsSet then
     Result := TS4YTablePadding.Sides(LLeft, LTop, LRight, LBottom)
   else
@@ -959,6 +1050,7 @@ begin
   try
     LCurrent := '';
     LDepth := 0;
+
     for LChar in AText do
     begin
       if LChar = '(' then
@@ -969,12 +1061,14 @@ begin
       begin
         Dec(LDepth);
       end;
+
       if (LChar = ' ') and (LDepth <= 0) then
       begin
         if LCurrent <> '' then
         begin
           LTokens.Add(LCurrent);
         end;
+
         LCurrent := '';
       end
       else
@@ -982,10 +1076,12 @@ begin
         LCurrent := LCurrent + LChar;
       end;
     end;
+
     if LCurrent <> '' then
     begin
       LTokens.Add(LCurrent);
     end;
+
     Result := LTokens.ToArray;
   finally
     LTokens.Free;
@@ -999,6 +1095,7 @@ var
   LText: string;
 begin
   LText := TrimS(AText.ToLower);
+
   if (LText = 'none') or (LText = 'hidden') then
   begin
     Result := 1;
@@ -1023,6 +1120,7 @@ begin
   Result := True;
   AWidth := 0;
   LText := TrimS(AText.ToLower);
+
   if LText = 'thin' then
   begin
     AWidth := 1;
@@ -1038,6 +1136,7 @@ begin
   else if (LText <> '') and CharInSet(LText[1], ['0'..'9', '.']) then
   begin
     LFactor := 1;
+
     if LText.EndsWith('px') then
     begin
       LText := TrimS(LText.Substring(0, Length(LText) - 2));
@@ -1047,6 +1146,7 @@ begin
       LText := TrimS(LText.Substring(0, Length(LText) - 2));
       LFactor := 1.33;
     end;
+
     AWidth := StrToFloatDef(LText, -1) * LFactor;
     Result := AWidth >= 0;
   end
@@ -1099,6 +1199,7 @@ var
     LParsed: TAlphaColor;
   begin
     LParsed := ParseColor(TrimS(AText));
+
     if LParsed <> claNull then
     begin
       LColor[ASide] := LParsed;
@@ -1118,6 +1219,7 @@ var
     LLineStyle[ASide] := 1;
     LWidth[ASide] := 3;
     LHasColor[ASide] := False;
+
     for LToken in SplitCSSValue(AText) do
     begin
       if ParseBorderWidth(LToken, LParsed) then
@@ -1131,6 +1233,7 @@ var
       else
       begin
         LParsedColor := ParseColor(LToken);
+
         if LParsedColor <> claNull then
         begin
           LColor[ASide] := LParsedColor;
@@ -1138,6 +1241,7 @@ var
         end;
       end;
     end;
+
     LIsSet := True;
   end;
 
@@ -1150,6 +1254,7 @@ var
     LIndex: Integer;
   begin
     LTokens := SplitCSSValue(AText);
+
     case Length(LTokens) of
       1:
         begin
@@ -1182,6 +1287,7 @@ var
     else
       Exit;
     end;
+
     for LIndex := 0 to 3 do
     begin
       case AKind of
@@ -1195,6 +1301,7 @@ var
 
 begin
   LIsSet := False;
+
   for LSide := 0 to 3 do
   begin
     LWidth[LSide] := -1;
@@ -1202,8 +1309,10 @@ begin
     LColor[LSide] := claNull;
     LHasColor[LSide] := False;
   end;
+
   // From the most general to the most specific, so that the specific form wins
   LValue := ExtractCSSValue(AStyle, 'border');
+
   if LValue <> '' then
   begin
     for LSide := 0 to 3 do
@@ -1211,49 +1320,65 @@ begin
       SetShorthand(LSide, LValue);
     end;
   end;
+
   LValue := ExtractCSSValue(AStyle, 'border-width');
+
   if LValue <> '' then
   begin
     SetAllSides(LValue, 0);
   end;
+
   LValue := ExtractCSSValue(AStyle, 'border-style');
+
   if LValue <> '' then
   begin
     SetAllSides(LValue, 1);
   end;
+
   LValue := ExtractCSSValue(AStyle, 'border-color');
+
   if LValue <> '' then
   begin
     SetAllSides(LValue, 2);
   end;
+
   for LSide := 0 to 3 do
   begin
     LValue := ExtractCSSValue(AStyle, 'border-' + C_SIDE_NAMES[LSide]);
+
     if LValue <> '' then
     begin
       SetShorthand(LSide, LValue);
     end;
+
     LValue := ExtractCSSValue(AStyle, 'border-' + C_SIDE_NAMES[LSide] + '-width');
+
     if LValue <> '' then
     begin
       SetWidth(LSide, LValue);
     end;
+
     LValue := ExtractCSSValue(AStyle, 'border-' + C_SIDE_NAMES[LSide] + '-style');
+
     if LValue <> '' then
     begin
       SetLineStyle(LSide, LValue);
     end;
+
     LValue := ExtractCSSValue(AStyle, 'border-' + C_SIDE_NAMES[LSide] + '-color');
+
     if LValue <> '' then
     begin
       SetColor(LSide, LValue);
     end;
   end;
+
   if not LIsSet then
   begin
     Result := TS4YTableBorders.Default;
     Exit;
   end;
+
   if FTableHasBorder then
   begin
     LBase := TS4YTableBorderSide.Default;
@@ -1262,9 +1387,11 @@ begin
   begin
     LBase := TS4YTableBorderSide.None;
   end;
+
   for LSide := 0 to 3 do
   begin
     LSides[LSide] := LBase;
+
     if LLineStyle[LSide] = 1 then
     begin
       LSides[LSide] := TS4YTableBorderSide.None;
@@ -1276,16 +1403,19 @@ begin
       begin
         LSides[LSide] := TS4YTableBorderSide.Solid(3, TAlphaColors.Black);
       end;
+
       if (LWidth[LSide] >= 0) and LSides[LSide].IsVisible then
       begin
         LSides[LSide] := TS4YTableBorderSide.Solid(LWidth[LSide], LSides[LSide].Color);
       end;
+
       if LHasColor[LSide] and LSides[LSide].IsVisible then
       begin
         LSides[LSide].Color := LColor[LSide];
       end;
     end;
   end;
+
   Result := TS4YTableBorders.Sides(LSides[0], LSides[1], LSides[2], LSides[3]);
 end;
 
@@ -1300,22 +1430,30 @@ begin
   FCellBackground := ParseBackgroundColor(AAttributes);
   if FCellBackground = claNull then
     FCellBackground := FTableBackground;
+
   FCellPadding := ParsePadding(LStyle);
   if not FCellPadding.IsSet then
     FCellPadding := FTablePadding;
+
   FCellBorders := ParseBorders(LStyle);
+
   // The text alignment of the cell, or of its table
   FCellHasAlignment := FTableHasTextAlignment;
   FCellAlignment := FTableTextAlignment;
+
   if ParseTextAlignment(GetAttribute(AAttributes, 'align'), FCellAlignment) then
     FCellHasAlignment := True;
+
   if (LStyle <> '') and ParseTextAlignment(ExtractCSSValue(LStyle, 'text-align'), FCellAlignment) then
     FCellHasAlignment := True;
+
   FCellVerticalAlignment := tvaTop;
   LValue := GetAttribute(AAttributes, 'valign').ToLower;
+
   if LStyle <> '' then
     if ExtractCSSValue(LStyle, 'vertical-align') <> '' then
       LValue := ExtractCSSValue(LStyle, 'vertical-align');
+
   if (LValue = 'middle') or (LValue = 'center') then
     FCellVerticalAlignment := tvaMiddle
   else if LValue = 'bottom' then
@@ -1336,31 +1474,40 @@ begin
   FTableBackground := ParseBackgroundColor(AAttributes);
   FTablePadding := TS4YTablePadding.Default;
   LValue := GetAttribute(AAttributes, 'cellpadding');
+
   if ParseTableLength(LValue).Kind = tlkPixels then
     FTablePadding := TS4YTablePadding.Uniform(ParseTableLength(LValue).Value);
+
   FTableMaximumWidth := 0;
   FTableAlignment := haLeft;
   FTableHasBorder := True;
   LStyle := GetAttribute(AAttributes, 'style').ToLower;
+
   if LStyle <> '' then
   begin
     LValue := ExtractCSSValue(LStyle, 'width');
+
     if LValue <> '' then
       FTableWidth := ParseTableLength(LValue);
+
     LValue := ExtractCSSValue(LStyle, 'max-width');
+
     if LValue <> '' then
     begin
       // Only a maximum in pixels is used
       if ParseTableLength(LValue).Kind = tlkPixels then
         FTableMaximumWidth := ParseTableLength(LValue).Value;
     end;
+
     // Automatic horizontal margins center the table, an automatic left margin alone puts it on the right
     LLeft := ExtractCSSValue(LStyle, 'margin-left');
     LRight := ExtractCSSValue(LStyle, 'margin-right');
     LValue := ExtractCSSValue(LStyle, 'margin');
+
     if LValue <> '' then
     begin
       LTokens := LValue.Split([' ']);
+
       case Length(LTokens) of
         1:
           begin
@@ -1379,38 +1526,51 @@ begin
           end;
       end;
     end;
+
     if (LLeft = 'auto') and (LRight = 'auto') then
       FTableAlignment := haCenter
     else if LLeft = 'auto' then
       FTableAlignment := haRight;
+
     LValue := ExtractCSSValue(LStyle, 'border');
+
     if (LValue = 'none') or (LValue = '0') or LValue.StartsWith('0 ') or LValue.StartsWith('0px') or
        LValue.StartsWith('none') or (ExtractCSSValue(LStyle, 'border-style') = 'none') then
       FTableHasBorder := False;
   end;
+
   if LStyle <> '' then
     FTableHasTextAlignment := ParseTextAlignment(ExtractCSSValue(LStyle, 'text-align'), FTableTextAlignment);
+
   LValue := GetAttribute(AAttributes, 'align').ToLower;
+
   if LValue = 'center' then
     FTableAlignment := haCenter
   else if LValue = 'right' then
     FTableAlignment := haRight;
+
   if TrimS(GetAttribute(AAttributes, 'border')) = '0' then
     FTableHasBorder := False;
+
   // The space between the cells comes from cellspacing, or from the first value of border-spacing, which wins. A table
   // with collapsed borders has none: that is how a browser draws it, whatever cellspacing says.
   FTableCellSpacing := 0;
   LValue := TrimS(GetAttribute(AAttributes, 'cellspacing'));
+
   if (LValue <> '') and CharInSet(LValue[1], ['0'..'9', '.']) then
     ParseBorderWidth(LValue, FTableCellSpacing);
+
   if LStyle <> '' then
   begin
     LTokens := SplitCSSValue(ExtractCSSValue(LStyle, 'border-spacing'));
+
     if (Length(LTokens) > 0) and CharInSet(LTokens[0][1], ['0'..'9', '.']) then
       ParseBorderWidth(LTokens[0], FTableCellSpacing);
+
     if ExtractCSSValue(LStyle, 'border-collapse') = 'collapse' then
       FTableCellSpacing := 0;
   end;
+
   FTableCellSpacing := Min(Max(FTableCellSpacing, 0), C_MAXIMUM_TABLE_CELL_SPACING);
 end;
 
@@ -1419,6 +1579,7 @@ begin
   Result := StrToIntDef(Trim(GetAttribute(AAttributes, AName)), 1);
   if Result < 1 then
     Result := 1;
+
   if Result > C_MAXIMUM_TABLE_SPAN then
     Result := C_MAXIMUM_TABLE_SPAN;
 end;
@@ -1430,6 +1591,7 @@ begin
      not FCurrentParagraph.Runs.Last.IsImage and not FCurrentParagraph.Runs.Last.IsLineBreak and
      (FCurrentParagraph.Runs.Last.Text = ' ') then
     FCurrentParagraph.Runs.Delete(FCurrentParagraph.Runs.Count - 1);
+
   if (FCurrentParagraph <> nil) and (not FCurrentParagraph.IsEmpty or ((FDocument.Paragraphs.Count = 0) and not FCellOpen)) then
   begin
     AddParagraph(FCurrentParagraph);
@@ -1448,6 +1610,7 @@ begin
   begin
     FCurrentParagraph := TS4YHTMLParagraph.Create;
     FCurrentParagraph.BlockType := ABlockType;
+
     if FDivAlignment <> haLeft then
     begin
       FCurrentParagraph.Alignment := FDivAlignment;
@@ -1464,9 +1627,11 @@ var
 begin
   if AText = '' then
     Exit;
+
   EnsureParagraph;
   LTextStyle := TopStyle;
   LBorderColor := TopBorderColor;
+
   if (FCurrentParagraph.Runs.Count > 0) and FCurrentParagraph.Runs.Last.Style.EqualsFormat(LTextStyle) and
      not FCurrentParagraph.Runs.Last.IsLineBreak and
      not FCurrentParagraph.Runs.Last.IsImage and
@@ -1503,6 +1668,7 @@ var
 begin
   if (ATag = '!--') or StartsWithCI(ATag, '!') then
     Exit; // comments/doctype
+
   if IsBlockStyleTag(ATag) then
   begin
     if IsClose then
@@ -1510,16 +1676,19 @@ begin
     else if not IsSelf then
       OpenBlockStyle(ATag, AAttributes);
   end;
+
   if ATag = 'head' then
   begin
     SkipUntil('</head>');
     Exit;
   end;
+
   if ATag = 'style' then
   begin
     SkipUntil('</style>');
     Exit;
   end;
+
   if ATag = 'script' then
   begin
     SkipUntil('</script>');
@@ -1537,9 +1706,11 @@ begin
       FCurrentParagraph := TS4YHTMLParagraph.Create;
       FCurrentParagraph.BlockType := btParagraph;
       LParagraphStyle := GetAttribute(AAttributes, 'style');
+
       if LParagraphStyle <> '' then
       begin
         LStyleLower := LParagraphStyle.ToLower;
+
         if LStyleLower.Contains('center') then
           FCurrentParagraph.Alignment := haCenter
         else if LStyleLower.Contains('right') then
@@ -1547,7 +1718,9 @@ begin
         else if LStyleLower.Contains('justify') then
           FCurrentParagraph.Alignment := haJustify;
       end;
+
       LAlignAttribute := GetAttribute(AAttributes, 'align').ToLower;
+
       if LAlignAttribute = 'center' then
         FCurrentParagraph.Alignment := haCenter
       else if LAlignAttribute = 'right' then
@@ -1555,6 +1728,7 @@ begin
       else if LAlignAttribute = 'justify' then
         FCurrentParagraph.Alignment := haJustify;
     end;
+
     Exit;
   end;
 
@@ -1562,34 +1736,45 @@ begin
   begin
     if IsClose then
       Exit;
+
     LStyleAttribute := GetAttribute(AAttributes, 'style');
     LPixelSize := StrToIntDef(GetAttribute(AAttributes, 'width').Trim, 0);
+
     if (LPixelSize = 0) and (LStyleAttribute <> '') then
     begin
       LSizeAttribute := ExtractCSSValue(LStyleAttribute.ToLower, 'width');
+
       if LSizeAttribute <> '' then
         LPixelSize := StrToIntDef(LSizeAttribute.Replace('px', '').Replace('pt', '').Trim, 0);
     end;
+
     var LImageWidth := LPixelSize;
     LPixelSize := StrToIntDef(GetAttribute(AAttributes, 'height').Trim, 0);
+
     if (LPixelSize = 0) and (LStyleAttribute <> '') then
     begin
       LSizeAttribute := ExtractCSSValue(LStyleAttribute.ToLower, 'height');
+
       if LSizeAttribute <> '' then
         LPixelSize := StrToIntDef(LSizeAttribute.Replace('px', '').Replace('pt', '').Trim, 0);
     end;
+
     var LImageHeight := LPixelSize;
     var LImageSource := GetAttribute(AAttributes, 'src');
     var LImageAltText := GetAttribute(AAttributes, 'alt');
     LAlignAttribute := GetAttribute(AAttributes, 'align').ToLower;
+
     if (LAlignAttribute = '') and (LStyleAttribute <> '') then
     begin
       LStyleLower := ExtractCSSValue(LStyleAttribute.ToLower, 'text-align');
+
       if LStyleLower <> '' then
         LAlignAttribute := LStyleLower;
     end;
+
     var LParagraphWasNil := FCurrentParagraph = nil;
     EnsureParagraph;
+
     if LParagraphWasNil and (LAlignAttribute <> '') then
     begin
       if LAlignAttribute = 'center' then
@@ -1599,6 +1784,7 @@ begin
       else if LAlignAttribute = 'justify' then
         FCurrentParagraph.Alignment := haJustify;
     end;
+
     var LImageRun := TS4YHTMLRun.Create;
     LImageRun.IsImage := True;
     LImageRun.ImageSource := LImageSource;
@@ -1615,6 +1801,7 @@ begin
   begin
     if IsClose then
       Exit;
+
     EnsureParagraph;
     LLineBreakRun := TS4YHTMLRun.Create;
     LLineBreakRun.IsLineBreak := True;
@@ -1626,46 +1813,61 @@ begin
   begin
     if IsClose then
       Exit;
+
     FlushParagraph;
     LHorizontalRuleParagraph := TS4YHTMLParagraph.Create;
     LHorizontalRuleParagraph.BlockType := btHR;
     LColorAttribute := GetAttribute(AAttributes, 'color');
+
     if LColorAttribute <> '' then
       LHorizontalRuleParagraph.HRColor := ParseColor(LColorAttribute);
+
     LSizeAttribute := GetAttribute(AAttributes, 'size');
+
     if LSizeAttribute <> '' then
     begin
       LPixelSize := StrToIntDef(LSizeAttribute.Trim, 0);
+
       if LPixelSize > 0 then
         LHorizontalRuleParagraph.HRThickness := LPixelSize;
     end;
+
     LStyleAttribute := GetAttribute(AAttributes, 'style');
+
     if LStyleAttribute <> '' then
     begin
       LStyleLower := LStyleAttribute.ToLower;
       LColorAttribute := ExtractCSSValue(LStyleLower, 'color');
+
       if LColorAttribute <> '' then
         LHorizontalRuleParagraph.HRColor := ParseColor(LColorAttribute);
+
       LColorAttribute := ExtractCSSValue(LStyleLower, 'border-color');
+
       if LColorAttribute <> '' then
         LHorizontalRuleParagraph.HRColor := ParseColor(LColorAttribute);
+
       LSizeAttribute := ExtractCSSValue(LStyleLower, 'height');
       if LSizeAttribute = '' then
         LSizeAttribute := ExtractCSSValue(LStyleLower, 'border-width');
+
       if LSizeAttribute <> '' then
       begin
         LSizeAttribute := LSizeAttribute.Replace('px', '').Replace('pt', '').Trim;
         LPixelSize := StrToIntDef(LSizeAttribute, 0);
+
         if LPixelSize > 0 then
           LHorizontalRuleParagraph.HRThickness := LPixelSize;
       end;
     end;
+
     AddParagraph(LHorizontalRuleParagraph);
     Exit;
   end;
 
   // Headings
   LBlockType := btParagraph;
+
   if (Length(ATag) = 2) and (ATag[Low(ATag)] = 'h') and CharInSet(ATag[Low(ATag) + 1], ['1' .. '6']) then
   begin
     case ATag[Low(ATag) + 1] of
@@ -1676,6 +1878,7 @@ begin
       '5': LBlockType := btH5;
       '6': LBlockType := btH6;
     end;
+
     if IsClose then
       FlushParagraph
     else
@@ -1684,6 +1887,7 @@ begin
       FCurrentParagraph := TS4YHTMLParagraph.Create;
       FCurrentParagraph.BlockType := LBlockType;
     end;
+
     Exit;
   end;
 
@@ -1701,6 +1905,7 @@ begin
       EnsureParagraph(btBlockquote);
       FCurrentParagraph.IndentLevel := FListDepth;
     end;
+
     Exit;
   end;
 
@@ -1714,6 +1919,7 @@ begin
       Inc(FListDepth);
       FInOrderedList := False;
     end;
+
     Exit;
   end;
 
@@ -1727,6 +1933,7 @@ begin
       FInOrderedList := True;
       FOrderedListCounter := 0;
     end;
+
     Exit;
   end;
 
@@ -1741,12 +1948,14 @@ begin
       FCurrentParagraph.BlockType := btLI;
       FCurrentParagraph.IndentLevel := FListDepth - 1;
       FCurrentParagraph.ListOrdered := FInOrderedList;
+
       if FInOrderedList then
       begin
         Inc(FOrderedListCounter);
         FCurrentParagraph.ListIndex := FOrderedListCounter;
       end;
     end;
+
     Exit;
   end;
 
@@ -1764,6 +1973,7 @@ begin
       FCurrentParagraph.BlockType := btPre;
       FInPreformatted := True;
     end;
+
     Exit;
   end;
 
@@ -1779,9 +1989,11 @@ begin
       FlushParagraph;
       FDivAlignment := haLeft;
       LStyleAttribute := GetAttribute(AAttributes, 'style');
+
       if LStyleAttribute <> '' then
       begin
         LStyleLower := ExtractCSSValue(LStyleAttribute.ToLower, 'text-align');
+
         if LStyleLower = 'center' then
           FDivAlignment := haCenter
         else if LStyleLower = 'right' then
@@ -1790,6 +2002,7 @@ begin
           FDivAlignment := haJustify;
       end;
     end;
+
     Exit;
   end;
 
@@ -1800,20 +2013,26 @@ begin
       EndTableCell;
       FlushParagraph;
       EndTableRow;
+
       for LIndex := 0 to FDocument.Paragraphs.Count - 1 do
         if FDocument.Paragraphs[LIndex].IsTableCell and
            (FDocument.Paragraphs[LIndex].TableID = FTableID) then
         begin
           FDocument.Paragraphs[LIndex].TableCols := FTableColumns;
+
           // A rowspan cannot go past the last row of the table
           if FDocument.Paragraphs[LIndex].TableRow + FDocument.Paragraphs[LIndex].TableRowSpan - 1 > FTableRow then
             FDocument.Paragraphs[LIndex].TableRowSpan := FTableRow - FDocument.Paragraphs[LIndex].TableRow + 1;
         end;
+
       FInTable := False;
       UnwindBlockStyles(FTableBlockBase);
+
       if FTableStylePushed then
         PopStyle;
+
       FTableStylePushed := False;
+
       // A table nested in a cell ends: the outer table goes on
       if FTableStack.Count > 0 then
         LeaveNestedTable;
@@ -1821,17 +2040,21 @@ begin
     else
     begin
       FlushParagraph;
+
       if FInTable and FCellOpen then
         EnterNestedTable
       else
         FTableContainers := nil;
+
       FTableID := NextTableID;
       ReadTableAttributes(AAttributes);
       LTextStyle := TopStyle;
       FTableBlockBase := FBlockStyles.Count;
       FTableStylePushed := ParseTextStyleOfBlock(GetAttribute(AAttributes, 'style'), LTextStyle);
+
       if FTableStylePushed then
         PushStyle(LTextStyle, TopBorderColor);
+
       FTableRow := -1;
       FTableColumn := 0;
       FTableColumns := 0;
@@ -1840,12 +2063,14 @@ begin
       FCellOpen := False;
       FInTable := True;
     end;
+
     Exit;
   end;
 
   if ATag = 'tr' then
   begin
     EndTableCell;
+
     if IsClose then
     begin
       FlushParagraph;
@@ -1859,6 +2084,7 @@ begin
       FTableColumn := 0;
       FTableRowOpen := True;
     end;
+
     Exit;
   end;
 
@@ -1870,9 +2096,11 @@ begin
     begin
       EndTableCell; // the previous cell, when its closing tag was omitted
       FlushParagraph;
+
       // Skip the columns that a cell of a previous row still covers
       while (FTableColumn < Length(FTableCovered)) and (FTableCovered[FTableColumn] > 0) do
         Inc(FTableColumn);
+
       FCellOpen := FInTable;
       FCellIsHeader := FInTable and (ATag = 'th');
       FCellRow := FTableRow;
@@ -1880,28 +2108,39 @@ begin
       FCellColSpan := ParseTableSpan(AAttributes, 'colspan');
       FCellRowSpan := ParseTableSpan(AAttributes, 'rowspan');
       FCellWidth := ParseTableLength(GetAttribute(AAttributes, 'width'));
+
       if GetAttribute(AAttributes, 'style') <> '' then
       begin
         LCellStyleWidth := ExtractCSSValue(GetAttribute(AAttributes, 'style').ToLower, 'width');
+
         if LCellStyleWidth <> '' then
           FCellWidth := ParseTableLength(LCellStyleWidth);
       end;
+
       ReadCellAttributes(AAttributes);
       FCellParagraphCount := 0;
+
       // The text of the cell takes the style of the cell: bold for a th, and the font and color that it writes
       LTextStyle := TopStyle;
+
       if FCellIsHeader then
         LTextStyle.Bold := True;
+
       FCellBlockBase := FBlockStyles.Count;
       FCellStylePushed := ParseTextStyleOfBlock(GetAttribute(AAttributes, 'style'), LTextStyle) or FCellIsHeader;
+
       if FCellStylePushed then
         PushStyle(LTextStyle, TopBorderColor);
+
       if Length(FTableCovered) < FTableColumn + FCellColSpan then
         SetLength(FTableCovered, FTableColumn + FCellColSpan);
+
       for var LColumn := FTableColumn to FTableColumn + FCellColSpan - 1 do
         FTableCovered[LColumn] := FCellRowSpan;
+
       Inc(FTableColumn, FCellColSpan);
     end;
+
     Exit;
   end;
 
@@ -1941,8 +2180,10 @@ begin
       LTextStyle.Bold := True;
       PushStyle(LTextStyle);
     end;
+
     Exit;
   end;
+
   if ATag = 'strong' then
   begin
     if IsClose then
@@ -1952,8 +2193,10 @@ begin
       LTextStyle.Bold := True;
       PushStyle(LTextStyle);
     end;
+
     Exit;
   end;
+
   if ATag = 'i' then
   begin
     if IsClose then
@@ -1963,8 +2206,10 @@ begin
       LTextStyle.Italic := True;
       PushStyle(LTextStyle);
     end;
+
     Exit;
   end;
+
   if ATag = 'em' then
   begin
     if IsClose then
@@ -1974,8 +2219,10 @@ begin
       LTextStyle.Italic := True;
       PushStyle(LTextStyle);
     end;
+
     Exit;
   end;
+
   if ATag = 'u' then
   begin
     if IsClose then
@@ -1985,8 +2232,10 @@ begin
       LTextStyle.Underline := True;
       PushStyle(LTextStyle);
     end;
+
     Exit;
   end;
+
   if (ATag = 's') or (ATag = 'del') or (ATag = 'strike') then
   begin
     if IsClose then
@@ -1996,8 +2245,10 @@ begin
       LTextStyle.StrikeOut := True;
       PushStyle(LTextStyle);
     end;
+
     Exit;
   end;
+
   if ATag = 'sup' then
   begin
     if IsClose then
@@ -2007,8 +2258,10 @@ begin
       LTextStyle.Superscript := True;
       PushStyle(LTextStyle);
     end;
+
     Exit;
   end;
+
   if ATag = 'sub' then
   begin
     if IsClose then
@@ -2018,8 +2271,10 @@ begin
       LTextStyle.Subscript := True;
       PushStyle(LTextStyle);
     end;
+
     Exit;
   end;
+
   if ATag = 'small' then
   begin
     if IsClose then
@@ -2029,8 +2284,10 @@ begin
       LTextStyle.FontSize := LTextStyle.FontSize * 0.8;
       PushStyle(LTextStyle);
     end;
+
     Exit;
   end;
+
   if ATag = 'big' then
   begin
     if IsClose then
@@ -2040,6 +2297,7 @@ begin
       LTextStyle.FontSize := LTextStyle.FontSize * 1.2;
       PushStyle(LTextStyle);
     end;
+
     Exit;
   end;
 
@@ -2055,6 +2313,7 @@ begin
       LTextStyle.LinkURL := LLinkURL;
       PushStyle(LTextStyle);
     end;
+
     Exit;
   end;
 
@@ -2065,10 +2324,13 @@ begin
     else
     begin
       LStyleAttribute := GetAttribute(AAttributes, 'style');
+
       if LStyleAttribute <> '' then
         ParseInlineStyle(LStyleAttribute, LTextStyle);
+
       PushStyle(LTextStyle, ExtractBorderColor(LStyleAttribute));
     end;
+
     Exit;
   end;
 
@@ -2082,24 +2344,32 @@ begin
       LSizeAttribute := GetAttribute(AAttributes, 'size');
       LColorAttribute := GetAttribute(AAttributes, 'color');
       LStyleAttribute := GetAttribute(AAttributes, 'style');
+
       if LFaceAttribute <> '' then
         LTextStyle.FontName := LFaceAttribute;
+
       if LSizeAttribute <> '' then
       begin
         LPixelSize := StrToIntDef(LSizeAttribute.Trim, 0);
+
         if LPixelSize > 0 then
           LTextStyle.FontSize := LPixelSize;
       end;
+
       if LColorAttribute <> '' then
       begin
         LColor := ParseColor(LColorAttribute);
+
         if LColor <> claNull then
           LTextStyle.Color := LColor;
       end;
+
       if LStyleAttribute <> '' then
         ParseInlineStyle(LStyleAttribute, LTextStyle);
+
       PushStyle(LTextStyle);
     end;
+
     Exit;
   end;
 
@@ -2114,18 +2384,23 @@ var
 begin
   if not AText.Contains('&') then
     Exit(AText);
+
   Result := '';
   LScanPosition := Low(AText);
+
   while LScanPosition <= High(AText) do
   begin
     if AText[LScanPosition] = '&' then
     begin
       LEntityEnd := LScanPosition + 1;
+
       while (LEntityEnd <= High(AText)) and (AText[LEntityEnd] <> ';') and (LEntityEnd - LScanPosition < 12) do
         Inc(LEntityEnd);
+
       if (LEntityEnd <= High(AText)) and (AText[LEntityEnd] = ';') then
       begin
         LEntity := AText.Substring(LScanPosition - Low(AText) + 1, LEntityEnd - LScanPosition - 1);
+
         if LEntity = 'amp' then
           Result := Result + '&'
         else if LEntity = 'lt' then
@@ -2157,6 +2432,7 @@ begin
               LCode := StrToInt('$' + LEntity.Substring(2))
             else
               LCode := LEntity.Substring(1).ToInteger;
+
             if LCode < $10000 then
               Result := Result + WideChar(LCode)
             else
@@ -2170,6 +2446,7 @@ begin
         end
         else
           Result := Result + '&' + LEntity + ';';
+
         LScanPosition := LEntityEnd + 1;
       end
       else
@@ -2227,6 +2504,7 @@ begin
         if ReadTag(LTagName, LAttributes, LIsClose, LIsSelf) then
         begin
           HandleTag(LTagName, LAttributes, LIsClose, LIsSelf);
+
           if LIsSelf and not LIsClose then
             HandleTag(LTagName, LAttributes, True, False); // auto-close
         end;
@@ -2234,14 +2512,17 @@ begin
       else
       begin
         LTextNode := ReadTextNode;
+
         if FInPreformatted then
         begin
           LTextNode := LTextNode.Replace(#13#10, #10).Replace(#13, #10);
           LPreformattedParts := LTextNode.Split([#10]);
+
           for LIndex := 0 to High(LPreformattedParts) do
           begin
             if LPreformattedParts[LIndex] <> '' then
               AddTextRun(LPreformattedParts[LIndex]);
+
             if LIndex < High(LPreformattedParts) then
             begin
               FlushParagraph;
@@ -2253,8 +2534,10 @@ begin
         else
         begin
           LTextNode := LTextNode.Replace(#13#10, ' ').Replace(#10, ' ').Replace(#13, ' ').Replace(#9, ' ');
+
           while LTextNode.Contains('  ') do
             LTextNode := LTextNode.Replace('  ', ' ');
+
           if LTextNode.Trim <> '' then
             AddTextRun(LTextNode)
           else if (LTextNode = ' ') and (FCurrentParagraph <> nil) and (FCurrentParagraph.Runs.Count > 0) and

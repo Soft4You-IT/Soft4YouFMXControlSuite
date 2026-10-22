@@ -429,6 +429,7 @@ begin
   Result.TableID := TableID;
   Result.TableRow := TableRow;
   Result.TableRowSpan := TableRowSpan;
+
   for LRun in Runs do
     Result.Runs.Add(LRun.Clone);
 end;
@@ -438,6 +439,7 @@ var
   LRun: TS4YHTMLRun;
 begin
   Result := '';
+
   for LRun in Runs do
   begin
     if LRun.IsLineBreak then
@@ -456,6 +458,7 @@ begin
   for LRun in Runs do
     if (not LRun.IsLineBreak) and (LRun.Text <> '') then
       Exit(False);
+
   Result := True;
 end;
 
@@ -474,6 +477,7 @@ var
   LContainer: TS4YTableCellReference;
 begin
   Result := (FTableID <> 0) and (FTableID = ATableID) and (FTableRow = ARow) and (FTableCol = AColumn);
+
   for LContainer in FTableContainers do
     if (LContainer.TableID = ATableID) and (LContainer.Row = ARow) and (LContainer.Column = AColumn) then
       Result := True;
@@ -484,6 +488,7 @@ var
   LContainer: TS4YTableCellReference;
 begin
   Result := (FTableID <> 0) and (FTableID = ATableID);
+
   if Result then
   begin
     ARow := FTableRow;
@@ -493,6 +498,7 @@ begin
   begin
     ARow := -1;
     AColumn := -1;
+
     for LContainer in FTableContainers do
       if LContainer.TableID = ATableID then
       begin
@@ -527,6 +533,7 @@ var
   LContainer: TS4YTableCellReference;
 begin
   Result := (FTableID <> 0) and (FTableID = ATableID);
+
   for LContainer in FTableContainers do
     if LContainer.TableID = ATableID then
       Result := True;
@@ -558,6 +565,7 @@ var
   LParagraph: TS4YHTMLParagraph;
 begin
   Result := TS4YHTMLDocument.Create;
+
   for LParagraph in Paragraphs do
     Result.Paragraphs.Add(LParagraph.Clone);
 end;

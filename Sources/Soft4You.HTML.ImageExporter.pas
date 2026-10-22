@@ -130,16 +130,20 @@ begin
   LCounter := 1;
   LIsDone := False;
   Result := '';
+
   while not LIsDone do
   begin
     if LCounter = 1 then
       LName := LBaseName + LExtension
     else
       LName := LBaseName + '_' + IntToStr(LCounter) + LExtension;
+
     Inc(LCounter);
+
     if not FUsedNames.ContainsKey(LName.ToLower) then
     begin
       Result := TPath.Combine(LImagesFolder, LName);
+
       if not TFile.Exists(Result) then
       begin
         TDirectory.CreateDirectory(LImagesFolder);
@@ -151,6 +155,7 @@ begin
         LIsDone := SameText(TPath.GetFullPath(ASourceFile), TPath.GetFullPath(Result)) or
           AreFilesEqual(ASourceFile, Result);
       end;
+
       if LIsDone then
         FUsedNames.Add(LName.ToLower, ASourceFile);
     end;
@@ -165,22 +170,31 @@ var
 begin
   ANewSource := ASource;
   Result := False;
+
   if FSources.TryGetValue(ASource, ANewSource) then
     Exit(True);
+
   ANewSource := ASource;
+
   if not IsLocalImageSource(ASource) then
     Exit;
+
   if Assigned(FIsAllowed) and not FIsAllowed(ASource) then
     Exit;
+
   LSourceFile := TPath.GetFullPath(FResolver(ASource));
+
   if not TFile.Exists(LSourceFile) then
     Exit;
+
   LKey := LSourceFile.ToLower;
+
   if not FCopiedPaths.TryGetValue(LKey, LCopyPath) then
   begin
     LCopyPath := CopyToDestination(LSourceFile);
     FCopiedPaths.Add(LKey, LCopyPath);
   end;
+
   ANewSource := FFolderName + '/' + TPath.GetFileName(LCopyPath);
   FSources.Add(ASource, ANewSource);
   FDestinations.Add(ASource, LCopyPath);

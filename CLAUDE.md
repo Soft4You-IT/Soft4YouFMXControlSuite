@@ -59,6 +59,46 @@ Usare prefissi coerenti per i metodi che operano su elementi esistenti:
 - `begin` e `end` sempre su riga propria
 - Vietati: `with`, `Break`, `Continue`
 
+## Righe vuote tra i blocchi di codice
+
+Dentro il corpo di un metodo i blocchi di codice sono separati da una riga vuota. Una riga vuota va:
+
+- **dopo ogni blocco di controllo** (`if`, `for`, `while`, `case`, `try`, `repeat`), con o senza `else` e anche quando occupa due sole righe, se dopo c'è un'altra istruzione allo stesso livello. Anche una serie di `if` consecutivi ha una riga vuota tra l'uno e l'altro;
+- **prima di un blocco di controllo** preceduto da un'istruzione semplice allo stesso livello, compreso il controllo che esce subito (`if ... then Exit;`);
+- **prima di un commento** che apre un nuovo blocco dopo un'istruzione semplice. Un commento che chiude il blocco e spiega l'istruzione precedente resta attaccato.
+
+Eccezioni, che restano attaccate:
+
+- `try` subito dopo la creazione dell'oggetto che protegge (`LBuilder := TStringBuilder.Create;` seguito da `try`);
+- il valore di default seguito dall'`if` che può sostituirlo (`LIndent := ''; if Level > 0 then LIndent := ...;`).
+
+Mai righe vuote subito dopo `begin`, subito prima di `end` / `else` / `except` / `finally` / `until`, né dentro un'istruzione su più righe. Le direttive `{$IFDEF}` non separano né vengono separate. I metodi brevi con sole assegnazioni restano compatti.
+
+```delphi
+begin
+  Result := nil;
+  LSVGDOM := TSkSVGDOM.Make(ASVGText);
+
+  if not Assigned(LSVGDOM) then
+    Exit;
+
+  LWidth := AWidth;
+  LHeight := AHeight;
+
+  if (LWidth <= 0) or (LHeight <= 0) then
+  begin
+    ...
+  end;
+
+  Result := TBitmap.Create(LWidth, LHeight);
+  try
+    ...
+  except
+    FreeAndNil(Result);
+  end;
+end;
+```
+
 ## Variabili inline
 
 In generale, dichiarare le variabili nella sezione `var` della funzione o procedura. Eccezioni ammesse:

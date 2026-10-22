@@ -500,6 +500,7 @@ class function TS4YEmojiData.Categories: TArray<TS4YEmojiCategory>;
 begin
   if Length(FCategories) = 0 then
     FCategories := Build;
+
   Result := FCategories;
 end;
 
@@ -511,19 +512,25 @@ var
   LOffset: Integer;
 begin
   LCategories := Categories;
+
   if ACategory <> eckAll then
   begin
     for LCategory in LCategories do
       if LCategory.Kind = ACategory then
         Exit(LCategory.Items);
+
     Result := [];
     Exit;
   end;
+
   LTotalCount := 0;
+
   for LCategory in LCategories do
     Inc(LTotalCount, Length(LCategory.Items));
+
   SetLength(Result, LTotalCount);
   LOffset := 0;
+
   for LCategory in LCategories do
     for var LItem in LCategory.Items do
     begin
