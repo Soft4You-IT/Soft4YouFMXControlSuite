@@ -1,6 +1,6 @@
 # TS4YHTMLEditor - Architecture
 
-This document describes the internals of the control, for people who modify it. If you only use the control in an application, read the [Developer Guide](DeveloperGuide.md) and the [README](../README.md) instead.
+This document describes the internals of the control, for people who modify it. If you only use the control in an application, read the [Developer Guide](DeveloperGuide.md) and the [README](../../README.md) instead.
 
 ## Overall pipeline
 
