@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FMX FlexBox — Architettura & Roadmap</title>
+<title>FMX FlexBox — Architecture & Roadmap</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
 
@@ -332,47 +332,47 @@
   <header>
     <div class="tag">// FMX · FIREMONKEY · DELPHI</div>
     <h1>TFlexBox<br><span>Component</span></h1>
-    <p class="subtitle">Architettura e roadmap per un'implementazione fedele del modello CSS FlexBox in FireMonkey, cross-platform.</p>
+    <p class="subtitle">Architecture and roadmap for a faithful implementation of the CSS FlexBox model in FireMonkey, cross-platform.</p>
 
     <div class="stats">
-      <div class="stat"><span class="stat-val">14</span><span class="stat-label">Proprietà CSS</span></div>
-      <div class="stat"><span class="stat-val">2</span><span class="stat-label">Componenti</span></div>
-      <div class="stat"><span class="stat-val">4</span><span class="stat-label">Fasi</span></div>
-      <div class="stat"><span class="stat-val">4</span><span class="stat-label">Piattaforme</span></div>
+      <div class="stat"><span class="stat-val">14</span><span class="stat-label">CSS properties</span></div>
+      <div class="stat"><span class="stat-val">2</span><span class="stat-label">Components</span></div>
+      <div class="stat"><span class="stat-val">4</span><span class="stat-label">Phases</span></div>
+      <div class="stat"><span class="stat-val">4</span><span class="stat-label">Platforms</span></div>
     </div>
   </header>
 
   <!-- Architecture -->
-  <div class="section-title">Architettura componenti</div>
+  <div class="section-title">Component architecture</div>
   <div class="arch-grid">
     <div class="arch-card highlight">
       <div class="arch-icon">// CONTAINER</div>
       <div class="arch-title">TFlexBox</div>
-      <div class="arch-desc">Estende <code>TControl</code>. Intercetta <code>DoRealign</code> per calcolare e applicare il layout flex a tutti i figli diretti. Espone tutte le proprietà container.</div>
+      <div class="arch-desc">Extends <code>TControl</code>. Intercepts <code>DoRealign</code> to calculate and apply the flex layout to all the direct children. Exposes all the container properties.</div>
       <span class="arch-tag">TControl → TFlexBox</span>
     </div>
     <div class="arch-card">
       <div class="arch-icon">// ITEM PROPS</div>
       <div class="arch-title">TFlexItem</div>
-      <div class="arch-desc">Record/classe agganciata a ogni figlio tramite un <code>TDictionary</code>. Contiene <code>order, grow, shrink, basis, alignSelf</code>. Accessibile via helper su <code>TControl</code>.</div>
+      <div class="arch-desc">Record/class attached to every child through a <code>TDictionary</code>. Holds <code>order, grow, shrink, basis, alignSelf</code>. Accessible through a helper on <code>TControl</code>.</div>
       <span class="arch-tag">Per-child metadata</span>
     </div>
     <div class="arch-card">
       <div class="arch-icon">// ENGINE</div>
       <div class="arch-title">TFlexEngine</div>
-      <div class="arch-desc">Classe interna stateless che implementa l'algoritmo FlexBox puro. Riceve un <code>TFlexContext</code> e restituisce le rect calcolate per ogni figlio. Testabile in isolamento.</div>
-      <span class="arch-tag">Algoritmo puro</span>
+      <div class="arch-desc">Internal stateless class that implements the pure FlexBox algorithm. Receives a <code>TFlexContext</code> and returns the calculated rects for every child. Testable in isolation.</div>
+      <span class="arch-tag">Pure algorithm</span>
     </div>
     <div class="arch-card">
       <div class="arch-icon">// HELPER</div>
       <div class="arch-title">FlexHelper / IDE Reg</div>
-      <div class="arch-desc">Registrazione design-time nel Package. Property editor personalizzato per <code>TFlexItem</code>. Helper <code>SetFlex(ctrl, grow, shrink, basis)</code> per uso programmatico.</div>
-      <span class="arch-tag">Design-time + API fluente</span>
+      <div class="arch-desc">Design-time registration in the package. Custom property editor for <code>TFlexItem</code>. <code>SetFlex(ctrl, grow, shrink, basis)</code> helper for programmatic use.</div>
+      <span class="arch-tag">Design time + fluent API</span>
     </div>
   </div>
 
   <!-- Properties -->
-  <div class="section-title">Proprietà supportate</div>
+  <div class="section-title">Supported properties</div>
   <div class="props-grid">
     <!-- Container props -->
     <div class="prop-item">
@@ -430,12 +430,12 @@
     </div>
     <div class="prop-item">
       <div class="prop-dot" style="background:#ff6b4a"></div>
-      <div><div class="prop-name">min/max size</div><div class="prop-owner">FMX nativo</div></div>
+      <div><div class="prop-name">min/max size</div><div class="prop-owner">Native FMX</div></div>
     </div>
   </div>
 
   <!-- Roadmap -->
-  <div class="section-title">Roadmap di sviluppo</div>
+  <div class="section-title">Development roadmap</div>
   <div class="phases" id="phases">
 
     <!-- Phase 1 -->
@@ -452,23 +452,23 @@
         <div class="phase-tasks">
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">Struttura TFlexBox, TFlexItem, TFlexEngine</div><div class="task-sub">Classi base, enumerativi, record TFlexContext</div></div>
+            <div><div class="task-text">Structure of TFlexBox, TFlexItem, TFlexEngine</div><div class="task-sub">Base classes, enumerations, TFlexContext record</div></div>
           </div>
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">Override DoRealign in TFlexBox</div><div class="task-sub">Hook principale nel ciclo di layout FMX</div></div>
+            <div><div class="task-text">Override DoRealign in TFlexBox</div><div class="task-sub">Main hook in the FMX layout cycle</div></div>
           </div>
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">Algoritmo single-line: row + no-wrap</div><div class="task-sub">flex-direction row/column, justify-content, align-items</div></div>
+            <div><div class="task-text">Single-line algorithm: row + no-wrap</div><div class="task-sub">flex-direction row/column, justify-content, align-items</div></div>
           </div>
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">flex-grow e flex-shrink distribution</div><div class="task-sub">Distribuzione spazio residuo con fattori grow/shrink</div></div>
+            <div><div class="task-text">flex-grow and flex-shrink distribution</div><div class="task-sub">Distribution of the remaining space with grow/shrink factors</div></div>
           </div>
         </div>
         <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:0%"></div></div>
-        <div class="progress-label" id="prog1">0 / 4 completati</div>
+        <div class="progress-label" id="prog1">0 / 4 completed</div>
       </div>
     </div>
 
@@ -486,27 +486,27 @@
         <div class="phase-tasks">
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">flex-wrap: wrap / wrap-reverse</div><div class="task-sub">Calcolo righe/colonne, break dei figli per size</div></div>
+            <div><div class="task-text">flex-wrap: wrap / wrap-reverse</div><div class="task-sub">Calculation of rows/columns, breaking the children by size</div></div>
           </div>
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">align-content (multi-line)</div><div class="task-sub">Distribuzione delle linee nello spazio cross-axis</div></div>
+            <div><div class="task-text">align-content (multi-line)</div><div class="task-sub">Distribution of the lines in the cross-axis space</div></div>
           </div>
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">align-self per item singoli</div><div class="task-sub">Override di align-items sul singolo figlio</div></div>
+            <div><div class="task-text">align-self for single items</div><div class="task-sub">Override of align-items on the single child</div></div>
           </div>
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">order property + sorting</div><div class="task-sub">Ordinamento figli prima del layout senza cambio Z-order</div></div>
+            <div><div class="task-text">order property + sorting</div><div class="task-sub">Sorting the children before the layout without changing the Z-order</div></div>
           </div>
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">flex-basis: auto / px / %</div><div class="task-sub">Risoluzione basis da Width/Height o percentuale del container</div></div>
+            <div><div class="task-text">flex-basis: auto / px / %</div><div class="task-sub">Resolution of the basis from Width/Height or from a percentage of the container</div></div>
           </div>
         </div>
         <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:0%"></div></div>
-        <div class="progress-label" id="prog2">0 / 5 completati</div>
+        <div class="progress-label" id="prog2">0 / 5 completed</div>
       </div>
     </div>
 
@@ -519,28 +519,28 @@
       <div class="phase-content">
         <div class="phase-header">
           <span class="phase-name">Gap & Polish</span>
-          <span class="phase-badge" style="background:rgba(80,227,164,0.12);color:#50e3a4">Spaziature</span>
+          <span class="phase-badge" style="background:rgba(80,227,164,0.12);color:#50e3a4">Spacing</span>
         </div>
         <div class="phase-tasks">
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">gap / row-gap / column-gap</div><div class="task-sub">Spaziatura tra item e tra righe, integrata nel calcolo spazio residuo</div></div>
+            <div><div class="task-text">gap / row-gap / column-gap</div><div class="task-sub">Spacing between items and between rows, integrated in the calculation of the remaining space</div></div>
           </div>
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">Rispetto di MinWidth/MinHeight/MaxWidth/MaxHeight</div><div class="task-sub">Clamp durante grow/shrink, ricalcolo deficit</div></div>
+            <div><div class="task-text">Respect for MinWidth/MinHeight/MaxWidth/MaxHeight</div><div class="task-sub">Clamp during grow/shrink, recalculation of the deficit</div></div>
           </div>
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">Padding del container</div><div class="task-sub">Sottrazione del Padding dalla available size</div></div>
+            <div><div class="task-text">Padding of the container</div><div class="task-sub">Subtraction of the Padding from the available size</div></div>
           </div>
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">Margins dei figli</div><div class="task-sub">Uso di Margins FMX nel calcolo dello spazio occupato</div></div>
+            <div><div class="task-text">Margins of the children</div><div class="task-sub">Use of the FMX Margins in the calculation of the occupied space</div></div>
           </div>
         </div>
         <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:0%"></div></div>
-        <div class="progress-label" id="prog3">0 / 4 completati</div>
+        <div class="progress-label" id="prog3">0 / 4 completed</div>
       </div>
     </div>
 
@@ -558,40 +558,40 @@
         <div class="phase-tasks">
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">Package di registrazione IDE</div><div class="task-sub">RegisterComponents, icona nella palette FMX</div></div>
+            <div><div class="task-text">IDE registration package</div><div class="task-sub">RegisterComponents, icon in the FMX palette</div></div>
           </div>
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">Property editor per TFlexItem</div><div class="task-sub">Sub-properties grow/shrink/basis/order nell'Object Inspector</div></div>
+            <div><div class="task-text">Property editor for TFlexItem</div><div class="task-sub">Sub-properties grow/shrink/basis/order in the Object Inspector</div></div>
           </div>
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">Supporto DFM streaming</div><div class="task-sub">DefineProperties per persistere TFlexItem legati ai figli</div></div>
+            <div><div class="task-text">DFM streaming support</div><div class="task-sub">DefineProperties to persist the TFlexItems tied to the children</div></div>
           </div>
           <div class="task" onclick="toggleTask(this)">
             <div class="task-check"></div>
-            <div><div class="task-text">Test su iOS e Android</div><div class="task-sub">Verifica comportamento con pixel density e layout passati</div></div>
+            <div><div class="task-text">Tests on iOS and Android</div><div class="task-sub">Check of the behaviour with pixel density and layout passes</div></div>
           </div>
         </div>
         <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:0%"></div></div>
-        <div class="progress-label" id="prog4">0 / 4 completati</div>
+        <div class="progress-label" id="prog4">0 / 4 completed</div>
       </div>
     </div>
 
   </div>
 
   <!-- Key decision -->
-  <div class="section-title">Decisioni architetturali chiave</div>
+  <div class="section-title">Key architectural decisions</div>
   <div class="arch-grid" style="margin-bottom:0">
     <div class="arch-card">
-      <div class="arch-icon">⚠ CRITICO</div>
+      <div class="arch-icon">⚠ CRITICAL</div>
       <div class="arch-title">DoRealign vs. DoCalcSize</div>
-      <div class="arch-desc">In FMX il layout avviene in <code>DoRealign</code>. Occorre chiamare <code>SetBoundsRect</code> sui figli senza triggerare un loop. Usare <code>FDisableAlign</code> o flag interno durante il calcolo.</div>
+      <div class="arch-desc">In FMX the layout happens in <code>DoRealign</code>. <code>SetBoundsRect</code> must be called on the children without triggering a loop. Use <code>FDisableAlign</code> or an internal flag during the calculation.</div>
     </div>
     <div class="arch-card">
-      <div class="arch-icon">⚠ CRITICO</div>
-      <div class="arch-title">Persistenza TFlexItem nel DFM</div>
-      <div class="arch-desc">I metadati flex appartengono al figlio ma sono gestiti dal padre. Soluzione: <code>DefineProperties</code> in <code>TFlexBox</code> che serializza una lista <code>ChildName=grow,shrink,basis,order,alignSelf</code>.</div>
+      <div class="arch-icon">⚠ CRITICAL</div>
+      <div class="arch-title">Persistence of TFlexItem in the DFM</div>
+      <div class="arch-desc">The flex metadata belong to the child but are managed by the parent. Solution: <code>DefineProperties</code> in <code>TFlexBox</code> that serializes a list <code>ChildName=grow,shrink,basis,order,alignSelf</code>.</div>
     </div>
   </div>
 
@@ -615,7 +615,7 @@
       const label = phase.querySelector('.progress-label') || document.getElementById('prog'+(i+1));
       if (fill) fill.style.width = pct + '%';
       const lbl = document.getElementById('prog'+(i+1));
-      if (lbl) lbl.textContent = done + ' / ' + total + ' completati';
+      if (lbl) lbl.textContent = done + ' / ' + total + ' completed';
     });
   }
 
