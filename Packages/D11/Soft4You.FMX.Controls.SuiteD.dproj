@@ -158,8 +158,12 @@
         <DCCReference Include="..\..\Sources\Design\Soft4You.FMX.Controls.Design.Splash.pas"/>
         <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Design.pas"/>
         <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Register.pas"/>
+        <DCCReference Include="..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.Register.pas"/>
         <RcCompile Include="..\..\Graphics\FlexBox\FlexBoxDesign.rc">
             <Form>FlexBoxDesign.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Graphics\Badge\BadgeDesign.rc">
+            <Form>BadgeDesign.res</Form>
         </RcCompile>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

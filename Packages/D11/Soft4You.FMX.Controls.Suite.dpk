@@ -52,6 +52,7 @@ contains
   Soft4You.FMX.Controls.FlexBox.SizeConstraints in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.SizeConstraints.pas',
   Soft4You.FMX.Controls.FlexBox.ItemBase in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.ItemBase.pas',
   Soft4You.FMX.Controls.FlexBox.Breakpoints in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Breakpoints.pas',
-  Soft4You.FMX.Controls.FlexBox in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.pas';
+  Soft4You.FMX.Controls.FlexBox in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.pas',
+  Soft4You.FMX.Controls.Badge in '..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.pas';
 
 end.

@@ -167,6 +167,13 @@
         <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.ItemBase.pas"/>
         <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Breakpoints.pas"/>
         <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.pas"/>
+        <DCCReference Include="..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.pas"/>
+        <RcCompile Include="..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.Mac.rc">
+            <Form>Soft4You.FMX.Controls.Badge.Mac.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.Win.rc">
+            <Form>Soft4You.FMX.Controls.Badge.Win.res</Form>
+        </RcCompile>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
