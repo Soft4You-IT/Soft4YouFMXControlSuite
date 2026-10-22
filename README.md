@@ -529,6 +529,8 @@ A refused image is not read; `OnLoadImage` still fires with a `nil` bitmap so a 
 | `Backspace` / `Delete` | Delete character or selection |
 | `Ctrl+Backspace` | Delete word left |
 
+The keys the editor does not use (function keys, `Ctrl` + letter combinations it does not define, modifier keys alone) are left to the form: the `ShortCut` of an action of the application, such as `F3` or `Ctrl+S`, works while the editor has the focus.
+
 Mouse: single click places caret, double-click selects word, triple-click selects paragraph. Clicking on an image selects it. Drag to extend selection with auto-scroll near edges. Drag the border between two columns of a table to resize them, or the outer edge of the table to change its width (not in read-only mode).
 
 ---

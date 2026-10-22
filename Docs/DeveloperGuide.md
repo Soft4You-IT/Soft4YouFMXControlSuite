@@ -56,6 +56,12 @@ Points to know:
 
 One user action can fire `OnChange` more than once. For example, inserting an image while some text is selected first deletes the selection (one event) and then inserts the image (a second event). Use `OnChange` as "something changed" (set a flag, schedule a refresh), never as a counter. Setting the content with `HTML`, `FullHTML` or `LoadFromFile` does not fire it.
 
+### Keys the editor does not use go to the form
+
+The editor consumes only the keys it uses: printable characters, the shortcuts listed in the README, the arrows, `Home`, `End`, `Page Up`, `Page Down`, `Backspace`, `Delete`, `Enter` and `Tab`. Every other key (function keys, `Ctrl` + a letter that the editor does not define, modifier keys alone) reaches the form, so the `ShortCut` of an action of the application (for example `F3` or `Ctrl+S`) works while the editor has the focus.
+
+`Esc` is consumed only when there is a selection to remove. The `OnKeyDown` event of the editor still sees every key first.
+
 ### Drawing events run while painting
 
 `OnDrawListMarker`, `OnGetListMarker`, `OnDrawPlaceholder` and `OnGetPlaceholderLabel` are called from inside the painting code. Therefore:
