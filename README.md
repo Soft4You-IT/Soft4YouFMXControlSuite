@@ -10,11 +10,11 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 
 | Folder | Content |
 |---|---|
-| `Sources` | All component units (`.pas`) |
-| `Packages` | Runtime and design-time packages, project group |
-| `Graphics` | Source artwork: `Icons\S4YHTMLEditor.svg` is the master of the Tool Palette icon (`TS4YHTMLEditor.bmp`, 24x24) and of the IDE splash screen and About box bitmaps (`S4YSplash.bmp`, `S4YAbout.bmp`), all compiled with `S4YFMXHTMLEditorD.rc` into `Packages\S4YFMXHTMLEditorD.dcr` |
-| `Demo` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files) |
-| `Docs` | Additional documentation: [`DeveloperGuide.md`](Docs/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals, in Italian) |
+| `Sources\HTMLEditor` | All component units (`.pas`) |
+| `Packages\D11` | Runtime and design-time packages, project group |
+| `Graphics` | Source artwork: `HTMLEditor\Icons\S4YHTMLEditor.svg` is the master of the Tool Palette icon (`TS4YHTMLEditor.bmp`, 24x24) and `HTMLEditor\Icons` holds the toolbar icons of the demo; `S4YSplash.bmp` and `S4YAbout.bmp` (IDE splash screen and About box bitmaps) are shared. All are compiled with `S4YFMXHTMLEditorD.rc` into `Packages\D11\S4YFMXHTMLEditorD.dcr` |
+| `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files) |
+| `Docs` | Additional documentation: [`DeveloperGuide.md`](Docs/HTMLEditor/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals, in Italian) |
 
 ---
 
@@ -41,7 +41,7 @@ Original author: **Carlo Marona (Soft4You)** — project started in 2026.
 
 ## Code documentation
 
-The public API (the `TS4YHTMLEditor` control, its events and the types in `Soft4You.HTML.Types`) is documented with DocXML comments (`/// <summary>`), which Delphi shows as Help Insight tooltips in the code editor. For behaviour and warnings that do not fit in a tooltip, read the [Developer Guide](Docs/DeveloperGuide.md).
+The public API (the `TS4YHTMLEditor` control, its events and the types in `Soft4You.HTML.Types`) is documented with DocXML comments (`/// <summary>`), which Delphi shows as Help Insight tooltips in the code editor. For behaviour and warnings that do not fit in a tooltip, read the [Developer Guide](Docs/HTMLEditor/DeveloperGuide.md).
 
 ---
 
@@ -64,17 +64,17 @@ The public API (the `TS4YHTMLEditor` control, its events and the types in `Soft4
 
 ## Installation
 
-1. Open `Packages\S4YFMXHTMLEditor.dpk` (runtime package) and **Build** it.
-2. Open `Packages\S4YFMXHTMLEditorD.dpk` (design-time package, registers the component and the HTML property editor) and **Build** and **Install** it.
+1. Open `Packages\D11\S4YFMXHTMLEditor.dpk` (runtime package) and **Build** it.
+2. Open `Packages\D11\S4YFMXHTMLEditorD.dpk` (design-time package, registers the component and the HTML property editor) and **Build** and **Install** it.
 3. `TS4YHTMLEditor` appears in the Tool Palette under the registered category.
-4. Add the `Sources` folder to the Delphi library path (needed to compile the Demo and your own projects).
+4. Add the `Sources\HTMLEditor` folder to the Delphi library path (needed to compile the Demo and your own projects).
 5. Add `Soft4You.FMX.Controls.HTMLEditor` to the `uses` clause of any unit that references the component programmatically.
 
 ---
 
 ## Quick Start
 
-For how the control behaves, when events fire and what to be careful about, read the [Developer Guide](Docs/DeveloperGuide.md).
+For how the control behaves, when events fire and what to be careful about, read the [Developer Guide](Docs/HTMLEditor/DeveloperGuide.md).
 
 ```delphi
 uses
@@ -166,7 +166,7 @@ end;
 | `PlaceholderPrefix` | `string` | `''` | Prefix that identifies a placeholder run in raw text |
 | `PlaceholderSuffix` | `string` | `''` | Suffix that identifies a placeholder run in raw text |
 | `PrettyHTML` | `Boolean` | `False` | Emit indented HTML from the generator |
-| `ReadOnly` | `Boolean` | `False` | Blocks the user's typing, deleting, paste and the editing shortcuts; selection, copy and link clicks still work. It does not block the editing methods called from code; see the [Developer Guide](Docs/DeveloperGuide.md#4-read-only-mode) |
+| `ReadOnly` | `Boolean` | `False` | Blocks the user's typing, deleting, paste and the editing shortcuts; selection, copy and link clicks still work. It does not block the editing methods called from code; see the [Developer Guide](Docs/HTMLEditor/DeveloperGuide.md#4-read-only-mode) |
 | `ShowBorder` | `Boolean` | `True` | Draws a 1px border around the control |
 | `Title` | `string` | `''` | Document title (used in `FullHTML` export) |
 
@@ -376,7 +376,7 @@ Without both, the SVG image is drawn as "not found". The bitmap becomes owned by
 
 Only `data:` sources and local `.svg` files are rendered (the file is read as UTF-8); a remote `.svg` is not.
 
-**With Skia4Delphi, for the whole application** - add the unit `Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia` (in `Sources`) to the project. Nothing else is needed: the unit sets `TS4YHTMLEditor.DefaultSVGRenderer` in its `initialization` section, so every editor renders SVG.
+**With Skia4Delphi, for the whole application** - add the unit `Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia` (in `Sources\HTMLEditor`) to the project. Nothing else is needed: the unit sets `TS4YHTMLEditor.DefaultSVGRenderer` in its `initialization` section, so every editor renders SVG.
 
 ```delphi
 uses
@@ -580,7 +580,7 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 
 ## Demo
 
-The `Demo\Desktop` folder contains a sample FMX application (`Demo\Desktop\S4YHTMLEditorDemo.dproj`, also part of the project group in `Packages`) with a complete toolbar, emoji picker, placeholder and color dialogs. The table button opens a menu that inserts and deletes rows and columns and styles the table under the caret (cell background, borders, padding and vertical alignment, table alignment, spacing, border and width). Install the component package first.
+The `Demos\HTMLEditor\Desktop` folder contains a sample FMX application (`Demos\HTMLEditor\Desktop\S4YHTMLEditorDemo.dproj`, also part of the project group in `Packages\D11`) with a complete toolbar, emoji picker, placeholder and color dialogs. The table button opens a menu that inserts and deletes rows and columns and styles the table under the caret (cell background, borders, padding and vertical alignment, table alignment, spacing, border and width). Install the component package first.
 
 ---
 

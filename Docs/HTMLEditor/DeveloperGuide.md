@@ -1,6 +1,6 @@
 # TS4YHTMLEditor - Developer Guide
 
-This guide is for developers who **use** `TS4YHTMLEditor` in an application. It explains how the control behaves and what to be careful about. The [README](../README.md) is the reference for installation, supported HTML, and the complete list of properties, methods and events. [Architecture.md](Architecture.md) describes the internals for people who modify the component.
+This guide is for developers who **use** `TS4YHTMLEditor` in an application. It explains how the control behaves and what to be careful about. The [README](../../README.md) is the reference for installation, supported HTML, and the complete list of properties, methods and events. [Architecture.md](Architecture.md) describes the internals for people who modify the component.
 
 Everything below was checked against the source code of the component. Where the behaviour is a limitation rather than a design choice, it is said so.
 
@@ -99,7 +99,7 @@ Selection, copy and clicking links still work.
 
 ## 5. Images
 
-The complete rules for sources, relative paths, saving and local-file access are in the README section [Images and files](../README.md#images-and-files). The points below are the ones that most often surprise.
+The complete rules for sources, relative paths, saving and local-file access are in the README section [Images and files](../../README.md#images-and-files). The points below are the ones that most often surprise.
 
 - **Loading is synchronous, on the UI thread.** A remote image (`http://`, `https://`) is downloaded while the document is being loaded, and the application waits for it. There is no timeout set by the component. For documents with many or slow remote images, set `AutoLoadRemoteImages := False` and call `LoadRemoteImages` at a moment of your choice, or supply the bitmaps yourself in `OnLoadImage`.
 - With `AutoLoadLocalImages` or `AutoLoadRemoteImages` set to `False`, the images are drawn as placeholders of 200 x 120 pixels (if the HTML gives no size) until you call `LoadLocalImages` or `LoadRemoteImages`.

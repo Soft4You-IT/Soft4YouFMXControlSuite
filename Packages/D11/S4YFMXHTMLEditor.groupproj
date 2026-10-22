@@ -9,10 +9,10 @@
         <Projects Include="S4YFMXHTMLEditorD.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\Demo\Desktop\S4YHTMLEditorDemo.dproj">
+        <Projects Include="..\..\Demos\HTMLEditor\Desktop\S4YHTMLEditorDemo.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\Demo\Mobile\S4YHTMLEditorMobile.dproj">
+        <Projects Include="..\..\Demos\HTMLEditor\Mobile\S4YHTMLEditorMobile.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -42,22 +42,22 @@
         <MSBuild Projects="S4YFMXHTMLEditorD.dproj" Targets="Make"/>
     </Target>
     <Target Name="S4YHTMLEditorDemo">
-        <MSBuild Projects="..\Demo\Desktop\S4YHTMLEditorDemo.dproj"/>
+        <MSBuild Projects="..\..\Demos\HTMLEditor\Desktop\S4YHTMLEditorDemo.dproj"/>
     </Target>
     <Target Name="S4YHTMLEditorDemo:Clean">
-        <MSBuild Projects="..\Demo\Desktop\S4YHTMLEditorDemo.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\..\Demos\HTMLEditor\Desktop\S4YHTMLEditorDemo.dproj" Targets="Clean"/>
     </Target>
     <Target Name="S4YHTMLEditorDemo:Make">
-        <MSBuild Projects="..\Demo\Desktop\S4YHTMLEditorDemo.dproj" Targets="Make"/>
+        <MSBuild Projects="..\..\Demos\HTMLEditor\Desktop\S4YHTMLEditorDemo.dproj" Targets="Make"/>
     </Target>
     <Target Name="S4YHTMLEditorMobile">
-        <MSBuild Projects="..\Demo\Mobile\S4YHTMLEditorMobile.dproj"/>
+        <MSBuild Projects="..\..\Demos\HTMLEditor\Mobile\S4YHTMLEditorMobile.dproj"/>
     </Target>
     <Target Name="S4YHTMLEditorMobile:Clean">
-        <MSBuild Projects="..\Demo\Mobile\S4YHTMLEditorMobile.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\..\Demos\HTMLEditor\Mobile\S4YHTMLEditorMobile.dproj" Targets="Clean"/>
     </Target>
     <Target Name="S4YHTMLEditorMobile:Make">
-        <MSBuild Projects="..\Demo\Mobile\S4YHTMLEditorMobile.dproj" Targets="Make"/>
+        <MSBuild Projects="..\..\Demos\HTMLEditor\Mobile\S4YHTMLEditorMobile.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
         <CallTarget Targets="S4YFMXHTMLEditor;S4YFMXHTMLEditorD;S4YHTMLEditorDemo;S4YHTMLEditorMobile"/>

@@ -151,15 +151,15 @@
         <DCCReference Include="fmx.dcp"/>
         <DCCReference Include="bindengine.dcp"/>
         <DCCReference Include="bindcomp.dcp"/>
-        <DCCReference Include="..\Sources\Soft4You.FMX.Controls.HTMLEditor.pas"/>
-        <DCCReference Include="..\Sources\Soft4You.FMX.Clipboard.Html.pas"/>
-        <DCCReference Include="..\Sources\Soft4You.Unicode.EmojiData.pas"/>
-        <DCCReference Include="..\Sources\Soft4You.HTML.Types.pas"/>
-        <DCCReference Include="..\Sources\Soft4You.HTML.Document.pas"/>
-        <DCCReference Include="..\Sources\Soft4You.HTML.Parser.pas"/>
-        <DCCReference Include="..\Sources\Soft4You.HTML.Generator.pas"/>
-        <DCCReference Include="..\Sources\Soft4You.HTML.ImageExporter.pas"/>
-        <DCCReference Include="..\Sources\Soft4You.HTML.Colors.pas"/>
+        <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.FMX.Controls.HTMLEditor.pas"/>
+        <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.FMX.Clipboard.Html.pas"/>
+        <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.Unicode.EmojiData.pas"/>
+        <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.HTML.Types.pas"/>
+        <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.HTML.Document.pas"/>
+        <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.HTML.Parser.pas"/>
+        <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.HTML.Generator.pas"/>
+        <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.HTML.ImageExporter.pas"/>
+        <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.HTML.Colors.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

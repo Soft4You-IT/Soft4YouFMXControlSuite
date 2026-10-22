@@ -1,0 +1,50 @@
+﻿package S4YFMXHTMLEditor;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'Soft4You FMX HTML Editor (runtime)'}
+{$LIBSUFFIX AUTO}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  fmx,
+  bindengine,
+  bindcomp;
+
+contains
+  Soft4You.FMX.Controls.HTMLEditor in '..\..\Sources\HTMLEditor\Soft4You.FMX.Controls.HTMLEditor.pas',
+  Soft4You.FMX.Clipboard.Html in '..\..\Sources\HTMLEditor\Soft4You.FMX.Clipboard.Html.pas',
+  Soft4You.Unicode.EmojiData in '..\..\Sources\HTMLEditor\Soft4You.Unicode.EmojiData.pas',
+  Soft4You.HTML.Types in '..\..\Sources\HTMLEditor\Soft4You.HTML.Types.pas',
+  Soft4You.HTML.Document in '..\..\Sources\HTMLEditor\Soft4You.HTML.Document.pas',
+  Soft4You.HTML.Parser in '..\..\Sources\HTMLEditor\Soft4You.HTML.Parser.pas',
+  Soft4You.HTML.Generator in '..\..\Sources\HTMLEditor\Soft4You.HTML.Generator.pas',
+  Soft4You.HTML.ImageExporter in '..\..\Sources\HTMLEditor\Soft4You.HTML.ImageExporter.pas',
+  Soft4You.HTML.Colors in '..\..\Sources\HTMLEditor\Soft4You.HTML.Colors.pas';
+
+end.
