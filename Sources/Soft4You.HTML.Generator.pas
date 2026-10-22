@@ -78,6 +78,7 @@ implementation
 function TS4YHTMLGenerator.ConvertImageSource(const ASource: string): string;
 begin
   Result := ASource;
+
   if Assigned(FImageSourceConverter) then
     Result := FImageSourceConverter(ASource);
 end;
@@ -109,14 +110,18 @@ begin
   try
     if ACurrentStyle.FontName <> ABaseStyle.FontName then
       LStringBuilder.Append('font-family:' + ACurrentStyle.FontName + ';');
+
     if Abs(ACurrentStyle.FontSize - ABaseStyle.FontSize) > 0.01 then
       LStringBuilder.Append(Format('font-size:%.0fpt;', [ACurrentStyle.FontSize]));
+
     // Bold, italic, underline, strikeout are emitted as semantic tags
     // (<b><i><u><s>) by the caller -- skip them here.
     if (ACurrentStyle.Color <> ABaseStyle.Color) and (ACurrentStyle.Color <> claNull) then
       LStringBuilder.Append('color:' + ColorToHex(ACurrentStyle.Color) + ';');
+
     if (ACurrentStyle.BackgroundColor <> ABaseStyle.BackgroundColor) and (ACurrentStyle.BackgroundColor <> claNull) then
       LStringBuilder.Append('background-color:' + ColorToHex(ACurrentStyle.BackgroundColor) + ';');
+
     Result := LStringBuilder.ToString;
   finally
     LStringBuilder.Free;
@@ -153,47 +158,65 @@ var
           LFillColor := LEmitRun.Style.BackgroundColor
         else
           LFillColor := FPlaceholderStyle.FillColor;
+
         if LEmitRun.Style.Color <> claNull then
           LTextColor := LEmitRun.Style.Color
         else
           LTextColor := FPlaceholderStyle.TextColor;
+
         if LEmitRun.PlaceholderBorderColor <> claNull then
           LBorderColor := LEmitRun.PlaceholderBorderColor
         else if LFillColor <> claNull then
           LBorderColor := DarkenColor(LFillColor)
         else
           LBorderColor := FPlaceholderStyle.BorderColor;
+
         LChipBold := LEmitRun.Style.Bold or FPlaceholderStyle.Bold;
         LChipCSS := 'display:inline-block;';
+
         if LFillColor <> claNull then
           LChipCSS := LChipCSS + 'background-color:' + ColorToHex(LFillColor) + ';';
+
         if LTextColor <> claNull then
           LChipCSS := LChipCSS + 'color:' + ColorToHex(LTextColor) + ';';
+
         if LBorderColor <> claNull then
           LChipCSS := LChipCSS + 'border:1px solid ' + ColorToHex(LBorderColor) + ';';
+
         if FPlaceholderStyle.BorderRadius > 0 then
           LChipCSS := LChipCSS + Format('border-radius:%.0fpx;', [FPlaceholderStyle.BorderRadius]);
+
         if (FPlaceholderStyle.HorizontalPadding > 0) or (FPlaceholderStyle.VerticalPadding > 0) then
           LChipCSS := LChipCSS + Format('padding:%.0fpx %.0fpx;', [FPlaceholderStyle.VerticalPadding, FPlaceholderStyle.HorizontalPadding]);
+
         LStringBuilder.Append('<span style="' + LChipCSS + '">');
+
         if LChipBold then
           LStringBuilder.Append('<b>');
+
         LStringBuilder.Append(HtmlEncode(LEmitRun.Text));
+
         if LChipBold then
           LStringBuilder.Append('</b>');
+
         LStringBuilder.Append('</span>');
       end
       else if LEmitRun.IsImage then
       begin
         LStringBuilder.Append('<img');
+
         if LEmitRun.ImageSource <> '' then
           LStringBuilder.Append(' src="' + ConvertImageSource(LEmitRun.ImageSource) + '"');
+
         if LEmitRun.ImageWidth > 0 then
           LStringBuilder.Append(' width="' + IntToStr(LEmitRun.ImageWidth) + '"');
+
         if LEmitRun.ImageHeight > 0 then
           LStringBuilder.Append(' height="' + IntToStr(LEmitRun.ImageHeight) + '"');
+
         if LEmitRun.ImageAlt <> '' then
           LStringBuilder.Append(' alt="' + HtmlEncode(LEmitRun.ImageAlt) + '"');
+
         LStringBuilder.Append('/>');
       end
       else if LEmitRun.IsLineBreak then
@@ -202,37 +225,54 @@ var
       begin
         LCSS := StyleDiff(LEmitRun.Style, LBase);
         LIsLink := (LEmitRun.Style.LinkURL <> '') and (LEmitRun.Style.LinkURL <> LBase.LinkURL);
+
         if LIsLink then
           LStringBuilder.Append('<a href="' + HtmlEncode(LEmitRun.Style.LinkURL) + '">');
+
         if LEmitRun.Style.Superscript then
           LStringBuilder.Append('<sup>');
+
         if LEmitRun.Style.Subscript then
           LStringBuilder.Append('<sub>');
+
         if LEmitRun.Style.Bold then
           LStringBuilder.Append('<b>');
+
         if LEmitRun.Style.Italic then
           LStringBuilder.Append('<i>');
+
         if LEmitRun.Style.Underline then
           LStringBuilder.Append('<u>');
+
         if LEmitRun.Style.StrikeOut then
           LStringBuilder.Append('<s>');
+
         if LCSS <> '' then
           LStringBuilder.Append('<span style="' + LCSS + '">');
+
         LStringBuilder.Append(HtmlEncode(LEmitRun.Text));
+
         if LCSS <> '' then
           LStringBuilder.Append('</span>');
+
         if LEmitRun.Style.StrikeOut then
           LStringBuilder.Append('</s>');
+
         if LEmitRun.Style.Underline then
           LStringBuilder.Append('</u>');
+
         if LEmitRun.Style.Italic then
           LStringBuilder.Append('</i>');
+
         if LEmitRun.Style.Bold then
           LStringBuilder.Append('</b>');
+
         if LEmitRun.Style.Subscript then
           LStringBuilder.Append('</sub>');
+
         if LEmitRun.Style.Superscript then
           LStringBuilder.Append('</sup>');
+
         if LIsLink then
           LStringBuilder.Append('</a>');
       end;
@@ -248,18 +288,22 @@ var
   begin
     LListItem := ADocument.Paragraphs[LParagraphIndex];
     LFirstOrdered := LListItem.ListOrdered;
+
     if LFirstOrdered then
       LListTag := 'ol'
     else
       LListTag := 'ul';
+
     LStringBuilder.Append('<' + LListTag + '>' + LNewLine);
     LContinueList := True;
+
     while LContinueList and
           (LParagraphIndex < LBlockEnd) and
           (ADocument.Paragraphs[LParagraphIndex].BlockType = btLI) and
           (ADocument.Paragraphs[LParagraphIndex].IndentLevel >= ABaseLevel) do
     begin
       LListItem := ADocument.Paragraphs[LParagraphIndex];
+
       if LListItem.IndentLevel > ABaseLevel then
       begin
         // Item jumps deeper without a parent li -- open sub-list at its actual level
@@ -276,6 +320,7 @@ var
         LStringBuilder.Append('<li>');
         EmitRuns(LListItem);
         Inc(LParagraphIndex);
+
         // If next items are deeper, nest a sub-list inside this <li>
         if (LParagraphIndex < LBlockEnd) and
            (ADocument.Paragraphs[LParagraphIndex].BlockType = btLI) and
@@ -284,9 +329,11 @@ var
           LStringBuilder.Append(LNewLine);
           EmitListBlock(ADocument.Paragraphs[LParagraphIndex].IndentLevel);
         end;
+
         LStringBuilder.Append('</li>' + LNewLine);
       end;
     end;
+
     LStringBuilder.Append('</' + LListTag + '>' + LNewLine);
   end;
 
@@ -326,9 +373,11 @@ var
       LCoverCell: TS4YHTMLParagraph;
     begin
       Result := False;
+
       for LCoverIndex := AFirstPI to LEndIndex - 1 do
       begin
         LCoverCell := ADocument.Paragraphs[LCoverIndex];
+
         if (LCoverCell.TableID = LTableID) and (LCoverCell.TableRow <= ARow) and (ARow < LCoverCell.TableRow + LCoverCell.TableRowSpan) and
            (LCoverCell.TableCol <= ACol) and (ACol < LCoverCell.TableCol + LCoverCell.TableColSpan) then
           Result := True;
@@ -338,10 +387,13 @@ var
   begin
     LTableID := ADocument.Paragraphs[AFirstPI].TableID;
     LCols := ADocument.Paragraphs[AFirstPI].TableCols;
+
     if LCols < 1 then
       LCols := 1;
+
     LMaximumRow := 0;
     LScanIndex := AFirstPI;
+
     while (LScanIndex < ADocument.Paragraphs.Count) and
           ADocument.Paragraphs[LScanIndex].BelongsToTable(LTableID) do
     begin
@@ -349,28 +401,37 @@ var
       if (ADocument.Paragraphs[LScanIndex].TableID = LTableID) and
          (ADocument.Paragraphs[LScanIndex].TableRow > LMaximumRow) then
         LMaximumRow := ADocument.Paragraphs[LScanIndex].TableRow;
+
       Inc(LScanIndex);
     end;
+
     LEndIndex := LScanIndex;
+
     // The width of the table is 100% when it was not set; the border is on unless the table was written without it
     LFirstCell := ADocument.Paragraphs[AFirstPI];
+
     // The cells touch (collapsed borders) unless the table has a space between its cells
     if LFirstCell.TableCellSpacing > 0 then
       LTableStyle := Format('border-collapse:separate;border-spacing:%.0fpx;', [LFirstCell.TableCellSpacing])
     else
       LTableStyle := 'border-collapse:collapse;';
+
     if LFirstCell.TableWidth.IsAuto then
       LTableStyle := LTableStyle + 'width:100%'
     else
       LTableStyle := LTableStyle + 'width:' + LengthToCSS(LFirstCell.TableWidth);
+
     if LFirstCell.TableMaximumWidth > 0 then
       LTableStyle := LTableStyle + ';max-width:' + LengthToCSS(TS4YTableLength.Pixels(LFirstCell.TableMaximumWidth));
+
     LTableAttributes := ' border="1"';
     if not LFirstCell.TableHasBorder then
       LTableAttributes := ' border="0"';
+
     // Outlook ignores border-spacing, so the attribute is written too
     if LFirstCell.TableCellSpacing > 0 then
       LTableAttributes := LTableAttributes + Format(' cellspacing="%.0f"', [LFirstCell.TableCellSpacing]);
+
     case LFirstCell.TableAlignment of
       haCenter:
         begin
@@ -383,17 +444,22 @@ var
           LTableStyle := LTableStyle + ';margin-left:auto';
         end;
     end;
+
     LStringBuilder.Append('<table' + LTableAttributes + ' style="' + LTableStyle + '">' + LNewLine);
+
     for LRow := 0 to LMaximumRow do
     begin
       if FPretty then
         LStringBuilder.Append('  ');
+
       LStringBuilder.Append('<tr>' + LNewLine);
       LCol := 0;
+
       while LCol < LCols do
       begin
         LCell := nil;
         LScanIndex := AFirstPI;
+
         while (LScanIndex < ADocument.Paragraphs.Count) and (LCell = nil) do
         begin
           if ADocument.Paragraphs[LScanIndex].IsTableCell and
@@ -404,6 +470,7 @@ var
           else
             Inc(LScanIndex);
         end;
+
         if LCell = nil then
         begin
           // A position covered by a colspan or rowspan cell has no <td>
@@ -411,8 +478,10 @@ var
           begin
             if FPretty then
               LStringBuilder.Append('    ');
+
             LStringBuilder.Append('<td></td>' + LNewLine);
           end;
+
           Inc(LCol);
         end
         else
@@ -421,8 +490,10 @@ var
             LCellTag := 'th'
           else
             LCellTag := 'td';
+
           // The padding is written in the shortest form; the default (4px) is written when the cell has none of its own
           LCellStyle := 'padding:4px;';
+
           if LCell.TableCellPadding.IsSet then
           begin
             if (LCell.TableCellPadding.Top = LCell.TableCellPadding.Right) and
@@ -433,6 +504,7 @@ var
               LCellStyle := Format('padding:%.0fpx %.0fpx %.0fpx %.0fpx;', [LCell.TableCellPadding.Top,
                 LCell.TableCellPadding.Right, LCell.TableCellPadding.Bottom, LCell.TableCellPadding.Left]);
           end;
+
           case LCell.Alignment of
             haCenter:  LCellStyle := LCellStyle + 'text-align:center;';
             haRight:   LCellStyle := LCellStyle + 'text-align:right;';
@@ -442,10 +514,13 @@ var
             if LCell.IsHeader then
               LCellStyle := LCellStyle + 'text-align:left;';
           end;
+
           if not LCell.TableCellWidth.IsAuto then
             LCellStyle := LCellStyle + 'width:' + LengthToCSS(LCell.TableCellWidth) + ';';
+
           if LCell.TableCellBackgroundColor <> claNull then
             LCellStyle := LCellStyle + 'background-color:' + ColorToHex(LCell.TableCellBackgroundColor) + ';';
+
           // Borders are written only when the cell has its own; the four sides are given, in the shortest form
           if LCell.TableCellBorders.IsSet then
           begin
@@ -460,22 +535,31 @@ var
                 'border-bottom:' + BorderSideToCSS(LCell.TableCellBorders.Bottom) + ';' +
                 'border-left:' + BorderSideToCSS(LCell.TableCellBorders.Left) + ';';
           end;
+
           case LCell.TableCellVerticalAlignment of
             tvaMiddle: LCellStyle := LCellStyle + 'vertical-align:middle;';
             tvaBottom: LCellStyle := LCellStyle + 'vertical-align:bottom;';
           end;
+
           if FPretty then
             LStringBuilder.Append('    ');
+
           LCellSpans := '';
+
           if LCell.TableColSpan > 1 then
             LCellSpans := LCellSpans + ' colspan="' + IntToStr(LCell.TableColSpan) + '"';
+
           if LCell.TableRowSpan > 1 then
             LCellSpans := LCellSpans + ' rowspan="' + IntToStr(LCell.TableRowSpan) + '"';
+
           LStringBuilder.Append('<' + LCellTag + LCellSpans + ' style="' + LCellStyle + '">');
+
           // The paragraphs that follow the first one and have the same position belong to the same cell
           LCellEnd := LScanIndex + 1;
+
           while (LCellEnd < LEndIndex) and ADocument.Paragraphs[LCellEnd].IsInCell(LTableID, LRow, LCol) do
             Inc(LCellEnd);
+
           if (LCellEnd = LScanIndex + 1) and (LCell.BlockType = btTableCell) then
             EmitRuns(LCell)
           else
@@ -483,17 +567,22 @@ var
             LParagraphIndex := LScanIndex;
             EmitBlocks(LCellEnd, LTableID);
           end;
+
           LStringBuilder.Append('</' + LCellTag + '>' + LNewLine);
+
           if LCell.TableColSpan > 1 then
             Inc(LCol, LCell.TableColSpan)
           else
             Inc(LCol);
         end;
       end;
+
       if FPretty then
         LStringBuilder.Append('  ');
+
       LStringBuilder.Append('</tr>' + LNewLine);
     end;
+
     LStringBuilder.Append('</table>' + LNewLine);
     LParagraphIndex := LEndIndex;
   end;
@@ -504,6 +593,7 @@ var
   begin
     LSavedEnd := LBlockEnd;
     LBlockEnd := AEndIndex;
+
     while LParagraphIndex < LBlockEnd do
     begin
       LParagraph := ADocument.Paragraphs[LParagraphIndex];
@@ -525,31 +615,41 @@ var
       else if LParagraph.BlockType = btHR then
       begin
         LStyleAttribute := '';
+
         if LParagraph.HRColor <> claNull then
           LStyleAttribute := LStyleAttribute + 'color:' + ColorToHex(LParagraph.HRColor) + ';';
+
         if LParagraph.HRThickness > 0 then
           LStyleAttribute := LStyleAttribute + Format('height:%.0fpx;', [LParagraph.HRThickness]);
+
         if LStyleAttribute <> '' then
           LStringBuilder.Append('<hr style="' + LStyleAttribute + '"/>' + LNewLine)
         else
           LStringBuilder.Append('<hr/>' + LNewLine);
+
         Inc(LParagraphIndex);
       end
       else if LParagraph.BlockType = btImage then
       begin
         LStringBuilder.Append('<img');
+
         if LParagraph.ImageSource <> '' then
           LStringBuilder.Append(' src="' + ConvertImageSource(LParagraph.ImageSource) + '"');
+
         if LParagraph.ImageWidth > 0 then
           LStringBuilder.Append(' width="' + IntToStr(LParagraph.ImageWidth) + '"');
+
         if LParagraph.ImageHeight > 0 then
           LStringBuilder.Append(' height="' + IntToStr(LParagraph.ImageHeight) + '"');
+
         if LParagraph.ImageAlt <> '' then
           LStringBuilder.Append(' alt="' + LParagraph.ImageAlt + '"');
+
         case LParagraph.Alignment of
           haCenter: LStringBuilder.Append(' align="center"');
           haRight:  LStringBuilder.Append(' align="right"');
         end;
+
         LStringBuilder.Append('/>' + LNewLine);
         Inc(LParagraphIndex);
       end
@@ -560,11 +660,15 @@ var
           haRight:   LStringBuilder.Append('<div style="text-align:right;">');
           haJustify: LStringBuilder.Append('<div style="text-align:justify;">');
         end;
+
         EmitRuns(LParagraph);
+
         case LParagraph.Alignment of
           haCenter, haRight, haJustify: LStringBuilder.Append('</div>');
         end;
+
         Inc(LParagraphIndex);
+
         if (LParagraphIndex < LBlockEnd) and (ADocument.Paragraphs[LParagraphIndex].BlockType = btBodyText) then
           LStringBuilder.Append('<br>' + LNewLine)
         else
@@ -573,13 +677,16 @@ var
       else if LParagraph.BlockType = btPre then
       begin
         LStringBuilder.Append('<pre>');
+
         while (LParagraphIndex < LBlockEnd) and (ADocument.Paragraphs[LParagraphIndex].BlockType = btPre) do
         begin
           EmitRuns(ADocument.Paragraphs[LParagraphIndex]);
           Inc(LParagraphIndex);
+
           if (LParagraphIndex < LBlockEnd) and (ADocument.Paragraphs[LParagraphIndex].BlockType = btPre) then
             LStringBuilder.Append(#10);
         end;
+
         LStringBuilder.Append('</pre>' + LNewLine);
       end
       else if LParagraph.BlockType = btLI then
@@ -654,6 +761,7 @@ var
         Inc(LParagraphIndex);
       end;
     end;
+
     LBlockEnd := LSavedEnd;
   end;
 
@@ -661,10 +769,12 @@ begin
   LBase.Init;
   LStringBuilder := TStringBuilder.Create;
   LParagraphIndex := 0;
+
   if FPretty then
     LNewLine := sLineBreak
   else
     LNewLine := '';
+
   try
     EmitBlocks(ADocument.Paragraphs.Count, 0);
 
