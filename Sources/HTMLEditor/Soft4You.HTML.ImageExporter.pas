@@ -1,7 +1,8 @@
 ﻿unit Soft4You.HTML.ImageExporter;
 
 { *****************************************************************************
-  S4YFMXHTMLEditor - WYSIWYG HTML editor for Delphi FireMonkey (FMX)
+  Soft4You FMX Control Suite - FireMonkey (FMX) controls for Delphi
+  TS4YHTMLEditor - WYSIWYG HTML editor
   Original author: Carlo Marona (Soft4You) - 2026
 
   This Source Code Form is subject to the terms of the Mozilla Public
