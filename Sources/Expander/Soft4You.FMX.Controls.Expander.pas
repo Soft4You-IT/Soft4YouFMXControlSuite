@@ -343,12 +343,12 @@ end;
 
 function TS4YExpander.GetStyleObject: TFmxObject;
 var
-  Style: String;
+  LStyle: String;
 begin
   if (StyleLookup = '') then
   begin
-    Style := GetDefaultStyleLookupName;
-    Result := TStyleStreaming.LoadFromResource(HInstance, Style, RT_RCDATA)
+    LStyle := GetDefaultStyleLookupName;
+    Result := TStyleStreaming.LoadFromResource(HInstance, LStyle, RT_RCDATA)
   end
   else
     Result := inherited GetStyleObject;
