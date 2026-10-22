@@ -64,25 +64,33 @@ var
 begin
   Result := nil;
   LSVGDOM := TSkSVGDOM.Make(ASVGText);
+
   if not Assigned(LSVGDOM) then
     Exit;
+
   LWidth := AWidth;
   LHeight := AHeight;
+
   if (LWidth <= 0) or (LHeight <= 0) then
   begin
     if Assigned(LSVGDOM.Root) then
       LIntrinsicSize := LSVGDOM.Root.GetIntrinsicSize(TSizeF.Create(0, 0))
     else
       LIntrinsicSize := TSizeF.Create(0, 0);
+
     if LWidth <= 0 then
       LWidth := Round(LIntrinsicSize.Width);
+
     if LHeight <= 0 then
       LHeight := Round(LIntrinsicSize.Height);
+
     if LWidth <= 0 then
       LWidth := C_DEFAULT_SVG_WIDTH;
+
     if LHeight <= 0 then
       LHeight := C_DEFAULT_SVG_HEIGHT;
   end;
+
   Result := TBitmap.Create(LWidth, LHeight);
   try
     Result.SkiaDraw(
