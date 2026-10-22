@@ -438,6 +438,34 @@ object frmMain: TfrmMain
           Size.PlatformDefault = False
           StyleLookup = 'toolbarBtnNoText'
         end
+        object btnFindPrevious: TSpeedButton
+          Action = actFindPrevious
+          Align = Left
+          Enabled = True
+          StyledSettings = [Family, Size, Style, FontColor, Other]
+          Hint = 'Find previous (Shift+F3)'
+          Position.X = 938.000000000000000000
+          Size.Width = 40.000000000000000000
+          Size.Height = 32.000000000000000000
+          Size.PlatformDefault = False
+          ParentShowHint = False
+          ShowHint = True
+          Text = 'Prev'
+        end
+        object btnFindNext: TSpeedButton
+          Action = actFindNext
+          Align = Left
+          Enabled = True
+          StyledSettings = [Family, Size, Style, FontColor, Other]
+          Hint = 'Find next (F3)'
+          Position.X = 939.000000000000000000
+          Size.Width = 40.000000000000000000
+          Size.Height = 32.000000000000000000
+          Size.PlatformDefault = False
+          ParentShowHint = False
+          ShowHint = True
+          Text = 'Next'
+        end
         object Line6: TLine
           Align = Left
           LineType = Left
@@ -2370,6 +2398,20 @@ object frmMain: TfrmMain
       ImageIndex = 22
       OnExecute = actFindTextExecute
       ImageIndex = 22
+    end
+    object actFindNext: TAction
+      Category = 'Editor'
+      Text = 'Next'
+      Hint = 'Find next (F3)'
+      ShortCut = 114
+      OnExecute = actFindNextExecute
+    end
+    object actFindPrevious: TAction
+      Category = 'Editor'
+      Text = 'Prev'
+      Hint = 'Find previous (Shift+F3)'
+      ShortCut = 8306
+      OnExecute = actFindPreviousExecute
     end
     object actLoadRemoteImages: TAction
       Category = 'Images'

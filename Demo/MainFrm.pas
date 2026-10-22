@@ -85,6 +85,8 @@ type
     lblStatusBarCount: TLabel;
     Line5: TLine;
     btnFind: TSpeedButton;
+    btnFindNext: TSpeedButton;
+    btnFindPrevious: TSpeedButton;
     Line6: TLine;
     btnTable: TSpeedButton;
     pupTable: TPopupMenu;
@@ -150,6 +152,8 @@ type
     btnDecreaseFontSize: TSpeedButton;
     btnIncreaseFontSize: TSpeedButton;
     actFindText: TAction;
+    actFindNext: TAction;
+    actFindPrevious: TAction;
     MenuItem2: TMenuItem;
     miLoadRemoteImages: TMenuItem;
     actLoadRemoteImages: TAction;
@@ -208,6 +212,8 @@ type
     procedure btnToggleItalicClick(Sender: TObject);
     procedure btnToggleBoldClick(Sender: TObject);
     procedure actFindTextExecute(Sender: TObject);
+    procedure actFindNextExecute(Sender: TObject);
+    procedure actFindPreviousExecute(Sender: TObject);
     procedure actSaveToHTMLFileExecute(Sender: TObject);
     procedure actInsertImageExecute(Sender: TObject);
     procedure actInsertInlineImageExecute(Sender: TObject);
@@ -216,6 +222,7 @@ type
     procedure btnSubscriptClick(Sender: TObject);
     procedure swReadOnlySwitch(Sender: TObject);
   private
+    FLastSearchText: string;
     FUpdatingUI: Boolean;
     procedure ApplyColorButtonTextStyle(const AButton: TSpeedButton);
     procedure RestyleVisibleBorders(AWidth: Single; AColor: TAlphaColor);
@@ -650,22 +657,41 @@ begin
   HTMLEditor.Outdent;
 end;
 
-procedure TfrmMain.actFindTextExecute(Sender: TObject);
-var
-  LTextToSearch: string;
+procedure TfrmMain.actFindNextExecute(Sender: TObject);
 begin
-  TDialogService.InputQuery('Find', ['Text to find'], [EmptyStr],
-    procedure (const AResult: TModalResult; const AValues: array of string)
+  if FLastSearchText.IsEmpty then
+  begin
+    actFindTextExecute(Sender);
+    Exit;
+  end;
+
+  HTMLEditor.FindNext(FLastSearchText);
+end;
+
+procedure TfrmMain.actFindPreviousExecute(Sender: TObject);
+begin
+  if FLastSearchText.IsEmpty then
+  begin
+    actFindTextExecute(Sender);
+    Exit;
+  end;
+
+  HTMLEditor.FindPrevious(FLastSearchText);
+end;
+
+// The dialog can be asynchronous (mobile platforms), so the search runs inside its callback
+procedure TfrmMain.actFindTextExecute(Sender: TObject);
+begin
+  TDialogService.InputQuery('Find', ['Text to find'], [FLastSearchText],
+    procedure(const AResult: TModalResult; const AValues: array of string)
     begin
-      if AResult = mrOk then
-        LTextToSearch := AValues[0];
+      if (AResult <> mrOk) or AValues[0].IsEmpty then
+        Exit;
+
+      FLastSearchText := AValues[0];
+      HTMLEditor.FindNext(FLastSearchText);
     end
   );
-
-  if LTextToSearch.IsEmpty then
-    exit;
-
-  HTMLEditor.FindNext(LTextToSearch);
 end;
 
 procedure TfrmMain.actIncreaseIndentExecute(Sender: TObject);
