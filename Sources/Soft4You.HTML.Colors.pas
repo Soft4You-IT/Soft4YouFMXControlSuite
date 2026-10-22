@@ -86,13 +86,16 @@ begin
   LValue := AValue.Trim.ToLower;
   if LValue = '' then
     Exit;
+
   if LValue[Low(LValue)] = '#' then
   begin
     LHex := LValue.Substring(1);
+
     if Length(LHex) = 3 then
       LHex := LHex[Low(LHex)] + LHex[Low(LHex)] +
               LHex[Low(LHex) + 1] + LHex[Low(LHex) + 1] +
               LHex[Low(LHex) + 2] + LHex[Low(LHex) + 2];
+
     if Length(LHex) = 6 then
       try
         LRed   := StrToInt('$' + LHex.Substring(0, 2));
@@ -106,6 +109,7 @@ begin
   else if LValue.StartsWith('rgb(') and LValue.EndsWith(')') then
   begin
     LParts := LValue.Substring(4, LValue.Length - 5).Split([',']);
+
     if Length(LParts) >= 3 then
       try
         LRed   := LParts[0].Trim.ToInteger;
@@ -314,6 +318,7 @@ begin
     GNamedColors[LIndex].Color := LPair.Value;
     Inc(LIndex);
   end;
+
   TArray.Sort<TS4YHTMLNamedColor>(GNamedColors,
     TComparer<TS4YHTMLNamedColor>.Construct(
       function(const ALeft, ARight: TS4YHTMLNamedColor): Integer
@@ -326,6 +331,7 @@ begin
   GColorReverseLookup := TDictionary<TAlphaColor, string>.Create(160);
   for LPair in GColorLookup do
     GColorReverseLookup.AddOrSetValue(LPair.Value, LPair.Key);
+
   // Canonical names for aliased colors (grey -> gray, etc.)
   GColorReverseLookup.AddOrSetValue(TAlphaColor($FF808080), 'gray');
   GColorReverseLookup.AddOrSetValue(TAlphaColor($FF00FFFF), 'aqua');
