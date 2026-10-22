@@ -1,0 +1,24 @@
+inherited frmMain_XLgXhdpiTb: TfrmMain_XLgXhdpiTb
+  ClientHeight = 1255
+  ClientWidth = 800
+  DesignerMasterStyle = 3
+  inherited layButtons: TFlowLayout
+    Size.Width = 800.000000000000000000
+    inherited btnShowKeyboard: TButton
+      Position.X = 308.000000000000000000
+      Position.Y = 4.000000000000000000
+    end
+    inherited btnHideKeyboard: TButton
+      Position.X = 384.000000000000000000
+      Position.Y = 4.000000000000000000
+    end
+  end
+  inherited lblStatus: TLabel
+    Position.Y = 1171.000000000000000000
+    Size.Width = 784.000000000000000000
+  end
+  inherited HTMLEditor: TS4YHTMLEditor
+    Size.Width = 800.000000000000000000
+    Size.Height = 1067.000000000000000000
+  end
+end
