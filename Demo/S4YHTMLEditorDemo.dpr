@@ -3,6 +3,7 @@ program S4YHTMLEditorDemo;
 uses
   System.StartUpCopy,
   FMX.Forms,
+  Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia in '..\Sources\Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia.pas',
   MainFrm in 'MainFrm.pas' {frmMain},
   PlaceholderFrm in 'PlaceholderFrm.pas' {frmPlaceholder},
   ColorSelectionFrm in 'ColorSelectionFrm.pas' {ColorSelection};

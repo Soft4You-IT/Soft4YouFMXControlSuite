@@ -72,11 +72,16 @@ inline</b> come qualsiasi altro blocco.</blockquote>
 					<img src="icon.png" width="64" height="64" alt="Icona" align="right"/>
 					<p>Immagine senza dimensioni (usa dimensioni naturali del file, o placeholder 100px se non trovata):</p>
 					<img src="big_image.jpg" alt="Immagine senza width/height"/>
-					<!-- data URI inline: SVG reso via Skia4Delphi -->
+					<!-- data URI inline: SVG reso dal renderer SVG (OnRenderSVG o DefaultSVGRenderer) -->
 					<p>Immagine inline data URI – SVG URL-encoded (atteso: rettangolo blu 160×60):</p>
 					<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%234a90d9'/%3E%3C/svg%3E" width="160" height="60" alt="SVG inline blu"/>
 					<p>Immagine inline data URI – SVG base64 (atteso: rettangolo verde 120×50):</p>
 					<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMyMjg4MDAiLz48L3N2Zz4=" width="120" height="50" alt="SVG inline verde"/>
+					<!-- File SVG esterno: stesso renderer, il testo SVG viene letto dal file -->
+					<p>File SVG esterno a dimensioni naturali (atteso: riquadro sfumato blu con sole giallo e montagna verde, 200×100):</p>
+					<img src="test.svg" alt="File SVG"/>
+					<p>File SVG esterno ridimensionato a 100×50:</p>
+					<img src="test.svg" width="100" height="50" alt="File SVG ridimensionato"/>
 					<!-- GIF base64: formato raster opaco (1×1 rosso), l'editor decodifica e mostra il pixel scalato a 48x48 -->
 					<p>Immagine inline data URI – GIF 1×1 base64 rosso (atteso: immagine raster rossa 48×48):</p>
 					<img src="data:image/gif;base64,R0lGODlhAQABAIAAAP8AAAAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" width="48" height="48" alt="GIF 1×1 base64 rosso"/>

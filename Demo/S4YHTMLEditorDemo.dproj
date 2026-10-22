@@ -273,6 +273,7 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
+        <DCCReference Include="..\Sources\Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia.pas"/>
         <DCCReference Include="MainFrm.pas">
             <Form>frmMain</Form>
             <FormType>fmx</FormType>

@@ -337,6 +337,7 @@ The model always keeps the original `src` (`ImageSource` of the paragraph or the
 | `IsDeferredImageSource` (`AutoLoadLocalImages` / `AutoLoadRemoteImages` set to `False`) | no bitmap: the image is drawn as a placeholder until `LoadLocalImages` / `LoadRemoteImages` |
 | `IsImageLoadAllowed`: first `LocalImageAccess`, then `OnBeforeLoadImage` | if refused nothing is read |
 | `LoadBitmapFromSource` | remote (HTTP), `data:` (raster and SVG), or a local file (path resolved with `ResolveImageSource`; a missing file means no bitmap, with no exception) |
+| `RenderSVG` | called by `LoadBitmapFromSource` with the SVG text (decoded `data:` or `.svg` file read as UTF-8): first `OnRenderSVG`, then `TS4YHTMLEditor.DefaultSVGRenderer`; with neither, no bitmap. The editor does not use Skia: the optional unit `Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia` provides the renderer |
 | `OnLoadImage` | can replace or provide the bitmap, also for a refused image (it receives `nil`) |
 
 A non-nil bitmap enters `FImageCache`. If the image was refused and `OnLoadImage` provides nothing, the source enters `FRefusedImages`, so the events are not fired at every repaint. `LoadLocalImages`, `LoadRemoteImages` and `ReloadImages` go through `LoadAllowedBitmap` (same checks) and therefore ask the application again.

@@ -34,9 +34,7 @@ requires
   rtl,
   fmx,
   bindengine,
-  bindcomp,
-  Skia.Package.FMX,
-  Skia.Package.RTL;
+  bindcomp;
 
 contains
   Soft4You.FMX.Controls.HTMLEditor in '..\Sources\Soft4You.FMX.Controls.HTMLEditor.pas',
