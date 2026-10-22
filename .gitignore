@@ -63,6 +63,7 @@ OSX*/
 iOS*/
 Android*/
 Linux64/
+Bin/
 
 # Other files not related to the project
 *.zip
