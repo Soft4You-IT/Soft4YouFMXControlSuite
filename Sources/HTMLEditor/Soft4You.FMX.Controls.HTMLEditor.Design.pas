@@ -121,7 +121,7 @@ end;
 
 procedure Register;
 begin
-  RegisterComponents('Soft4You FMX Ctrls', [TS4YHTMLEditor]);
+  RegisterComponents('Soft4You FMX Controls Suite', [TS4YHTMLEditor]);
   RegisterObservableMember([TS4YHTMLEditor], 'HTML', 'OnChange');
   RegisterPropertyEditor(TypeInfo(string), TS4YHTMLEditor, 'HTML', TS4YHTMLPropertyEditor);
 end;
