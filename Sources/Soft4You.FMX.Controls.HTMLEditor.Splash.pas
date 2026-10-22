@@ -46,7 +46,9 @@ begin
   begin
     Exit;
   end;
+
   LBitmap := LoadPluginBitmap(C_SPLASH_BITMAP_NAME);
+
   if LBitmap <> 0 then
   begin
     SplashScreenServices.AddPluginBitmap(S_PLUGIN_TITLE, LBitmap, False, S_LICENSE_STATUS);
@@ -62,7 +64,9 @@ begin
   begin
     Exit;
   end;
+
   LBitmap := LoadPluginBitmap(C_ABOUT_BITMAP_NAME);
+
   if LBitmap <> 0 then
   begin
     AboutPluginIndex := LAboutBoxServices.AddPluginInfo(S_PLUGIN_TITLE,
@@ -79,6 +83,7 @@ begin
   begin
     LAboutBoxServices.RemovePluginInfo(AboutPluginIndex);
   end;
+
   AboutPluginIndex := -1;
 end;
 
