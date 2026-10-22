@@ -1,0 +1,245 @@
+object ExpanderDemoForm: TExpanderDemoForm
+  Left = 0
+  Top = 0
+  Caption = 'TS4YExpander demo'
+  ClientHeight = 520
+  ClientWidth = 720
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object ExpandersLayout: TLayout
+    Align = Client
+    Padding.Left = 16.000000000000000000
+    Padding.Top = 16.000000000000000000
+    Padding.Right = 16.000000000000000000
+    Padding.Bottom = 16.000000000000000000
+    Size.Width = 460.000000000000000000
+    Size.Height = 520.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object OrdersExpander: TS4YExpander
+      Align = Top
+      BadgeSettings.CurrentValue = 12
+      BadgeSettings.Visible = True
+      Margins.Bottom = 12.000000000000000000
+      Position.X = 16.000000000000000000
+      Position.Y = 16.000000000000000000
+      Size.Width = 428.000000000000000000
+      Size.Height = 150.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'Orders'
+      object PendingOrdersLabel: TLabel
+        Align = Top
+        Margins.Left = 12.000000000000000000
+        Margins.Top = 8.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 8.000000000000000000
+        Size.Width = 404.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'The counter on the header shows the orders to process.'
+        TabOrder = 0
+      end
+      object ShowShippedCheckBox: TCheckBox
+        Align = Top
+        Margins.Left = 12.000000000000000000
+        Margins.Top = 4.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 32.000000000000000000
+        Size.Width = 404.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        Text = 'Show the shipped orders'
+      end
+      object RefreshButton: TButton
+        Align = Top
+        Margins.Left = 12.000000000000000000
+        Margins.Top = 4.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 56.000000000000000000
+        Size.Width = 404.000000000000000000
+        Size.Height = 32.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 2
+        Text = 'A new order arrives (+1)'
+        OnClick = RefreshButtonClick
+      end
+    end
+    object ShippingExpander: TS4YExpander
+      Align = Top
+      Margins.Bottom = 12.000000000000000000
+      Position.X = 16.000000000000000000
+      Position.Y = 178.000000000000000000
+      Size.Width = 428.000000000000000000
+      Size.Height = 110.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Text = 'Shipping'
+      object ShippingLabel: TLabel
+        Align = Top
+        Margins.Left = 12.000000000000000000
+        Margins.Top = 8.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 8.000000000000000000
+        Size.Width = 404.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Carrier: Express'
+        TabOrder = 0
+      end
+      object ShippingDetailsLabel: TLabel
+        Align = Top
+        Margins.Left = 12.000000000000000000
+        Margins.Top = 4.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 32.000000000000000000
+        Size.Width = 404.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Delivery in 2 working days'
+        TabOrder = 1
+      end
+    end
+    object HistoryExpander: TS4YExpander
+      Align = Top
+      Position.X = 16.000000000000000000
+      Position.Y = 300.000000000000000000
+      Size.Width = 428.000000000000000000
+      Size.Height = 90.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      Text = 'History'
+      object HistoryLabel: TLabel
+        Align = Top
+        Margins.Left = 12.000000000000000000
+        Margins.Top = 8.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 8.000000000000000000
+        Size.Width = 404.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Starts collapsed: the form collapses it when it is created.'
+        TabOrder = 0
+      end
+    end
+  end
+  object SettingsPanel: TPanel
+    Align = Right
+    Position.X = 460.000000000000000000
+    Size.Width = 260.000000000000000000
+    Size.Height = 520.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object AnimatedCheckBox: TCheckBox
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 12.000000000000000000
+      Size.Width = 236.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'Animated'
+      OnChange = AnimatedCheckBoxChange
+    end
+    object ClickOnHeaderCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 36.000000000000000000
+      Size.Width = 236.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Text = 'ClickOnHeader'
+      OnChange = ClickOnHeaderCheckBoxChange
+    end
+    object BadgeVisibleCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 60.000000000000000000
+      Size.Width = 236.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      Text = 'Badge of Orders visible'
+      OnChange = BadgeVisibleCheckBoxChange
+    end
+    object BadgeValueLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 88.000000000000000000
+      Size.Width = 236.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'BadgeSettings.CurrentValue'
+      TabOrder = 3
+    end
+    object BadgeValueSpinBox: TSpinBox
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Top
+      TabOrder = 4
+      Cursor = crIBeam
+      Max = 500.000000000000000000
+      Value = 12.000000000000000000
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 108.000000000000000000
+      Size.Width = 236.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      OnChange = BadgeValueSpinBoxChange
+    end
+    object ExpandAllButton: TButton
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 16.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 152.000000000000000000
+      Size.Width = 236.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 5
+      Text = 'Expand all'
+      OnClick = ExpandAllButtonClick
+    end
+    object CollapseAllButton: TButton
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 192.000000000000000000
+      Size.Width = 236.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 6
+      Text = 'Collapse all'
+      OnClick = CollapseAllButtonClick
+    end
+  end
+end

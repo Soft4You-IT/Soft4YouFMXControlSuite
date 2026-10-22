@@ -72,3 +72,7 @@ end;
 ```
 
 In the designer, drop a `TS4YExpander` on the form and put the content (a layout, a list, ...) inside it; set `Text`, `Animated` and `BadgeSettings` in the Object Inspector.
+
+## Demo
+
+`Demos\Expander\S4YExpanderDemo.dproj` (also part of the project group in `Packages\D11`) is a small application with three expanders: *Orders* with a badge counter on the header, *Shipping* and *History*, which starts collapsed. The panel on the right changes `Animated` and `ClickOnHeader` of the three expanders, the visibility and the value of the badge of *Orders*, and expands or collapses all of them. Install the suite packages first.

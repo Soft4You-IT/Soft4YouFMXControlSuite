@@ -20,6 +20,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 | `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files) |
 | `Demos\FlexBox` | Sample FMX dashboard built with `TS4YFlexBox` |
 | `Demos\Badge` | Sample FMX application with `TS4YBadge`: a counter and a text badge, and the settings to change them |
+| `Demos\Expander` | Sample FMX application with three `TS4YExpander`: a badge on the header, the animation and the header click |
 | `Docs` | Additional documentation: [`DeveloperGuide.md`](Docs/HTMLEditor/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals, in Italian) |
 | `Docs\FlexBox` | Documentation of the FlexBox control: [`README.md`](Docs/FlexBox/README.md) (installation, properties, examples), analysis and roadmap |
 | `Docs\Badge` | Documentation of the Badge control: [`README.md`](Docs/Badge/README.md) |

@@ -18,6 +18,9 @@
         <Projects Include="..\..\Demos\FlexBox\S4YFlexBoxDemo.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\..\Demos\Expander\S4YExpanderDemo.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="..\..\Demos\Badge\S4YBadgeDemo.dproj">
             <Dependencies/>
         </Projects>
@@ -77,6 +80,15 @@
     <Target Name="S4YFlexBoxDemo:Make">
         <MSBuild Projects="..\..\Demos\FlexBox\S4YFlexBoxDemo.dproj" Targets="Make"/>
     </Target>
+    <Target Name="S4YExpanderDemo">
+        <MSBuild Projects="..\..\Demos\Expander\S4YExpanderDemo.dproj"/>
+    </Target>
+    <Target Name="S4YExpanderDemo:Clean">
+        <MSBuild Projects="..\..\Demos\Expander\S4YExpanderDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YExpanderDemo:Make">
+        <MSBuild Projects="..\..\Demos\Expander\S4YExpanderDemo.dproj" Targets="Make"/>
+    </Target>
     <Target Name="S4YBadgeDemo">
         <MSBuild Projects="..\..\Demos\Badge\S4YBadgeDemo.dproj"/>
     </Target>
@@ -96,13 +108,13 @@
         <MSBuild Projects="..\..\Tests\FlexBox\S4YFlexBoxTests.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="Soft4You_FMX_Controls_Suite;Soft4You_FMX_Controls_SuiteD;S4YHTMLEditorDemo;S4YHTMLEditorMobile;S4YFlexBoxDemo;S4YBadgeDemo;S4YFlexBoxTests"/>
+        <CallTarget Targets="Soft4You_FMX_Controls_Suite;Soft4You_FMX_Controls_SuiteD;S4YHTMLEditorDemo;S4YHTMLEditorMobile;S4YFlexBoxDemo;S4YExpanderDemo;S4YBadgeDemo;S4YFlexBoxTests"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="Soft4You_FMX_Controls_Suite:Clean;Soft4You_FMX_Controls_SuiteD:Clean;S4YHTMLEditorDemo:Clean;S4YHTMLEditorMobile:Clean;S4YFlexBoxDemo:Clean;S4YBadgeDemo:Clean;S4YFlexBoxTests:Clean"/>
+        <CallTarget Targets="Soft4You_FMX_Controls_Suite:Clean;Soft4You_FMX_Controls_SuiteD:Clean;S4YHTMLEditorDemo:Clean;S4YHTMLEditorMobile:Clean;S4YFlexBoxDemo:Clean;S4YExpanderDemo:Clean;S4YBadgeDemo:Clean;S4YFlexBoxTests:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="Soft4You_FMX_Controls_Suite:Make;Soft4You_FMX_Controls_SuiteD:Make;S4YHTMLEditorDemo:Make;S4YHTMLEditorMobile:Make;S4YFlexBoxDemo:Make;S4YBadgeDemo:Make;S4YFlexBoxTests:Make"/>
+        <CallTarget Targets="Soft4You_FMX_Controls_Suite:Make;Soft4You_FMX_Controls_SuiteD:Make;S4YHTMLEditorDemo:Make;S4YHTMLEditorMobile:Make;S4YFlexBoxDemo:Make;S4YExpanderDemo:Make;S4YBadgeDemo:Make;S4YFlexBoxTests:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
