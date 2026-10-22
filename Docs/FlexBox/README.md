@@ -34,7 +34,7 @@ Soft4YouFMXControlSuite/
 │   ├── FlexBox24.bmp / FlexBox16.bmp                 <- Icon of TS4YFlexBox (the palette uses the 24x24 one)
 │   └── FlexItem24.bmp / FlexItem16.bmp               <- Icon of TS4YFlexItem
 ├── Tests/FlexBox/
-│   └── Soft4You.FMX.Controls.FlexBox.Engine.Tests.pas <- DUnitX suite (49 tests)
+│   └── Soft4You.FMX.Controls.FlexBox.Engine.Tests.pas <- DUnitX suite (48 tests)
 ├── Docs/FlexBox/
 │   ├── README.md                                     <- This file
 │   ├── ANALYSIS_ChildrenFiltering.md                 <- Analysis of the children filtering
@@ -829,7 +829,7 @@ uses Soft4You.FMX.Controls.FlexBox.Engine.Tests;
 // Or use the DUnitX GUI runner
 ```
 
-The unit is in `Tests\FlexBox`. The 49 tests cover: row/column, justify-content
+The unit is in `Tests\FlexBox`. The 48 tests cover: row/column, justify-content
 (all the values), flex-grow, flex-shrink, flex-basis (auto/px/%), align-items,
 align-self, order, wrap/wrap-reverse, gap, align-content, reverse, automatic and
 explicit sizes and single line (`SingleLineFillsContainer`). They test the engine
