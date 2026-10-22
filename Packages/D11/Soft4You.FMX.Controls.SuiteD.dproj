@@ -166,6 +166,9 @@
         <RcCompile Include="..\..\Graphics\Badge\BadgeDesign.rc">
             <Form>BadgeDesign.res</Form>
         </RcCompile>
+        <RcCompile Include="..\..\Graphics\Expander\ExpanderDesign.rc">
+            <Form>ExpanderDesign.res</Form>
+        </RcCompile>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
