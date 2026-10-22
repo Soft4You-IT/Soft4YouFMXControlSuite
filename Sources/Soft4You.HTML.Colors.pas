@@ -312,6 +312,7 @@ begin
 
   SetLength(GNamedColors, GColorLookup.Count);
   LIndex := 0;
+
   for LPair in GColorLookup do
   begin
     GNamedColors[LIndex].Name := LPair.Key;
@@ -329,6 +330,7 @@ begin
   // Build reverse lookup (color -> canonical name).
   // Aliases sharing the same value are resolved to a single canonical name.
   GColorReverseLookup := TDictionary<TAlphaColor, string>.Create(160);
+
   for LPair in GColorLookup do
     GColorReverseLookup.AddOrSetValue(LPair.Value, LPair.Key);
 

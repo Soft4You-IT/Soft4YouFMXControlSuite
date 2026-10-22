@@ -712,8 +712,10 @@ begin
 
   if LR > 255 then
     LR := 255;
+
   if LG > 255 then
     LG := 255;
+
   if LB > 255 then
     LB := 255;
 

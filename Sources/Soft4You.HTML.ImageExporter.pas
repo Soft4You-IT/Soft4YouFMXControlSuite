@@ -174,8 +174,10 @@ begin
     Exit(True);
 
   ANewSource := ASource;
+
   if not IsLocalImageSource(ASource) then
     Exit;
+
   if Assigned(FIsAllowed) and not FIsAllowed(ASource) then
     Exit;
 
@@ -184,6 +186,7 @@ begin
     Exit;
 
   LKey := LSourceFile.ToLower;
+
   if not FCopiedPaths.TryGetValue(LKey, LCopyPath) then
   begin
     LCopyPath := CopyToDestination(LSourceFile);
