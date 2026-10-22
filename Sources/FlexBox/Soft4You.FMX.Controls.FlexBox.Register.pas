@@ -10,7 +10,7 @@ procedure Register;
 
 implementation
 
-{$R '..\..\Graphics\FlexBox\FlexBoxDesign.res'}
+{$R FlexBoxDesign.res}
 
 uses
   System.Classes,

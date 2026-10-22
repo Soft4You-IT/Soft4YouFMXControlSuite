@@ -159,7 +159,7 @@
         <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Design.pas"/>
         <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Register.pas"/>
         <RcCompile Include="..\..\Graphics\FlexBox\FlexBoxDesign.rc">
-            <Form>..\..\Graphics\FlexBox\FlexBoxDesign.res</Form>
+            <Form>FlexBoxDesign.res</Form>
         </RcCompile>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
