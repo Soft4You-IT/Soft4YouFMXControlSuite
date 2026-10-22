@@ -10,7 +10,7 @@ procedure Register;
 
 implementation
 
-{$R FlexBoxDesign.res}
+{$R '..\..\Graphics\FlexBox\FlexBoxDesign.res'}
 
 uses
   System.Classes,
@@ -21,11 +21,11 @@ uses
 
 procedure Register;
 begin
-  // 'Soft4You FMX ctrls' = palette tab where the components appear.
+  // 'Soft4You FMX Controls Suite' = palette tab where the components appear.
   // The icon is read automatically from the bitmap resource whose name
   // matches the class name in upper case ('TS4YFLEXBOX'),
   // compiled into the .res from FlexBoxDesign.rc.
-  RegisterComponents('Soft4You FMX ctrls', [TS4YFlexBox]);
+  RegisterComponents('Soft4You FMX Controls Suite', [TS4YFlexBox]);
 
   // The item is not in the palette: the flexbox creates it (wrapping). Registered for
   // streaming of the .fmx and for the IDE, but without a palette entry.
