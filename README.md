@@ -11,6 +11,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 | Folder | Content |
 |---|---|
 | `Sources\HTMLEditor` | All component units (`.pas`) |
+| `Sources\Design` | Design-time unit shared by all the controls of the suite (IDE splash screen and About box) |
 | `Packages\D11` | Runtime and design-time packages, project group |
 | `Graphics` | Source artwork: `HTMLEditor\Icons\S4YHTMLEditor.svg` is the master of the Tool Palette icon (`TS4YHTMLEditor.bmp`, 24x24) and `HTMLEditor\Icons` holds the toolbar icons of the demo; `S4YSplash.bmp` and `S4YAbout.bmp` (IDE splash screen and About box bitmaps) are shared. All are compiled with `Soft4You.FMX.Controls.SuiteD.rc` into `Packages\D11\Soft4You.FMX.Controls.SuiteD.dcr` |
 | `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files) |

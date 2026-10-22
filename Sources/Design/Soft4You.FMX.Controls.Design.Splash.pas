@@ -1,7 +1,7 @@
-﻿unit Soft4You.FMX.Controls.HTMLEditor.Splash;
+﻿unit Soft4You.FMX.Controls.Design.Splash;
 
 { *****************************************************************************
-  S4YFMXHTMLEditor - WYSIWYG HTML editor for Delphi FireMonkey (FMX)
+  Soft4You FMX Control Suite - FireMonkey (FMX) controls for Delphi
   Original author: Carlo Marona (Soft4You) - 2026
 
   This Source Code Form is subject to the terms of the Mozilla Public
@@ -9,7 +9,7 @@
   file, You can obtain one at https://mozilla.org/MPL/2.0/.
   ***************************************************************************** }
 
-{ Design-time only: shows the package in the IDE splash screen and in the
+{ Design-time only: shows the suite in the IDE splash screen and in the
   About box. The bitmaps (24x24, lower-left pixel = transparent color) are
   linked from Soft4You.FMX.Controls.SuiteD.dcr. }
 
@@ -25,8 +25,8 @@ uses
 const
   C_SPLASH_BITMAP_NAME = 'S4YSPLASH';
   C_ABOUT_BITMAP_NAME = 'S4YABOUT';
-  S_PLUGIN_TITLE = 'S4YFMXHTMLEditor';
-  S_PLUGIN_DESCRIPTION = 'WYSIWYG HTML editor for Delphi FireMonkey (FMX). ' +
+  S_PLUGIN_TITLE = 'Soft4You FMX Control Suite';
+  S_PLUGIN_DESCRIPTION = 'Open source FireMonkey (FMX) controls for Delphi. ' +
     'Copyright Soft4You 2026.';
   S_LICENSE_STATUS = 'MPL 2.0';
 

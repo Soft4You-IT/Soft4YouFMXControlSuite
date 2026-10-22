@@ -41,6 +41,6 @@ requires
 
 contains
   Soft4You.FMX.Controls.HTMLEditor.Design in '..\..\Sources\HTMLEditor\Soft4You.FMX.Controls.HTMLEditor.Design.pas',
-  Soft4You.FMX.Controls.HTMLEditor.Splash in '..\..\Sources\HTMLEditor\Soft4You.FMX.Controls.HTMLEditor.Splash.pas';
+  Soft4You.FMX.Controls.Design.Splash in '..\..\Sources\Design\Soft4You.FMX.Controls.Design.Splash.pas';
 
 end.
