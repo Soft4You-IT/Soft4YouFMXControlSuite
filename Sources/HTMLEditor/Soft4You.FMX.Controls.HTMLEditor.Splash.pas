@@ -11,7 +11,7 @@
 
 { Design-time only: shows the package in the IDE splash screen and in the
   About box. The bitmaps (24x24, lower-left pixel = transparent color) are
-  linked from S4YFMXHTMLEditorD.dcr. }
+  linked from Soft4You.FMX.Controls.SuiteD.dcr. }
 
 interface
 

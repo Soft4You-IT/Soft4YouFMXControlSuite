@@ -1,8 +1,8 @@
-package S4YFMXHTMLEditorD;
+package Soft4You.FMX.Controls.SuiteD;
 
 {$R *.res}
-{$R 'S4YFMXHTMLEditorD.dcr'}
-{$DESCRIPTION 'Soft4You FMX HTML Editor (design-time)'}
+{$R 'Soft4You.FMX.Controls.SuiteD.dcr'}
+{$DESCRIPTION 'Soft4You FMX Control Suite (design-time, open source, MPL 2.0)'}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
 {$ASSERTIONS ON}
@@ -37,7 +37,7 @@ requires
   fmx,
   bindcomp,
   designide,
-  S4YFMXHTMLEditor;
+  Soft4You.FMX.Controls.Suite;
 
 contains
   Soft4You.FMX.Controls.HTMLEditor.Design in '..\..\Sources\HTMLEditor\Soft4You.FMX.Controls.HTMLEditor.Design.pas',

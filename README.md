@@ -12,7 +12,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 |---|---|
 | `Sources\HTMLEditor` | All component units (`.pas`) |
 | `Packages\D11` | Runtime and design-time packages, project group |
-| `Graphics` | Source artwork: `HTMLEditor\Icons\S4YHTMLEditor.svg` is the master of the Tool Palette icon (`TS4YHTMLEditor.bmp`, 24x24) and `HTMLEditor\Icons` holds the toolbar icons of the demo; `S4YSplash.bmp` and `S4YAbout.bmp` (IDE splash screen and About box bitmaps) are shared. All are compiled with `S4YFMXHTMLEditorD.rc` into `Packages\D11\S4YFMXHTMLEditorD.dcr` |
+| `Graphics` | Source artwork: `HTMLEditor\Icons\S4YHTMLEditor.svg` is the master of the Tool Palette icon (`TS4YHTMLEditor.bmp`, 24x24) and `HTMLEditor\Icons` holds the toolbar icons of the demo; `S4YSplash.bmp` and `S4YAbout.bmp` (IDE splash screen and About box bitmaps) are shared. All are compiled with `Soft4You.FMX.Controls.SuiteD.rc` into `Packages\D11\Soft4You.FMX.Controls.SuiteD.dcr` |
 | `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files) |
 | `Docs` | Additional documentation: [`DeveloperGuide.md`](Docs/HTMLEditor/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals, in Italian) |
 
@@ -64,8 +64,8 @@ The public API (the `TS4YHTMLEditor` control, its events and the types in `Soft4
 
 ## Installation
 
-1. Open `Packages\D11\S4YFMXHTMLEditor.dpk` (runtime package) and **Build** it.
-2. Open `Packages\D11\S4YFMXHTMLEditorD.dpk` (design-time package, registers the component and the HTML property editor) and **Build** and **Install** it.
+1. Open `Packages\D11\Soft4You.FMX.Controls.Suite.dpk` (runtime package) and **Build** it.
+2. Open `Packages\D11\Soft4You.FMX.Controls.SuiteD.dpk` (design-time package, registers the component and the HTML property editor) and **Build** and **Install** it.
 3. `TS4YHTMLEditor` appears in the Tool Palette under the registered category.
 4. Add the `Sources\HTMLEditor` folder to the Delphi library path (needed to compile the Demo and your own projects).
 5. Add `Soft4You.FMX.Controls.HTMLEditor` to the `uses` clause of any unit that references the component programmatically.
