@@ -15,7 +15,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 | `Sources\Badge` | Units of the Badge control (`TS4YBadge`), with its styles and resource scripts |
 | `Sources\Expander` | Units of the Expander control (`TS4YExpander`), with its styles and resource scripts |
 | `Sources\Design` | Design-time unit shared by all the controls of the suite (IDE splash screen and About box) |
-| `Packages\D11` | Runtime and design-time packages, project group |
+| `Packages\D11`, `D12`, `D13` | Runtime and design-time packages and the project group, one folder for each Delphi version (11, 12, 13) |
 | `Graphics` | Source artwork: `HTMLEditor\Icons\S4YHTMLEditor.svg` is the master of the Tool Palette icon (`TS4YHTMLEditor.bmp`, 24x24) and `HTMLEditor\Icons` holds the toolbar icons of the demo; `Soft4YouFMXControlSuite.svg` is the master of the icon of the suite, shown in the IDE splash screen and About box (`S4YSplash.bmp` and `S4YAbout.bmp`, 24x24). All are compiled with `Soft4You.FMX.Controls.SuiteD.rc` into `Packages\D11\Soft4You.FMX.Controls.SuiteD.dcr` |
 | `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files) |
 | `Demos\FlexBox` | Sample FMX dashboard built with `TS4YFlexBox` |
@@ -32,6 +32,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 ## Requirements
 
 - Delphi 11 Alexandria or newer with FireMonkey (FMX).
+  The project files in `Packages\D12` and `Packages\D13` are copies of the Delphi 11 ones: the IDE upgrades them the first time it opens them. They have not been verified on Delphi 13 yet.
 - Optional: [Skia4Delphi](https://github.com/skia4delphi/skia4delphi) (MIT license), only for the unit `Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia` that renders SVG images (see [SVG images](#svg-images)). The packages do not require it; its platform support (for example Delphi 12 for Android) applies to that unit.
 
 ---
@@ -75,7 +76,7 @@ The public API (the `TS4YHTMLEditor` control, its events and the types in `Soft4
 
 ## Installation
 
-1. Open `Packages\D11\Soft4You.FMX.Controls.Suite.dpk` (runtime package) and **Build** it.
+1. Open `Packages\D11\Soft4You.FMX.Controls.Suite.dpk` (runtime package; use `D12` or `D13` for those versions of Delphi) and **Build** it.
 2. Open `Packages\D11\Soft4You.FMX.Controls.SuiteD.dpk` (design-time package, registers the component and the HTML property editor) and **Build** and **Install** it.
 3. `TS4YHTMLEditor` appears in the Tool Palette under the registered category.
 4. Add the `Sources\HTMLEditor` folder to the Delphi library path (needed to compile the Demo and your own projects).
