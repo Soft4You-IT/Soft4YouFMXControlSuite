@@ -437,12 +437,26 @@ begin
 end;
 
 procedure TS4YExpander.EnsureHeightAnimation;
+var
+  LContent: TContent;
 begin
   if FHeightAnimation <> nil then
     Exit;
 
   FHeightAnimation := TFloatAnimation.Create(Self);
-  FHeightAnimation.Parent := Self;
+
+  // TExpander.DoAddObject moves every object that is added to the control into
+  // its content layout. The animation would become a child of the content and
+  // would change the height of the content, not the one of the control, so the
+  // redirection is switched off while the animation is added.
+  LContent := FContent;
+  FContent := nil;
+  try
+    FHeightAnimation.Parent := Self;
+  finally
+    FContent := LContent;
+  end;
+
   FHeightAnimation.PropertyName := 'Height';
   FHeightAnimation.Interpolation := TInterpolationType.Sinusoidal;
   FHeightAnimation.AnimationType := TAnimationType.InOut;
