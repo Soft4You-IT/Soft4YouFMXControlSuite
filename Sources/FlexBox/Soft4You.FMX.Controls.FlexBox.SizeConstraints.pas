@@ -1,5 +1,14 @@
 unit Soft4You.FMX.Controls.FlexBox.SizeConstraints;
 
+{ *****************************************************************************
+  Soft4You FMX Control Suite - FireMonkey (FMX) controls for Delphi
+  Original author: Carlo Marona (Soft4You) - 2026
+
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+  ***************************************************************************** }
+
 {
   Size limits of an item (CSS min-width, max-width, min-height, max-height),
   grouped in a persistent property like Margins and Padding.
