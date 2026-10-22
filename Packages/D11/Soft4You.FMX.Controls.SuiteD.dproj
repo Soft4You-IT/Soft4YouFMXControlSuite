@@ -155,7 +155,7 @@
         <DCCReference Include="designide.dcp"/>
         <DCCReference Include="Soft4You.FMX.Controls.Suite.dcp"/>
         <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.FMX.Controls.HTMLEditor.Design.pas"/>
-        <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.FMX.Controls.HTMLEditor.Splash.pas"/>
+        <DCCReference Include="..\..\Sources\Design\Soft4You.FMX.Controls.Design.Splash.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
