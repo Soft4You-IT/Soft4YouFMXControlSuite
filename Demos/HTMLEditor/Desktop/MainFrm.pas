@@ -255,7 +255,7 @@ uses
   ColorSelectionFrm;
 
 const
-  C_HTML_FILE_NAME = '..\..\..\Test\Test.html';
+  C_HTML_FILE_NAME = '..\..\..\..\..\..\Demos\HTMLEditor\Test\Test.html';
 
 {$R *.fmx}
 
