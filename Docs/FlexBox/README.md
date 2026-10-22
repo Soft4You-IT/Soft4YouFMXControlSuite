@@ -1,475 +1,485 @@
-# TS4YFlexBox per FireMonkey — Guida all'installazione e all'uso
+# TS4YFlexBox for FireMonkey — Installation and usage guide
 
-Componenti FMX che implementano il modello CSS Flexbox (W3C Level 1):
+FMX components that implement the CSS Flexbox model (W3C Level 1):
 
-- **`TS4YFlexBox`**: il contenitore, con le proprietà CSS del container.
-- **`TS4YFlexItem`**: l'elemento del flexbox, con le proprietà CSS dell'item.
-  Ogni controllo che partecipa al layout vive dentro un `TS4YFlexItem`.
+- **`TS4YFlexBox`**: the container, with the CSS container properties.
+- **`TS4YFlexItem`**: the flexbox item, with the CSS item properties.
+  Every control that takes part in the layout lives inside a `TS4YFlexItem`.
 
 Namespace: `Soft4You.FMX.Controls.FlexBox.*`.
 
-## Struttura del progetto
+FlexBox is one of the controls of the Soft4You FMX Control Suite. It is built into the two packages of the suite, `Soft4You.FMX.Controls.Suite` (runtime) and `Soft4You.FMX.Controls.SuiteD` (design time), together with the other controls.
+
+## Where the files are
 
 ```
-S4YFlexBox/
-├── Sources/
-│   ├── Soft4You.FMX.Controls.FlexBox.Engine.pas    ← Algoritmo CSS FlexBox puro (stateless, no FMX)
-│   ├── Soft4You.FMX.Controls.FlexBox.pas           ← TS4YFlexBox e TS4YFlexItem (runtime)
-│   ├── Soft4You.FMX.Controls.FlexBox.Strings.pas   ← Messaggi (resourcestring) del runtime
-│   ├── Soft4You.FMX.Controls.FlexBox.Types.pas     ← Tipi semplici (modalità e override dei breakpoint)
-│   ├── Soft4You.FMX.Controls.FlexBox.ItemBase.pas  ← Base di TS4YFlexItem (rompe la dipendenza circolare coi breakpoint)
-│   ├── Soft4You.FMX.Controls.FlexBox.Breakpoints.pas ← Collezione dei breakpoint (soglie sulla larghezza)
-│   ├── Soft4You.FMX.Controls.FlexBox.Design.pas    ← Wrapping automatico nel designer (design-time)
-│   └── Soft4You.FMX.Controls.FlexBox.Register.pas  ← Registrazione dei componenti nella palette
-├── Packages/
-│   ├── S4YFlexBox.dpk / .dproj                     ← Package RUNTIME  → Build (non Install)
-│   ├── S4YFlexBoxD.dpk / .dproj                    ← Package DESIGN   → Install
-│   └── S4YFlexBox.groupproj                        ← Gruppo con i due package
-├── Resources/
-│   ├── FlexBoxDesign.rc                            ← Resource script icona palette (risorsa TS4YFLEXBOX)
-│   ├── FlexBoxDesign.res                           ← Compilato da FlexBoxDesign.rc (vedi sotto)
-│   ├── FlexBox24.bmp / FlexBox16.bmp               ← Icona di TS4YFlexBox (24×24 usata dalla palette)
-│   └── FlexItem24.bmp / FlexItem16.bmp             ← Icona di TS4YFlexItem (risorsa TS4YFLEXITEM)
-├── Tests/
-│   └── Soft4You.FMX.Controls.FlexBox.Engine.Tests.pas  ← Suite DUnitX (29 test)
-├── Docs/
-│   ├── ANALYSIS_ChildrenFiltering.md               ← Analisi del filtraggio dei figli
-│   └── fmx-flexbox-roadmap.html                    ← Architettura e roadmap
-├── Demo/
-│   └── S4YFelxBoxDemo.dpr / frmMain.pas / .fmx     ← Dashboard di esempio (vedi "Demo")
-└── README.md
+Soft4YouFMXControlSuite/
+├── Sources/FlexBox/
+│   ├── Soft4You.FMX.Controls.FlexBox.Engine.pas      <- Pure CSS FlexBox algorithm (stateless, no FMX)
+│   ├── Soft4You.FMX.Controls.FlexBox.pas             <- TS4YFlexBox and TS4YFlexItem (runtime)
+│   ├── Soft4You.FMX.Controls.FlexBox.Strings.pas     <- Runtime messages (resourcestring)
+│   ├── Soft4You.FMX.Controls.FlexBox.Types.pas       <- Simple types (breakpoint modes and overrides)
+│   ├── Soft4You.FMX.Controls.FlexBox.SizeConstraints.pas <- Min/max width and height of an item
+│   ├── Soft4You.FMX.Controls.FlexBox.ItemBase.pas    <- Base of TS4YFlexItem (breaks the circular dependency with the breakpoints)
+│   ├── Soft4You.FMX.Controls.FlexBox.Breakpoints.pas <- Breakpoint collection (thresholds on the width)
+│   ├── Soft4You.FMX.Controls.FlexBox.Design.pas      <- Automatic wrapping in the designer (design time)
+│   └── Soft4You.FMX.Controls.FlexBox.Register.pas    <- Registration of the components in the palette
+├── Packages/D11/
+│   ├── Soft4You.FMX.Controls.Suite.dpk / .dproj      <- RUNTIME package -> Build (do not Install)
+│   ├── Soft4You.FMX.Controls.SuiteD.dpk / .dproj     <- DESIGN package  -> Install
+│   └── Soft4You.FMX.Controls.Suite.groupproj         <- Group with the packages and the demos
+├── Graphics/FlexBox/
+│   ├── FlexBoxDesign.rc                              <- Resource script of the palette icons (resources TS4YFLEXBOX and TS4YFLEXITEM)
+│   ├── FlexBoxDesign.res                             <- Compiled from FlexBoxDesign.rc (see below)
+│   ├── FlexBox24.bmp / FlexBox16.bmp                 <- Icon of TS4YFlexBox (the palette uses the 24x24 one)
+│   └── FlexItem24.bmp / FlexItem16.bmp               <- Icon of TS4YFlexItem
+├── Tests/FlexBox/
+│   └── Soft4You.FMX.Controls.FlexBox.Engine.Tests.pas <- DUnitX suite (49 tests)
+├── Docs/FlexBox/
+│   ├── README.md                                     <- This file
+│   ├── ANALYSIS_ChildrenFiltering.md                 <- Analysis of the children filtering
+│   └── fmx-flexbox-roadmap.html                      <- Architecture and roadmap
+└── Demos/FlexBox/
+    └── S4YFlexBoxDemo.dpr / frmMain.pas / .fmx       <- Sample dashboard (see "Demo")
 ```
-
-| Cartella    | Contenuto                                              |
-|-------------|--------------------------------------------------------|
-| `Sources`   | Tutte le unit (`.pas`) del componente                  |
-| `Packages`  | Package runtime e design-time, gruppo di progetti      |
-| `Resources` | Icona della palette (`.rc`, `.res`, `.bmp`)            |
-| `Tests`     | Test DUnitX del motore                                 |
-| `Docs`      | Documentazione aggiuntiva                              |
-| `Demo`      | Applicazione di esempio (dashboard "Sales overview")   |
 
 ---
 
-## Come funziona
+## How it works
 
-Un `TS4YFlexBox` posiziona i suoi `TS4YFlexItem`. Ogni item contiene **un solo
-controllo**. Finché l'altezza dell'item è automatica (`AutoHeight = True`) il
-controllo è `Align = Top` e l'item ne segue l'altezza; con un'altezza esplicita
-(`AutoHeight = False`) il controllo resta `Align = Top` con la propria altezza (mai `Client`): l'item ha l'altezza data e il controllo, per esempio un `TExpander`, puo' aprirsi e chiudersi da solo. Le proprietà flex di un
-controllo (`FlexGrow`, `FlexShrink`, …) sono proprietà dell'item che lo contiene,
-quindi si modificano nell'Object Inspector selezionando l'item.
+A `TS4YFlexBox` positions its `TS4YFlexItem`s. Every item contains **one
+control**. While the height of the item is automatic (`AutoHeight = True`) the
+control is `Align = Top` and the item follows its height; with an explicit height
+(`AutoHeight = False`) the control stays `Align = Top` with its own height (never
+`Client`): the item has the given height and the control, for example a
+`TExpander`, can open and close by itself. The flex properties of a control
+(`FlexGrow`, `FlexShrink`, ...) are properties of the item that contains it, so
+they are changed in the Object Inspector by selecting the item.
 
-Per inserire più controlli in una posizione del flexbox si usa come contenuto
-dell'item un contenitore (layout, panel, ecc.).
+To put several controls in one position of the flexbox, use a container (layout,
+panel, ...) as the content of the item.
 
-### Wrapping automatico
+### Automatic wrapping
 
-Quando un controllo che non è un `TS4YFlexItem` diventa figlio di un
-`TS4YFlexBox`, viene creato un `TS4YFlexItem` con la stessa posizione e le stesse
-dimensioni, e il controllo viene spostato al suo interno con `Align = Top`
-(altezza automatica, vedi sotto). I margini (`Margins`) del controllo passano
-all'item.
+When a control that is not a `TS4YFlexItem` becomes a child of a `TS4YFlexBox`,
+a `TS4YFlexItem` is created with the same position and size, and the control is
+moved inside it with `Align = Top` (automatic height, see below). The `Margins`
+of the control pass to the item.
 
-- **A design-time**: trascina un controllo nel flexbox; l'item viene creato dal
-  designer (nome, Structure view, annulla) e il controllo viene inserito al suo
-  interno.
-- **A runtime**: `LButton.Parent := LFlexBox` crea l'item in automatico. Dopo
-  l'assegnazione `LButton.Parent` è il `TS4YFlexItem`, non il flexbox.
-- **Durante il caricamento del DFM** non avviene alcun wrapping.
-- **Un item ospita un solo controllo**: un secondo controllo rilasciato su un
-  item occupato (ad esempio sul suo padding) non viene accettato dall'item e
-  ottiene un item dedicato nel flexbox.
-- **Un item rilasciato su un altro item** (ad esempio nella Structure view) non
-  diventa figlio dell'altro: torna nel flexbox in posizione precedente a quello
-  di destinazione (vedi "Riordino degli item" nel capitolo Design-time).
-- **Item vuoti**: un item che resta senza controlli viene eliminato e gli
-  altri item si riposizionano.
-- **Un item vive solo in un `TS4YFlexBox`**: a runtime assegnare a un
-  `TS4YFlexItem` un `Parent` diverso da un flexbox (per esempio un pannello, o
-  un altro item) solleva `EInvalidOperation`. La regola non vale durante il
-  caricamento del DFM né a design-time, dove il designer crea l'item in
-  transito prima di riportarlo nel flexbox.
-- **L'item non è in palette**: lo crea il flexbox, non va inserito a mano.
-  È registrato con `RegisterNoIcon`, per cui nella Structure view ha l'icona
-  generica dell'IDE.
+- **At design time**: drag a control into the flexbox; the item is created by the
+  designer (name, Structure view, undo) and the control is inserted into it.
+- **At run time**: `LButton.Parent := LFlexBox` creates the item automatically.
+  After the assignment `LButton.Parent` is the `TS4YFlexItem`, not the flexbox.
+- **While the DFM is loading** no wrapping takes place.
+- **An item hosts one control only**: a second control dropped on an item that is
+  already taken (for example on its padding) is not accepted by the item and gets
+  an item of its own in the flexbox.
+- **An item dropped on another item** (for example in the Structure view) does
+  not become a child of the other one: it goes back to the flexbox, in the
+  position before the target (see "Reordering the items" in the Design time
+  chapter).
+- **Empty items**: an item left without controls is deleted and the other items
+  are positioned again.
+- **An item lives only in a `TS4YFlexBox`**: at run time, assigning to a
+  `TS4YFlexItem` a `Parent` other than a flexbox (for example a panel, or another
+  item) raises `EInvalidOperation`. The rule does not apply while the DFM is
+  loading nor at design time, where the designer creates the item in transit
+  before putting it back into the flexbox.
+- **The item is not in the palette**: the flexbox creates it, it must not be
+  inserted by hand. It is registered with `RegisterNoIcon`, so in the Structure
+  view it has the generic icon of the IDE.
 
-### Altezza automatica e dimensione di design
+### Automatic height and design size
 
-Come in CSS (`height: auto`), l'altezza di un item può essere **automatica** o
-**esplicita**:
+As in CSS (`height: auto`), the height of an item can be **automatic** or
+**explicit**:
 
-- **Automatica** (`AutoHeight = True`, il default): l'altezza naturale dell'item è
-  l'altezza del controllo contenuto più il `Padding` dell'item. Se il contenuto
-  cambia altezza da solo (un `TExpander` che si apre o si chiude, ad esempio)
-  l'item lo segue e il flexbox si riorganizza.
-- **Esplicita** (`AutoHeight = False`): l'altezza è quella impostata, e il
-  contenuto la riempie. Diventa esplicita da sola quando si modifica `Height`
-  dell'item o lo si ridimensiona nel designer. Per tornare automatica si rimette
-  `AutoHeight` a `True`: il contenuto resta all'altezza che aveva, quindi può
-  servire riportarlo a mano a quella voluta.
+- **Automatic** (`AutoHeight = True`, the default): the natural height of the
+  item is the height of the contained control plus the `Padding` of the item. If
+  the content changes height by itself (a `TExpander` that opens or closes, for
+  example) the item follows it and the flexbox is laid out again.
+- **Explicit** (`AutoHeight = False`): the height is the one that was set, and
+  the content fills it. It becomes explicit by itself when the `Height` of the
+  item is changed or the item is resized in the designer. To make it automatic
+  again, set `AutoHeight` back to `True`: the content keeps the height it had, so
+  it may be necessary to bring it back by hand to the wanted one.
 
-La **dimensione di design** dell'item (l'ultima `Width`/`Height` scelta
-dall'utente, usata dal motore come dimensione naturale) è distinta dalla
-dimensione calcolata dal layout (ad esempio stirata con `AlignItems = aiStretch`).
-Così ridurre un item riporta la riga alle dimensioni naturali degli altri. Nel
-file `.fmx` si salvano `Size` (quella calcolata) e, solo se diverse,
-`DesignWidth`/`DesignHeight` (non visibili nell'Object Inspector).
+The **design size** of the item (the last `Width`/`Height` chosen by the user,
+used by the engine as the natural size) is different from the size calculated by
+the layout (for example stretched with `AlignItems = aiStretch`). So reducing an
+item brings the line back to the natural sizes of the other items. In the `.fmx`
+file `Size` (the calculated one) is saved and, only if different,
+`DesignWidth`/`DesignHeight` (not visible in the Object Inspector).
 
-### Larghezza automatica
+### Automatic width
 
-Anche la larghezza può essere **automatica** (`AutoWidth = True`, il default) o
-**esplicita** (`AutoWidth = False`, che diventa vera da sola quando si modifica
-`Width` dell'item o lo si ridimensiona nel designer). Come in CSS, una
-dimensione automatica sull'asse trasversale si adatta, una esplicita no:
+The width too can be **automatic** (`AutoWidth = True`, the default) or
+**explicit** (`AutoWidth = False`, which becomes true by itself when the `Width`
+of the item is changed or the item is resized in the designer). As in CSS, an
+automatic size on the cross axis adapts, an explicit one does not:
 
-- **Stretch** (`AlignItems = aiStretch`, o `AlignSelf = asStretch`): vale solo per
-  una dimensione automatica. Un item con altezza esplicita in una riga, o con
-  larghezza esplicita in una colonna, mantiene la propria dimensione.
-- **Fit-content** in colonna: la larghezza di un item automatico non supera la
-  larghezza disponibile del flexbox (con `AlignItems` diverso da stretch resta
-  la larghezza di design, ridotta se non entra). Una larghezza esplicita non
-  viene ridotta.
-- **Linea singola** (`Wrap = fwNoWrap`): l'unica linea occupa tutta la dimensione
-  trasversale del flexbox, come in CSS. Quindi in una riga senza wrap gli item
-  automatici si stirano all'altezza del flexbox, e `AlignItems`/`AlignSelf` con
-  `Center` o `FlexEnd` posizionano gli item nell'altezza del flexbox. Con
-  `fwWrap` le linee restano alte quanto il loro contenuto.
+- **Stretch** (`AlignItems = aiStretch`, or `AlignSelf = asStretch`): it applies
+  only to an automatic size. An item with an explicit height in a row, or with an
+  explicit width in a column, keeps its own size.
+- **Fit-content** in a column: the width of an automatic item does not exceed the
+  available width of the flexbox (with an `AlignItems` other than stretch the
+  design width remains, reduced if it does not fit). An explicit width is not
+  reduced.
+- **Single line** (`Wrap = fwNoWrap`): the only line takes the whole cross size of
+  the flexbox, as in CSS. So in a row without wrap the automatic items stretch to
+  the height of the flexbox, and `AlignItems`/`AlignSelf` with `Center` or
+  `FlexEnd` position the items in the height of the flexbox. With `fwWrap` the
+  lines are as tall as their content.
 
-La larghezza di design resta la larghezza naturale dell'item: è il `FlexBasis`
-quando questo è `fbuAuto`, e la larghezza di partenza del fit-content. Il
-contenuto (`Align = Top`) segue la larghezza dell'item. Per usare invece la
-larghezza propria del contenuto (per esempio una `TLabel` con `AutoSize`) vedi
-"Larghezza dal contenuto".
+The design width remains the natural width of the item: it is the `FlexBasis`
+when this is `fbuAuto`, and the starting width of the fit-content. The content
+(`Align = Top`) follows the width of the item. To use the own width of the
+content instead (for example a `TLabel` with `AutoSize`) see "Width from the
+content".
 
-### Larghezza dal contenuto
+### Width from the content
 
-Con `FitContent = True` (default `False`) l'item prende la dimensione **propria
-del contenuto**: la larghezza e l'altezza automatiche (non esplicite) diventano
-quelle del contenuto più il `Padding` dell'item. È il caso di una `TLabel` con
-`AutoSize` (e `WordWrap = False`, altrimenti `AutoSize` adatta solo l'altezza),
-di un pulsante o di un'immagine che hanno già la propria misura.
+With `FitContent = True` (default `False`) the item takes the **own size of the
+content**: the automatic (not explicit) width and height become those of the
+content plus the `Padding` of the item. It is the case of a `TLabel` with
+`AutoSize` (and `WordWrap = False`, otherwise `AutoSize` adapts only the height),
+of a button or of an image that already have their own size.
 
-- Il contenuto non è più `Align = Top`: resta alla sua dimensione, in alto a
-  sinistra (dopo il `Padding` dell'item), anche quando l'item cresce per
-  `FlexGrow` o stretch. Non viene stirato, altrimenti la sua misura propria si
-  perderebbe al layout successivo.
-- Quando il contenuto cambia dimensione (per esempio il testo di una label), il
-  flexbox si ricalcola da solo. L'item si aggancia all'evento `OnResized` del
-  contenuto, concatenando l'eventuale handler già assegnato dall'utente; se
-  l'utente ne assegna un altro dopo, la misura viene comunque riletta a ogni
-  layout.
-- Una dimensione esplicita (`AutoWidth = False`, `AutoHeight = False`) resta
-  quella scelta: `FitContent` vale solo per le dimensioni automatiche.
-- Rimettendo `FitContent = False` il contenuto torna `Align = Top`.
-- Una `TLabel` creata a run-time prende la propria misura solo quando cambia il
-  testo: assegnare `Text` dopo averla inserita nel flexbox.
+- The content is no longer `Align = Top`: it keeps its size, at the top left
+  (after the `Padding` of the item), even when the item grows because of
+  `FlexGrow` or stretch. It is not stretched, otherwise its own size would be
+  lost at the next layout.
+- When the content changes size (for example the text of a label), the flexbox
+  calculates itself again. The item hooks the `OnResized` event of the content,
+  chaining the handler that the user may already have assigned; if the user
+  assigns another one afterwards, the size is anyway read again at every layout.
+- An explicit size (`AutoWidth = False`, `AutoHeight = False`) stays the chosen
+  one: `FitContent` applies only to the automatic sizes.
+- Setting `FitContent = False` again brings the content back to `Align = Top`.
+- A `TLabel` created at run time takes its own size only when the text changes:
+  assign `Text` after inserting it in the flexbox.
 
 ---
 
-## Installazione passo per passo
+## Installation step by step
 
-### 1. Compila l'icona in risorsa
+The component is installed with the packages of the suite, which also contain
+the other controls. Open `Packages\D11\Soft4You.FMX.Controls.Suite.groupproj`.
 
-Prima di tutto, compila `FlexBoxDesign.rc` → `FlexBoxDesign.res`.
-Esegui da riga di comando nella cartella `Resources`:
+### 1. Compile the icons into a resource
+
+The palette icons are in `Graphics\FlexBox\FlexBoxDesign.res`, compiled from
+`FlexBoxDesign.rc`. The compiled file is in the repository and the design package
+compiles it again by itself when needed (`RcCompile` in the project), so this
+step is only necessary to do it by hand. From the command line, in the
+`Graphics\FlexBox` folder:
 
 ```bat
 brcc32.exe FlexBoxDesign.rc
 ```
 
-oppure con windres (MinGW):
+or with windres (MinGW):
 
 ```bat
 windres FlexBoxDesign.rc -O res -o FlexBoxDesign.res
 ```
 
-> Il file `FlexBoxDesign.res` incluso nel repository è già compilato.
+### 2. Build the runtime package
 
-### 2. Installa il package Runtime
+1. Open `Soft4You.FMX.Controls.Suite.dpk`
+2. `Project > Build Soft4You.FMX.Controls.Suite`
+3. Do **NOT** press Install (it is `{$RUNONLY}`)
 
-1. `File → Open → Package` → seleziona `S4YFlexBox.dpk`
-2. `Project → Build S4YFlexBox`
-3. **NON** premere Install (è `{$RUNONLY}`)
+### 3. Install the design-time package
 
-### 3. Installa il package Design-time
+1. Open `Soft4You.FMX.Controls.SuiteD.dpk`
+2. `Component > Install Package` (or right click > Install)
+3. The IDE asks for confirmation > OK
 
-1. `File → Open → Package` → seleziona `S4YFlexBoxD.dpk`
-2. `Component → Install Package` (oppure tasto destro → Install)
-3. L'IDE chiede conferma → OK
+### 4. Check
 
-### 4. Verifica
+Open the Tool Palette (`View > Tool Palette`).
+Look for the page **"Soft4You FMX Controls Suite"**: `TS4YFlexBox` must appear.
+`TS4YFlexItem` is not in the palette: the flexbox creates it.
 
-Apri la Component Palette (`View → Tool Palette`).
-Cerca il tab **"FireMonkey Layouts"**: deve apparire `TS4YFlexBox`.
-`TS4YFlexItem` non compare in palette: lo crea il flexbox.
+Add the folder `Sources\FlexBox` to the Delphi library path: it is needed to
+compile the demo and your own projects.
 
 ---
 
-## Uso in un progetto
+## Use in a project
 
-### Senza package (embed diretto)
+### Without a package (direct embedding)
 
-Aggiungi al progetto le unit runtime:
+Add the runtime units to the project:
+
 ```
 Soft4You.FMX.Controls.FlexBox.Engine.pas
 Soft4You.FMX.Controls.FlexBox.Strings.pas
 Soft4You.FMX.Controls.FlexBox.Types.pas
+Soft4You.FMX.Controls.FlexBox.SizeConstraints.pas
 Soft4You.FMX.Controls.FlexBox.ItemBase.pas
 Soft4You.FMX.Controls.FlexBox.Breakpoints.pas
 Soft4You.FMX.Controls.FlexBox.pas
 ```
-Nessuna dipendenza esterna.
 
-### Con package runtime
+No external dependencies.
 
-In `Project → Options → Packages`, aggiungi `S4YFlexBox` come
-package runtime. L'app cercherà `S4YFlexBox.bpl` nella stessa cartella
-dell'eseguibile.
+### With the runtime package
 
----
-
-## Piattaforme
-
-Il componente **non è ancora stato testato su nessuna piattaforma**. Il codice
-non usa API specifiche di Windows (`TFlexEngine` è puro Pascal e il componente
-usa solo FMX), quindi in teoria è portabile, ma la compatibilità va verificata.
-
-| Piattaforma       | Stato         |
-|-------------------|---------------|
-| Windows 32/64     | Non testato   |
-| macOS ARM/x86     | Non testato   |
-| iOS ARM64         | Non testato   |
-| Android ARM/ARM64 | Non testato   |
-| Linux 64 (FMXL)   | Non testato   |
+In `Project > Options > Packages`, add `Soft4You.FMX.Controls.Suite` as a runtime
+package. The application will look for `Soft4You.FMX.Controls.Suite<version>.bpl`
+in the folder of the executable.
 
 ---
 
-## Proprietà CSS supportate
+## Platforms
 
-### Container (su TS4YFlexBox)
+The component has **not been tested yet on any platform**. The code does not use
+Windows-specific APIs (`TFlexEngine` is pure Pascal and the component uses only
+FMX), so in theory it is portable, but the compatibility has to be checked.
 
-| Proprietà Delphi  | CSS equivalente    | Valori                                                         |
-|-------------------|--------------------|----------------------------------------------------------------|
-| `Direction`       | `flex-direction`   | `fdRow`, `fdRowReverse`, `fdColumn`, `fdColumnReverse`         |
-| `Wrap`            | `flex-wrap`        | `fwNoWrap`, `fwWrap`, `fwWrapReverse`                          |
-| `JustifyContent`  | `justify-content`  | `jcFlexStart/End/Center/SpaceBetween/SpaceAround/SpaceEvenly`  |
-| `AlignItems`      | `align-items`      | `aiStretch/FlexStart/FlexEnd/Center/Baseline`                  |
+| Platform          | Status      |
+|-------------------|-------------|
+| Windows 32/64     | Not tested  |
+| macOS ARM/x86     | Not tested  |
+| iOS ARM64         | Not tested  |
+| Android ARM/ARM64 | Not tested  |
+| Linux 64 (FMXL)   | Not tested  |
+
+---
+
+## Supported CSS properties
+
+### Container (on TS4YFlexBox)
+
+| Delphi property   | CSS equivalent     | Values                                                          |
+|-------------------|--------------------|-----------------------------------------------------------------|
+| `Direction`       | `flex-direction`   | `fdRow`, `fdRowReverse`, `fdColumn`, `fdColumnReverse`          |
+| `Wrap`            | `flex-wrap`        | `fwNoWrap`, `fwWrap`, `fwWrapReverse`                           |
+| `JustifyContent`  | `justify-content`  | `jcFlexStart/End/Center/SpaceBetween/SpaceAround/SpaceEvenly`   |
+| `AlignItems`      | `align-items`      | `aiStretch/FlexStart/FlexEnd/Center/Baseline`                   |
 | `AlignContent`    | `align-content`    | `acFlexStart/End/Center/SpaceBetween/SpaceAround/Evenly/Stretch`|
-| `ColumnGap`       | `column-gap`       | `Single` (pixel)                                               |
-| `RowGap`          | `row-gap`          | `Single` (pixel)                                               |
+| `ColumnGap`       | `column-gap`       | `Single` (pixels)                                               |
+| `RowGap`          | `row-gap`          | `Single` (pixels)                                               |
 
-### Item (su TS4YFlexItem)
+### Item (on TS4YFlexItem)
 
-| Proprietà Delphi  | CSS equivalente  | Valori                                     |
+| Delphi property   | CSS equivalent   | Values                                     |
 |-------------------|------------------|--------------------------------------------|
-| `FlexGrow`        | `flex-grow`      | `Single` ≥ 0 (default: 0)                 |
-| `FlexShrink`      | `flex-shrink`    | `Single` ≥ 0 (default: 1)                 |
-| `FlexBasis`       | `flex-basis`     | `Single` (valore numerico)                 |
-| `FlexBasisUnit`   | *(unità basis)*  | `fbuAuto`, `fbuPixel`, `fbuPercent`        |
+| `FlexGrow`        | `flex-grow`      | `Single` >= 0 (default: 0)                 |
+| `FlexShrink`      | `flex-shrink`    | `Single` >= 0 (default: 1)                 |
+| `FlexBasis`       | `flex-basis`     | `Single` (numeric value)                   |
+| `FlexBasisUnit`   | *(basis unit)*   | `fbuAuto`, `fbuPixel`, `fbuPercent`        |
 | `AlignSelf`       | `align-self`     | `asAuto/Stretch/FlexStart/FlexEnd/Center`  |
 | `Order`           | `order`          | `Integer` (default: 0)                     |
 | `AutoHeight`      | `height: auto`   | `Boolean` (default: `True`)                |
 | `AutoWidth`       | `width: auto`    | `Boolean` (default: `True`)                |
-| `FitContent`      | `width/height: auto` = dimensione del contenuto | `Boolean` (default: `False`), vedi "Larghezza dal contenuto" |
-| `SizeConstraints` | `min-/max-width`, `min-/max-height` | gruppo con `MinWidth`, `MaxWidth`, `MinHeight`, `MaxHeight` (`Single` ≥ 0, default: 0 = nessun limite), come `Margins` |
-| `Index`           | *(ordine sorgente)* | posizione dell'item nel flexbox, non salvata |
+| `FitContent`      | `width/height: auto` = size of the content | `Boolean` (default: `False`), see "Width from the content" |
+| `SizeConstraints` | `min-/max-width`, `min-/max-height` | group with `MinWidth`, `MaxWidth`, `MinHeight`, `MaxHeight` (`Single` >= 0, default: 0 = no limit), like `Margins` |
+| `Index`           | *(source order)* | position of the item in the flexbox, not saved |
 
-I limiti di `SizeConstraints` (`MinWidth`, `MaxWidth`, `MinHeight`, `MaxHeight`) valgono come in CSS: limitano anche una dimensione esplicita
-(`max-width` batte `width`), si applicano a flex-grow e flex-shrink (lo spazio che un
-item non può prendere o cedere va agli altri) e allo stretch sull'asse cross, e
-contano per decidere quanti item stanno su una linea con il wrap. Riguardano l'item,
-non il contenuto: se il contenuto è più alto di `MaxHeight`, sborda.
+The limits of `SizeConstraints` (`MinWidth`, `MaxWidth`, `MinHeight`, `MaxHeight`)
+work as in CSS: they also limit an explicit size (`max-width` wins over `width`),
+they apply to flex-grow and flex-shrink (the space that an item cannot take or
+give up goes to the others) and to the stretch on the cross axis, and they count
+to decide how many items fit on a line with wrap. They concern the item, not the
+content: if the content is taller than `MaxHeight`, it overflows.
 
-A parità di `Order` conta l'ordine sorgente, cioè la posizione dell'item nel
-flexbox (`Index`).
+With the same `Order` the source order counts, that is the position of the item
+in the flexbox (`Index`).
 
-Comportamenti con la dimensione "naturale" di un item (usata con
-`FlexBasisUnit = fbuAuto`): è la dimensione di design (vedi sopra); i suoi `Margins` sono i margini CSS dell'elemento e il suo
-`Padding` è lo spazio tra il bordo dell'item e il controllo contenuto.
+Behaviour of the "natural" size of an item (used with `FlexBasisUnit = fbuAuto`):
+it is the design size (see above); its `Margins` are the CSS margins of the
+element and its `Padding` is the space between the border of the item and the
+contained control.
 
-Le proprietà pubblicate di `TS4YFlexItem` sono solo queste, più `Height`, `Margins`,
-`Padding`, `Size`, `Visible` e `Width`: posizione e allineamento sono decisi dal flexbox.
+The published properties of `TS4YFlexItem` are only these, plus `Height`,
+`Margins`, `Padding`, `Size`, `Visible` and `Width`: position and alignment are
+decided by the flexbox.
 
 ---
 
-## API programmatica
+## Programmatic API
 
 ```delphi
-// L'item di un controllo è il suo Parent, dopo l'assegnazione al flexbox
+// The item of a control is its Parent, after the assignment to the flexbox
 LButton.Parent := LFlexBox;
 LItem := LButton.Parent as TS4YFlexItem;
 LItem.FlexGrow := 1;
 LItem.FlexBasis := 200;
 LItem.FlexBasisUnit := fbuPixel;
 
-// Creazione esplicita dell'item (equivalente al wrapping automatico)
+// Explicit creation of the item (equivalent to the automatic wrapping)
 LItem := LFlexBox.WrapControl(LButton);
 
-// Forza ricalcolo
+// Force a new calculation
 LFlexBox.InvalidateLayout;
 
-// Riordino: a parità di Order conta la posizione dell'item
+// Reordering: with the same Order the position of the item counts
 LItem.Index := 0;
 ```
 
 ---
 
-## Eventi
+## Events
 
-Gli eventi partono **a layout concluso** e solo se qualcosa è cambiato; non
-partono a design-time né durante il caricamento. Un handler che modifica il
-contenuto avvia un nuovo layout: non rientra in quello in corso. Durante la
-costruzione (aggiunta degli item, ridimensionamenti intermedi) il layout
-viene ricalcolato a ogni modifica, quindi gli eventi possono scattare più volte
-prima della configurazione finale.
+The events fire **when the layout is finished** and only if something has
+changed; they do not fire at design time nor while loading. A handler that
+changes the content starts a new layout: it does not re-enter the one in
+progress. During the construction (adding the items, intermediate resizing) the
+layout is calculated again at every change, so the events can fire several times
+before the final configuration.
 
 ### TS4YFlexItem
 
-| Evento | Quando |
-|--------|--------|
-| `OnFlexStateChanged(Sender; AState, APreviousState: TFlexItemState)` | La dimensione sull'asse principale cambia rispetto al flex-basis: `fisShrunk` (minore), `fisAtBasis` (uguale, tolleranza 0,5 px), `fisGrown` (maggiore) |
-| `OnLayoutChanged(Sender)` | Posizione o dimensione dell'item cambiate (tolleranza 0,5 px) rispetto all'ultimo layout notificato; scatta anche al primo layout |
-| `OnLineChanged(Sender; ALineIndex, APreviousLineIndex: Integer)` | L'item passa a un'altra riga (o colonna) per il wrapping |
+| Event | When |
+|-------|------|
+| `OnFlexStateChanged(Sender; AState, APreviousState: TFlexItemState)` | The size on the main axis changes compared to the flex-basis: `fisShrunk` (smaller), `fisAtBasis` (equal, tolerance 0.5 px), `fisGrown` (larger) |
+| `OnLayoutChanged(Sender)` | Position or size of the item changed (tolerance 0.5 px) compared to the last notified layout; it also fires at the first layout |
+| `OnLineChanged(Sender; ALineIndex, APreviousLineIndex: Integer)` | The item moves to another row (or column) because of the wrapping |
 
-Al **primo layout** gli eventi scattano subito: `APreviousLineIndex` è `-1` e
-`APreviousState` è uguale ad `AState`, così l'aspetto iniziale si imposta
-nello stesso handler.
+At the **first layout** the events fire immediately: `APreviousLineIndex` is `-1`
+and `APreviousState` is equal to `AState`, so the initial appearance can be set
+in the same handler.
 
 ### TS4YFlexBox
 
-| Evento | Quando |
-|--------|--------|
-| `OnBreakpointsChanged(Sender)` | Cambia l'insieme dei breakpoint attivi (vedi "Breakpoint"); scatta prima di `OnLineCountChanged` |
-| `OnLayoutApplied(Sender)` | Dopo ogni layout, con tutti gli item già posizionati |
-| `OnLineCountChanged(Sender; ALineCount, APreviousLineCount: Integer)` | Cambia il numero di righe (o colonne); al primo layout `APreviousLineCount` è `-1` |
+| Event | When |
+|-------|------|
+| `OnBreakpointsChanged(Sender)` | The set of active breakpoints changes (see "Breakpoints"); it fires before `OnLineCountChanged` |
+| `OnLayoutApplied(Sender)` | After every layout, with all the items already positioned |
+| `OnLineCountChanged(Sender; ALineCount, APreviousLineCount: Integer)` | The number of rows (or columns) changes; at the first layout `APreviousLineCount` is `-1` |
 
-Non è previsto per ora un evento per ogni cambio di posizione/dimensione
-dell'item.
+For now there is no event for every change of position/size of an item.
 
-### Breakpoint
+### Breakpoints
 
-I breakpoint cambiano le proprietà del **flexbox** e dei suoi **item** in base alla larghezza del flexbox
-(`Width`), come le media query CSS. Si definiscono nella collezione
-`Breakpoints` e si leggono secondo `BreakpointMode`, una sola per tutta la
-lista:
+The breakpoints change the properties of the **flexbox** and of its **items**
+according to the width of the flexbox (`Width`), like the CSS media queries. They
+are defined in the `Breakpoints` collection and are read according to
+`BreakpointMode`, one for the whole list:
 
-- `bmMaxWidth` (default): la regola vale **fino a** `Width` (come `max-width`)
-- `bmMinWidth`: la regola vale **da** `Width` in su (come `min-width`)
+- `bmMaxWidth` (default): the rule applies **up to** `Width` (like `max-width`)
+- `bmMinWidth`: the rule applies **from** `Width` upwards (like `min-width`)
 
-Il confronto è inclusivo. Cambiando `BreakpointMode` le regole restano ma si
-leggono all'opposto: conviene ripensare i valori di base.
+The comparison is inclusive. When `BreakpointMode` is changed the rules stay but
+they are read the other way round: it is worth rethinking the base values.
 
-Ogni breakpoint ha `Width`, l'insieme `ContainerOverrides` e i valori delle proprietà
-del container che può sovrascrivere: `Direction`, `Wrap`, `JustifyContent`, `AlignItems`,
-`AlignContent`, `ColumnGap`, `RowGap`. Vale un valore solo se la proprietà è
-in `ContainerOverrides` (altrimenti il valore del breakpoint è ignorato).
+Every breakpoint has `Width`, the set `ContainerOverrides` and the values of the
+container properties that it can override: `Direction`, `Wrap`, `JustifyContent`,
+`AlignItems`, `AlignContent`, `ColumnGap`, `RowGap`. A value applies only if the
+property is in `ContainerOverrides` (otherwise the value of the breakpoint is
+ignored).
 
-**Cascata, come in CSS**: si applicano tutti i breakpoint che corrispondono alla
-larghezza, dal meno al più specifico, e l'ultimo vince sulle stesse proprietà.
-L'ordine lo calcola il componente e **non dipende dalla posizione nella lista**:
-con `bmMaxWidth` dalla `Width` più grande alla più piccola, con `bmMinWidth`
-dalla più piccola alla più grande (a parità di `Width` vale la posizione). Le
-proprietà che nessun breakpoint attivo tocca restano quelle di base.
+**Cascade, as in CSS**: all the breakpoints that match the width apply, from the
+least to the most specific, and the last one wins on the same properties. The
+component calculates the order and it **does not depend on the position in the
+list**: with `bmMaxWidth` from the largest `Width` to the smallest, with
+`bmMinWidth` from the smallest to the largest (with the same `Width` the position
+counts). The properties that no active breakpoint touches stay the base ones.
 
-Esempio, base `Direction = fdRow`, `ColumnGap = 0`, `bmMaxWidth`:
+Example, base `Direction = fdRow`, `ColumnGap = 0`, `bmMaxWidth`:
 
-| `Width` | `ContainerOverrides` | Valori |
-|---------|-------------|--------|
+| `Width` | `ContainerOverrides` | Values |
+|---------|----------------------|--------|
 | 900 | `ColumnGap` | `ColumnGap = 8` |
 | 600 | `Direction` | `Direction = fdColumn` |
 | 400 | `ColumnGap` | `ColumnGap = 2` |
 
-| Larghezza | Breakpoint attivi | `Direction` | `ColumnGap` |
-|-----------|-------------------|-------------|-------------|
-| 1000 | nessuno | `fdRow` | 0 |
+| Width | Active breakpoints | `Direction` | `ColumnGap` |
+|-------|--------------------|-------------|-------------|
+| 1000 | none | `fdRow` | 0 |
 | 800 | 900 | `fdRow` | 8 |
 | 500 | 900, 600 | `fdColumn` | 8 |
 | 350 | 900, 600, 400 | `fdColumn` | 2 |
 
-Note:
+Notes:
 
-- I valori effettivi si calcolano a ogni layout: le proprietà pubblicate
-  (`Direction`, ...) restano quelle di base e nel file salvato finiscono solo
-  la base e le regole.
-- La larghezza confrontata è `Width` del flexbox (padding compreso).
-- **I breakpoint valgono anche a design-time**: il canvas mostra il layout effettivo
-  per la larghezza attuale del flexbox, mentre l'Object Inspector mostra sempre i
-  valori di base. Per provare una soglia basta ridimensionare il flexbox.
-- `ActiveBreakpoints` elenca i breakpoint attivi nell'ordine di applicazione.
-- `ColumnGap` è il gap tra item sullo stesso asse principale (anche con
-  `fdColumn`), diversamente da CSS dove con la colonna conta `row-gap`.
-- Le soglie dipendono dalla larghezza del flexbox, che non dipende dal suo
-  contenuto: cambiare `Direction` da un breakpoint non può far riscattare la
-  soglia. Con la larghezza automatica (in backlog) andrà riconsiderato.
+- The effective values are calculated at every layout: the published properties
+  (`Direction`, ...) stay the base ones and the saved file contains only the base
+  and the rules.
+- The width that is compared is the `Width` of the flexbox (padding included).
+- **The breakpoints also apply at design time**: the canvas shows the effective
+  layout for the current width of the flexbox, while the Object Inspector always
+  shows the base values. To try a threshold, just resize the flexbox.
+- `ActiveBreakpoints` lists the active breakpoints in the order of application.
+- `ColumnGap` is the gap between items on the same main axis (also with
+  `fdColumn`), unlike CSS where with a column `row-gap` counts.
+- The thresholds depend on the width of the flexbox, which does not depend on its
+  content: changing `Direction` from a breakpoint cannot make the threshold fire
+  again. With the automatic width (in the backlog) this will have to be
+  reconsidered.
 
-#### Override degli item
+#### Item overrides
 
-Ogni breakpoint ha anche `ItemOverrides`: una collezione di elementi che indicano
-un item (`Item`, a tendina nell'Object Inspector) e quali sue proprietà il
-breakpoint sovrascrive (`Overrides`). Servono quando una proprietà dell'item ha
-senso solo in una direzione: passando da riga a colonna, per esempio,
-`FlexBasis = 320 px` e `FlexGrow = 1` varrebbero sull'altezza.
+Every breakpoint also has `ItemOverrides`: a collection of elements that name an
+item (`Item`, a drop-down in the Object Inspector) and which of its properties the
+breakpoint overrides (`Overrides`). They are needed when a property of the item
+only makes sense in one direction: going from row to column, for example,
+`FlexBasis = 320 px` and `FlexGrow = 1` would apply to the height.
 
-| Voce di `Overrides` | Proprietà dell'elemento |
-|---------------------|-------------------------|
+| Entry of `Overrides` | Property of the element |
+|----------------------|-------------------------|
 | `ioFlexGrow` | `FlexGrow` |
 | `ioFlexShrink` | `FlexShrink` |
-| `ioFlexBasis` | `FlexBasis` e `FlexBasisUnit` |
+| `ioFlexBasis` | `FlexBasis` and `FlexBasisUnit` |
 | `ioAlignSelf` | `AlignSelf` |
 | `ioOrder` | `Order` |
 | `ioVisible` | `Visible` |
-| `ioWidth` | `AutoWidth` e `Width` |
-| `ioHeight` | `AutoHeight` e `Height` |
+| `ioWidth` | `AutoWidth` and `Width` |
+| `ioHeight` | `AutoHeight` and `Height` |
 | `ioMargins` | `Margins` |
 | `ioMinWidth` | `SizeConstraints.MinWidth` |
 | `ioMaxWidth` | `SizeConstraints.MaxWidth` |
 | `ioMinHeight` | `SizeConstraints.MinHeight` |
 | `ioMaxHeight` | `SizeConstraints.MaxHeight` |
 
-La cascata è quella del container: si applicano gli override di tutti i
-breakpoint attivi, nello stesso ordine, e ciò che nessuno tocca resta il valore
-di base dell'item. Note:
+The cascade is the one of the container: the overrides of all the active
+breakpoints apply, in the same order, and what none of them touches stays the base
+value of the item. Notes:
 
-- Le proprietà pubblicate dell'item non cambiano. Con `ioVisible` l'item viene
-  nascosto o mostrato per la durata del breakpoint; la `Visible` scelta
-  dall'utente si conserva (e se la imposti mentre un override è attivo, vale
-  quando l'override cessa).
-- Se l'item viene eliminato, i suoi override spariscono.
-- Un override di altezza (`ioHeight`) cambia solo l'altezza dell'item, come l'altezza
-  esplicita di base: il contenuto resta `Top` con la propria altezza e non si
-  adatta all'item (un `TExpander` si apre e si chiude da solo). Con l'altezza
-  automatica, invece, l'item segue il contenuto.
-- A parità di proprietà sullo stesso item nello stesso breakpoint vale l'ultimo
-  elemento della lista.
+- The published properties of the item do not change. With `ioVisible` the item is
+  hidden or shown for as long as the breakpoint lasts; the `Visible` chosen by the
+  user is kept (and if it is set while an override is active, it applies when the
+  override ends).
+- If the item is deleted, its overrides disappear.
+- A height override (`ioHeight`) only changes the height of the item, like the
+  explicit base height: the content stays `Top` with its own height and does not
+  adapt to the item (a `TExpander` opens and closes by itself). With the automatic
+  height, instead, the item follows the content.
+- With the same property on the same item in the same breakpoint, the last
+  element of the list wins.
 
 ---
 
 ## Demo
 
-`Demo\S4YFelxBoxDemo.dproj` è una dashboard "Sales overview" costruita solo con controlli standard
-FMX dentro i flexbox, senza logica applicativa (i dati sono fissi nel `.fmx`). Richiede i package
-`S4YFlexBox` e `S4YFlexBoxD` installati. Mostra:
+`Demos\FlexBox\S4YFlexBoxDemo.dproj` is a "Sales overview" dashboard built only
+with standard FMX controls inside the flexboxes, without application logic (the
+data is fixed in the `.fmx`). It needs the suite packages
+(`Soft4You.FMX.Controls.Suite` and `Soft4You.FMX.Controls.SuiteD`) installed, and
+it is part of the project group in `Packages\D11`. It shows:
 
-| Zona | Cosa dimostra |
+| Area | What it shows |
 |------|---------------|
-| Sidebar (colonna) | `Direction = fdColumn`, item "spacer" con `FlexGrow = 1` che spinge "Log out" in fondo |
-| Header | `JustifyContent = jcSpaceBetween`, `AlignItems = aiCenter`, titolo (label `AutoSize`) e pulsante utente con `FitContent` (larghezza dal contenuto), ricerca nascosta sotto 560 px con un override `ioVisible` |
-| Card KPI | `Wrap`, `FlexBasis` in percentuale (23%, 48% sotto 760 px) e `FlexGrow` |
-| Grafico a barre | flexbox annidato con `AlignItems = aiFlexEnd`, 12 item con altezza esplicita e `FlexBasis = 0`, `FlexGrow = 1` |
-| Traffico, ordini, attività | `FlexBasis` in pixel e grow proporzionale (2:1) |
-| Breakpoint (flexbox principale) | sotto 1000 px nasconde "Team activity"; sotto 760 px mostra solo KPI e grafico |
+| Sidebar (column) | `Direction = fdColumn`, "spacer" item with `FlexGrow = 1` that pushes "Log out" to the bottom |
+| Header | `JustifyContent = jcSpaceBetween`, `AlignItems = aiCenter`, title (`AutoSize` label) and user button with `FitContent` (width from the content), search hidden below 560 px with an `ioVisible` override |
+| KPI cards | `Wrap`, `FlexBasis` in percent (23%, 48% below 760 px) and `FlexGrow` |
+| Bar chart | nested flexbox with `AlignItems = aiFlexEnd`, 12 items with explicit height and `FlexBasis = 0`, `FlexGrow = 1` |
+| Traffic, orders, activity | `FlexBasis` in pixels and proportional grow (2:1) |
+| Breakpoints (main flexbox) | below 1000 px it hides "Team activity"; below 760 px it shows only KPIs and chart |
 
-Nel codice restano due cose: la sidebar si nasconde sotto 700 px di larghezza del form (la sidebar non
-è un item di un flexbox) e la StatusBar mostra dimensioni, numero di righe e breakpoint attivi, aggiornata
-da `OnLayoutApplied` e `OnLineCountChanged`.
+Two things remain in the code: the sidebar hides below 700 px of form width (the
+sidebar is not an item of a flexbox) and the StatusBar shows sizes, number of rows
+and active breakpoints, updated by `OnLayoutApplied` and `OnLineCountChanged`.
 
 ---
 
-## Esempi d'uso
+## Usage examples
 
-Gli esempi costruiscono i layout via codice. `AParent` è il controllo che
-ospita il `TS4YFlexBox`. Le unit necessarie:
+The examples build the layouts in code. `AParent` is the control that hosts the
+`TS4YFlexBox`. The units needed:
 
 ```delphi
 uses
@@ -483,9 +493,9 @@ uses
   Soft4You.FMX.Controls.FlexBox.Engine;
 ```
 
-### Esempio 1 — Navigation bar con grow e gap
+### Example 1 — Navigation bar with grow and gap
 
-CSS equivalente:
+Equivalent CSS:
 
 ```css
 .navbar {
@@ -505,7 +515,7 @@ procedure BuildNavBar(AParent: TControl);
 var
   LNavBar: TS4YFlexBox;
   LLogo: TRectangle;
-  LSpacer: TControl;   // controllo vuoto come spacer
+  LSpacer: TControl;   // empty control used as a spacer
   LLoginButton: TButton;
   LSignupButton: TButton;
   LLogoItem: TS4YFlexItem;
@@ -521,7 +531,7 @@ begin
   LNavBar.Padding.Left := 16;
   LNavBar.Padding.Right := 16;
 
-  // Logo: larghezza fissa 120px, non cresce né si restringe
+  // Logo: fixed width of 120px, it neither grows nor shrinks
   LLogo := TRectangle.Create(LNavBar);
   LLogo.Width := 120;
   LLogo.Height := 32;
@@ -532,7 +542,7 @@ begin
   LLogoItem.FlexBasis := 120;
   LLogoItem.FlexBasisUnit := fbuPixel;
 
-  // Spacer: cresce per riempire lo spazio centrale
+  // Spacer: it grows to fill the central space
   LSpacer := TControl.Create(LNavBar);
   LSpacer.Width := 0;
   LSpacer.Height := 1;
@@ -540,8 +550,8 @@ begin
   LSpacerItem := LSpacer.Parent as TS4YFlexItem;
   LSpacerItem.FlexGrow := 1;
 
-  // Pulsanti a destra: dimensione automatica (auto basis)
-  // Nessuna prop flex esplicita = grow:0, shrink:1, basis:auto (default CSS)
+  // Buttons on the right: automatic size (auto basis)
+  // No explicit flex property = grow:0, shrink:1, basis:auto (CSS default)
   LLoginButton := TButton.Create(LNavBar);
   LLoginButton.Text := 'Login';
   LLoginButton.Width := 80;
@@ -556,12 +566,12 @@ begin
 end;
 ```
 
-Nota: la dimensione del controllo va impostata **prima** di `Parent`, perché
-l'item prende posizione e dimensioni del controllo nel momento del wrapping.
+Note: the size of the control must be set **before** `Parent`, because the item
+takes position and size of the control at the moment of the wrapping.
 
-### Esempio 2 — Card grid con wrap
+### Example 2 — Card grid with wrap
 
-CSS equivalente:
+Equivalent CSS:
 
 ```css
 .grid {
@@ -599,7 +609,7 @@ begin
     LCard.Height := 150;
     LCard.Parent := LGrid;
 
-    // Ogni card ha basis=200px fissa; non cresce, non si restringe
+    // Every card has a fixed basis of 200px; it neither grows nor shrinks
     LItem := LCard.Parent as TS4YFlexItem;
     LItem.FlexGrow := 0;
     LItem.FlexShrink := 0;
@@ -609,9 +619,9 @@ begin
 end;
 ```
 
-### Esempio 3 — Sidebar (column) con spacer "push to bottom"
+### Example 3 — Sidebar (column) with a "push to bottom" spacer
 
-CSS equivalente:
+Equivalent CSS:
 
 ```css
 .sidebar {
@@ -661,13 +671,13 @@ begin
   LReportsButton.Height := 40;
   LReportsButton.Parent := LSidebar;
 
-  // Spacer elastico che spinge il Logout in fondo
+  // Elastic spacer that pushes Logout to the bottom
   LSpacer := TControl.Create(LSidebar);
   LSpacer.Height := 0;
   LSpacer.Parent := LSidebar;
   (LSpacer.Parent as TS4YFlexItem).FlexGrow := 1;
 
-  // Logout resta sempre in fondo
+  // Logout always stays at the bottom
   LLogoutButton := TButton.Create(LSidebar);
   LLogoutButton.Text := 'Logout';
   LLogoutButton.Height := 40;
@@ -675,9 +685,9 @@ begin
 end;
 ```
 
-### Esempio 4 — align-self per singoli item
+### Example 4 — align-self for single items
 
-`AlignSelf` sovrascrive `AlignItems` del container sul singolo item.
+`AlignSelf` overrides `AlignItems` of the container on the single item.
 
 ```delphi
 procedure BuildMixedAlign(AParent: TControl);
@@ -687,21 +697,21 @@ var
   LAlignments: array[0..3] of TAlignSelf;
   LIndex: Integer;
 begin
-  // Altezza 120: primo in alto, secondo al centro, terzo in basso,
-  // quarto allungato a tutta l'altezza
+  // Height 120: first at the top, second in the middle, third at the bottom,
+  // fourth stretched to the whole height
   LBox := TS4YFlexBox.Create(AParent.Owner);
   LBox.Parent := AParent;
   LBox.Align := TAlignLayout.Top;
   LBox.Height := 120;
   LBox.Direction := fdRow;
-  LBox.AlignItems := aiFlexStart;  // default del container
+  LBox.AlignItems := aiFlexStart;  // default of the container
   LBox.ColumnGap := 8;
   LBox.Padding.Left := 8;
 
-  LAlignments[0] := asFlexStart;  // ridondante (uguale al container)
+  LAlignments[0] := asFlexStart;  // redundant (same as the container)
   LAlignments[1] := asCenter;
   LAlignments[2] := asFlexEnd;
-  LAlignments[3] := asStretch;    // si allunga a tutta l'altezza
+  LAlignments[3] := asStretch;    // stretches to the whole height
 
   for LIndex := 0 to 3 do
   begin
@@ -714,7 +724,7 @@ begin
 end;
 ```
 
-### Esempio 5 — Order per riordinare senza cambiare l'ordine dei figli
+### Example 5 — Order to reorder without changing the order of the children
 
 ```delphi
 procedure BuildOrderExample(AParent: TControl);
@@ -724,8 +734,8 @@ var
   LButtonB: TButton;
   LButtonC: TButton;
 begin
-  // Ordine di creazione: A, B, C
-  // Ordine visivo con Order: C(0), A(1), B(2)
+  // Creation order: A, B, C
+  // Visual order with Order: C(0), A(1), B(2)
   LBox := TS4YFlexBox.Create(AParent.Owner);
   LBox.Parent := AParent;
   LBox.Align := TAlignLayout.Top;
@@ -752,86 +762,85 @@ begin
   LButtonC.Width := 60;
   LButtonC.Height := 40;
   LButtonC.Parent := LBox;
-  (LButtonC.Parent as TS4YFlexItem).Order := 0;  // C appare per primo
+  (LButtonC.Parent as TS4YFlexItem).Order := 0;  // C appears first
 end;
 ```
 
 ---
 
-## Design-time
+## Design time
 
-Non ci sono finestre né editor dedicati: tutto si fa nel designer e
-nell'Object Inspector.
+There are no dedicated windows or editors: everything is done in the designer and
+in the Object Inspector.
 
-1. Trascina un controllo (dalla palette o da un altro contenitore) dentro un
-   `TS4YFlexBox`: il designer crea un `TS4YFlexItem` e vi inserisce il controllo.
-2. Seleziona il `TS4YFlexItem` (nella Structure view o cliccando sul bordo
-   dell'item) per modificare `FlexGrow`, `FlexShrink`, `FlexBasis`,
-   `FlexBasisUnit`, `AlignSelf` e `Order` nell'Object Inspector.
-3. Per mettere più controlli in una posizione del flexbox, inserisci un layout
-   o un panel e trascina i controlli dentro quel contenitore.
+1. Drag a control (from the palette or from another container) into a
+   `TS4YFlexBox`: the designer creates a `TS4YFlexItem` and inserts the control
+   into it.
+2. Select the `TS4YFlexItem` (in the Structure view or by clicking on the border
+   of the item) to change `FlexGrow`, `FlexShrink`, `FlexBasis`, `FlexBasisUnit`,
+   `AlignSelf` and `Order` in the Object Inspector.
+3. To put several controls in one position of the flexbox, insert a layout or a
+   panel and drag the controls into that container.
 
-### Riordino degli item
+### Reordering the items
 
-Il modo affidabile per cambiare l'ordine degli item è la property **`Index`**
-dell'item nell'Object Inspector (parte da 0; l'ordine si salva comunque, perché è
-quello degli oggetti nel file).
+The reliable way to change the order of the items is the **`Index`** property of
+the item in the Object Inspector (it starts from 0; the order is saved anyway,
+because it is the order of the objects in the file).
 
-Trascinando un item sopra un altro nella Structure view, l'item viene riportato
-nel flexbox e inserito prima di quello di destinazione: il form mostra l'ordine
-nuovo, ma **la Structure view non si aggiorna** (resta con l'ordine vecchio fino
-alla riapertura del form). Il designer FMX non permette al package di forzarne
-l'aggiornamento: sono stati provati senza successo `Modified`/`SelectComponent`
-e uno sprig personalizzato (`RegisterSprigType`).
+Dragging an item over another one in the Structure view puts the item back into
+the flexbox and inserts it before the target: the form shows the new order, but
+**the Structure view is not updated** (it keeps the old order until the form is
+reopened). The FMX designer does not let the package force its update:
+`Modified`/`SelectComponent` and a custom sprig (`RegisterSprigType`) were tried
+without success.
 
-Anche il drop **tra** due item (la riga singola di inserimento) non sposta nulla: un
-log completo dell'IDE (hook su `SetParent`, `DoAddObject`, `DoInsertObject`,
-`DoRemoveObject`, `ChangeOrder`, `SetChildOrder` e notifiche del designer) ha
-mostrato che l'IDE non chiama niente dei nostri oggetti, né per quel drop né per
-Control > Bring to Front / Send to Back. Il designer FMX non implementa
-`SetChildOrder` per i componenti FMX. L'argomento è sospeso; l'idea non provata è
-una voce di menu contestuale (`IComponentEditor`: Move first/before/after/last).
-
----
-
-## Limiti noti
-
-- La larghezza automatica è quella di design, che si adatta (stretch e
-  fit-content); la larghezza calcolata dal contenuto (per esempio una `TLabel`
-  con `AutoSize`) richiede `FitContent = True` sull'item.
-- `FlexBasis` e `FlexGrow` valgono sull'asse principale: passando da riga a
-  colonna (per esempio con un breakpoint) un basis di 320 px diventa un'altezza:
-  si corregge con gli override degli item del breakpoint (vedi "Override degli
-  item").
-- Un contenuto in altezza automatica non riempie l'item quando questo viene
-  stirato o fatto crescere dal layout (in CSS lo farebbe, perché sarebbe lui
-  l'item).
-- Riordino per trascinamento: Structure view non aggiornata (vedi Design-time).
-- I form salvati prima dell'altezza automatica si convertono all'apertura
-  (contenuto da `Client` a `Top`).
+The drop **between** two items (the single insertion line) does not move anything
+either: a complete log of the IDE (hooks on `SetParent`, `DoAddObject`,
+`DoInsertObject`, `DoRemoveObject`, `ChangeOrder`, `SetChildOrder` and designer
+notifications) showed that the IDE calls nothing of our objects, neither for that
+drop nor for Control > Bring to Front / Send to Back. The FMX designer does not
+implement `SetChildOrder` for FMX components. The topic is suspended; the idea not
+tried yet is a context menu entry (`IComponentEditor`: Move first/before/after/last).
 
 ---
 
-## Eseguire i test
+## Known limits
+
+- The automatic width is the design one, which adapts (stretch and fit-content);
+  the width calculated from the content (for example a `TLabel` with `AutoSize`)
+  needs `FitContent = True` on the item.
+- `FlexBasis` and `FlexGrow` apply on the main axis: going from row to column (for
+  example with a breakpoint) a basis of 320 px becomes a height: this is fixed with
+  the item overrides of the breakpoint (see "Item overrides").
+- A content with automatic height does not fill the item when this is stretched or
+  made to grow by the layout (in CSS it would, because it would be the item).
+- Reordering by dragging: the Structure view is not updated (see Design time).
+- Forms saved before the automatic height are converted when opened (content from
+  `Client` to `Top`).
+
+---
+
+## Running the tests
 
 ```delphi
-// In un progetto DUnitX console:
+// In a DUnitX console project:
 uses Soft4You.FMX.Controls.FlexBox.Engine.Tests;
-// Oppure usa il DUnitX GUI runner
+// Or use the DUnitX GUI runner
 ```
 
-I 38 test coprono: row/column, justify-content (tutti i valori),
-flex-grow, flex-shrink, flex-basis (auto/px/%), align-items,
-align-self, order, wrap/wrap-reverse, gap, align-content, reverse,
-dimensioni auto/esplicite e linea singola (`SingleLineFillsContainer`).
-Testano il solo motore (`TFlexEngine`), non i componenti.
+The unit is in `Tests\FlexBox`. The 49 tests cover: row/column, justify-content
+(all the values), flex-grow, flex-shrink, flex-basis (auto/px/%), align-items,
+align-self, order, wrap/wrap-reverse, gap, align-content, reverse, automatic and
+explicit sizes and single line (`SingleLineFillsContainer`). They test the engine
+only (`TFlexEngine`), not the components.
 
 ---
 
-## Versione e compatibilità
+## Version and compatibility
 
-- **Delphi**: 11 Alexandria, 12 Athens (consigliato)
-- **Delphi 10.4**: compatibile, richiede rimozione delle `inline var`
-  in `Soft4You.FMX.Controls.FlexBox.Engine.Tests.pas`
-- **Specifica**: W3C CSS Flexbox Level 1
+- **Delphi**: 11 Alexandria, 12 Athens (recommended)
+- **Delphi 10.4**: compatible, it requires removing the `inline var` in
+  `Soft4You.FMX.Controls.FlexBox.Engine.Tests.pas`
+- **Specification**: W3C CSS Flexbox Level 1
   https://www.w3.org/TR/css-flexbox-1/
