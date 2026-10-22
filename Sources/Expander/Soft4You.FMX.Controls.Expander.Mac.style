@@ -1,0 +1,105 @@
+object TLayout
+	StyleName = 'S4YExpanderStyle'
+	Align = Center
+	Size.Width = 200.000000000000000000
+	Size.Height = 35.000000000000000000
+	Size.PlatformDefault = False
+	Visible = False
+	TabOrder = 237
+	object TRectangle
+		StyleName = 'Rectangle'
+		Align = Contents
+		Fill.Color = claWhite
+		HitTest = False
+		Size.Width = 200.000000000000000000
+		Size.Height = 35.000000000000000000
+		Size.PlatformDefault = False
+		Stroke.Kind = None
+		object TLayout
+			StyleName = 'header'
+			Align = Top
+			HitTest = True
+			Size.Width = 200.000000000000000000
+			Size.Height = 25.000000000000000000
+			Size.PlatformDefault = False
+			TabOrder = 0
+			object TRectangle
+				StyleName = 'headerbackground'
+				Align = Contents
+				Fill.Color = xFFD0D0D0
+				HitTest = False
+				Locked = True
+				Padding.Left = 8.000000000000000000
+				Padding.Right = 8.000000000000000000
+				Size.Width = 200.000000000000000000
+				Size.Height = 25.000000000000000000
+				Size.PlatformDefault = False
+				Stroke.Kind = None
+				object TCheckBox
+					StyleName = 'checkbox'
+					Align = Right
+					CanFocus = False
+					Locked = True
+					Margins.Top = 6.000000000000000000
+					Margins.Bottom = 6.000000000000000000
+					Position.X = 115.000000000000000000
+					Position.Y = 6.000000000000000000
+					Size.Width = 42.000000000000000000
+					Size.Height = 23.000000000000000000
+					Size.PlatformDefault = False
+					TabOrder = 0
+				end
+				object TExpanderButton
+					StyleName = 'button'
+					Align = MostRight
+					Locked = True
+					Position.X = 157.000000000000000000
+					Size.Width = 35.000000000000000000
+					Size.Height = 35.000000000000000000
+					Size.PlatformDefault = False
+					TabOrder = 1
+				end
+				object TGlyph
+					StyleName = 'icon'
+					Align = Left
+					Margins.Top = 4.500000000000000000
+					Margins.Right = 6.000000000000000000
+					Margins.Bottom = 4.500000000000000000
+					Size.Width = 16.000000000000000000
+					Size.Height = 16.000000000000000000
+					Size.PlatformDefault = False
+				end
+				object TText
+					StyleName = 'text'
+					Align = Left
+					AutoSize = True
+					Locked = True
+					HitTest = False
+					Margins.Right = 2.000000000000000000
+					Position.X = 8.000000000000000000
+					Size.Width = 36.989582061767580000
+					Size.Height = 21.281250000000000000
+					Size.PlatformDefault = False
+					Text = 'Text'
+					TextSettings.Font.Size = 12.000000000000000000
+					TextSettings.Font.StyleExt = {00070000000000000004000000}
+					TextSettings.FontColor = claWhite
+					TextSettings.WordWrap = False
+					TextSettings.HorzAlign = Leading
+				end
+				object TS4YBadge
+					StyleName = 'badge'
+					Align = Left
+					HitTest = False
+					Margins.Left = 8.000000000000000000
+					Margins.Top = 4.500000000000000000
+					Margins.Bottom = 4.500000000000000000
+					Position.X = 48.000000000000000000
+					Size.Width = 16.000000000000000000
+					Size.Height = 16.000000000000000000
+					Size.PlatformDefault = False
+				end
+			end
+		end
+	end
+end
