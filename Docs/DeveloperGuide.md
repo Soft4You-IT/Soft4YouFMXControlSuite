@@ -60,7 +60,7 @@ One user action can fire `OnChange` more than once. For example, inserting an im
 
 The editor consumes only the keys it uses: printable characters, the shortcuts listed in the README, the arrows, `Home`, `End`, `Page Up`, `Page Down`, `Backspace`, `Delete`, `Enter` and `Tab`. Every other key (function keys, `Ctrl` + a letter that the editor does not define, modifier keys alone) reaches the form, which receives it in its `OnKeyDown` event.
 
-The `ShortCut` of an action of the application (for example `Ctrl+S`) works while the editor has the focus, because FMX checks the shortcuts of the actions before it gives the key to the focused control. The exception is the function keys F1-F11: in Delphi 11 `TCustomAction.IsDialogKey` compares them after turning the key into upper case, which changes the key code of F3 (114, the letter `r`) into 82 (`R`), so the `ShortCut` never matches. Handle those keys in the `OnKeyDown` of the form, as the demo does for `F3` and `Shift+F3`.
+The `ShortCut` of an action of the application (for example `Ctrl+S`) works while the editor has the focus, because FMX checks the shortcuts of the actions before it gives the key to the focused control. The exception is the function keys F1-F11: in Delphi 11 `TCustomAction.IsDialogKey` compares them after turning the key into upper case, which changes the key code of F3 (114, the letter `r`) into 82 (`R`), so the `ShortCut` never matches. Only Delphi 11 is affected (the FMX source of Delphi 10.4, 12 and 13 compares the keys correctly), so in that version handle those keys in the `OnKeyDown` of the form, as the demo does for `F3` and `Shift+F3`.
 
 `Esc` is consumed only when there is a selection to remove. The `OnKeyDown` event of the editor still sees every key first.
 
