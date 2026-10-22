@@ -680,8 +680,12 @@ begin
   HTMLEditor.FindPrevious(FLastSearchText);
 end;
 
-// F3 and Shift+F3 are handled here because FMX (Delphi 11) does not match the ShortCut of an action
-// for the function keys F1-F11; the editor leaves the keys it does not use to the form
+// F3 and Shift+F3 are handled here, and not with the ShortCut property of actFindNext and
+// actFindPrevious, because in Delphi 11 FMX does not match the ShortCut of an action for the
+// function keys F1-F11: TCustomAction.IsDialogKey changes the key to upper case, so the code of
+// F3 becomes the one of 'R' and never equals the ShortCut. Delphi 10.4, 12 and 13 compare the
+// keys correctly, but handling the keys here works in every version.
+// The form receives the key because the editor leaves to the form the keys it does not use.
 procedure TfrmMain.FormKeyDown(Sender: TObject; var Key: Word; var KeyChar: System.WideChar; Shift: TShiftState);
 begin
   if (Key <> vkF3) or ((Shift <> []) and (Shift <> [ssShift])) then
