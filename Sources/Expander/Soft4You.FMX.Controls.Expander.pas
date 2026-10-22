@@ -65,9 +65,9 @@ type
     property BlinkSettings: TS4YBadgeBlinkSettings read FBlinkSettings write SetBlinkSettings;
     property CurrentValue: Integer read FCurrentValue write SetCurrentValue default 0;
     property HitTest: Boolean read FHitTest write SetHitTest default False;
-    property MaxValue: Integer read FMaxValue write SetMaxValue default TS4YBadge.DefaultMaxValue;
+    property MaxValue: Integer read FMaxValue write SetMaxValue default TS4YBadge.C_DEFAULT_MAX_VALUE;
     property PopupMenu: TPopupMenu read FPopupMenu write SetPopupMenu;
-    property Style: TS4YBadgeStyle read FStyle write SetStyle default TS4YBadge.DefaultBadgeStyle;
+    property Style: TS4YBadgeStyle read FStyle write SetStyle default TS4YBadge.C_DEFAULT_BADGE_STYLE;
     property Text: string read FText write SetText;
     property Visible: Boolean read FVisible write SetVisible default False;
 
@@ -150,8 +150,8 @@ uses
 {$ENDIF}
 
 const
-  StrBackground = 'background'; // Not localize
-  StrText= 'text';              // Not localize
+  C_STYLE_BACKGROUND = 'background'; // Not localize
+  C_STYLE_TEXT= 'text';              // Not localize
 
 { TS4YExpander }
 
@@ -343,12 +343,12 @@ end;
 
 function TS4YExpander.GetStyleObject: TFmxObject;
 var
-  Style: String;
+  LStyle: String;
 begin
   if (StyleLookup = '') then
   begin
-    Style := GetDefaultStyleLookupName;
-    Result := TStyleStreaming.LoadFromResource(HInstance, Style, RT_RCDATA)
+    LStyle := GetDefaultStyleLookupName;
+    Result := TStyleStreaming.LoadFromResource(HInstance, LStyle, RT_RCDATA)
   end
   else
     Result := inherited GetStyleObject;
@@ -555,8 +555,8 @@ begin
   inherited Create;
 
   FExpander := AExpander;
-  FStyle := TS4YBadge.DefaultBadgeStyle;
-  FMaxValue := TS4YBadge.DefaultMaxValue;
+  FStyle := TS4YBadge.C_DEFAULT_BADGE_STYLE;
+  FMaxValue := TS4YBadge.C_DEFAULT_MAX_VALUE;
   FVisible := False;
   FHitTest := False;
 
@@ -603,9 +603,9 @@ begin
   FBlinkSettings.SetDefaultValues;
   FCurrentValue := 0;
   FHitTest := False;
-  FMaxValue := TS4YBadge.DefaultMaxValue;
+  FMaxValue := TS4YBadge.C_DEFAULT_MAX_VALUE;
   FPopupMenu := nil;
-  FStyle := TS4YBadge.DefaultBadgeStyle;
+  FStyle := TS4YBadge.C_DEFAULT_BADGE_STYLE;
   FText := EmptyStr;
   FVisible := False;
   FOnClick := nil;

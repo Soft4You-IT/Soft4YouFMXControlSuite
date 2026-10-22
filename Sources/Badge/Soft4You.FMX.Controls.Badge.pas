@@ -65,8 +65,8 @@ type
   // Manage blink settings
   TS4YBadgeBlinkSettings = class(TPersistent)
   public const
-    DefaultEnabled = False;
-    DefaultInterval = 1000;
+    C_DEFAULT_ENABLED = False;
+    C_DEFAULT_INTERVAL = 1000;
   private
     FEnabled: Boolean;
     FInterval: Integer;
@@ -80,17 +80,17 @@ type
     procedure Assign(Source: TPersistent); override;
     procedure SetDefaultValues;
   published
-    property Interval: Integer read FInterval write SetInterval default DefaultInterval;
-    property Enabled: Boolean read FEnabled write SetEnabled default DefaultEnabled;
+    property Interval: Integer read FInterval write SetInterval default C_DEFAULT_INTERVAL;
+    property Enabled: Boolean read FEnabled write SetEnabled default C_DEFAULT_ENABLED;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
   // Manage positioning settings included auto positioning
   TS4YBadgePosition = class(TPersistent)
   public const
-    DefaultPosition = bdgpNone;
-    DefaultOffsetX = bdpoEdge;
-    DefaultOffsetY = bdpoEdge;
+    C_DEFAULT_POSITION = bdgpNone;
+    C_DEFAULT_OFFSET_X = bdpoEdge;
+    C_DEFAULT_OFFSET_Y = bdpoEdge;
   private
     FOffsetX: TS4YBadgePositionOffset;
     FAutoPosition: TS4YBadgeAutoPosition;
@@ -107,9 +107,9 @@ type
     procedure Assign(Source: TPersistent); override;
     procedure SetDefaultValues;
   published
-    property AutoPosition: TS4YBadgeAutoPosition read FAutoPosition write SetAutoPosition default DefaultPosition;
-    property OffsetX: TS4YBadgePositionOffset read FOffsetX write SetOffsetX default DefaultOffsetX;
-    property OffsetY: TS4YBadgePositionOffset read FOffsetY write SetOffsetY default DefaultOffsetY;
+    property AutoPosition: TS4YBadgeAutoPosition read FAutoPosition write SetAutoPosition default C_DEFAULT_POSITION;
+    property OffsetX: TS4YBadgePositionOffset read FOffsetX write SetOffsetX default C_DEFAULT_OFFSET_X;
+    property OffsetY: TS4YBadgePositionOffset read FOffsetY write SetOffsetY default C_DEFAULT_OFFSET_Y;
 
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
@@ -117,19 +117,19 @@ type
 
   TS4YBadge = class(TStyledControl, ITextSettings)
   public const
-    DefaultBorderColor: TAlphaColor = $FFFFFFFF;
-    DefaultBorderKind: TBrushKind = TBrushKind.Solid;
-    DefaultBorderThickness: Single = 1;
-    DefaultBackgroundColor: TAlphaColor = $FFFF0000;
-    DefaultBackgroundKind: TBrushKind = TBrushKind.Solid;
-    DefaultTextColor: TAlphacolor = $FFFFFFFF;
-    DefaultSize: Single = 20;
-    DefaultMaxValue = 99;
-    DefaultBadgeStyle = bdgsNumeric;
-    DefaultAutoRadius = True;
-    DefaultStyledBrushes: TS4YBadgeStyledBrushes = [bdgbFill, bdgbStroke];
+    C_DEFAULT_BORDER_COLOR: TAlphaColor = $FFFFFFFF;
+    C_DEFAULT_BORDER_KIND: TBrushKind = TBrushKind.Solid;
+    C_DEFAULT_BORDER_THICKNESS: Single = 1;
+    C_DEFAULT_BACKGROUND_COLOR: TAlphaColor = $FFFF0000;
+    C_DEFAULT_BACKGROUND_KIND: TBrushKind = TBrushKind.Solid;
+    C_DEFAULT_TEXT_COLOR: TAlphacolor = $FFFFFFFF;
+    C_DEFAULT_SIZE: Single = 20;
+    C_DEFAULT_MAX_VALUE = 99;
+    C_DEFAULT_BADGE_STYLE = bdgsNumeric;
+    C_DEFAULT_AUTO_RADIUS = True;
+    C_DEFAULT_STYLED_BRUSHES: TS4YBadgeStyledBrushes = [bdgbFill, bdgbStroke];
   private
-    FBackgroundStyleCtrl: TRectangle;
+    FBackgroundStyleControl: TRectangle;
     FBackgroundFill: TBrush;
     FBackgroundStroke: TStrokeBrush;
     FBadgeStyle: TS4YBadgeStyle;
@@ -139,7 +139,7 @@ type
     FCurrentValue: integer;
     FMaxValue: integer;
     FText: String;
-    FTextStyleCtrl: TText;
+    FTextStyleControl: TText;
     FTextSettingsInfo: TTextSettingsInfo;
     FAutoPosition: TS4YBadgePosition;
     FAutoRadius: Boolean;
@@ -205,15 +205,15 @@ type
     property Anchors;
     property Align;
     property AutoPosition: TS4YBadgePosition read FAutoPosition write SetAutoPosition;
-    property AutoRadius: Boolean read FAutoRadius write SetAutoRadius default DefaultAutoRadius;
+    property AutoRadius: Boolean read FAutoRadius write SetAutoRadius default C_DEFAULT_AUTO_RADIUS;
     property Fill: TBrush read FBackgroundFill write SetBackgroundFill;
-    property BadgeStyle: TS4YBadgeStyle read FBadgeStyle write SetBadgeStyle default DefaultBadgeStyle;
+    property BadgeStyle: TS4YBadgeStyle read FBadgeStyle write SetBadgeStyle default C_DEFAULT_BADGE_STYLE;
     property BlinkSettings: TS4YBadgeBlinkSettings read FBlinkSettings write SetBlinkSettings;
     property CurrentValue: integer read FCurrentValue write SetCurrentValue default 0;
     property Height;
     property HitTest;
     property Margins;
-    property MaxValue: integer read FMaxValue write SetMaxValue default DefaultMaxValue;
+    property MaxValue: integer read FMaxValue write SetMaxValue default C_DEFAULT_MAX_VALUE;
     property Opacity;
     property PopupMenu;
     property Position;
@@ -276,8 +276,8 @@ type
 
 
 const
-  StrBackground = 'background'; // Not localize
-  StrText= 'text';              // Not localize
+  C_STYLE_BACKGROUND = 'background'; // Not localize
+  C_STYLE_TEXT= 'text';              // Not localize
 
 
 
@@ -285,37 +285,37 @@ const
 
 procedure TS4YBadge.InternalAdjustSize;
 var
-  lTextWidth: single;
-  lCurrentText: string;
+  LTextWidth: single;
+  LCurrentText: string;
 begin
-  if not Assigned(FTextStyleCtrl) then
+  if not Assigned(FTextStyleControl) then
     Exit;
 
-  lCurrentText := GetCurrentText;
-  lTextWidth := FTextStyleCtrl.Canvas.TextWidth(lCurrentText) +
-   FBackgroundStyleCtrl.Padding.Left + FBackgroundStyleCtrl.Padding.Right;
+  LCurrentText := GetCurrentText;
+  LTextWidth := FTextStyleControl.Canvas.TextWidth(LCurrentText) +
+   FBackgroundStyleControl.Padding.Left + FBackgroundStyleControl.Padding.Right;
 
   // Never narrower than tall, so a short text still gives a circle; a longer text widens the badge.
-  if lTextWidth < Size.Height then
+  if LTextWidth < Size.Height then
     Size.Width := Size.Height
   else
-    Size.Width := lTextWidth;
+    Size.Width := LTextWidth;
 end;
 
 procedure TS4YBadge.InternalAdjustPositioning;
 var
-  lPositionPoint: TPointF;
+  LPositionPoint: TPointF;
 begin
-  lPositionPoint := CalcPositionPoint;
-  Position.Point := lPositionPoint;
+  LPositionPoint := CalcPositionPoint;
+  Position.Point := LPositionPoint;
 end;
 
 procedure TS4YBadge.ApplyStyle;
 begin
   inherited;
 
-  FindStyleResource<TRectangle>(StrBackground, FBackgroundStyleCtrl);
-  FindStyleResource<TText>(StrText, FTextStyleCtrl);
+  FindStyleResource<TRectangle>(C_STYLE_BACKGROUND, FBackgroundStyleControl);
+  FindStyleResource<TText>(C_STYLE_TEXT, FTextStyleControl);
 
   UpdateBackground;
   UpdateText;
@@ -433,19 +433,19 @@ constructor TS4YBadge.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FBackgroundStyleCtrl := nil;
-  FTextStyleCtrl := nil;
+  FBackgroundStyleControl := nil;
+  FTextStyleControl := nil;
 
   FBlinkTimer := TTimer.Create(nil);
   FBlinkTimer.OnTimer := BlinkTimerEvent;
 
   FTextSettingsInfo := TS4YBadgeTextSettingsInfo.Create(Self, GetTextSettingsClass);
-  FTextSettingsInfo.DefaultTextSettings.FontColor := DefaultTextColor;
+  FTextSettingsInfo.DefaultTextSettings.FontColor := C_DEFAULT_TEXT_COLOR;
 
-  FBackgroundFill := TBrush.Create(DefaultBackgroundKind, DefaultBackgroundColor);
-  FBackgroundStroke := TStrokeBrush.Create(DefaultBorderKind, DefaultBorderColor);
-  FStyledBrushes := DefaultStyledBrushes;
-  FAutoRadius := DefaultAutoRadius;
+  FBackgroundFill := TBrush.Create(C_DEFAULT_BACKGROUND_KIND, C_DEFAULT_BACKGROUND_COLOR);
+  FBackgroundStroke := TStrokeBrush.Create(C_DEFAULT_BORDER_KIND, C_DEFAULT_BORDER_COLOR);
+  FStyledBrushes := C_DEFAULT_STYLED_BRUSHES;
+  FAutoRadius := C_DEFAULT_AUTO_RADIUS;
 
   // Assigned only now: the initial values above are not a customization of the brushes.
   FBackgroundFill.OnChanged := BackgroundFillChanged;
@@ -458,9 +458,9 @@ begin
   FAutoPosition := TS4YBadgePosition.Create;
   FAutoPosition.OnChange := PositionChanged;
 
-  FBadgeStyle := DefaultBadgeStyle;
+  FBadgeStyle := C_DEFAULT_BADGE_STYLE;
   FText := EmptyStr;
-  FMaxValue := DefaultMaxValue;
+  FMaxValue := C_DEFAULT_MAX_VALUE;
   FCurrentValue := 0;
 end;
 
@@ -505,8 +505,8 @@ procedure TS4YBadge.FreeStyle;
 begin
   FBlinkTimer.Enabled := False;
 
-  FBackgroundStyleCtrl := nil;
-  FTextStyleCtrl := nil;
+  FBackgroundStyleControl := nil;
+  FTextStyleControl := nil;
   inherited;
 end;
 
@@ -554,12 +554,12 @@ end;
 
 function TS4YBadge.GetStyleObject: TFmxObject;
 var
-  Style: String;
+  LStyle: String;
 begin
   if (StyleLookup = '') then
   begin
-    Style := GetDefaultStyleLookupName;
-    Result := TStyleStreaming.LoadFromResource(HInstance, Style, RT_RCDATA)
+    LStyle := GetDefaultStyleLookupName;
+    Result := TStyleStreaming.LoadFromResource(HInstance, LStyle, RT_RCDATA)
   end
   else
     Result := inherited GetStyleObject;
@@ -639,7 +639,7 @@ procedure TS4YBadge.SetDefaultFill;
 begin
   FUpdatingBrushes := True;
   try
-    FBackgroundFill.Color := DefaultBackgroundColor;
+    FBackgroundFill.Color := C_DEFAULT_BACKGROUND_COLOR;
   finally
     FUpdatingBrushes := False;
   end;
@@ -656,8 +656,8 @@ procedure TS4YBadge.SetDefaultStroke;
 begin
   FUpdatingBrushes := True;
   try
-    FBackgroundStroke.Color := DefaultBorderColor;
-    FBackgroundStroke.Kind := DefaultBorderKind;
+    FBackgroundStroke.Color := C_DEFAULT_BORDER_COLOR;
+    FBackgroundStroke.Kind := C_DEFAULT_BORDER_KIND;
   finally
     FUpdatingBrushes := False;
   end;
@@ -716,7 +716,7 @@ end;
 
 procedure TS4YBadge.ReapplyStyle;
 begin
-  if Assigned(FBackgroundStyleCtrl) then
+  if Assigned(FBackgroundStyleControl) then
   begin
     NeedStyleLookup;
     ApplyStyleLookup;
@@ -729,15 +729,15 @@ var
 begin
   // Streaming Fill/Stroke already switches the matching brush off by itself, so StyledBrushes is
   // only worth storing when it says something different from what that alone would give.
-  LImplied := DefaultStyledBrushes;
+  LImplied := C_DEFAULT_STYLED_BRUSHES;
 
-  if (FBackgroundFill.Kind <> DefaultBackgroundKind) or
-    (FBackgroundFill.Color <> DefaultBackgroundColor) then
+  if (FBackgroundFill.Kind <> C_DEFAULT_BACKGROUND_KIND) or
+    (FBackgroundFill.Color <> C_DEFAULT_BACKGROUND_COLOR) then
     Exclude(LImplied, bdgbFill);
 
-  if (FBackgroundStroke.Kind <> DefaultBorderKind) or
-    (FBackgroundStroke.Color <> DefaultBorderColor) or
-    (FBackgroundStroke.Thickness <> DefaultBorderThickness) or
+  if (FBackgroundStroke.Kind <> C_DEFAULT_BORDER_KIND) or
+    (FBackgroundStroke.Color <> C_DEFAULT_BORDER_COLOR) or
+    (FBackgroundStroke.Thickness <> C_DEFAULT_BORDER_THICKNESS) or
     (FBackgroundStroke.Dash <> TStrokeDash.Solid) or
     (FBackgroundStroke.Cap <> TStrokeCap.Flat) or
     (FBackgroundStroke.Join <> TStrokeJoin.Miter) then
@@ -774,14 +774,14 @@ procedure TS4YBadge.UpdateBackground;
 begin
   inherited;
 
-  if Assigned(FBackgroundStyleCtrl) then
+  if Assigned(FBackgroundStyleControl) then
   begin
     // Brushes flagged as styled keep whatever the style defines
     if not (bdgbFill in FStyledBrushes) then
-      FBackgroundStyleCtrl.Fill.Assign(FBackgroundFill);
+      FBackgroundStyleControl.Fill.Assign(FBackgroundFill);
 
     if not (bdgbStroke in FStyledBrushes) then
-      FBackgroundStyleCtrl.Stroke.Assign(FBackgroundStroke);
+      FBackgroundStyleControl.Stroke.Assign(FBackgroundStroke);
 
     UpdateCornerRadius;
   end;
@@ -792,18 +792,18 @@ begin
   if not FAutoRadius then
     Exit;
 
-  if Assigned(FBackgroundStyleCtrl) then
+  if Assigned(FBackgroundStyleControl) then
   begin
-    FBackgroundStyleCtrl.XRadius := Height / 2;
-    FBackgroundStyleCtrl.YRadius := Height / 2;
+    FBackgroundStyleControl.XRadius := Height / 2;
+    FBackgroundStyleControl.YRadius := Height / 2;
   end;
 end;
 
 procedure TS4YBadge.UpdateText;
 begin
-  if Assigned(FTextStyleCtrl) then
+  if Assigned(FTextStyleControl) then
   begin
-    FTextStyleCtrl.Text := GetCurrentText;
+    FTextStyleControl.Text := GetCurrentText;
 
     // Adapt width and position to text size
     InternalAdjustSize;
@@ -815,19 +815,19 @@ procedure TS4YBadge.UpdateVisibleState;
 begin
   if not (csDesigning in ComponentState) then
   begin
-    if Assigned(FTextStyleCtrl) then
-      FTextStyleCtrl.Visible := BadgeVisible;
+    if Assigned(FTextStyleControl) then
+      FTextStyleControl.Visible := BadgeVisible;
 
-    if Assigned(FBackgroundStyleCtrl) then
-      FBackgroundStyleCtrl.Visible := BadgeVisible;
+    if Assigned(FBackgroundStyleControl) then
+      FBackgroundStyleControl.Visible := BadgeVisible;
   end
   else
   begin
-    if Assigned(FTextStyleCtrl) then
-      FTextStyleCtrl.Visible := True;
+    if Assigned(FTextStyleControl) then
+      FTextStyleControl.Visible := True;
 
-    if Assigned(FBackgroundStyleCtrl) then
-      FBackgroundStyleCtrl.Visible := True;
+    if Assigned(FBackgroundStyleControl) then
+      FBackgroundStyleControl.Visible := True;
   end;
 end;
 
@@ -839,7 +839,7 @@ begin
 
   WordWrap := False;
   HorzAlign := TTextAlign.Center;
-  FontColor := TS4YBadge.DefaultTextColor;
+  FontColor := TS4YBadge.C_DEFAULT_TEXT_COLOR;
 end;
 
 { TS4YBadgeTextSettingsInfo }
@@ -868,8 +868,8 @@ constructor TS4YBadgeBlinkSettings.Create;
 begin
   inherited Create;
 
-  FInterval := DefaultInterval;
-  FEnabled := DefaultEnabled;
+  FInterval := C_DEFAULT_INTERVAL;
+  FEnabled := C_DEFAULT_ENABLED;
 end;
 
 procedure TS4YBadgeBlinkSettings.Assign(Source: TPersistent);
@@ -899,8 +899,8 @@ end;
 
 procedure TS4YBadgeBlinkSettings.SetDefaultValues;
 begin
-  FEnabled := DefaultEnabled;
-  FInterval := DefaultInterval;
+  FEnabled := C_DEFAULT_ENABLED;
+  FInterval := C_DEFAULT_INTERVAL;
   DoChange;
 end;
 
@@ -928,9 +928,9 @@ constructor TS4YBadgePosition.Create;
 begin
   inherited;
 
-  FAutoPosition := DefaultPosition;
-  FOffsetX := DefaultOffsetX;
-  FOffsetY := DefaultOffsetY;
+  FAutoPosition := C_DEFAULT_POSITION;
+  FOffsetX := C_DEFAULT_OFFSET_X;
+  FOffsetY := C_DEFAULT_OFFSET_Y;
 end;
 
 procedure TS4YBadgePosition.Assign(Source: TPersistent);
@@ -957,9 +957,9 @@ end;
 
 procedure TS4YBadgePosition.SetDefaultValues;
 begin
-  FAutoPosition := DefaultPosition;
-  FOffsetX := DefaultOffsetX;
-  FOffsetY := DefaultOffsetY;
+  FAutoPosition := C_DEFAULT_POSITION;
+  FOffsetX := C_DEFAULT_OFFSET_X;
+  FOffsetY := C_DEFAULT_OFFSET_Y;
   DoChange;
 end;
 
