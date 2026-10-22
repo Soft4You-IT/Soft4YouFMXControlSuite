@@ -15,7 +15,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 | `Sources\Badge` | Units of the Badge control (`TS4YBadge`), with its styles and resource scripts |
 | `Sources\Design` | Design-time unit shared by all the controls of the suite (IDE splash screen and About box) |
 | `Packages\D11` | Runtime and design-time packages, project group |
-| `Graphics` | Source artwork: `HTMLEditor\Icons\S4YHTMLEditor.svg` is the master of the Tool Palette icon (`TS4YHTMLEditor.bmp`, 24x24) and `HTMLEditor\Icons` holds the toolbar icons of the demo; `S4YSplash.bmp` and `S4YAbout.bmp` (IDE splash screen and About box bitmaps) are shared. All are compiled with `Soft4You.FMX.Controls.SuiteD.rc` into `Packages\D11\Soft4You.FMX.Controls.SuiteD.dcr` |
+| `Graphics` | Source artwork: `HTMLEditor\Icons\S4YHTMLEditor.svg` is the master of the Tool Palette icon (`TS4YHTMLEditor.bmp`, 24x24) and `HTMLEditor\Icons` holds the toolbar icons of the demo; `Soft4YouFMXControlSuite.svg` is the master of the icon of the suite, shown in the IDE splash screen and About box (`S4YSplash.bmp` and `S4YAbout.bmp`, 24x24). All are compiled with `Soft4You.FMX.Controls.SuiteD.rc` into `Packages\D11\Soft4You.FMX.Controls.SuiteD.dcr` |
 | `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files) |
 | `Demos\FlexBox` | Sample FMX dashboard built with `TS4YFlexBox` |
 | `Docs` | Additional documentation: [`DeveloperGuide.md`](Docs/HTMLEditor/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals, in Italian) |
