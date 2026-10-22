@@ -1,6 +1,6 @@
 # TS4YHTMLEditor — Soft4You FMX HTML Editor
 
-WYSIWYG HTML editor component for Delphi FireMonkey (FMX). 100% native Delphi — no WebBrowser and no COM/OLE dependencies. The only third-party dependency is [Skia4Delphi](https://github.com/skia4delphi/skia4delphi), used to render SVG images.
+WYSIWYG HTML editor component for Delphi FireMonkey (FMX). 100% native Delphi — no WebBrowser and no COM/OLE dependencies. No third-party dependency is required: SVG images are rendered through an event or a renderer of your choice, and an optional unit based on [Skia4Delphi](https://github.com/skia4delphi/skia4delphi) is provided.
 
 Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on Windows with Delphi 11.3 (RAD Studio 22.0).
 
@@ -20,8 +20,8 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 
 ## Requirements
 
-- Delphi 11 Alexandria or newer with FireMonkey (FMX) for Windows, macOS and iOS; Delphi 12 Athens or newer for Android. These limits come from Skia4Delphi's platform support.
-- [Skia4Delphi](https://github.com/skia4delphi/skia4delphi) (MIT license), installed in the IDE. The runtime package requires `Skia.Package.FMX` and `Skia.Package.RTL`.
+- Delphi 11 Alexandria or newer with FireMonkey (FMX).
+- Optional: [Skia4Delphi](https://github.com/skia4delphi/skia4delphi) (MIT license), only for the unit `Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia` that renders SVG images (see [SVG images](#svg-images)). The packages do not require it; its platform support (for example Delphi 12 for Android) applies to that unit.
 
 ---
 
@@ -58,12 +58,12 @@ The public API (the `TS4YHTMLEditor` control, its events and the types in `Soft4
 | Editor control | `TS4YHTMLEditor` | `Soft4You.FMX.Controls.HTMLEditor` |
 | Clipboard (HTML) | `TS4YHTMLClipboard` | `Soft4You.FMX.Clipboard.Html` |
 | Emoji catalogue | `TS4YEmojiData` | `Soft4You.Unicode.EmojiData` |
+| SVG renderer (optional, Skia4Delphi) | `TS4YSkiaSVGRenderer` | `Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia` |
 
 ---
 
 ## Installation
 
-0. Install Skia4Delphi (see [Requirements](#requirements)).
 1. Open `Packages\S4YFMXHTMLEditor.dpk` (runtime package) and **Build** it.
 2. Open `Packages\S4YFMXHTMLEditorD.dpk` (design-time package, registers the component and the HTML property editor) and **Build** and **Install** it.
 3. `TS4YHTMLEditor` appears in the Tool Palette under the registered category.
@@ -347,6 +347,7 @@ Search highlights the match via the normal selection. Each successive `FindNext`
 | `OnLinkClick` | `procedure(Sender; const URL, LinkText: string)` | User clicked a hyperlink |
 | `OnLinkHover` | `procedure(Sender; const URL: string; var Cursor: TCursor)` | Mouse entered/left a link |
 | `OnLoadImage` | `procedure(Sender; const ASource: string; var ABitmap: TBitmap; AContext: TS4YImageLoadContext)` | Custom image loading — assign a `TBitmap` to override or provide the default file/URL loading. `ASource` is the original `src`, as written in the document |
+| `OnRenderSVG` | `procedure(Sender; const ASVGText: string; AWidth, AHeight: Integer; var ABitmap: TBitmap)` | Renders an SVG image: assign the `TBitmap` drawn from `ASVGText`. Takes priority over `TS4YHTMLEditor.DefaultSVGRenderer`. See [SVG images](#svg-images) |
 | `OnStateChange` | `procedure(Sender; const State: TS4YEditorState)` | Fired when caret moves or selection changes — use to update toolbar |
 
 ---
@@ -359,10 +360,64 @@ Search highlights the match via the normal selection. Each successive `FindNext`
 
 - **Local files**: relative or absolute paths, and `file:` URLs (`file:///C:/dir/a%20b.png`, UNC and `localhost` forms). A missing file is drawn as "not found" without raising an exception.
 - **Remote images**: `http://` and `https://`.
-- **Embedded images**: `data:` URIs (base64 raster images and SVG).
+- **Embedded images**: `data:` URIs (base64 raster images and SVG; SVG needs a renderer, see [SVG images](#svg-images)).
 - Other schemes (for example `cid:`) are not loaded by the editor: supply the bitmap in `OnLoadImage`.
 
 `AutoLoadLocalImages` and `AutoLoadRemoteImages` control whether local and remote images are loaded automatically; `LoadLocalImages` and `LoadRemoteImages` load them on request.
+
+### SVG images
+
+The editor does not render SVG by itself, so it has no dependency on a graphics library. When an SVG image is needed (a `data:image/svg+xml` source or a `.svg` file) the editor decodes or reads the SVG text and asks for a bitmap, in this order:
+
+1. the `OnRenderSVG` event of the editor;
+2. the application-wide `TS4YHTMLEditor.DefaultSVGRenderer`, if `OnRenderSVG` is not assigned or assigns no bitmap.
+
+Without both, the SVG image is drawn as "not found". The bitmap becomes owned by the image cache of the editor, like the one of `OnLoadImage`; `AWidth` and `AHeight` are the size wanted in pixels, and 0 means the intrinsic size of the SVG.
+
+Only `data:` sources and local `.svg` files are rendered (the file is read as UTF-8); a remote `.svg` is not.
+
+**With Skia4Delphi, for the whole application** - add the unit `Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia` (in `Sources`) to the project. Nothing else is needed: the unit sets `TS4YHTMLEditor.DefaultSVGRenderer` in its `initialization` section, so every editor renders SVG.
+
+```delphi
+uses
+  Soft4You.FMX.Controls.HTMLEditor,
+  Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia;   // registers the Skia renderer
+
+// from now on this works with no further code:
+HTMLEditor.HTML := '<p><img src="logo.svg"/></p>' +
+  '<p><img src="data:image/svg+xml,%3Csvg xmlns=''http://www.w3.org/2000/svg''%3E' +
+  '%3Crect width=''100%25'' height=''100%25'' fill=''%234a90d9''/%3E%3C/svg%3E" width="160" height="60"/></p>';
+```
+
+The unit needs Skia4Delphi in the library path of the project (the IDE package, or its sources). Add the unit to the project file or to a unit of the application, not to the editor packages: they do not require Skia4Delphi.
+
+**With Skia4Delphi, for a single editor** - assign the handler of `TS4YSkiaSVGRenderer` to `OnRenderSVG`. This overrides `DefaultSVGRenderer` for that editor only:
+
+```delphi
+HTMLEditor.OnRenderSVG := TS4YSkiaSVGRenderer.RenderSVG;
+```
+
+**With another library, for a single editor**:
+
+```delphi
+procedure TMainForm.HTMLEditorRenderSVG(Sender: TObject; const ASVGText: string;
+  AWidth, AHeight: Integer; var ABitmap: TBitmap);
+begin
+  ABitmap := MySVGLibrary.RenderToBitmap(ASVGText, AWidth, AHeight); // nil when it cannot be rendered
+end;
+```
+
+**With another library, for the whole application**:
+
+```delphi
+TS4YHTMLEditor.DefaultSVGRenderer :=
+  function(const ASVGText: string; AWidth, AHeight: Integer): TBitmap
+  begin
+    Result := MySVGLibrary.RenderToBitmap(ASVGText, AWidth, AHeight);
+  end;
+```
+
+To draw SVG images as "not found" again (for example to compare), leave `OnRenderSVG` empty and set `TS4YHTMLEditor.DefaultSVGRenderer := nil`.
 
 ### Relative paths: `ImagePathMode`
 
@@ -535,5 +590,5 @@ This component was designed and directed by Carlo Marona (Soft4You) and develope
 
 ## Credits
 
-- [Skia4Delphi](https://github.com/skia4delphi/skia4delphi) — MIT license, SVG rendering.
+- [Skia4Delphi](https://github.com/skia4delphi/skia4delphi) — MIT license, used by the optional SVG renderer unit.
 - Demo toolbar icons: [Google Material Symbols](https://fonts.google.com/icons) — Apache License 2.0.

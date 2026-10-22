@@ -11,8 +11,10 @@
 
 { *******************************************************************************
   TS4YHTMLEditor  -  WYSIWYG HTML editor for Delphi FMX
-  100% native Delphi - no WebBrowser, no COM/OLE. SVG images are rendered via Skia4Delphi.
-  Platforms: Windows, macOS, iOS, Android. Requires Skia4Delphi.
+  100% native Delphi - no WebBrowser, no COM/OLE. SVG images are rendered by the application
+  (OnRenderSVG or DefaultSVGRenderer); the unit Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia provides
+  a ready renderer based on Skia4Delphi.
+  Platforms: Windows, macOS, iOS, Android.
 
   Architecture:
   Document model  : TS4YHTMLParagraph  containing  TS4YHTMLRun  (inline styled text)
@@ -53,8 +55,6 @@ uses
   FMX.Forms,
   System.NetEncoding,
   System.Net.HttpClient,
-  Skia,
-  Skia.FMX,
   System.Bindings.Helper,
   Data.Bind.Components,
   Soft4You.FMX.Clipboard.Html,
@@ -220,6 +220,26 @@ type
   /// </remarks>
   TS4YLoadImageEvent = procedure(Sender: TObject; const ASource: string; var ABitmap: TBitmap;
     AContext: TS4YImageLoadContext) of object;
+  /// <summary>
+  /// Lets the application render an SVG image to a bitmap.
+  /// </summary>
+  /// <param name="Sender">The editor that fired the event.</param>
+  /// <param name="ASVGText">The SVG document, already decoded from a data: source or read from a file.</param>
+  /// <param name="AWidth">The width wanted in pixels; 0 or less means the intrinsic width of the SVG.</param>
+  /// <param name="AHeight">The height wanted in pixels; 0 or less means the intrinsic height of the SVG.</param>
+  /// <param name="ABitmap">Assign the rendered bitmap; it starts as nil.</param>
+  /// <remarks>
+  /// The bitmap assigned becomes owned by the image cache of the editor. The editor does not render SVG by itself: when the event does not assign a bitmap, DefaultSVGRenderer is tried, and without it the image is drawn as not found.
+  /// </remarks>
+  TS4YRenderSVGEvent = procedure(Sender: TObject; const ASVGText: string; AWidth, AHeight: Integer;
+    var ABitmap: TBitmap) of object;
+  /// <summary>
+  /// Renders an SVG image to a bitmap for every editor of the application.
+  /// </summary>
+  /// <remarks>
+  /// Returns nil when the SVG cannot be rendered. See TS4YRenderSVGEvent for the parameters.
+  /// </remarks>
+  TS4YSVGRenderer = reference to function(const ASVGText: string; AWidth, AHeight: Integer): TBitmap;
 
   // ===========================================================================
   // Layout Engine
@@ -526,6 +546,10 @@ type
     FOnLinkHover: TS4YLinkHoverEvent;
     FOnBeforeLoadImage: TS4YBeforeLoadImageEvent;
     FOnLoadImage: TS4YLoadImageEvent;
+    FOnRenderSVG: TS4YRenderSVGEvent;
+    // Shared by all the editors; it must come after the instance fields, because a class var
+    // section goes on until the next method
+    class var FDefaultSVGRenderer: TS4YSVGRenderer;
 
     // Layout
     function AvailableWidth: Single;
@@ -548,7 +572,7 @@ type
     function GetCurrentIsUnorderedList: Boolean;
 
     // Image support
-    function RenderSVGToBitmap(const ASVGDOM: ISkSVGDOM; AWidth, AHeight: Integer): TBitmap;
+    function RenderSVG(const ASVGText: string; AWidth, AHeight: Integer): TBitmap;
     function LoadBitmapFromSource(const ASource: string; AWidth: Integer = 0; AHeight: Integer = 0): TBitmap;
     function LoadImage(const ASource: string; AContext: TS4YImageLoadContext = ilcRender; AWidth: Integer = 0; AHeight: Integer = 0): TBitmap;
     function IsDeferredImageSource(const ASource: string): Boolean;
@@ -1164,6 +1188,13 @@ type
     /// </remarks>
     property CurrentRun: TS4YHTMLRun read GetCurrentRun;
     /// <summary>
+    /// The SVG renderer shared by all the editors of the application.
+    /// </summary>
+    /// <remarks>
+    /// It is used when OnRenderSVG is not assigned or assigns no bitmap. The unit Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia sets it to a Skia4Delphi renderer when it is added to the project; the default is nil, which draws SVG images as not found.
+    /// </remarks>
+    class property DefaultSVGRenderer: TS4YSVGRenderer read FDefaultSVGRenderer write FDefaultSVGRenderer;
+    /// <summary>
     /// The complete HTML document, with doctype, head and body.
     /// </summary>
     /// <remarks>
@@ -1343,6 +1374,13 @@ type
     /// See TS4YLoadImageEvent.
     /// </remarks>
     property OnLoadImage: TS4YLoadImageEvent read FOnLoadImage write FOnLoadImage;
+    /// <summary>
+    /// Lets the application render an SVG image to a bitmap.
+    /// </summary>
+    /// <remarks>
+    /// See TS4YRenderSVGEvent. It takes priority over DefaultSVGRenderer.
+    /// </remarks>
+    property OnRenderSVG: TS4YRenderSVGEvent read FOnRenderSVG write FOnRenderSVG;
     property OnResize;
     /// <summary>
     /// Fired when the caret or the selection moves, after edits, and after the content is replaced; use it to update a toolbar.
@@ -3075,44 +3113,15 @@ begin
   ACanvas.DrawLine(TPointF.Create(AX, AY + 8), TPointF.Create(AX + AWidth, AY + 8), AbsoluteOpacity);
 end;
 
-function TS4YHTMLEditor.RenderSVGToBitmap(const ASVGDOM: ISkSVGDOM; AWidth, AHeight: Integer): TBitmap;
-var
-  LIntrinsicSize: TSizeF;
-  LWidth: Integer;
-  LHeight: Integer;
+// The event of the editor comes first, then the renderer shared by the application; without
+// any of them the SVG is not rendered and the image is drawn as not found
+function TS4YHTMLEditor.RenderSVG(const ASVGText: string; AWidth, AHeight: Integer): TBitmap;
 begin
   Result := nil;
-  if not Assigned(ASVGDOM) then
-    Exit;
-  LWidth := AWidth;
-  LHeight := AHeight;
-  if (LWidth <= 0) or (LHeight <= 0) then
-  begin
-    if Assigned(ASVGDOM.Root) then
-      LIntrinsicSize := ASVGDOM.Root.GetIntrinsicSize(TSizeF.Create(0, 0))
-    else
-      LIntrinsicSize := TSizeF.Create(0, 0);
-    if LWidth <= 0 then
-      LWidth := Round(LIntrinsicSize.Width);
-    if LHeight <= 0 then
-      LHeight := Round(LIntrinsicSize.Height);
-    if LWidth <= 0 then
-      LWidth := 300;
-    if LHeight <= 0 then
-      LHeight := 150;
-  end;
-  Result := TBitmap.Create(LWidth, LHeight);
-  try
-    Result.SkiaDraw(
-      procedure(const ACanvas: ISkCanvas)
-      begin
-        ASVGDOM.SetContainerSize(TSizeF.Create(LWidth, LHeight));
-        ASVGDOM.Render(ACanvas);
-      end
-    );
-  except
-    FreeAndNil(Result);
-  end;
+  if Assigned(FOnRenderSVG) then
+    FOnRenderSVG(Self, ASVGText, AWidth, AHeight, Result);
+  if (Result = nil) and Assigned(FDefaultSVGRenderer) then
+    Result := FDefaultSVGRenderer(ASVGText, AWidth, AHeight);
 end;
 
 function TS4YHTMLEditor.LoadBitmapFromSource(const ASource: string; AWidth, AHeight: Integer): TBitmap;
@@ -3123,7 +3132,6 @@ var
   LBytes: TBytes;
   LStream: TBytesStream;
   LSVGText: string;
-  LSVGDOM: ISkSVGDOM;
   LFilePath: string;
 begin
   if IsRemoteImageSource(ASource) then
@@ -3164,8 +3172,7 @@ begin
           end
           else
             LSVGText := TNetEncoding.URL.Decode(ASource.Substring(LComma + 1));
-          LSVGDOM := TSkSVGDOM.Make(LSVGText);
-          Result := RenderSVGToBitmap(LSVGDOM, AWidth, AHeight);
+          Result := RenderSVG(LSVGText, AWidth, AHeight);
         end
         else if LHeader.Contains(';base64') then
         begin
@@ -3193,8 +3200,8 @@ begin
       else if LFilePath.ToLower.EndsWith('.svg') then
       begin
         FreeAndNil(Result);
-        LSVGDOM := TSkSVGDOM.MakeFromFile(LFilePath);
-        Result := RenderSVGToBitmap(LSVGDOM, AWidth, AHeight);
+        LSVGText := TFile.ReadAllText(LFilePath, TEncoding.UTF8);
+        Result := RenderSVG(LSVGText, AWidth, AHeight);
       end
       else
         Result.LoadFromFile(LFilePath);

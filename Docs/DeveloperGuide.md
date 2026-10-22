@@ -48,6 +48,7 @@ Points to know:
 | `OnLinkClick` | On mouse release over a link, if nothing is selected | |
 | `OnLinkHover` | When the pointer enters a link; you may change the cursor | |
 | `OnBeforeLoadImage` / `OnLoadImage` | While images are loaded; see section 5 | |
+| `OnRenderSVG` | When an SVG image has to be turned into a bitmap; see section 5 | |
 | `OnGetListMarker`, `OnDrawListMarker` | While the editor draws a list item | See the warning below |
 | `OnGetPlaceholderLabel`, `OnDrawPlaceholder` | While the editor lays out or draws a placeholder | See the warning below |
 
@@ -97,6 +98,7 @@ The complete rules for sources, relative paths, saving and local-file access are
 - **Each `src` is loaded once** and kept in a cache. The cache is cleared when you set the content, change `DocumentPath`, `ImagePathMode` or `LocalImageAccess`, or call `ReloadImages`. If a file changed on disk, call `ReloadImages`: it applies the same checks as the first load (`LocalImageAccess`, `OnBeforeLoadImage`), so an image that is now refused keeps its previous bitmap.
 - **Refused images are remembered.** If `OnBeforeLoadImage` refuses an image and `OnLoadImage` supplies nothing, the editor does not ask again at each repaint. The memory is cleared at the same moments as the cache.
 - `OnLoadImage` receives the `src` exactly as written in the document and a context (`ilcParse`, `ilcInsert`, `ilcReload`, `ilcRender`, `ilcSave`) that tells why the image is needed. The bitmap you assign is owned by the editor's cache.
+- **SVG is rendered by the application.** The editor decodes the SVG text (from a `data:` source or a `.svg` file) and calls `OnRenderSVG`, then `TS4YHTMLEditor.DefaultSVGRenderer`; the unit `Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia` sets the latter with Skia4Delphi. Without a renderer the image is drawn as "not found". The bitmap is owned by the cache, and it is rendered once per `src`, at the size requested the first time.
 - **Untrusted content:** when you display HTML you did not write (for example an e-mail), use `LocalImageAccess := liaDocumentFolder` with an empty `DocumentPath`, and decide about remote images with `AutoLoadRemoteImages` and `OnBeforeLoadImage`. The default (`liaAnywhere`) lets the HTML name any readable file.
 
 ---
@@ -218,6 +220,32 @@ HTMLEditor.LoadRemoteImages;
 ```
 
 Remember (section 4) that `ReadOnly` does not stop the editing methods that your own code calls.
+
+### Show SVG images
+
+The editor renders no SVG by itself. To see SVG images (`data:image/svg+xml` sources and local `.svg` files) with Skia4Delphi, add the optional unit to the project; it registers the renderer for every editor:
+
+```delphi
+uses
+  Soft4You.FMX.Controls.HTMLEditor,
+  Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia;   // sets TS4YHTMLEditor.DefaultSVGRenderer
+
+HTMLEditor.HTML := '<p><img src="logo.svg" width="120" height="60"/></p>';
+```
+
+For a single editor, or to use another library, assign the event instead (it has priority over the shared renderer):
+
+```delphi
+HTMLEditor.OnRenderSVG := TS4YSkiaSVGRenderer.RenderSVG;   // Skia4Delphi
+
+procedure TMainForm.HTMLEditorRenderSVG(Sender: TObject; const ASVGText: string;
+  AWidth, AHeight: Integer; var ABitmap: TBitmap);
+begin
+  ABitmap := MySVGLibrary.RenderToBitmap(ASVGText, AWidth, AHeight);   // nil if it fails
+end;
+```
+
+`AWidth` and `AHeight` are 0 when the HTML gives no size: render at the intrinsic size of the SVG. The bitmap you assign is owned by the editor, which keeps one per `src`.
 
 ### Detect that the user changed the document
 
