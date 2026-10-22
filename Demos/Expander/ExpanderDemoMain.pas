@@ -33,6 +33,8 @@ type
     BadgeVisibleCheckBox: TCheckBox;
     BadgeValueLabel: TLabel;
     BadgeValueSpinBox: TSpinBox;
+    DurationLabel: TLabel;
+    DurationSpinBox: TSpinBox;
     ExpandAllButton: TButton;
     CollapseAllButton: TButton;
     procedure AnimatedCheckBoxChange(Sender: TObject);
@@ -40,6 +42,7 @@ type
     procedure BadgeVisibleCheckBoxChange(Sender: TObject);
     procedure ClickOnHeaderCheckBoxChange(Sender: TObject);
     procedure CollapseAllButtonClick(Sender: TObject);
+    procedure DurationSpinBoxChange(Sender: TObject);
     procedure ExpandAllButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure RefreshButtonClick(Sender: TObject);
@@ -81,6 +84,13 @@ end;
 procedure TExpanderDemoForm.CollapseAllButtonClick(Sender: TObject);
 begin
   SetAllExpanded(False);
+end;
+
+procedure TExpanderDemoForm.DurationSpinBoxChange(Sender: TObject);
+begin
+  OrdersExpander.AnimationDuration := DurationSpinBox.Value;
+  ShippingExpander.AnimationDuration := DurationSpinBox.Value;
+  HistoryExpander.AnimationDuration := DurationSpinBox.Value;
 end;
 
 procedure TExpanderDemoForm.ExpandAllButtonClick(Sender: TObject);

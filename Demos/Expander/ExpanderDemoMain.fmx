@@ -2,6 +2,7 @@ object ExpanderDemoForm: TExpanderDemoForm
   Left = 0
   Top = 0
   Caption = 'TS4YExpander demo'
+  Position = ScreenCenter
   ClientHeight = 520
   ClientWidth = 720
   FormFactor.Width = 320
@@ -31,6 +32,8 @@ object ExpanderDemoForm: TExpanderDemoForm
       Size.PlatformDefault = False
       TabOrder = 0
       Text = 'Orders'
+      ShowCheck = False
+      AnimationDuration = 0.600000000000000000
       object PendingOrdersLabel: TLabel
         Align = Top
         Margins.Left = 12.000000000000000000
@@ -82,6 +85,8 @@ object ExpanderDemoForm: TExpanderDemoForm
       Size.PlatformDefault = False
       TabOrder = 1
       Text = 'Shipping'
+      ShowCheck = False
+      AnimationDuration = 0.600000000000000000
       object ShippingLabel: TLabel
         Align = Top
         Margins.Left = 12.000000000000000000
@@ -118,6 +123,8 @@ object ExpanderDemoForm: TExpanderDemoForm
       Size.PlatformDefault = False
       TabOrder = 2
       Text = 'History'
+      ShowCheck = False
+      AnimationDuration = 0.600000000000000000
       object HistoryLabel: TLabel
         Align = Top
         Margins.Left = 12.000000000000000000
@@ -213,13 +220,45 @@ object ExpanderDemoForm: TExpanderDemoForm
       Size.PlatformDefault = False
       OnChange = BadgeValueSpinBoxChange
     end
+    object DurationLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 144.000000000000000000
+      Size.Width = 236.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'AnimationDuration (seconds)'
+      TabOrder = 7
+    end
+    object DurationSpinBox: TSpinBox
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Top
+      TabOrder = 8
+      Cursor = crIBeam
+      DecimalDigits = 1
+      Max = 5.000000000000000000
+      Min = 0.100000000000000000
+      Value = 0.600000000000000000
+      Increment = 0.100000000000000000
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 164.000000000000000000
+      Size.Width = 236.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      OnChange = DurationSpinBoxChange
+    end
     object ExpandAllButton: TButton
       Align = Top
       Margins.Left = 12.000000000000000000
       Margins.Top = 16.000000000000000000
       Margins.Right = 12.000000000000000000
       Position.X = 12.000000000000000000
-      Position.Y = 152.000000000000000000
+      Position.Y = 208.000000000000000000
       Size.Width = 236.000000000000000000
       Size.Height = 32.000000000000000000
       Size.PlatformDefault = False
@@ -233,7 +272,7 @@ object ExpanderDemoForm: TExpanderDemoForm
       Margins.Top = 8.000000000000000000
       Margins.Right = 12.000000000000000000
       Position.X = 12.000000000000000000
-      Position.Y = 192.000000000000000000
+      Position.Y = 248.000000000000000000
       Size.Width = 236.000000000000000000
       Size.Height = 32.000000000000000000
       Size.PlatformDefault = False
