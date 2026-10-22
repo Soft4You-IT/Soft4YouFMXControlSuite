@@ -44,6 +44,7 @@ contains
   Soft4You.FMX.Controls.Design.Splash in '..\..\Sources\Design\Soft4You.FMX.Controls.Design.Splash.pas',
   Soft4You.FMX.Controls.FlexBox.Design in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Design.pas',
   Soft4You.FMX.Controls.FlexBox.Register in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Register.pas',
-  Soft4You.FMX.Controls.Badge.Register in '..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.Register.pas';
+  Soft4You.FMX.Controls.Badge.Register in '..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.Register.pas',
+  Soft4You.FMX.Controls.Expander.Register in '..\..\Sources\Expander\Soft4You.FMX.Controls.Expander.Register.pas';
 
 end.
