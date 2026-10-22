@@ -81,6 +81,9 @@ type
     FBadgeSettings: TS4YExpanderBadgeSettings;
     FClickOnHeader: Boolean;
     FExpandedHeight: Single;
+    FHeightBeforeChange: Single;
+    FIsAnimatingHeight: Boolean;
+    FSavedClipChildren: Boolean;
     FAnimated: Boolean;
     FAnimationDuration: Single;
     FGlyph: TGlyph;
@@ -100,8 +103,9 @@ type
     procedure SetImages(const Value: TCustomImageList);
     procedure SetShowIcon(const Value: Boolean);
     procedure EnsureHeightAnimation;
-    procedure AnimateToHeight(const ATargetHeight: Single);
+    procedure AnimateToHeight(const AStartHeight, ATargetHeight: Single);
     procedure BadgeSettingsChangedHandler(Sender: TObject);
+    procedure HeightAnimationFinished(Sender: TObject);
     procedure UpdateIcon;
     { IGlyph }
     function IGlyph.GetImages = GetImageList;
@@ -110,6 +114,7 @@ type
     procedure ApplyStyle; override;
     procedure BadgeChanged; virtual;
     procedure DoExpandedChanged; override;
+    procedure DoExpandedChanging; override;
     procedure DoRealign; override;
     function DoSetSize(const ASize: TControlSize; const NewPlatformDefault: Boolean;
       ANewWidth, ANewHeight: Single; var ALastWidth, ALastHeight: Single): Boolean; override;
@@ -257,17 +262,19 @@ begin
   if LHeader <> nil then
     TAnimator.StartTriggerAnimationWait(LHeader, Self, 'IsExpanded');
 
-  // The custom style has no 'button' element, so FButton=nil and
-  // TExpander.UpdateControlSize never sets Height. Manage it here instead:
-  // on collapse snap to header height; on expand restore FExpandedHeight
-  // (saved by DoSetSize whenever Height is changed while expanded).
+  // TExpander.UpdateControlSize has already set Height from the 'button' element
+  // of the style and the content height, which is not the height wanted here.
+  // Manage it here instead: on collapse go to the header height; on expand restore
+  // FExpandedHeight (saved by DoSetSize whenever Height is changed while expanded).
   if IsExpanded then
     LTargetHeight := FExpandedHeight
   else
     LTargetHeight := EffectiveHeaderHeight;
 
+  // The animation starts from the height before the change, which DoExpandedChanging
+  // saved: Height itself was already changed by the base class.
   if FAnimated and (FExpandedHeight > EffectiveHeaderHeight) then
-    AnimateToHeight(LTargetHeight)
+    AnimateToHeight(FHeightBeforeChange, LTargetHeight)
   else
   begin
     if IsExpanded then
@@ -278,6 +285,15 @@ begin
     else
       Height := EffectiveHeaderHeight;
   end;
+end;
+
+procedure TS4YExpander.DoExpandedChanging;
+begin
+  inherited;
+
+  // Called before the base class changes Height, so this is the height from
+  // which an animation has to start
+  FHeightBeforeChange := Height;
 end;
 
 procedure TS4YExpander.DoRealign;
@@ -320,7 +336,8 @@ begin
     // Track the latest valid expanded height so DoExpandedChanged can restore
     // it after a collapse/expand cycle. Captured here rather than in ApplyStyle
     // so it stays current even when the user resizes the control at runtime.
-    if ANewHeight > EffectiveHeaderHeight then
+    // The intermediate heights of an animation are not the expanded height
+    if (ANewHeight > EffectiveHeaderHeight) and not FIsAnimatingHeight then
       FExpandedHeight := ANewHeight;
 
     Result := inherited;
@@ -420,25 +437,64 @@ begin
 end;
 
 procedure TS4YExpander.EnsureHeightAnimation;
+var
+  LContent: TContent;
 begin
   if FHeightAnimation <> nil then
     Exit;
 
   FHeightAnimation := TFloatAnimation.Create(Self);
-  FHeightAnimation.Parent := Self;
+
+  // TExpander.DoAddObject moves every object that is added to the control into
+  // its content layout. The animation would become a child of the content and
+  // would change the height of the content, not the one of the control, so the
+  // redirection is switched off while the animation is added.
+  LContent := FContent;
+  FContent := nil;
+  try
+    FHeightAnimation.Parent := Self;
+  finally
+    FContent := LContent;
+  end;
+
   FHeightAnimation.PropertyName := 'Height';
   FHeightAnimation.Interpolation := TInterpolationType.Sinusoidal;
   FHeightAnimation.AnimationType := TAnimationType.InOut;
+  FHeightAnimation.OnFinish := HeightAnimationFinished;
 end;
 
-procedure TS4YExpander.AnimateToHeight(const ATargetHeight: Single);
+procedure TS4YExpander.AnimateToHeight(const AStartHeight, ATargetHeight: Single);
 begin
   EnsureHeightAnimation;
+
+  // An animation still running is stopped where it is (its end restores the state
+  // that is set up again below)
   FHeightAnimation.StopAtCurrent;
+
+  // While the height changes the content has to stay visible and must not draw
+  // outside the control: the base class hides or shows it at once
+  FIsAnimatingHeight := True;
+  FSavedClipChildren := ClipChildren;
+  ClipChildren := True;
+
+  if FContent <> nil then
+    FContent.Visible := True;
+
+  // The base class has already set Height to the final value: go back to the start
+  Height := AStartHeight;
   FHeightAnimation.Duration := FAnimationDuration;
-  FHeightAnimation.StartValue := Height;
+  FHeightAnimation.StartValue := AStartHeight;
   FHeightAnimation.StopValue := ATargetHeight;
   FHeightAnimation.Start;
+end;
+
+procedure TS4YExpander.HeightAnimationFinished(Sender: TObject);
+begin
+  FIsAnimatingHeight := False;
+  ClipChildren := FSavedClipChildren;
+
+  if FContent <> nil then
+    FContent.Visible := IsExpanded;
 end;
 
 procedure TS4YExpander.HandleHeaderClick(Sender: TObject);
