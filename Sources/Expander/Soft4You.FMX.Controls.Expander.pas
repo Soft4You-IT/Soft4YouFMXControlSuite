@@ -170,9 +170,9 @@ begin
     FHeightAnimation.Stop;
 
   // Restore the height that was current before inherited (which may have altered
-  // it via UpdateControlSize). When ApplyStyle is called deferred — i.e. after
+  // it via UpdateControlSize). When ApplyStyle is called deferred - i.e. after
   // SetIsExpanded was already called with Scene=nil (TFrame before being parented)
-  // — FIsExpanded is already False here, so collapse to header height.
+  // - FIsExpanded is already False here, so collapse to header height.
   if IsExpanded then
     Height := LExpectedHeight
   else
@@ -184,6 +184,7 @@ begin
     UpdateIcon;
 
   LHeader := FindStyleResource('header');
+
   if not (LHeader is TControl) then
     Exit;
 
@@ -254,6 +255,7 @@ begin
   // ApplyStyle set HitTest=True on the header. Drive the animation directly
   // from the header so the arrow reaches the correct state before next paint.
   LHeader := FindStyleResource('header');
+
   if LHeader <> nil then
     TAnimator.StartTriggerAnimationWait(LHeader, Self, 'IsExpanded');
 
@@ -282,16 +284,19 @@ end;
 
 procedure TS4YExpander.DoRealign;
 var
-  LObject: TFmxObject;
+  LIndex: Integer;
 begin
   inherited;
-  for LObject in Children do
+  LIndex := 0;
+
+  while (LIndex < ChildrenCount) and not (Children[LIndex] is TContent) do
   begin
-    if LObject is TContent then
-    begin
-      TContent(LObject).Padding.Assign(Padding);
-      Break;
-    end;
+    Inc(LIndex);
+  end;
+
+  if LIndex < ChildrenCount then
+  begin
+    TContent(Children[LIndex]).Padding.Assign(Padding);
   end;
 end;
 
@@ -319,6 +324,7 @@ begin
     // so it stays current even when the user resizes the control at runtime.
     if ANewHeight > EffectiveHeaderHeight then
       FExpandedHeight := ANewHeight;
+
     Result := inherited;
   end;
 end;
@@ -331,6 +337,7 @@ begin
     FGlyph.Images := nil;
     FGlyph := nil;
   end;
+
   FBadge := nil;
 
   inherited;
@@ -418,6 +425,7 @@ procedure TS4YExpander.EnsureHeightAnimation;
 begin
   if FHeightAnimation <> nil then
     Exit;
+
   FHeightAnimation := TFloatAnimation.Create(Self);
   FHeightAnimation.Parent := Self;
   FHeightAnimation.PropertyName := 'Height';
