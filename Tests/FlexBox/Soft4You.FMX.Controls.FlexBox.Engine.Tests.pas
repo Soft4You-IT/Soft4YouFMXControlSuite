@@ -190,7 +190,8 @@ begin
   Ctx := DefaultCtx(300, 100);
   Ctx.Items := [MakeItem(50,40), MakeItem(80,40), MakeItem(60,40)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   AssertRect(R[0],   0, 0, 50, 40, 'item0');
@@ -208,7 +209,8 @@ begin
   Ctx.JustifyContent := jcFlexEnd;
   Ctx.Items := [MakeItem(50,40), MakeItem(80,40), MakeItem(60,40)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   AssertRect(R[0], 110, 0, 50, 40, 'item0');
@@ -225,7 +227,8 @@ begin
   Ctx.JustifyContent := jcCenter;
   Ctx.Items := [MakeItem(50,40), MakeItem(80,40), MakeItem(60,40)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   AssertRect(R[0],  55, 0, 50, 40, 'item0');
@@ -243,7 +246,8 @@ begin
   Ctx.JustifyContent := jcSpaceBetween;
   Ctx.Items := [MakeItem(50,40), MakeItem(80,40), MakeItem(60,40)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   AssertRect(R[0],   0, 0, 50, 40, 'item0');
@@ -261,7 +265,8 @@ begin
   Ctx.JustifyContent := jcSpaceAround;
   Ctx.Items := [MakeItem(50,40), MakeItem(80,40), MakeItem(60,40)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   AssertRect(R[0],  18.3, 0, 50, 40, 'item0');
@@ -279,7 +284,8 @@ begin
   Ctx.JustifyContent := jcSpaceEvenly;
   Ctx.Items := [MakeItem(50,40), MakeItem(80,40), MakeItem(60,40)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   AssertRect(R[0],  27.5, 0, 50, 40, 'item0');
@@ -298,7 +304,8 @@ begin
   Ctx.Direction := fdColumn;
   Ctx.Items := [MakeItem(60,50), MakeItem(60,80), MakeItem(60,60)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   AssertRect(R[0], 0,   0, 60, 50, 'item0');
@@ -316,7 +323,8 @@ begin
   Ctx.JustifyContent := jcCenter;
   Ctx.Items := [MakeItem(60,50), MakeItem(60,80), MakeItem(60,60)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   AssertRect(R[0], 0,  55, 60, 50, 'item0');
@@ -349,7 +357,8 @@ begin
   Ctx := DefaultCtx(300, 100);
   Ctx.Items := [MakeItem(50,40,1), MakeItem(50,40,1)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   AssertRect(R[0],   0, 0, 150, 40, 'item0');
@@ -364,7 +373,8 @@ begin
   Ctx := DefaultCtx(300, 100);
   Ctx.Items := [MakeItem(60,40,1), MakeItem(60,40,2)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   AssertRect(R[0],   0, 0, 120, 40, 'item0');  // 60+60
@@ -384,7 +394,8 @@ begin
   Ctx := DefaultCtx(200, 100);
   Ctx.Items := [MakeItem(150,40,0,1), MakeItem(150,40,0,1)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   AssertRect(R[0],   0, 0, 100, 40, 'item0');
@@ -399,7 +410,8 @@ begin
   Ctx := DefaultCtx(200, 100);
   Ctx.Items := [MakeItem(150,40,0,0), MakeItem(150,40,0,1)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   Assert.IsTrue(Abs(R[0].Width - 150) <= TOLERANCE, 'item0 no-shrink');
@@ -456,7 +468,8 @@ begin
   Ctx.AlignItems := aiStretch;
   Ctx.Items := [MakeItem(80,40), MakeItem(80,80), MakeItem(80,30)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   Assert.IsTrue(Abs(R[0].Height - 80) <= TOLERANCE, 'item0 stretch');
@@ -473,7 +486,8 @@ begin
   Ctx.AlignItems := aiCenter;
   Ctx.Items := [MakeItem(80,40), MakeItem(80,80)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   Assert.IsTrue(Abs(R[0].Top - 20) <= TOLERANCE, 'item0 center top');
@@ -489,7 +503,8 @@ begin
   Ctx.AlignItems := aiFlexEnd;
   Ctx.Items := [MakeItem(80,40), MakeItem(80,80)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   Assert.IsTrue(Abs(R[0].Top - 40) <= TOLERANCE, 'item0 flex-end top');
@@ -533,7 +548,8 @@ begin
                 MakeItem(50,40,0,1,1),   // OriginalIndex 1, order=1
                 MakeItem(50,40,0,1,0)];  // OriginalIndex 2, order=0
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
 
@@ -552,7 +568,8 @@ begin
   Ctx.Items := [MakeItem(60,40,0,1, 0),
                 MakeItem(60,40,0,1,-1)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   Assert.IsTrue(Abs(R[1].Left -  0) <= TOLERANCE, 'item1 first (order=-1)');
@@ -574,7 +591,8 @@ begin
   Ctx.AlignItems := aiFlexStart; // no stretch
   Ctx.Items := [MakeItem(120,50), MakeItem(120,60)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   Assert.IsTrue(Abs(R[0].Left -   0) <= TOLERANCE, 'item0 left');
@@ -593,7 +611,8 @@ begin
   Ctx.AlignItems := aiFlexStart;
   Ctx.Items := [MakeItem(120,50), MakeItem(120,60)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
 
@@ -615,7 +634,8 @@ begin
   Ctx.ColumnGap := 20;
   Ctx.Items := [MakeItem(50,40), MakeItem(50,40), MakeItem(50,40)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   AssertRect(R[0],   0, 0, 50, 40, 'item0');
@@ -635,7 +655,8 @@ begin
   Ctx.AlignItems := aiFlexStart;
   Ctx.Items := [MakeItem(120,50), MakeItem(120,60)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   Assert.IsTrue(Abs(R[1].Top - (50 + 15)) <= TOLERANCE, 'row-gap between lines');
@@ -657,7 +678,8 @@ begin
   Ctx.AlignItems   := aiFlexStart;
   Ctx.Items := [MakeItem(120,50), MakeItem(120,60)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   Assert.IsTrue(Abs(R[0].Top -   0) <= TOLERANCE, 'line0 at top');
@@ -675,7 +697,8 @@ begin
   Ctx.AlignItems   := aiFlexStart;
   Ctx.Items := [MakeItem(120,50), MakeItem(120,60)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   Assert.IsTrue(Abs(R[0].Top -  95) <= TOLERANCE, 'line0 centered');
@@ -696,7 +719,8 @@ begin
   Ctx.Direction := fdRowReverse;
   Ctx.Items := [MakeItem(50,40), MakeItem(80,40), MakeItem(60,40)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
 
@@ -715,7 +739,8 @@ begin
   Ctx.Direction := fdColumnReverse;
   Ctx.Items := [MakeItem(60,50), MakeItem(60,80), MakeItem(60,60)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
 
@@ -736,7 +761,8 @@ begin
   Ctx := DefaultCtx(300, 200);
   Ctx.Items := [MakeItem(80,40), MakeItem(80,80)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   Assert.IsTrue(Abs(R[0].Height - 80) <= TOLERANCE, 'item0 height');
@@ -752,7 +778,8 @@ begin
   Ctx.SingleLineFillsContainer := True;
   Ctx.Items := [MakeItem(80,40), MakeItem(80,80)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   Assert.IsTrue(Abs(R[0].Height - 200) <= TOLERANCE, 'item0 height');
@@ -769,7 +796,8 @@ begin
   Ctx.AlignItems := aiCenter;
   Ctx.Items := [MakeItem(80,40), MakeItem(80,80)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   Assert.IsTrue(Abs(R[0].Top - 80) <= TOLERANCE, 'item0 center top');
@@ -786,7 +814,8 @@ begin
   Ctx.Wrap := fwWrap;
   Ctx.Items := [MakeItem(80,40), MakeItem(80,80)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
   Assert.IsTrue(Abs(R[0].Height - 80) <= TOLERANCE, 'item0 height');
@@ -801,7 +830,8 @@ begin
   Ctx := DefaultCtx(300, 200);
   Ctx.Items := [MakeItem(80,40), MakeItem(80,80)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   Ctx.Items[0].HeightAuto := False;
 
@@ -921,7 +951,8 @@ begin
   Ctx := DefaultCtx(400, 100);
   Ctx.Items := [MakeItem(100,40,1), MakeItem(100,40,1)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   Ctx.Items[0].MaxWidth := 150;
 
@@ -939,7 +970,8 @@ begin
   Ctx := DefaultCtx(400, 100);
   Ctx.Items := [MakeItem(300,40), MakeItem(300,40)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   Ctx.Items[0].MinWidth := 250;
 
@@ -957,7 +989,8 @@ begin
   Ctx.Direction := fdColumn;
   Ctx.Items := [MakeItem(50,100,1), MakeItem(50,100,1)];
 
-  for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
 
   Ctx.Items[0].MaxHeight := 150;
 

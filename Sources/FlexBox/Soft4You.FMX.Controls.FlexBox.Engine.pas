@@ -321,9 +321,11 @@ class function TFlexEngine.ClampSize(Value, MinVal, MaxVal: Single): Single;
 begin
   Result := Value;
 
-  if MinVal > 0 then Result := Max(Result, MinVal);
+  if MinVal > 0 then
+    Result := Max(Result, MinVal);
 
-  if MaxVal > 0 then Result := Min(Result, MaxVal);
+  if MaxVal > 0 then
+    Result := Min(Result, MaxVal);
 end;
 
 // ===========================================================================
@@ -682,7 +684,8 @@ begin
 
   N := Length(Lines);
 
-  if N = 0 then Exit;
+  if N = 0 then
+    Exit;
 
   GapTotal := RowGap * Max(0, N - 1);
   TotalCross := GapTotal;
@@ -750,7 +753,8 @@ var
 begin
   N := Length(Line.Items);
 
-  if N = 0 then Exit;
+  if N = 0 then
+    Exit;
 
   GapTotal := ColumnGap * Max(0, N - 1);
 
@@ -884,7 +888,8 @@ var
 begin
   Result := nil;
 
-  if Length(Context.Items) = 0 then Exit;
+  if Length(Context.Items) = 0 then
+    Exit;
 
   Row        := IsRow(Context.Direction);
   Rev        := IsReverse(Context.Direction);
@@ -896,7 +901,8 @@ begin
   // - Step 1: sort by Order (stable: keeps source order on ties) -
   SetLength(SortedIdx, Length(Context.Items));
 
-  for I := 0 to High(SortedIdx) do SortedIdx[I] := I;
+  for I := 0 to High(SortedIdx) do
+    SortedIdx[I] := I;
 
   TArray.Sort<Integer>(SortedIdx, TComparer<Integer>.Construct(
     function(const A, B: Integer): Integer
