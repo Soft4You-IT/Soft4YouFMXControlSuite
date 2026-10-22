@@ -11,18 +11,17 @@ unit Soft4You.FMX.Controls.Badge;
 interface
 
 uses
-    System.SysUtils
-  , System.Classes
-  , System.Types
-  , System.UITypes
-  , FMX.StdCtrls
-  , FMX.Types
-  , FMX.Controls
-  , FMX.Controls.Presentation
-  , FMX.Objects
-  , FMX.Controls.Model
-  , FMX.Graphics
-  ;
+  System.SysUtils,
+  System.Classes,
+  System.Types,
+  System.UITypes,
+  FMX.StdCtrls,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Controls.Presentation,
+  FMX.Objects,
+  FMX.Controls.Model,
+  FMX.Graphics;
 
 
 type
@@ -239,8 +238,7 @@ type
 implementation
 
 uses
-    FMX.Styles
-  ;
+  FMX.Styles;
 
 
 {$IFDEF MACOS}
@@ -448,6 +446,7 @@ begin
   FBackgroundStroke := TStrokeBrush.Create(DefaultBorderKind, DefaultBorderColor);
   FStyledBrushes := DefaultStyledBrushes;
   FAutoRadius := DefaultAutoRadius;
+
   // Assigned only now: the initial values above are not a customization of the brushes.
   FBackgroundFill.OnChanged := BackgroundFillChanged;
   FBackgroundStroke.OnChanged := BackgroundStrokeChanged;
@@ -690,6 +689,7 @@ begin
     Exit;
 
   FAutoRadius := Value;
+
   if FAutoRadius then
     UpdateCornerRadius
   else
@@ -779,6 +779,7 @@ begin
     // Brushes flagged as styled keep whatever the style defines
     if not (bdgbFill in FStyledBrushes) then
       FBackgroundStyleCtrl.Fill.Assign(FBackgroundFill);
+
     if not (bdgbStroke in FStyledBrushes) then
       FBackgroundStyleCtrl.Stroke.Assign(FBackgroundStroke);
 
