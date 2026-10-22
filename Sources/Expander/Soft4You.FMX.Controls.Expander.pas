@@ -2,6 +2,7 @@ unit Soft4You.FMX.Controls.Expander;
 
 { *****************************************************************************
   Soft4You FMX Control Suite - FireMonkey (FMX) controls for Delphi
+  TS4YExpander - expander with an icon, a badge and an animated height
   Original author: Carlo Marona (Soft4You) - 2026
 
   This Source Code Form is subject to the terms of the Mozilla Public

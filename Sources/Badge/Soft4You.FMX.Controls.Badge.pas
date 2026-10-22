@@ -2,6 +2,7 @@ unit Soft4You.FMX.Controls.Badge;
 
 { *****************************************************************************
   Soft4You FMX Control Suite - FireMonkey (FMX) controls for Delphi
+  TS4YBadge - notification badge counter
   Original author: Carlo Marona (Soft4You) - 2023-2026
 
   This Source Code Form is subject to the terms of the Mozilla Public
