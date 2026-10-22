@@ -34,9 +34,7 @@ uses
   System.Classes,
   System.SysUtils,
   System.Generics.Collections,
-  Winapi.Windows,
   DesignIntf,
-  ToolsAPI,
   FMX.Controls,
   Soft4You.FMX.Controls.FlexBox;
 
@@ -263,29 +261,9 @@ begin
   end;
 end;
 
-// ===========================================================================
-// IDE splash screen
-// ===========================================================================
-
-const
-  C_FLEXBOX_VERSION = '1.0';
-
-procedure RegisterSplash;
-begin
-  // The bitmap resource name must match the one in the .res
-  // (FlexBoxDesign.rc), the same one used for the palette icon.
-  SplashScreenServices.AddPluginBitmap(
-    'TS4YFlexBox ' + C_FLEXBOX_VERSION + ' - CSS FlexBox for FireMonkey',
-    LoadBitmap(HInstance, 'TS4YFLEXBOX'),
-    False,
-    'Freeware',
-    '');
-end;
-
 initialization
   GDesigners := TList<IDesigner>.Create;
   GPendingControls := TList<TControl>.Create;
-  RegisterSplash;
 
 finalization
   UnregisterFlexDesignSupport;
