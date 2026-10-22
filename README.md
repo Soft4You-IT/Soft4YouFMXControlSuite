@@ -13,6 +13,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 | `Sources\HTMLEditor` | Units of the HTML editor (`.pas`) |
 | `Sources\FlexBox` | Units of the FlexBox control (`TS4YFlexBox`, `TS4YFlexItem`) |
 | `Sources\Badge` | Units of the Badge control (`TS4YBadge`), with its styles and resource scripts |
+| `Sources\Expander` | Units of the Expander control (`TS4YExpander`), with its styles and resource scripts |
 | `Sources\Design` | Design-time unit shared by all the controls of the suite (IDE splash screen and About box) |
 | `Packages\D11` | Runtime and design-time packages, project group |
 | `Graphics` | Source artwork: `HTMLEditor\Icons\S4YHTMLEditor.svg` is the master of the Tool Palette icon (`TS4YHTMLEditor.bmp`, 24x24) and `HTMLEditor\Icons` holds the toolbar icons of the demo; `Soft4YouFMXControlSuite.svg` is the master of the icon of the suite, shown in the IDE splash screen and About box (`S4YSplash.bmp` and `S4YAbout.bmp`, 24x24). All are compiled with `Soft4You.FMX.Controls.SuiteD.rc` into `Packages\D11\Soft4You.FMX.Controls.SuiteD.dcr` |
@@ -21,6 +22,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 | `Docs` | Additional documentation: [`DeveloperGuide.md`](Docs/HTMLEditor/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals, in Italian) |
 | `Docs\FlexBox` | Documentation of the FlexBox control: [`README.md`](Docs/FlexBox/README.md) (installation, properties, examples), analysis and roadmap |
 | `Docs\Badge` | Documentation of the Badge control: [`README.md`](Docs/Badge/README.md) |
+| `Docs\Expander` | Documentation of the Expander control: [`README.md`](Docs/Expander/README.md) |
 | `Tests\FlexBox` | DUnitX tests of the FlexBox layout engine |
 
 ---

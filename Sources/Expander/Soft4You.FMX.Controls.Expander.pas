@@ -140,9 +140,7 @@ uses
   System.Types,
 
   FMX.Controls,
-  FMX.Styles
-
-  ;
+  FMX.Styles;
 
 {$IFDEF MACOS}
 {$R *.mac.res}
