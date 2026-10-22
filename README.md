@@ -78,7 +78,7 @@ The public API (the `TS4YHTMLEditor` control, its events and the types in `Soft4
 1. Open `Packages\D11\Soft4You.FMX.Controls.Suite.dpk` (runtime package) and **Build** it.
 2. Open `Packages\D11\Soft4You.FMX.Controls.SuiteD.dpk` (design-time package, registers the component and the HTML property editor) and **Build** and **Install** it.
 3. `TS4YHTMLEditor` appears in the Tool Palette under the registered category.
-4. Add the `Sources\HTMLEditor` folder to the Delphi library path (needed to compile the Demo and your own projects).
+4. Add the `Sources\HTMLEditor` folder to the Delphi library path (needed to compile your own projects; the demos find the units of the repository through the search path of their project, so a copy of the same units elsewhere in the library path, for example in another library, is not used by them).
 5. Add `Soft4You.FMX.Controls.HTMLEditor` to the `uses` clause of any unit that references the component programmatically.
 
 ---
