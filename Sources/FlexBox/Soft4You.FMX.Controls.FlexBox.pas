@@ -852,14 +852,16 @@ var
   LIndex: Integer;
 begin
   Result := nil;
+  LIndex := 0;
 
-  for LIndex := 0 to ControlsCount - 1 do
+  while (Result = nil) and (LIndex < ControlsCount) do
   begin
     if IsContentControl(Controls[LIndex]) then
     begin
       Result := Controls[LIndex];
-      Break;
     end;
+
+    Inc(LIndex);
   end;
 end;
 

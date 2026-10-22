@@ -546,60 +546,61 @@ begin
         end;
       end;
 
-      Break;
-    end;
-
-    // Target size of each non-frozen item, limited to min/max
-    TotalViolation := 0;
-
-    for I := 0 to High(Line.Items) do
+      AllFrozen := True;
+    end
+    else
     begin
-      Idx := Line.Items[I];
-      Violations[I] := 0;
+      // Target size of each non-frozen item, limited to min/max
+      TotalViolation := 0;
 
-      if not WItems[Idx].Frozen then
+      for I := 0 to High(Line.Items) do
       begin
-        if Growing then
-          Target := WItems[Idx].FlexBase
-                    + FreeSpace * WItems[Idx].Input.FlexGrow / TotalFactor
-        else
-          Target := WItems[Idx].FlexBase
-                    + FreeSpace * (WItems[Idx].Input.FlexShrink * WItems[Idx].FlexBase)
-                      / TotalFactor;
+        Idx := Line.Items[I];
+        Violations[I] := 0;
 
-        Target  := Max(0, Target);
-        Clamped := ClampSize(Target, WItems[Idx].Input.MinWidth,
-                             WItems[Idx].Input.MaxWidth);
-        WItems[Idx].FrozenMain := Clamped;
-        Violations[I] := Clamped - Target;
-        TotalViolation := TotalViolation + Violations[I];
+        if not WItems[Idx].Frozen then
+        begin
+          if Growing then
+            Target := WItems[Idx].FlexBase
+                      + FreeSpace * WItems[Idx].Input.FlexGrow / TotalFactor
+          else
+            Target := WItems[Idx].FlexBase
+                      + FreeSpace * (WItems[Idx].Input.FlexShrink * WItems[Idx].FlexBase)
+                        / TotalFactor;
+
+          Target  := Max(0, Target);
+          Clamped := ClampSize(Target, WItems[Idx].Input.MinWidth,
+                               WItems[Idx].Input.MaxWidth);
+          WItems[Idx].FrozenMain := Clamped;
+          Violations[I] := Clamped - Target;
+          TotalViolation := TotalViolation + Violations[I];
+        end;
+      end;
+
+      // Total violation > 0: the items below the minimum are frozen; < 0: those
+      // above the maximum; 0: all are frozen. The rest is redistributed.
+      for I := 0 to High(Line.Items) do
+      begin
+        Idx := Line.Items[I];
+
+        if not WItems[Idx].Frozen then
+        begin
+          if (TotalViolation = 0) or
+             ((TotalViolation > 0) and (Violations[I] > 0)) or
+             ((TotalViolation < 0) and (Violations[I] < 0)) then
+            WItems[Idx].Frozen := True;
+        end;
+      end;
+
+      AllFrozen := True;
+      I := 0;
+
+      while AllFrozen and (I <= High(Line.Items)) do
+      begin
+        AllFrozen := WItems[Line.Items[I]].Frozen;
+        Inc(I);
       end;
     end;
-
-    // Total violation > 0: the items below the minimum are frozen; < 0: those
-    // above the maximum; 0: all are frozen. The rest is redistributed.
-    for I := 0 to High(Line.Items) do
-    begin
-      Idx := Line.Items[I];
-
-      if not WItems[Idx].Frozen then
-      begin
-        if (TotalViolation = 0) or
-           ((TotalViolation > 0) and (Violations[I] > 0)) or
-           ((TotalViolation < 0) and (Violations[I] < 0)) then
-          WItems[Idx].Frozen := True;
-      end;
-    end;
-
-    AllFrozen := True;
-
-    for I := 0 to High(Line.Items) do
-      if not WItems[Line.Items[I]].Frozen then
-      begin
-        AllFrozen := False;
-        Break;
-      end;
-
   until AllFrozen or (MaxIter <= 0);
 
   // Make sure all final values are >= 0
