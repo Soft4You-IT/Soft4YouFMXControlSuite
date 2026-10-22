@@ -6383,6 +6383,12 @@ begin
     end;
   end;
 
+  // The other keys (F3, Ctrl+S, ...) are left to the form, so that the shortcuts of its actions
+  // work while the editor has the focus
+  if not (Key in [vkBack, vkDelete, vkReturn, vkTab, vkLeft, vkRight, vkUp, vkDown,
+    vkHome, vkEnd, vkPrior, vkNext]) then
+    Exit;
+
   case Key of
     vkBack:
       if not FReadOnly then
