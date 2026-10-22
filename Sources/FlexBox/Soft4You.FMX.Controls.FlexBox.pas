@@ -465,6 +465,7 @@ begin
   finally
     FApplyingLayout := False;
   end;
+
   PlaceContent;
 end;
 
@@ -473,12 +474,14 @@ var
   LTarget: Boolean;
 begin
   FVisibilityOverride := AVisibility;
+
   case AVisibility of
     voShow: LTarget := True;
     voHide: LTarget := False;
   else
     LTarget := FUserVisible;
   end;
+
   if Visible <> LTarget then
   begin
     FApplyingVisibility := True;
@@ -500,6 +503,7 @@ begin
   begin
     // With an active override, that value applies for as long as the breakpoint lasts
     FUserVisible := Value;
+
     if FVisibilityOverride = voNone then
     begin
       inherited SetVisible(Value);
@@ -521,6 +525,7 @@ var
 begin
   LBecameExplicit := False;
   LWidthBecameExplicit := False;
+
   // A size not set by the layout is a choice of the user (or of the
   // designer): it becomes the natural size used by the engine.
   // A size equal to that of the last layout is an echo (for example
@@ -536,13 +541,16 @@ begin
       FDesignHeight := ANewHeight;
     end;
   end;
+
   Result := inherited DoSetSize(ASize, NewPlatformDefault, ANewWidth, ANewHeight,
     ALastWidth, ALastHeight);
+
   if LWidthBecameExplicit then
   begin
     // Width chosen by the user: it no longer stretches on the cross axis
     FWidthExplicit := True;
   end;
+
   if LBecameExplicit then
   begin
     // Height chosen by the user: the item no longer follows the content
@@ -613,10 +621,12 @@ begin
   LFirstLayout := FLineIndex < 0;
   LPreviousState := FFlexState;
   LPreviousLineIndex := FLineIndex;
+
   if LFirstLayout then
   begin
     LPreviousState := LNewState;
   end;
+
   FFlexState := LNewState;
   FLineIndex := FOutcomeLineIndex;
 
@@ -624,12 +634,14 @@ begin
   begin
     DoFlexStateChanged(LNewState, LPreviousState);
   end;
+
   if LFirstLayout or (FLineIndex <> LPreviousLineIndex) then
   begin
     DoLineChanged(FLineIndex, LPreviousLineIndex);
   end;
 
   LCurrentBounds := TRectF.Create(Position.X, Position.Y, Position.X + Width, Position.Y + Height);
+
   if LFirstLayout or
     (Abs(LCurrentBounds.Left - FNotifiedBounds.Left) > C_BASIS_TOLERANCE) or
     (Abs(LCurrentBounds.Top - FNotifiedBounds.Top) > C_BASIS_TOLERANCE) or
@@ -644,6 +656,7 @@ end;
 procedure TS4YFlexItem.DoRealign;
 begin
   inherited;
+
   // The content (Align = Top) changed height: the item follows it (only with
   // automatic height)
   UpdateContentHeight;
@@ -658,13 +671,17 @@ begin
   begin
     Exit;
   end;
+
   FFitContent := Value;
+
   // During loading Align and sizes come from the file (see Loaded)
   if IsLoadingOrDestroying then
   begin
     Exit;
   end;
+
   LContent := GetContent;
+
   if Value then
   begin
     if LContent <> nil then
@@ -675,12 +692,15 @@ begin
   else
   begin
     UnhookContent;
+
     if LContent <> nil then
     begin
       LContent.Align := TAlignLayout.Top;
     end;
+
     UpdateContentHeight;
   end;
+
   InvalidateFlexBox;
 end;
 
@@ -690,6 +710,7 @@ begin
   begin
     AContent.Align := TAlignLayout.None;
   end;
+
   HookContent(AContent);
   PlaceContent;
 end;
@@ -700,6 +721,7 @@ begin
   begin
     Exit;
   end;
+
   UnhookContent;
   FHookedContent := AContent;
   FPreviousContentResized := AContent.OnResized;
@@ -714,10 +736,12 @@ begin
   begin
     // If the user assigned another handler after ours, theirs stays
     LHandler := TMethod(FHookedContent.OnResized);
+
     if (LHandler.Data = Pointer(Self)) and (LHandler.Code = @TS4YFlexItem.ContentResized) then
     begin
       FHookedContent.OnResized := FPreviousContentResized;
     end;
+
     FHookedContent := nil;
     FPreviousContentResized := nil;
   end;
@@ -729,6 +753,7 @@ begin
   begin
     FPreviousContentResized(Sender);
   end;
+
   // The own size of the content changed (for example the text of
   // a label with AutoSize): the item rereads it at every layout
   if FFitContent and not IsLoadingOrDestroying then
@@ -744,10 +769,12 @@ var
   LTop: Single;
 begin
   LContent := GetContent;
+
   if FFitContent and (LContent <> nil) and not IsLoadingOrDestroying then
   begin
     LLeft := Padding.Left + LContent.Margins.Left;
     LTop := Padding.Top + LContent.Margins.Top;
+
     if (Abs(LContent.Position.X - LLeft) > 0.001) or (Abs(LContent.Position.Y - LTop) > 0.001) then
     begin
       LContent.SetBounds(LLeft, LTop, LContent.Width, LContent.Height);
@@ -775,6 +802,7 @@ begin
   if Value = FWidthExplicit then
   begin
     FWidthExplicit := not Value;
+
     // During loading the rest comes from the file
     if not (csLoading in ComponentState) then
     begin
@@ -782,6 +810,7 @@ begin
       begin
         FDesignWidth := Width;
       end;
+
       InvalidateFlexBox;
     end;
   end;
@@ -798,12 +827,14 @@ begin
   begin
     Exit;
   end;
+
   if csLoading in ComponentState then
   begin
     // The Align of the content comes from the file
     FHeightExplicit := not Value;
     Exit;
   end;
+
   if Value then
   begin
     UseContentHeight;
@@ -821,6 +852,7 @@ var
   LIndex: Integer;
 begin
   Result := nil;
+
   for LIndex := 0 to ControlsCount - 1 do
   begin
     if IsContentControl(Controls[LIndex]) then
@@ -837,13 +869,16 @@ var
   LHeight: Single;
 begin
   LContent := GetContent;
+
   // With FitContent the own height of the content is read in ToEngineInput
   if FHeightExplicit or FFitContent or (LContent = nil) or IsLoadingOrDestroying then
   begin
     Exit;
   end;
+
   LHeight := LContent.Height + LContent.Margins.Top + LContent.Margins.Bottom +
     Padding.Top + Padding.Bottom;
+
   if Abs(LHeight - FDesignHeight) > 0.001 then
   begin
     FDesignHeight := LHeight;
@@ -857,6 +892,7 @@ var
 begin
   FHeightExplicit := False;
   LContent := GetContent;
+
   if LContent <> nil then
   begin
     if FFitContent then
@@ -868,6 +904,7 @@ begin
       LContent.Align := TAlignLayout.Top;
     end;
   end;
+
   UpdateContentHeight;
 end;
 
@@ -913,6 +950,7 @@ var
   LFlexBox: TS4YFlexBox;
 begin
   LFlexBox := FlexBox;
+
   if LFlexBox <> nil then
   begin
     LFlexBox.InvalidateLayout;
@@ -969,18 +1007,22 @@ var
   LContent: TControl;
 begin
   inherited;
+
   // Without DesignWidth/DesignHeight in the file, the saved size is the design one
   if not FDesignWidthLoaded then
   begin
     FDesignWidth := Width;
   end;
+
   if not FDesignHeightLoaded then
   begin
     FDesignHeight := Height;
   end;
+
   // Files saved with Client content: the content becomes Top (with explicit height
   // it keeps the height it had)
   LContent := GetContent;
+
   if FFitContent then
   begin
     if LContent <> nil then
@@ -992,6 +1034,7 @@ begin
   begin
     LContent.Align := TAlignLayout.Top;
   end;
+
   if not FHeightExplicit then
   begin
     UpdateContentHeight;
@@ -1001,6 +1044,7 @@ end;
 procedure TS4YFlexItem.DefineProperties(Filer: TFiler);
 begin
   inherited;
+
   // Size holds the size computed by the layout (for example stretched):
   // the size chosen by the user is saved separately, only if different.
   Filer.DefineProperty('DesignHeight', ReadDesignHeight, WriteDesignHeight,
@@ -1063,16 +1107,19 @@ var
   LTargetIndex: Integer;
 begin
   inherited;
+
   // An item hosts a single control: a second control goes back to the
   // flexbox, which creates a dedicated item for it.
   if (AObject is TControl) and (ControlsCount > 1) and not IsLoadingOrDestroying and
     IsContentControl(TControl(AObject)) then
   begin
     LFlexBox := FlexBox;
+
     if LFlexBox <> nil then
     begin
       LTargetIndex := Index;
       TControl(AObject).Parent := LFlexBox;
+
       // An item dropped onto another item (Structure view) goes before it
       if AObject is TS4YFlexItem then
       begin
@@ -1097,16 +1144,19 @@ begin
   begin
     raise EInvalidOperation.Create(SFlexItemInvalidParent);
   end;
+
   inherited;
 end;
 
 procedure TS4YFlexItem.DoRemoveObject(const AObject: TFmxObject);
 begin
   inherited;
+
   if AObject = FHookedContent then
   begin
     UnhookContent;
   end;
+
   if AObject is TControl then
   begin
     ReleaseWhenEmpty;
@@ -1129,11 +1179,13 @@ begin
         LItem: TS4YFlexItem;
       begin
         LItem := LHandle.Item;
+
         if (LItem <> nil) and (LItem.ControlsCount = 0) and
           not LItem.IsLoadingOrDestroying then
         begin
           LFlexBox := LItem.FlexBox;
           LItem.Free;
+
           // The other items must take the freed place
           if LFlexBox <> nil then
           begin
@@ -1151,9 +1203,11 @@ begin
   Result := TFlexItemInput.Default;
   Result.NaturalWidth := FDesignWidth;
   Result.NaturalHeight := FDesignHeight;
+
   if FFitContent and not IsLoadingOrDestroying then
   begin
     LContent := GetContent;
+
     if LContent <> nil then
     begin
       // Own size of the content, only for automatic sizes
@@ -1162,6 +1216,7 @@ begin
         Result.NaturalWidth := LContent.Width + LContent.Margins.Left + LContent.Margins.Right +
           Padding.Left + Padding.Right;
       end;
+
       if not FHeightExplicit then
       begin
         Result.NaturalHeight := LContent.Height + LContent.Margins.Top + LContent.Margins.Bottom +
@@ -1169,6 +1224,7 @@ begin
       end;
     end;
   end;
+
   Result.WidthAuto := not FWidthExplicit;
   Result.HeightAuto := not FHeightExplicit;
   Result.MarginLeft := Margins.Left;
@@ -1219,6 +1275,7 @@ end;
 procedure TS4YFlexBox.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
+
   // A deleted item takes its breakpoint overrides with it
   if (Operation = opRemove) and (FBreakpoints <> nil) and
     (AComponent is TS4YFlexItemBase) and not (csDestroying in ComponentState) then
@@ -1263,12 +1320,14 @@ var
   LControl: TControl;
 begin
   inherited;
+
   if (AObject is TControl) and not (AObject is TS4YFlexItem) and
     not IsLoadingOrDestroying and
     (TControl(AObject).ComponentState * [csLoading, csReading, csDestroying] = []) and
     IsContentControl(TControl(AObject)) then
   begin
     LControl := TControl(AObject);
+
     if csDesigning in ComponentState then
     begin
       if Assigned(FDesignWrapHandler) then
@@ -1312,6 +1371,7 @@ begin
   AItem.SetBounds(LBounds.Left, LBounds.Top, LBounds.Width, LBounds.Height);
   AItem.Margins.Rect := LMargins;
   AControl.Margins.Rect := TRectF.Empty;
+
   // Item height = content height (auto), item width = content width
   // (SetBounds made the width explicit: it goes back to automatic)
   AItem.AutoWidth := True;
@@ -1437,6 +1497,7 @@ begin
     try
       LSettings := ResolveSettings;
       LContext := BuildContext(LSettings, LFlexChildren);
+
       if Length(LContext.Items) > 0 then
       begin
         LResults := TFlexEngine.Calculate(LContext);
@@ -1479,10 +1540,12 @@ begin
 
   LPreviousLineCount := FLineCount;
   FLineCount := ALineCount;
+
   if ALineCount <> LPreviousLineCount then
   begin
     DoLineCountChanged(ALineCount, LPreviousLineCount);
   end;
+
   DoLayoutApplied;
 end;
 
@@ -1493,12 +1556,14 @@ var
   LCurrentIndexes: TArray<Integer>;
 begin
   SetLength(LCurrentIndexes, Length(FActiveBreakpoints));
+
   for LIndex := 0 to High(FActiveBreakpoints) do
   begin
     LCurrentIndexes[LIndex] := FActiveBreakpoints[LIndex].Index;
   end;
 
   LChanged := Length(LCurrentIndexes) <> Length(FNotifiedBreakpointIndexes);
+
   for LIndex := 0 to High(LCurrentIndexes) do
   begin
     if not LChanged and (LCurrentIndexes[LIndex] <> FNotifiedBreakpointIndexes[LIndex]) then
@@ -1579,6 +1644,7 @@ begin
   for LIndex := 0 to ControlsCount - 1 do
   begin
     LChild := Controls[LIndex];
+
     if (LChild is TS4YFlexItem) and
       (LChild.ComponentState * [csLoading, csReading, csDestroying] = []) then
     begin
@@ -1586,10 +1652,12 @@ begin
       // visibility must be applied before deciding whether the item participates
       LInput := TS4YFlexItem(LChild).ToEngineInput;
       LVisibility := voNone;
+
       for LBreakpoint in FActiveBreakpoints do
       begin
         LBreakpoint.ApplyToItem(LChild, LInput, LVisibility);
       end;
+
       TS4YFlexItem(LChild).ApplyVisibilityOverride(LVisibility);
     end;
 
@@ -1625,6 +1693,7 @@ begin
   for LIndex := 0 to High(AResults) do
   begin
     LResult := AResults[LIndex];
+
     if (LResult.OriginalIndex >= 0) and (LResult.OriginalIndex <= High(AFlexChildren)) then
     begin
       LChild := AFlexChildren[LResult.OriginalIndex];
@@ -1638,6 +1707,7 @@ begin
           LPaddingTop + LResult.Top,
           LResult.Width,
           LResult.Height);
+
         if ADirection in [fdRow, fdRowReverse] then
         begin
           LMainSize := LResult.Width;
@@ -1646,6 +1716,7 @@ begin
         begin
           LMainSize := LResult.Height;
         end;
+
         TS4YFlexItem(LChild).StoreLayoutOutcome(LMainSize, LResult.BaseMain,
           LResult.LineIndex);
         Result := Max(Result, LResult.LineIndex + 1);

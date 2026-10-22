@@ -262,23 +262,28 @@ begin
   begin
     AInput.FlexGrow := FFlexGrow;
   end;
+
   if ioFlexShrink in FOverrides then
   begin
     AInput.FlexShrink := FFlexShrink;
   end;
+
   if ioFlexBasis in FOverrides then
   begin
     AInput.FlexBasis := FFlexBasis;
     AInput.FlexBasisUnit := FFlexBasisUnit;
   end;
+
   if ioAlignSelf in FOverrides then
   begin
     AInput.AlignSelf := FAlignSelf;
   end;
+
   if ioOrder in FOverrides then
   begin
     AInput.Order := FOrder;
   end;
+
   if ioVisible in FOverrides then
   begin
     if FVisible then
@@ -290,22 +295,27 @@ begin
       AVisibility := voHide;
     end;
   end;
+
   if ioWidth in FOverrides then
   begin
     AInput.WidthAuto := FAutoWidth;
+
     if not FAutoWidth then
     begin
       AInput.NaturalWidth := FWidth;
     end;
   end;
+
   if ioHeight in FOverrides then
   begin
     AInput.HeightAuto := FAutoHeight;
+
     if not FAutoHeight then
     begin
       AInput.NaturalHeight := FHeight;
     end;
   end;
+
   if ioMargins in FOverrides then
   begin
     AInput.MarginLeft := FMargins.Left;
@@ -313,18 +323,22 @@ begin
     AInput.MarginRight := FMargins.Right;
     AInput.MarginBottom := FMargins.Bottom;
   end;
+
   if ioMinWidth in FOverrides then
   begin
     AInput.MinWidth := FSizeConstraints.MinWidth;
   end;
+
   if ioMaxWidth in FOverrides then
   begin
     AInput.MaxWidth := FSizeConstraints.MaxWidth;
   end;
+
   if ioMinHeight in FOverrides then
   begin
     AInput.MinHeight := FSizeConstraints.MinHeight;
   end;
+
   if ioMaxHeight in FOverrides then
   begin
     AInput.MaxHeight := FSizeConstraints.MaxHeight;
@@ -352,6 +366,7 @@ begin
     finally
       FMargins.OnChange := MarginsChanged;
     end;
+
     FOrder := LSource.FOrder;
     FOverrides := LSource.FOverrides;
     FSizeConstraints.OnChange := nil;
@@ -360,6 +375,7 @@ begin
     finally
       FSizeConstraints.OnChange := SizeConstraintsChanged;
     end;
+
     FVisible := LSource.FVisible;
     FWidth := LSource.FWidth;
     SetItem(LSource.FItem);
@@ -388,9 +404,11 @@ var
   LBreakpoint: TS4YFlexBreakpoint;
 begin
   Result := nil;
+
   if Collection is TS4YFlexItemOverrides then
   begin
     LBreakpoint := TS4YFlexItemOverrides(Collection).Breakpoint;
+
     if (LBreakpoint <> nil) and (LBreakpoint.Collection is TS4YFlexBreakpoints) then
     begin
       Result := TS4YFlexBreakpoints(LBreakpoint.Collection).OwnerComponent;
@@ -447,6 +465,7 @@ end;
 procedure TS4YFlexItemOverride.SetFlexBasis(Value: Single);
 begin
   Value := Max(0, Value);
+
   if FFlexBasis <> Value then
   begin
     FFlexBasis := Value;
@@ -466,6 +485,7 @@ end;
 procedure TS4YFlexItemOverride.SetFlexGrow(Value: Single);
 begin
   Value := Max(0, Value);
+
   if FFlexGrow <> Value then
   begin
     FFlexGrow := Value;
@@ -476,6 +496,7 @@ end;
 procedure TS4YFlexItemOverride.SetFlexShrink(Value: Single);
 begin
   Value := Max(0, Value);
+
   if FFlexShrink <> Value then
   begin
     FFlexShrink := Value;
@@ -496,15 +517,18 @@ end;
 procedure TS4YFlexItemOverride.SetHeight(Value: Single);
 begin
   Value := Max(0, Value);
+
   if FHeight <> Value then
   begin
     FHeight := Value;
+
     // As in the item, setting the height makes it explicit (not while
     // loading, where AutoHeight comes from the file)
     if not IsLoadingOwner then
     begin
       FAutoHeight := False;
     end;
+
     Changed(False);
   end;
 end;
@@ -516,15 +540,18 @@ begin
   if FItem <> Value then
   begin
     FItem := Value;
+
     // If the item is deleted the flexbox deletes the override (RemoveItem)
     if FItem <> nil then
     begin
       LOwnerComponent := FindOwnerComponent;
+
       if LOwnerComponent <> nil then
       begin
         FItem.FreeNotification(LOwnerComponent);
       end;
     end;
+
     Changed(False);
   end;
 end;
@@ -564,15 +591,18 @@ end;
 procedure TS4YFlexItemOverride.SetWidth(Value: Single);
 begin
   Value := Max(0, Value);
+
   if FWidth <> Value then
   begin
     FWidth := Value;
+
     // As in the item, setting the width makes it explicit (not while
     // loading, where AutoWidth comes from the file)
     if not IsLoadingOwner then
     begin
       FAutoWidth := False;
     end;
+
     Changed(False);
   end;
 end;
@@ -623,6 +653,7 @@ end;
 procedure TS4YFlexItemOverrides.Update(Item: TCollectionItem);
 begin
   inherited;
+
   // The flexbox notices the change through the breakpoint that owns the list
   if FBreakpoint <> nil then
   begin
@@ -659,26 +690,32 @@ begin
   begin
     ASettings.Direction := FDirection;
   end;
+
   if coWrap in FContainerOverrides then
   begin
     ASettings.Wrap := FWrap;
   end;
+
   if coJustifyContent in FContainerOverrides then
   begin
     ASettings.JustifyContent := FJustifyContent;
   end;
+
   if coAlignItems in FContainerOverrides then
   begin
     ASettings.AlignItems := FAlignItems;
   end;
+
   if coAlignContent in FContainerOverrides then
   begin
     ASettings.AlignContent := FAlignContent;
   end;
+
   if coColumnGap in FContainerOverrides then
   begin
     ASettings.ColumnGap := FColumnGap;
   end;
+
   if coRowGap in FContainerOverrides then
   begin
     ASettings.RowGap := FRowGap;
@@ -762,6 +799,7 @@ end;
 procedure TS4YFlexBreakpoint.SetColumnGap(Value: Single);
 begin
   Value := Max(0, Value);
+
   if FColumnGap <> Value then
   begin
     FColumnGap := Value;
@@ -804,6 +842,7 @@ end;
 procedure TS4YFlexBreakpoint.SetRowGap(Value: Single);
 begin
   Value := Max(0, Value);
+
   if FRowGap <> Value then
   begin
     FRowGap := Value;
@@ -814,6 +853,7 @@ end;
 procedure TS4YFlexBreakpoint.SetWidth(Value: Single);
 begin
   Value := Max(0, Value);
+
   if FWidth <> Value then
   begin
     FWidth := Value;
@@ -837,6 +877,7 @@ end;
 constructor TS4YFlexBreakpoints.Create(AOwner: TPersistent);
 begin
   inherited Create(AOwner, TS4YFlexBreakpoint);
+
   if AOwner is TComponent then
   begin
     FOwnerComponent := TComponent(AOwner);
@@ -871,6 +912,7 @@ end;
 procedure TS4YFlexBreakpoints.Update(Item: TCollectionItem);
 begin
   inherited;
+
   if Assigned(FOnChanged) then
   begin
     FOnChanged(Self);
@@ -907,6 +949,7 @@ begin
         begin
           Result := CompareValue(ALeft.Width, ARight.Width);
         end;
+
         if Result = 0 then
         begin
           Result := CompareValue(ALeft.Index, ARight.Index);
@@ -917,6 +960,7 @@ begin
     begin
       LBreakpoint.ApplyTo(Result);
     end;
+
     AActive := LMatching.ToArray;
   finally
     LMatching.Free;

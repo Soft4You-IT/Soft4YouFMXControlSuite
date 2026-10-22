@@ -320,7 +320,9 @@ end;
 class function TFlexEngine.ClampSize(Value, MinVal, MaxVal: Single): Single;
 begin
   Result := Value;
+
   if MinVal > 0 then Result := Max(Result, MinVal);
+
   if MaxVal > 0 then Result := Min(Result, MaxVal);
 end;
 
@@ -410,6 +412,7 @@ begin
 
       if GapCount > 0 then
         UsedMain := UsedMain + Ctx.ColumnGap;
+
       UsedMain := UsedMain + ItemMain;
     end;
 
@@ -457,6 +460,7 @@ begin
 
   // Total main space used by the items (hypothetical size + margins)
   TotalBase := 0;
+
   for I := 0 to High(Line.Items) do
   begin
     Idx := Line.Items[I];
@@ -472,6 +476,7 @@ begin
   for I := 0 to High(Line.Items) do
   begin
     Idx := Line.Items[I];
+
     if Growing then
     begin
       if (WItems[Idx].Input.FlexGrow <= 0) or
@@ -491,12 +496,14 @@ begin
   // Iterative W3C loop: the space is distributed among the unfrozen items,
   // min/max are applied and the violations are frozen (max 100 iterations for safety)
   MaxIter := 100;
+
   repeat
     Dec(MaxIter);
 
     // Free space = available - gap - margins - (frozen: final size,
     // unfrozen: flex base)
     FreeSpace := MainAvailable - GapTotal;
+
     for I := 0 to High(Line.Items) do
     begin
       Idx := Line.Items[I];
@@ -510,9 +517,11 @@ begin
 
     // Sum of the factors of the non-frozen items
     TotalFactor := 0;
+
     for I := 0 to High(Line.Items) do
     begin
       Idx := Line.Items[I];
+
       if not WItems[Idx].Frozen then
       begin
         if Growing then
@@ -529,21 +538,25 @@ begin
       for I := 0 to High(Line.Items) do
       begin
         Idx := Line.Items[I];
+
         if not WItems[Idx].Frozen then
         begin
           WItems[Idx].FrozenMain := WItems[Idx].HypotheticalMain;
           WItems[Idx].Frozen := True;
         end;
       end;
+
       Break;
     end;
 
     // Target size of each non-frozen item, limited to min/max
     TotalViolation := 0;
+
     for I := 0 to High(Line.Items) do
     begin
       Idx := Line.Items[I];
       Violations[I] := 0;
+
       if not WItems[Idx].Frozen then
       begin
         if Growing then
@@ -568,6 +581,7 @@ begin
     for I := 0 to High(Line.Items) do
     begin
       Idx := Line.Items[I];
+
       if not WItems[Idx].Frozen then
       begin
         if (TotalViolation = 0) or
@@ -578,6 +592,7 @@ begin
     end;
 
     AllFrozen := True;
+
     for I := 0 to High(Line.Items) do
       if not WItems[Line.Items[I]].Frozen then
       begin
@@ -665,10 +680,12 @@ begin
   // of the items of the line - it is set in Calculate().
 
   N := Length(Lines);
+
   if N = 0 then Exit;
 
   GapTotal := RowGap * Max(0, N - 1);
   TotalCross := GapTotal;
+
   for I := 0 to N - 1 do
     TotalCross := TotalCross + Lines[I].CrossSize;
 
@@ -691,9 +708,11 @@ begin
         if N > 0 then
         begin
           SpacePer := FreeSpace / N;
+
           for I := 0 to N - 1 do
             Lines[I].CrossSize := Lines[I].CrossSize + SpacePer;
         end;
+
         SpaceBefore := 0;
         SpacePer    := 0;
       end;
@@ -701,6 +720,7 @@ begin
 
   // Assign the cross position to each line
   Current := SpaceBefore;
+
   for I := 0 to N - 1 do
   begin
     Lines[I].CrossPos := Current;
@@ -728,11 +748,13 @@ var
   N          : Integer;
 begin
   N := Length(Line.Items);
+
   if N = 0 then Exit;
 
   GapTotal := ColumnGap * Max(0, N - 1);
 
   TotalUsed := GapTotal;
+
   for I := 0 to N - 1 do
   begin
     Idx := Line.Items[I];
@@ -758,6 +780,7 @@ begin
 
   // Position the items in the correct order (or reversed if Reverse)
   Current := SpaceBefore;
+
   if not Reverse then
   begin
     for I := 0 to N - 1 do
@@ -775,6 +798,7 @@ begin
   begin
     // row-reverse / column-reverse: start from the end
     Current := SpaceBefore;
+
     for I := 0 to N - 1 do
     begin
       Idx := Line.Items[I];
@@ -858,6 +882,7 @@ var
   SingleLine : Boolean;
 begin
   Result := nil;
+
   if Length(Context.Items) = 0 then Exit;
 
   Row        := IsRow(Context.Direction);
@@ -869,11 +894,14 @@ begin
 
   // - Step 1: sort by Order (stable: keeps source order on ties) -
   SetLength(SortedIdx, Length(Context.Items));
+
   for I := 0 to High(SortedIdx) do SortedIdx[I] := I;
+
   TArray.Sort<Integer>(SortedIdx, TComparer<Integer>.Construct(
     function(const A, B: Integer): Integer
     begin
       Result := Context.Items[A].Order - Context.Items[B].Order;
+
       // TArray.Sort is not stable: on equal Order the source order applies
       if Result = 0 then
         Result := A - B;
@@ -882,6 +910,7 @@ begin
 
   // - Step 2: build the work items, resolve the basis -
   SetLength(WItems, Length(Context.Items));
+
   for I := 0 to High(SortedIdx) do
   begin
     Idx := SortedIdx[I];
@@ -894,6 +923,7 @@ begin
       WItems[I].HypotheticalMain  := ResolveBasis(Context.Items[Idx], MainAvail);
       WItems[I].HypotheticalCross := Context.Items[Idx].NaturalHeight;
       WItems[I].CrossAuto := Context.Items[Idx].HeightAuto;
+
       // For column: main and cross are swapped
       if WItems[I].Input.FlexBasisUnit = fbuAuto then
         WItems[I].HypotheticalMain := Context.Items[Idx].NaturalWidth;
@@ -903,11 +933,13 @@ begin
       // For column: the basis applies to the height (main axis = vertical)
       WItems[I].Input.NaturalWidth  := Context.Items[Idx].NaturalHeight;
       WItems[I].Input.NaturalHeight := Context.Items[Idx].NaturalWidth;
+
       // Also swap min/max
       WItems[I].Input.MinWidth  := Context.Items[Idx].MinHeight;
       WItems[I].Input.MaxWidth  := Context.Items[Idx].MaxHeight;
       WItems[I].Input.MinHeight := Context.Items[Idx].MinWidth;
       WItems[I].Input.MaxHeight := Context.Items[Idx].MaxWidth;
+
       // Also swap margins
       WItems[I].Input.MarginLeft   := Context.Items[Idx].MarginTop;
       WItems[I].Input.MarginRight  := Context.Items[Idx].MarginBottom;
@@ -917,6 +949,7 @@ begin
       WItems[I].HypotheticalMain  := ResolveBasis(WItems[I].Input, MainAvail);
       WItems[I].HypotheticalCross := Context.Items[Idx].NaturalWidth;
       WItems[I].CrossAuto := Context.Items[Idx].WidthAuto;
+
       // Auto width in a column: fit-content, not beyond the available width
       if Context.Items[Idx].WidthAuto and (CrossAvail > 0) then
       begin
@@ -948,6 +981,7 @@ begin
 
     // Compute the cross size of the line = max FrozenCross + cross margins of the items
     MaxCross := 0;
+
     for J := 0 to High(Lines[I].Items) do
     begin
       Idx := Lines[I].Items[J];
@@ -957,7 +991,9 @@ begin
         + WItems[Idx].Input.MarginBottom
       );
     end;
+
     Lines[I].CrossSize := MaxCross;
+
     // Single line: it takes the whole cross size of the container
     if SingleLine then
     begin
@@ -969,6 +1005,7 @@ begin
 
     // Recompute the CrossSize of the line after stretch
     MaxCross := 0;
+
     for J := 0 to High(Lines[I].Items) do
     begin
       Idx := Lines[I].Items[J];
@@ -978,6 +1015,7 @@ begin
         + WItems[Idx].Input.MarginBottom
       );
     end;
+
     if not SingleLine then
     begin
       Lines[I].CrossSize := MaxCross;
@@ -1008,6 +1046,7 @@ begin
 
   // Line index of each item (visual order, after any reversal)
   SetLength(LineOfItem, Length(WItems));
+
   for I := 0 to High(Lines) do
   begin
     for J := 0 to High(Lines[I].Items) do
@@ -1018,6 +1057,7 @@ begin
 
   // - Step 9: build the results in the original order -
   SetLength(Results, Length(WItems));
+
   for I := 0 to High(WItems) do
   begin
     Idx := WItems[I].Input.OriginalIndex;

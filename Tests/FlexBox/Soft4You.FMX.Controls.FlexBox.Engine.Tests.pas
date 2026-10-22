@@ -181,6 +181,7 @@ end;
 // ===========================================================================
 
 procedure TFlexEngineTests.Test_Row_ThreeItems_FlexStart;
+
 // flex-direction: row; justify-content: flex-start (default)
 // Container: 300px wide. Items: 50, 80, 60px wide.
 // Expected: 0, 50, 130
@@ -188,6 +189,7 @@ var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
   Ctx := DefaultCtx(300, 100);
   Ctx.Items := [MakeItem(50,40), MakeItem(80,40), MakeItem(60,40)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -197,6 +199,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Row_ThreeItems_FlexEnd;
+
 // flex-end: items at the right
 // Container 300, items 50+80+60=190, free=110 -> start at 110
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
@@ -204,6 +207,7 @@ begin
   Ctx := DefaultCtx(300, 100);
   Ctx.JustifyContent := jcFlexEnd;
   Ctx.Items := [MakeItem(50,40), MakeItem(80,40), MakeItem(60,40)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -213,12 +217,14 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Row_ThreeItems_Center;
+
 // Center: free=110, spaceBefore=55
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
   Ctx := DefaultCtx(300, 100);
   Ctx.JustifyContent := jcCenter;
   Ctx.Items := [MakeItem(50,40), MakeItem(80,40), MakeItem(60,40)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -228,6 +234,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Row_SpaceBetween;
+
 // Container 300, items 50+80+60=190, free=110, spacePer=55
 // Positions: 0, 105, 240
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
@@ -235,6 +242,7 @@ begin
   Ctx := DefaultCtx(300, 100);
   Ctx.JustifyContent := jcSpaceBetween;
   Ctx.Items := [MakeItem(50,40), MakeItem(80,40), MakeItem(60,40)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -244,6 +252,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Row_SpaceAround;
+
 // free=110, spacePer=110/3~36.67, spaceBefore=18.33
 // Positions: 18.33, 105, 221.67
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
@@ -251,6 +260,7 @@ begin
   Ctx := DefaultCtx(300, 100);
   Ctx.JustifyContent := jcSpaceAround;
   Ctx.Items := [MakeItem(50,40), MakeItem(80,40), MakeItem(60,40)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -260,6 +270,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Row_SpaceEvenly;
+
 // free=110, spacePer=110/4=27.5
 // Positions: 27.5, 27.5+50+27.5=105, 105+80+27.5=212.5
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
@@ -267,6 +278,7 @@ begin
   Ctx := DefaultCtx(300, 100);
   Ctx.JustifyContent := jcSpaceEvenly;
   Ctx.Items := [MakeItem(50,40), MakeItem(80,40), MakeItem(60,40)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -285,6 +297,7 @@ begin
   Ctx := DefaultCtx(100, 300);
   Ctx.Direction := fdColumn;
   Ctx.Items := [MakeItem(60,50), MakeItem(60,80), MakeItem(60,60)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -294,6 +307,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Column_JustifyCenter;
+
 // Container H=300, items H=50+80+60=190, free=110, spaceBefore=55
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
@@ -301,6 +315,7 @@ begin
   Ctx.Direction      := fdColumn;
   Ctx.JustifyContent := jcCenter;
   Ctx.Items := [MakeItem(60,50), MakeItem(60,80), MakeItem(60,60)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -314,6 +329,7 @@ end;
 // ===========================================================================
 
 procedure TFlexEngineTests.Test_Grow_SingleItem_FillsSpace;
+
 // 1 item 50px wide, grow=1, container=300 -> item should be 300
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
@@ -326,11 +342,13 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Grow_TwoItems_EqualGrow;
+
 // 2 items 50px, grow=1 each. Free=200, each gets +100 -> 150
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
   Ctx := DefaultCtx(300, 100);
   Ctx.Items := [MakeItem(50,40,1), MakeItem(50,40,1)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -339,11 +357,13 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Grow_TwoItems_WeightedGrow;
+
 // Item0 grow=1, Item1 grow=2. Free=300-60-60=180. Item0 gets 60, Item1 gets 120.
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
   Ctx := DefaultCtx(300, 100);
   Ctx.Items := [MakeItem(60,40,1), MakeItem(60,40,2)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -356,12 +376,14 @@ end;
 // ===========================================================================
 
 procedure TFlexEngineTests.Test_Shrink_ItemsOverflow_ShrinkEqually;
+
 // Container=200. Items: 150+150=300. Overflow=100.
 // Both shrink=1 (default), factor=150 each -> each shrinks by 50 -> 100
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
   Ctx := DefaultCtx(200, 100);
   Ctx.Items := [MakeItem(150,40,0,1), MakeItem(150,40,0,1)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -370,11 +392,13 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Shrink_NoShrink_ItemKeepsSize;
+
 // Item0 shrink=0 -> keeps 150. Item1 shrink=1 -> absorbs all overflow -> 50
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
   Ctx := DefaultCtx(200, 100);
   Ctx.Items := [MakeItem(150,40,0,0), MakeItem(150,40,0,1)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -387,6 +411,7 @@ end;
 // ===========================================================================
 
 procedure TFlexEngineTests.Test_Basis_Pixel_OverridesNaturalWidth;
+
 // NaturalWidth=50, FlexBasis=120px -> item should be 120
 var Ctx: TFlexContext; Item: TFlexItemInput; R: TArray<TFlexItemResult>;
 begin
@@ -402,6 +427,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Basis_Percent_HalfContainer;
+
 // Container=400, FlexBasis=50% -> item should be 200
 var Ctx: TFlexContext; Item: TFlexItemInput; R: TArray<TFlexItemResult>;
 begin
@@ -421,6 +447,7 @@ end;
 // ===========================================================================
 
 procedure TFlexEngineTests.Test_AlignItems_Stretch;
+
 // Items with different heights, align-items=stretch -> all stretch to line height
 // Line cross = max natural = 80. All items should be 80 tall.
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
@@ -428,6 +455,7 @@ begin
   Ctx := DefaultCtx(300, 200);
   Ctx.AlignItems := aiStretch;
   Ctx.Items := [MakeItem(80,40), MakeItem(80,80), MakeItem(80,30)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -437,12 +465,14 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_AlignItems_Center;
+
 // Line height=80 (max). Item0 h=40 -> top=(80-40)/2=20
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
   Ctx := DefaultCtx(300, 200);
   Ctx.AlignItems := aiCenter;
   Ctx.Items := [MakeItem(80,40), MakeItem(80,80)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -451,12 +481,14 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_AlignItems_FlexEnd;
+
 // Line height=80. Item0 h=40 -> top=40. Item1 h=80 -> top=0.
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
   Ctx := DefaultCtx(300, 200);
   Ctx.AlignItems := aiFlexEnd;
   Ctx.Items := [MakeItem(80,40), MakeItem(80,80)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -469,6 +501,7 @@ end;
 // ===========================================================================
 
 procedure TFlexEngineTests.Test_AlignSelf_OverridesAlignItems;
+
 // Container align-items=flex-start. Item1 align-self=flex-end.
 // Line height=80. Item1 h=40 -> top should be 40.
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
@@ -490,6 +523,7 @@ end;
 // ===========================================================================
 
 procedure TFlexEngineTests.Test_Order_ReordersItems;
+
 // Item0 order=2, Item1 order=1, Item2 order=0
 // Visual order: Item2, Item1, Item0 -> Left positions: 0, 50, 130
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
@@ -498,9 +532,11 @@ begin
   Ctx.Items := [MakeItem(80,40,0,1,2),   // OriginalIndex 0, order=2
                 MakeItem(50,40,0,1,1),   // OriginalIndex 1, order=1
                 MakeItem(50,40,0,1,0)];  // OriginalIndex 2, order=0
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
+
   // Item2 (order=0) must be the first visually -> Left=0
   Assert.IsTrue(Abs(R[2].Left -   0) <= TOLERANCE, 'item2 first (order=0)');
   Assert.IsTrue(Abs(R[1].Left -  50) <= TOLERANCE, 'item1 second (order=1)');
@@ -508,12 +544,14 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Order_NegativeFirst;
+
 // Item0 order=0, Item1 order=-1 -> Item1 first
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
   Ctx := DefaultCtx(300, 100);
   Ctx.Items := [MakeItem(60,40,0,1, 0),
                 MakeItem(60,40,0,1,-1)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -526,6 +564,7 @@ end;
 // ===========================================================================
 
 procedure TFlexEngineTests.Test_Wrap_ItemsBreakToNextLine;
+
 // Container=200. Items: 120, 120 -> wrap -> 2 lines.
 // Line 0: item0 at (0,0). Line 1: item1 at (0, lineHeight)
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
@@ -534,6 +573,7 @@ begin
   Ctx.Wrap := fwWrap;
   Ctx.AlignItems := aiFlexStart; // no stretch
   Ctx.Items := [MakeItem(120,50), MakeItem(120,60)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -544,6 +584,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_WrapReverse_LinesInverted;
+
 // Same as above but wrap-reverse: second line should be above first
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
@@ -551,9 +592,11 @@ begin
   Ctx.Wrap := fwWrapReverse;
   Ctx.AlignItems := aiFlexStart;
   Ctx.Items := [MakeItem(120,50), MakeItem(120,60)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
+
   // With wrap-reverse the order of the lines is reversed
   Assert.IsTrue(R[0].Top > R[1].Top, 'wrap-reverse: item0 below item1');
 end;
@@ -563,6 +606,7 @@ end;
 // ===========================================================================
 
 procedure TFlexEngineTests.Test_ColumnGap_ThreeItems;
+
 // Container=300, items 50px each, gap=20 -> used=50+20+50+20+50=190, free=110
 // Positions (flex-start): 0, 70, 140
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
@@ -570,6 +614,7 @@ begin
   Ctx := DefaultCtx(300, 100);
   Ctx.ColumnGap := 20;
   Ctx.Items := [MakeItem(50,40), MakeItem(50,40), MakeItem(50,40)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -579,6 +624,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_RowGap_TwoLines;
+
 // Container=200, items 120px each, wrap, rowGap=15
 // Line0 at top=0, Line1 at top=lineHeight+15
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
@@ -588,6 +634,7 @@ begin
   Ctx.RowGap := 15;
   Ctx.AlignItems := aiFlexStart;
   Ctx.Items := [MakeItem(120,50), MakeItem(120,60)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -599,6 +646,7 @@ end;
 // ===========================================================================
 
 procedure TFlexEngineTests.Test_AlignContent_SpaceBetween_TwoLines;
+
 // Container H=300. Two lines, crossSizes=50+60=110. Free=190.
 // space-between: line0 at 0, line1 at 240.
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
@@ -608,6 +656,7 @@ begin
   Ctx.AlignContent := acSpaceBetween;
   Ctx.AlignItems   := aiFlexStart;
   Ctx.Items := [MakeItem(120,50), MakeItem(120,60)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -616,6 +665,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_AlignContent_Center_TwoLines;
+
 // Container H=300. Lines crossSizes=50+60=110. Free=190. spaceBefore=95.
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
@@ -624,6 +674,7 @@ begin
   Ctx.AlignContent := acCenter;
   Ctx.AlignItems   := aiFlexStart;
   Ctx.Items := [MakeItem(120,50), MakeItem(120,60)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -636,6 +687,7 @@ end;
 // ===========================================================================
 
 procedure TFlexEngineTests.Test_RowReverse_ItemsPositionedRightToLeft;
+
 // Container=300, items 50+80+60=190.
 // row-reverse: item0 rightmost at left=240, item2 leftmost at left=0
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
@@ -643,15 +695,18 @@ begin
   Ctx := DefaultCtx(300, 100);
   Ctx.Direction := fdRowReverse;
   Ctx.Items := [MakeItem(50,40), MakeItem(80,40), MakeItem(60,40)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
+
   // In row-reverse: item0 visually on the right -> higher Left
   Assert.IsTrue(R[0].Left > R[1].Left, 'item0 more right than item1');
   Assert.IsTrue(R[1].Left > R[2].Left, 'item1 more right than item2');
 end;
 
 procedure TFlexEngineTests.Test_ColumnReverse;
+
 // Container H=300, items 50+80+60=190.
 // column-reverse: item0 at bottom, item2 at top
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
@@ -659,9 +714,11 @@ begin
   Ctx := DefaultCtx(100, 300);
   Ctx.Direction := fdColumnReverse;
   Ctx.Items := [MakeItem(60,50), MakeItem(60,80), MakeItem(60,60)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
+
   // column-reverse: item0 visually at the bottom -> higher Top
   Assert.IsTrue(R[0].Top > R[1].Top, 'item0 lower than item1');
   Assert.IsTrue(R[1].Top > R[2].Top, 'item1 lower than item2');
@@ -672,11 +729,13 @@ end;
 // ===========================================================================
 
 procedure TFlexEngineTests.Test_SingleLine_Default_LineIsTallestItem;
+
 // Without SingleLineFillsContainer the line is as tall as the tallest (80)
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
   Ctx := DefaultCtx(300, 200);
   Ctx.Items := [MakeItem(80,40), MakeItem(80,80)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -685,12 +744,14 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_SingleLine_FillsContainer_Stretch;
+
 // With the option, the line takes the whole height of the container (200)
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
   Ctx := DefaultCtx(300, 200);
   Ctx.SingleLineFillsContainer := True;
   Ctx.Items := [MakeItem(80,40), MakeItem(80,80)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -699,6 +760,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_SingleLine_FillsContainer_Center;
+
 // Line = 200: item0 h=40 -> top=80, item1 h=80 -> top=60
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
@@ -706,6 +768,7 @@ begin
   Ctx.SingleLineFillsContainer := True;
   Ctx.AlignItems := aiCenter;
   Ctx.Items := [MakeItem(80,40), MakeItem(80,80)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -714,6 +777,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_SingleLine_Wrap_LineStaysContentSized;
+
 // With fwWrap the line stays as tall as the tallest (80), even with the option
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
@@ -721,6 +785,7 @@ begin
   Ctx.SingleLineFillsContainer := True;
   Ctx.Wrap := fwWrap;
   Ctx.Items := [MakeItem(80,40), MakeItem(80,80)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -729,12 +794,15 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_HeightExplicit_NotStretched;
+
 // Explicit height: the item does not stretch (item0 stays 40), the auto one does
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
   Ctx := DefaultCtx(300, 200);
   Ctx.Items := [MakeItem(80,40), MakeItem(80,80)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+
   Ctx.Items[0].HeightAuto := False;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -743,6 +811,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Column_AutoWidth_FitsAvailable;
+
 // Column, container 100 wide, auto item with natural width 150 -> 100
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
@@ -756,6 +825,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Column_ExplicitWidth_NotClamped;
+
 // Explicit width: it stays 150 even if the container is 100
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
@@ -770,6 +840,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Column_SingleLine_FillsWidth;
+
 // Column, single line with the option: natural item 60 stretches to 100
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
@@ -799,6 +870,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_MaxWidth_ClampsBasis;
+
 // Basis 300 with MaxWidth 200: the size is 200
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
@@ -812,6 +884,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_MinWidth_ClampsBasis;
+
 // Basis 50 with MinWidth 120: the size is 120
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
@@ -825,6 +898,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_MaxWidth_ExplicitWidthStillClamped;
+
 // As in CSS, max-width beats an explicit width
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
@@ -839,13 +913,16 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Grow_MaxWidth_RedistributesToOthers;
+
 // 2 items of 100, grow=1, container 400: without limits 200 + 200. The first is limited
 // to 150: the space it cannot take goes to the second (250).
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
   Ctx := DefaultCtx(400, 100);
   Ctx.Items := [MakeItem(100,40,1), MakeItem(100,40,1)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+
   Ctx.Items[0].MaxWidth := 150;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -854,13 +931,16 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Shrink_MinWidth_RedistributesToOthers;
+
 // 2 items of 300, shrink=1, container 400: without limits 200 + 200. The first does not
 // go below 250: the second gives up the rest (150).
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
   Ctx := DefaultCtx(400, 100);
   Ctx.Items := [MakeItem(300,40), MakeItem(300,40)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+
   Ctx.Items[0].MinWidth := 250;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -869,13 +949,16 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Column_Grow_MaxHeight_RedistributesToOthers;
+
 // Column 400 tall, 2 items 100 tall with grow=1: the first is limited to 150
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
   Ctx := DefaultCtx(100, 400);
   Ctx.Direction := fdColumn;
   Ctx.Items := [MakeItem(50,100,1), MakeItem(50,100,1)];
+
   for var I := 0 to High(Ctx.Items) do Ctx.Items[I].OriginalIndex := I;
+
   Ctx.Items[0].MaxHeight := 150;
 
   R := TFlexEngine.Calculate(Ctx);
@@ -885,6 +968,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Cross_MaxHeight_LimitsStretch;
+
 // Row 300 tall, auto height, stretch: with MaxHeight 100 the item does not go beyond
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
@@ -899,6 +983,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Cross_MinHeight_RaisesSize;
+
 // Natural height 50 aligned at the top, MinHeight 80: the item is 80 tall
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
@@ -913,6 +998,7 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Column_Cross_MaxWidth_LimitsStretch;
+
 // Column 200 wide, auto width (stretch): with MaxWidth 120 the item is 120 wide
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
@@ -928,12 +1014,14 @@ begin
 end;
 
 procedure TFlexEngineTests.Test_Wrap_UsesClampedSizeToFillLine;
+
 // Row with wrap 300 wide: 2 items of 200 with MaxWidth 100 stay on the same line
 var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
 begin
   Ctx := DefaultCtx(300, 200);
   Ctx.Wrap := fwWrap;
   Ctx.Items := [MakeItem(200,40), MakeItem(200,40)];
+
   for var I := 0 to High(Ctx.Items) do
   begin
     Ctx.Items[I].OriginalIndex := I;

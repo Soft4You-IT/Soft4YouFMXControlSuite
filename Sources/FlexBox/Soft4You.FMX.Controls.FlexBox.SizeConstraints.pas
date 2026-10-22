@@ -55,6 +55,7 @@ begin
   if Source is TS4YFlexSizeConstraints then
   begin
     LSource := TS4YFlexSizeConstraints(Source);
+
     if (FMaxHeight <> LSource.FMaxHeight) or (FMaxWidth <> LSource.FMaxWidth) or
       (FMinHeight <> LSource.FMinHeight) or (FMinWidth <> LSource.FMinWidth) then
     begin
@@ -107,6 +108,7 @@ end;
 procedure TS4YFlexSizeConstraints.SetMaxHeight(Value: Single);
 begin
   Value := Max(0, Value);
+
   if FMaxHeight <> Value then
   begin
     FMaxHeight := Value;
@@ -117,6 +119,7 @@ end;
 procedure TS4YFlexSizeConstraints.SetMaxWidth(Value: Single);
 begin
   Value := Max(0, Value);
+
   if FMaxWidth <> Value then
   begin
     FMaxWidth := Value;
@@ -127,6 +130,7 @@ end;
 procedure TS4YFlexSizeConstraints.SetMinHeight(Value: Single);
 begin
   Value := Max(0, Value);
+
   if FMinHeight <> Value then
   begin
     FMinHeight := Value;
@@ -137,6 +141,7 @@ end;
 procedure TS4YFlexSizeConstraints.SetMinWidth(Value: Single);
 begin
   Value := Max(0, Value);
+
   if FMinWidth <> Value then
   begin
     FMinWidth := Value;

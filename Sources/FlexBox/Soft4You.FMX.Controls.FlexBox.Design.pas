@@ -71,8 +71,10 @@ type
 var
   GDesigners: TList<IDesigner>;
   GNotification: IDesignNotification;
+
   // Controls that already have a wrapping request queued
   GPendingControls: TList<TControl>;
+
   // True while a wrapping is running: requests arriving at that
   // moment (side effects of the designer) are ignored
   GWrapping: Boolean;
@@ -93,12 +95,14 @@ end;
 procedure TFlexWrapRequest.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
+
   if Operation = opRemove then
   begin
     if AComponent = FFlexBox then
     begin
       FFlexBox := nil;
     end;
+
     if AComponent = FControl then
     begin
       FControl := nil;
@@ -117,6 +121,7 @@ var
 begin
   Result := nil;
   LOwner := AComponent;
+
   while (Result = nil) and (LOwner <> nil) do
   begin
     for LIndex := 0 to GDesigners.Count - 1 do
@@ -126,6 +131,7 @@ begin
         Result := GDesigners[LIndex];
       end;
     end;
+
     LOwner := LOwner.Owner;
   end;
 end;
@@ -141,6 +147,7 @@ begin
     (ARequest.Control.Parent = ARequest.FlexBox) then
   begin
     LDesigner := FindDesigner(ARequest.FlexBox);
+
     if LDesigner <> nil then
     begin
       LControl := ARequest.Control;
@@ -186,6 +193,7 @@ begin
           begin
             GPendingControls.Remove(LRequest.Control);
           end;
+
           WrapControlInDesigner(LRequest);
         finally
           LRequest.Free;
@@ -247,6 +255,7 @@ end;
 procedure UnregisterFlexDesignSupport;
 begin
   TS4YFlexBox.DesignWrapHandler := nil;
+
   if GNotification <> nil then
   begin
     UnregisterDesignNotification(GNotification);
