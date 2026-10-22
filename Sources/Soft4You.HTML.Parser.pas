@@ -555,6 +555,7 @@ begin
   if LColorValue <> '' then
   begin
     Result := ParseColor(LColorValue);
+
     if Result <> claNull then
       Exit;
   end;

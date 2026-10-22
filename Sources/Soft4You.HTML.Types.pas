@@ -889,6 +889,7 @@ var
   LFullPath: string;
 begin
   Result := ASource;
+
   if ADocumentPath = '' then
     Exit;
 
@@ -921,6 +922,7 @@ var
   LFullPath: string;
 begin
   Result := False;
+
   if (APath = '') or (AFolder = '') then
     Exit;
 

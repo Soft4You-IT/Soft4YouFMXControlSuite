@@ -170,6 +170,7 @@ var
 begin
   ANewSource := ASource;
   Result := False;
+
   if FSources.TryGetValue(ASource, ANewSource) then
     Exit(True);
 
@@ -182,6 +183,7 @@ begin
     Exit;
 
   LSourceFile := TPath.GetFullPath(FResolver(ASource));
+
   if not TFile.Exists(LSourceFile) then
     Exit;
 

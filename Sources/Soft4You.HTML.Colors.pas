@@ -84,6 +84,7 @@ begin
   AColor := TAlphaColor($00000000);
   Result := False;
   LValue := AValue.Trim.ToLower;
+
   if LValue = '' then
     Exit;
 
