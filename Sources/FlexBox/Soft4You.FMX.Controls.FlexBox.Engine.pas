@@ -304,7 +304,7 @@ begin
 end;
 
 // ===========================================================================
-// TFlexEngine — utility
+// TFlexEngine - utility
 // ===========================================================================
 
 class function TFlexEngine.IsRow(Dir: TFlexDirection): Boolean;
