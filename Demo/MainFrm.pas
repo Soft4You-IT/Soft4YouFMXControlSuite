@@ -458,8 +458,10 @@ var
   function Restyled(const ASide: TS4YTableBorderSide): TS4YTableBorderSide;
   begin
     Result := ASide;
+
     if AWidth > 0 then
       Result.Width := AWidth;
+
     if AColor <> TAlphaColors.Null then
       Result.Color := AColor;
   end;
@@ -467,19 +469,24 @@ var
 begin
   LBorders := HTMLEditor.State.TableCellBorders;
   LDone := [];
+
   for LSide := Low(TS4YTableSide) to High(TS4YTableSide) do
   begin
     LCurrent := BorderSideOf(LBorders, LSide);
+
     if LCurrent.IsVisible and not (LSide in LDone) then
     begin
       LNew := Restyled(LCurrent);
       LGroup := [LSide];
+
       for LOtherSide := Low(TS4YTableSide) to High(TS4YTableSide) do
       begin
         LOtherNew := Restyled(BorderSideOf(LBorders, LOtherSide));
+
         if (LOtherSide > LSide) and BorderSideOf(LBorders, LOtherSide).IsVisible and LOtherNew.Equals(LNew) then
           Include(LGroup, LOtherSide);
       end;
+
       HTMLEditor.SetTableCellBorder(LGroup, LNew);
       LDone := LDone + LGroup;
     end;
@@ -499,11 +506,13 @@ var
 begin
   LBorders := HTMLEditor.State.TableCellBorders;
   LColor := C_DEFAULT_TABLE_BORDER_COLOR;
+
   for LSide := High(TS4YTableSide) downto Low(TS4YTableSide) do
   begin
     if BorderSideOf(LBorders, LSide).IsVisible then
       LColor := BorderSideOf(LBorders, LSide).Color;
   end;
+
   if not TColorSelection.Execute(LColor) then
     Exit;
 
@@ -521,6 +530,7 @@ var
   LSide: TS4YTableSide;
 begin
   LSide := TS4YTableSide(TMenuItem(Sender).Tag);
+
   if BorderSideOf(HTMLEditor.State.TableCellBorders, LSide).IsVisible then
   begin
     HTMLEditor.SetTableCellBorder([LSide], TS4YTableBorderSide.None);
@@ -556,6 +566,7 @@ var
   LColor: TAlphaColor;
 begin
   LColor := TAlphaColors.White;
+
   if not TColorSelection.Execute(LColor) then
     Exit;
 
@@ -572,6 +583,7 @@ var
   LPixels: Integer;
 begin
   LPixels := TMenuItem(Sender).Tag;
+
   if LPixels < 0 then
   begin
     HTMLEditor.SetTableCellPadding(TS4YTablePadding.Default);
@@ -607,6 +619,7 @@ var
   LColor: TAlphaColor;
 begin
   LColor := shapeFontColor.Fill.Color;
+
   if not TColorSelection.Execute(LColor) then
     Exit;
 
@@ -619,6 +632,7 @@ var
   LColor: TAlphaColor;
 begin
   LColor := shapeBackgroundColor.Fill.Color;
+
   if not TColorSelection.Execute(LColor) then
     Exit;
 
@@ -826,6 +840,7 @@ var
   LSide: TS4YTableSide;
 begin
   Result := False;
+
   for LSide := Low(TS4YTableSide) to High(TS4YTableSide) do
   begin
     if BorderSideOf(ABorders, LSide).IsVisible then
@@ -835,6 +850,7 @@ begin
         Result := False;
         Exit;
       end;
+
       Result := True;
     end;
   end;
