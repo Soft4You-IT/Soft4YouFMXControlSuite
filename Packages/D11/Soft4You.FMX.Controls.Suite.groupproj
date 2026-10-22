@@ -23,22 +23,22 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="Soft4You.FMX.Controls.Suite">
+    <Target Name="Soft4You_FMX_Controls_Suite">
         <MSBuild Projects="Soft4You.FMX.Controls.Suite.dproj"/>
     </Target>
-    <Target Name="Soft4You.FMX.Controls.Suite:Clean">
+    <Target Name="Soft4You_FMX_Controls_Suite:Clean">
         <MSBuild Projects="Soft4You.FMX.Controls.Suite.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="Soft4You.FMX.Controls.Suite:Make">
+    <Target Name="Soft4You_FMX_Controls_Suite:Make">
         <MSBuild Projects="Soft4You.FMX.Controls.Suite.dproj" Targets="Make"/>
     </Target>
-    <Target Name="Soft4You.FMX.Controls.SuiteD">
+    <Target Name="Soft4You_FMX_Controls_SuiteD">
         <MSBuild Projects="Soft4You.FMX.Controls.SuiteD.dproj"/>
     </Target>
-    <Target Name="Soft4You.FMX.Controls.SuiteD:Clean">
+    <Target Name="Soft4You_FMX_Controls_SuiteD:Clean">
         <MSBuild Projects="Soft4You.FMX.Controls.SuiteD.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="Soft4You.FMX.Controls.SuiteD:Make">
+    <Target Name="Soft4You_FMX_Controls_SuiteD:Make">
         <MSBuild Projects="Soft4You.FMX.Controls.SuiteD.dproj" Targets="Make"/>
     </Target>
     <Target Name="S4YHTMLEditorDemo">
@@ -60,13 +60,13 @@
         <MSBuild Projects="..\..\Demos\HTMLEditor\Mobile\S4YHTMLEditorMobile.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="Soft4You.FMX.Controls.Suite;Soft4You.FMX.Controls.SuiteD;S4YHTMLEditorDemo;S4YHTMLEditorMobile"/>
+        <CallTarget Targets="Soft4You_FMX_Controls_Suite;Soft4You_FMX_Controls_SuiteD;S4YHTMLEditorDemo;S4YHTMLEditorMobile"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="Soft4You.FMX.Controls.Suite:Clean;Soft4You.FMX.Controls.SuiteD:Clean;S4YHTMLEditorDemo:Clean;S4YHTMLEditorMobile:Clean"/>
+        <CallTarget Targets="Soft4You_FMX_Controls_Suite:Clean;Soft4You_FMX_Controls_SuiteD:Clean;S4YHTMLEditorDemo:Clean;S4YHTMLEditorMobile:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="Soft4You.FMX.Controls.Suite:Make;Soft4You.FMX.Controls.SuiteD:Make;S4YHTMLEditorDemo:Make;S4YHTMLEditorMobile:Make"/>
+        <CallTarget Targets="Soft4You_FMX_Controls_Suite:Make;Soft4You_FMX_Controls_SuiteD:Make;S4YHTMLEditorDemo:Make;S4YHTMLEditorMobile:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
