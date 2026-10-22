@@ -1,0 +1,22 @@
+// FlexBoxDesign.rc
+// Resource script for the TS4YFlexBox design-time package.
+//
+// HOW TO COMPILE (once, or in a pre-build event):
+//   brcc32.exe FlexBoxDesign.rc        (Delphi BRCC32)
+//   windres FlexBoxDesign.rc -O res -o FlexBoxDesign.res   (alternative)
+//
+// The generated .res file is included automatically by the Delphi
+// compiler thanks to the {$R *.res} directive in the .dpk.
+//
+// RESOURCE NAMES
+// --------------
+// The Delphi IDE palette looks for a component icon with the name
+// equal to the CLASS name in upper case.
+// TS4YFlexBox -> resource "TS4YFLEXBOX"  (24x24 bitmap, 24-bit RGB, no alpha)
+// TS4YFlexItem -> resource "TS4YFLEXITEM" (24x24 bitmap, 24-bit RGB, no alpha)
+//
+// Delphi also supports 16x16 bitmaps for compact displays,
+// but it uses the 24x24 one first.
+
+TS4YFLEXBOX BITMAP "FlexBox24.bmp"
+TS4YFLEXITEM BITMAP "FlexItem24.bmp"
