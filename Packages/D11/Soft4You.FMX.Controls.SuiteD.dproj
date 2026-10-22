@@ -1,7 +1,7 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{CF62BE72-493F-49EC-9901-9A5EAE96DD36}</ProjectGuid>
-        <MainSource>S4YFMXHTMLEditorD.dpk</MainSource>
+        <MainSource>Soft4You.FMX.Controls.SuiteD.dpk</MainSource>
         <ProjectVersion>19.5</ProjectVersion>
         <FrameworkType>None</FrameworkType>
         <Base>True</Base>
@@ -83,8 +83,8 @@
         <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
         <DesignOnlyPackage>true</DesignOnlyPackage>
         <DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
-        <SanitizedProjectName>S4YFMXHTMLEditorD</SanitizedProjectName>
-        <DCC_Description>Soft4You FMX HTML Editor (design-time)</DCC_Description>
+        <SanitizedProjectName>Soft4You_FMX_Controls_SuiteD</SanitizedProjectName>
+        <DCC_Description>Soft4You FMX Control Suite (design-time, open source, MPL 2.0)</DCC_Description>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Android)'!=''">
         <DCC_CBuilderOutput>None</DCC_CBuilderOutput>
@@ -116,7 +116,7 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <DCC_UsePackage>vcl;rtl;S4YFMXHTMLEditor;fmx;bindcomp;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>vcl;rtl;Soft4You.FMX.Controls.Suite;fmx;bindcomp;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
         <DCC_UsePackage>vcl;rtl;fmx;bindcomp;$(DCC_UsePackage)</DCC_UsePackage>
@@ -147,13 +147,13 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="S4YFMXHTMLEditorD.dcr"/>
+        <DCCReference Include="Soft4You.FMX.Controls.SuiteD.dcr"/>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="vcl.dcp"/>
         <DCCReference Include="fmx.dcp"/>
         <DCCReference Include="bindcomp.dcp"/>
         <DCCReference Include="designide.dcp"/>
-        <DCCReference Include="S4YFMXHTMLEditor.dcp"/>
+        <DCCReference Include="Soft4You.FMX.Controls.Suite.dcp"/>
         <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.FMX.Controls.HTMLEditor.Design.pas"/>
         <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.FMX.Controls.HTMLEditor.Splash.pas"/>
         <BuildConfiguration Include="Base">
@@ -180,7 +180,7 @@
                     <Excluded_Packages Name="C:\Program Files (x86)\FastReport VCL Professional\LibD28\dclfsIBX28.bpl">FastScript 1.9 IBX Components</Excluded_Packages>
                 </Excluded_Packages>
                 <Source>
-                    <Source Name="MainSource">S4YFMXHTMLEditorD.dpk</Source>
+                    <Source Name="MainSource">Soft4You.FMX.Controls.SuiteD.dpk</Source>
                 </Source>
             </Delphi.Personality>
             <Deployment Version="4">
@@ -199,9 +199,9 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="..\..\..\..\..\..\..\Public\Documents\Embarcadero\Studio\22.0\Bpl\S4YFMXHTMLEditorD.bpl" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="..\..\..\..\..\..\..\Public\Documents\Embarcadero\Studio\22.0\Bpl\Soft4You.FMX.Controls.SuiteD.bpl" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
-                        <RemoteName>S4YFMXHTMLEditorD.bpl</RemoteName>
+                        <RemoteName>Soft4You.FMX.Controls.SuiteD.bpl</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
