@@ -1,137 +1,139 @@
-# Analisi: Filtraggio figli in TS4YFlexBox.BuildContext
+# Analysis: filtering the children in TS4YFlexBox.BuildContext
 
-> Nota: analisi storica. Con l'introduzione di `TS4YFlexItem` il flexbox posiziona solo gli item (`TS4YFlexBox.IsFlexChild`); i filtri qui descritti restano validi per `Visible`, `csLoading` e `csDestroying`, mentre il controllo su `Align` non e' piu' necessario perche' i controlli vivono dentro gli item.
+> Note: historical analysis. Since `TS4YFlexItem` was introduced the flexbox only positions the items (`TS4YFlexBox.IsFlexChild`); the filters described here are still valid for `Visible`, `csLoading` and `csDestroying`, while the check on `Align` is no longer needed because the controls live inside the items.
 
-## Il problema in dettaglio
+## The problem in detail
 
-In FMX la gerarchia visuale si divide in **due livelli distinti**:
+In FMX the visual hierarchy is split into **two distinct levels**:
 
 ```
-TFmxObject.Children[]      → lista RAW di tutti i figli dell'oggetto FMX
-TControl.Controls[]        → sottoinsieme filtrato: solo i TControl diretti
+TFmxObject.Children[]      → RAW list of all the children of the FMX object
+TControl.Controls[]        → filtered subset: only the direct TControls
 ```
 
-`Controls[]` è già un filtro rispetto a `Children[]` (esclude i `TFmxObject` non-TControl),
-ma **non è sufficiente** per il nostro scopo. Ci sono almeno tre categorie di figli
-che `Controls[]` include e che TS4YFlexBox NON deve layoutare:
+`Controls[]` is already a filter compared to `Children[]` (it excludes the
+`TFmxObject`s that are not a `TControl`), but it is **not enough** for our purpose.
+There are at least three categories of children that `Controls[]` includes and
+that TS4YFlexBox must NOT lay out:
 
 ---
 
-## Categoria 1 — Style objects (csSubComponent)
+## Category 1 — Style objects (csSubComponent)
 
-I controlli `TStyledControl` (TButton, TEdit, TPanel, ecc.) creano a runtime
-un albero di "style objects" e lo aggiungono come figlio diretto.
-Questi oggetti hanno `csSubComponent` nel `ComponentStyle` e/o `StyleName <> ''`.
+The `TStyledControl`s (TButton, TEdit, TPanel, ...) create a tree of "style
+objects" at run time and add it as a direct child. These objects have
+`csSubComponent` in `ComponentStyle` and/or `StyleName <> ''`.
 
 ```
-TButton (nostro figlio flex)
-  └── TRectangle  [style]       ← Controls[0] di TButton, ma anche Controls[?] di noi?
+TButton (our flex child)
+  └── TRectangle  [style]       ← Controls[0] of the TButton, but also Controls[?] of ours?
 ```
 
-**In realtà**: gli style objects vengono aggiunti come figli del TStyledControl stesso,
-non del nostro TS4YFlexBox. Quindi `Controls[]` di TS4YFlexBox **non li vede direttamente**.
-Questo problema riguarda solo i figli DIRETTI con `csSubComponent` impostato da noi,
-che in questo caso non esistono. ✅ Non ci tocca.
+**In fact**: the style objects are added as children of the TStyledControl itself,
+not of our TS4YFlexBox. So `Controls[]` of TS4YFlexBox **does not see them
+directly**. This problem only concerns DIRECT children with `csSubComponent` set
+by us, which in this case do not exist. ✅ It does not concern us.
 
 ---
 
-## Categoria 2 — TAnimation, TEffect, e altri TFmxObject non-TControl
+## Category 2 — TAnimation, TEffect and other TFmxObjects that are not a TControl
 
-Quando si aggiunge una `TFloatAnimation` o un `TEffect` a un figlio,
-questi oggetti vengono aggiunti a `Children[]` del figlio, non del TS4YFlexBox.
-`Controls[]` filtra già i non-TControl. ✅ Non ci tocca.
+When a `TFloatAnimation` or a `TEffect` is added to a child, these objects are
+added to `Children[]` of the child, not of the TS4YFlexBox. `Controls[]` already
+filters the non-TControls. ✅ It does not concern us.
 
 ---
 
-## Categoria 3 — Il problema REALE: figli con Align <> alNone
+## Category 3 — The REAL problem: children with Align <> alNone
 
-Questo è il caso che conta. FMX gestisce i figli in due modi:
+This is the case that matters. FMX manages the children in two ways:
 
-1. **Align = alNone**: posizione libera, gestita da noi tramite `SetBounds`
-2. **Align <> alNone** (Top, Bottom, Client, ecc.): posizione gestita da FMX stesso
-   tramite il suo sistema di allineamento nativo
+1. **Align = alNone**: free position, managed by us through `SetBounds`
+2. **Align <> alNone** (Top, Bottom, Client, ...): position managed by FMX itself
+   through its native alignment system
 
-Se un figlio ha `Align = TAlignLayout.Client`, FMX lo posiziona lui.
-Se poi TS4YFlexBox chiama `SetBounds` su di lui, i due sistemi si pestano i piedi
-e il controllo rimbalza indefinitamente tra le due posizioni.
+If a child has `Align = TAlignLayout.Client`, FMX positions it. If TS4YFlexBox
+then calls `SetBounds` on it, the two systems step on each other's toes and the
+control bounces endlessly between the two positions.
 
-**Soluzione già presente nel nostro codice:**
+**Solution already present in our code:**
 ```pascal
 if Child.Align <> TAlignLayout.None then Continue;
 ```
-Questo esclude correttamente i figli "gestiti da FMX". ✅ Già corretto.
+This correctly excludes the children "managed by FMX". ✅ Already correct.
 
 ---
 
-## Categoria 4 — Il problema REALE #2: ControlsCount vs Children durante DoRealign
+## Category 4 — The REAL problem #2: ControlsCount vs Children during DoRealign
 
-`ControlsCount` e `Controls[]` restituiscono i figli **al momento della chiamata**.
-Durante `DoRealign`, FMX può stare ancora costruendo l'albero (es. caricamento DFM).
-Il rischio è iterare una lista in modifica.
+`ControlsCount` and `Controls[]` return the children **at the time of the call**.
+During `DoRealign`, FMX may still be building the tree (for example while loading
+the DFM). The risk is iterating over a list that is being modified.
 
-**Fix**: snapshot della lista figli all'inizio di `BuildContext`, prima di qualsiasi
-operazione che potrebbe modificarla.
+**Fix**: a snapshot of the list of children at the beginning of `BuildContext`,
+before any operation that could modify it.
 
 ---
 
-## Categoria 5 — Il problema REALE #3: OriginalIndex non è l'indice in Controls[]
+## Category 5 — The REAL problem #3: OriginalIndex is not the index in Controls[]
 
-Nel codice attuale, `Input.OriginalIndex := I` usa `I` come indice nel loop,
-ma questo indice **salta** i figli filtrati (invisibili, Align <> None).
-Quindi `OriginalIndex` non corrisponde più all'indice in `Controls[]`.
+In the current code, `Input.OriginalIndex := I` uses `I` as the index in the loop,
+but this index **skips** the filtered children (invisible, Align <> None). So
+`OriginalIndex` no longer matches the index in `Controls[]`.
 
-In `ApplyResults` poi facciamo `Controls[R.OriginalIndex]` che punta al controllo
-SBAGLIATO se ci sono buchi nella sequenza.
+In `ApplyResults` we then do `Controls[R.OriginalIndex]`, which points to the
+WRONG control if there are holes in the sequence.
 
-**Questo è il bug più insidioso e silenzioso dell'implementazione attuale.**
+**This is the most insidious and silent bug of the current implementation.**
 
-### Esempio del bug:
+### Example of the bug:
 ```
-Controls[0] = Button1   (Align=Top    → saltato)
-Controls[1] = Button2   (Align=None   → incluso, OriginalIndex=0 ← SBAGLIATO)
-Controls[2] = Button3   (invisible    → saltato)
-Controls[3] = Button4   (Align=None   → incluso, OriginalIndex=1 ← SBAGLIATO)
+Controls[0] = Button1   (Align=Top    → skipped)
+Controls[1] = Button2   (Align=None   → included, OriginalIndex=0 ← WRONG)
+Controls[2] = Button3   (invisible    → skipped)
+Controls[3] = Button4   (Align=None   → included, OriginalIndex=1 ← WRONG)
 ```
-`ApplyResults` scrive su `Controls[0]` (Button1) invece di `Controls[1]` (Button2).
+`ApplyResults` writes to `Controls[0]` (Button1) instead of `Controls[1]`
+(Button2).
 
 ---
 
-## La Fix
+## The fix
 
-La soluzione corretta è usare un **riferimento diretto al TControl** invece
-dell'indice. Costruiamo un array parallelo `FlexChildren: TArray<TControl>`
-che contiene esattamente i figli che partecipano al layout, nello stesso ordine
-degli `Items` del `TFlexContext`.
+The correct solution is to use a **direct reference to the TControl** instead of
+the index. We build a parallel array `FlexChildren: TArray<TControl>` that
+contains exactly the children that take part in the layout, in the same order as
+the `Items` of the `TFlexContext`.
 
-`OriginalIndex` diventa allora l'indice in `FlexChildren[]`, non in `Controls[]`.
+`OriginalIndex` then becomes the index in `FlexChildren[]`, not in `Controls[]`.
 
 ```pascal
-// BuildContext restituisce anche i figli partecipanti
+// BuildContext also returns the participating children
 function BuildContext(out FlexChildren: TArray<TControl>): TFlexContext;
 
-// ApplyResults usa direttamente i riferimenti
+// ApplyResults uses the references directly
 procedure ApplyResults(const Results: TArray<TFlexItemResult>;
                        const FlexChildren: TArray<TControl>);
 ```
 
 In `ApplyResults`:
 ```pascal
-// Prima (SBAGLIATO):
+// Before (WRONG):
 Child := TControl(Controls[R.OriginalIndex]);
 
-// Dopo (CORRETTO):
+// After (CORRECT):
 Child := FlexChildren[R.OriginalIndex];
 ```
 
-`OriginalIndex` è l'indice in `FlexChildren`, che è un array compatto senza buchi,
-costruito nello stesso momento e con gli stessi filtri di `BuildContext`.
+`OriginalIndex` is the index in `FlexChildren`, which is a compact array without
+holes, built at the same moment and with the same filters as `BuildContext`.
 
 ---
 
-## Fix secondaria: invisibilità durante il layout
+## Secondary fix: invisibility during the layout
 
-Un figlio può diventare invisibile *mentre* siamo in `DoRealign` (raro ma possibile
-in animazioni). Dobbiamo anche difenderci da `nil` nell'array:
+A child can become invisible *while* we are in `DoRealign` (rare but possible in
+animations). We must also defend ourselves against `nil` in the array:
 
 ```pascal
 if (R.OriginalIndex < 0) or (R.OriginalIndex > High(FlexChildren)) then Continue;
@@ -141,33 +143,33 @@ if (Child = nil) or not Child.Visible then Continue;
 
 ---
 
-## Riepilogo filtri da applicare in BuildContext
+## Summary of the filters to apply in BuildContext
 
-Un figlio partecipa al layout FlexBox se e solo se:
+A child takes part in the FlexBox layout if and only if:
 
 ```pascal
 function IsFlexChild(Child: TControl): Boolean;
 begin
   Result :=
-    Assigned(Child)                              and  // non nil
-    Child.Visible                                and  // visibile
-    (Child.Align = TAlignLayout.None)            and  // non gestito da FMX
-    not (csDestroying in Child.ComponentState)   and  // non in distruzione
-    not (csLoading in Child.ComponentState);          // non ancora caricato
+    Assigned(Child)                              and  // not nil
+    Child.Visible                                and  // visible
+    (Child.Align = TAlignLayout.None)            and  // not managed by FMX
+    not (csDestroying in Child.ComponentState)   and  // not being destroyed
+    not (csLoading in Child.ComponentState);          // not loaded yet
 end;
 ```
 
-Il check `csLoading` è importante: durante il caricamento del DFM i figli vengono
-aggiunti uno alla volta. Se `DoRealign` viene chiamato mentre il DFM non è ancora
-completamente letto, alcuni figli non hanno ancora le dimensioni corrette.
-La soluzione è anche controllare `csLoading in ComponentState` del TS4YFlexBox stesso:
+The `csLoading` check is important: while the DFM is loading, the children are
+added one at a time. If `DoRealign` is called while the DFM has not been fully
+read yet, some children do not have the correct size yet. The solution is also to
+check `csLoading in ComponentState` of the TS4YFlexBox itself:
 
 ```pascal
 procedure TS4YFlexBox.DoRealign;
 begin
   if FInLayout > 0 then Exit;
-  if csLoading in ComponentState then Exit;   // ← aggiunto
-  if csDestroying in ComponentState then Exit; // ← aggiunto
+  if csLoading in ComponentState then Exit;   // ← added
+  if csDestroying in ComponentState then Exit; // ← added
   ...
 end;
 ```
