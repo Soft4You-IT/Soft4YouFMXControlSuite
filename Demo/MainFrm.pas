@@ -214,6 +214,7 @@ type
     procedure actFindTextExecute(Sender: TObject);
     procedure actFindNextExecute(Sender: TObject);
     procedure actFindPreviousExecute(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; var KeyChar: System.WideChar; Shift: TShiftState);
     procedure actSaveToHTMLFileExecute(Sender: TObject);
     procedure actInsertImageExecute(Sender: TObject);
     procedure actInsertInlineImageExecute(Sender: TObject);
@@ -677,6 +678,21 @@ begin
   end;
 
   HTMLEditor.FindPrevious(FLastSearchText);
+end;
+
+// F3 and Shift+F3 are handled here because FMX (Delphi 11) does not match the ShortCut of an action
+// for the function keys F1-F11; the editor leaves the keys it does not use to the form
+procedure TfrmMain.FormKeyDown(Sender: TObject; var Key: Word; var KeyChar: System.WideChar; Shift: TShiftState);
+begin
+  if (Key <> vkF3) or ((Shift <> []) and (Shift <> [ssShift])) then
+    Exit;
+
+  if ssShift in Shift then
+    actFindPrevious.Execute
+  else
+    actFindNext.Execute;
+
+  Key := 0;
 end;
 
 // The dialog can be asynchronous (mobile platforms), so the search runs inside its callback
