@@ -709,12 +709,14 @@ begin
   LR := Round(TAlphaColorRec(AColor).R * AFactor);
   LG := Round(TAlphaColorRec(AColor).G * AFactor);
   LB := Round(TAlphaColorRec(AColor).B * AFactor);
+
   if LR > 255 then
     LR := 255;
   if LG > 255 then
     LG := 255;
   if LB > 255 then
     LB := 255;
+
   Result := TAlphaColor(($FF shl 24) or (LR shl 16) or (LG shl 8) or LB);
 end;
 
@@ -747,10 +749,12 @@ var
 begin
   if not AText.Contains('%') then
     Exit(AText);
+
   LUtf8 := TEncoding.UTF8.GetBytes(AText);
   SetLength(LBytes, Length(LUtf8));
   LCount := 0;
   LIndex := 0;
+
   while LIndex < Length(LUtf8) do
   begin
     if (LUtf8[LIndex] = Ord('%')) and (LIndex + 2 < Length(LUtf8)) and
@@ -764,8 +768,10 @@ begin
       LBytes[LCount] := LUtf8[LIndex];
       Inc(LIndex);
     end;
+
     Inc(LCount);
   end;
+
   Result := TEncoding.UTF8.GetString(LBytes, 0, LCount);
 end;
 
@@ -778,12 +784,15 @@ var
 begin
   if not StartsWithCI(AUrl, 'file:') then
     Exit(AUrl);
+
   LRest := AUrl.Substring(5);
   LAuthority := '';
+
   if LRest.StartsWith('//') then
   begin
     LRest := LRest.Substring(2);
     LSlash := LRest.IndexOf('/');
+
     if LSlash < 0 then
     begin
       LAuthority := LRest;
@@ -795,15 +804,20 @@ begin
       LRest := LRest.Substring(LSlash);
     end;
   end;
+
   LRest := DecodePercentEscapes(LRest);
+
 {$IFDEF MSWINDOWS}
   // '/C:/dir' -> 'C:/dir'
   if (Length(LRest) >= 3) and (LRest[Low(LRest)] = '/') and (LRest[Low(LRest) + 2] = ':') then
     LRest := LRest.Substring(1);
+
   LRest := LRest.Replace('/', PathDelim);
+
   if (LAuthority <> '') and not SameText(LAuthority, 'localhost') then
     LRest := PathDelim + PathDelim + LAuthority + LRest;
 {$ENDIF}
+
   Result := LRest;
 end;
 
@@ -815,10 +829,13 @@ var
 begin
   Result := False;
   LColon := ASource.IndexOf(':');
+
   // A scheme has at least 2 characters ('C:' is a drive letter, not a scheme)
   if LColon < 2 then
     Exit;
+
   Result := True;
+
   for LIndex := 0 to LColon - 1 do
   begin
     if not CharInSet(ASource[Low(ASource) + LIndex], ['a'..'z', 'A'..'Z', '0'..'9', '+', '-', '.']) then
@@ -849,10 +866,13 @@ function ResolveImagePath(const ASource, ADocumentPath: string; AMode: TS4YImage
 begin
   if StartsWithCI(ASource, 'file:') then
     Exit(FileUrlToPath(ASource));
+
   Result := ASource;
+
   if IsRelativeLocalPath(ASource) then
   begin
     Result := ASource.Replace('\', PathDelim);
+
     if (AMode = ipmDocument) and (ADocumentPath <> '') then
       Result := TPath.GetFullPath(TPath.Combine(ADocumentPath, Result));
   end;
@@ -869,16 +889,20 @@ begin
   Result := ASource;
   if ADocumentPath = '' then
     Exit;
+
   if StartsWithCI(ASource, 'file:') then
     LPath := FileUrlToPath(ASource)
   else if (ASource <> '') and not HasUrlScheme(ASource) then
     LPath := ASource
   else
     Exit;
+
   if TPath.IsRelativePath(LPath) then
     Exit;
+
   LBase := IncludeTrailingPathDelimiter(TPath.GetFullPath(ADocumentPath));
   LFullPath := TPath.GetFullPath(LPath);
+
 {$IFDEF MSWINDOWS}
   if LFullPath.StartsWith(LBase, True) then
 {$ELSE}
@@ -897,8 +921,10 @@ begin
   Result := False;
   if (APath = '') or (AFolder = '') then
     Exit;
+
   LBase := IncludeTrailingPathDelimiter(TPath.GetFullPath(AFolder));
   LFullPath := TPath.GetFullPath(APath);
+
 {$IFDEF MSWINDOWS}
   Result := LFullPath.StartsWith(LBase, True);
 {$ELSE}
@@ -923,7 +949,9 @@ begin
       LBuilder.Append('file://')
     else
       LBuilder.Append('file:///');
+
     LBytes := TEncoding.UTF8.GetBytes(LPath);
+
     for LByte in LBytes do
     begin
       if CharInSet(Char(LByte), ['a'..'z', 'A'..'Z', '0'..'9', '-', '.', '_', '~', '/', ':']) then
@@ -931,6 +959,7 @@ begin
       else
         LBuilder.Append('%' + IntToHex(LByte, 2));
     end;
+
     Result := LBuilder.ToString;
   finally
     LBuilder.Free;
@@ -941,6 +970,7 @@ end;
 function ImageSourceToFileUrl(const ASource: string): string;
 begin
   Result := ASource;
+
   if IsRelativeLocalPath(ASource) then
     Result := PathToFileUrl(TPath.GetFullPath(ASource.Replace('\', PathDelim)));
 end;
