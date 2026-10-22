@@ -2,6 +2,7 @@ object BadgeDemoForm: TBadgeDemoForm
   Left = 0
   Top = 0
   Caption = 'TS4YBadge demo'
+  Position = ScreenCenter
   ClientHeight = 460
   ClientWidth = 680
   FormFactor.Width = 320
