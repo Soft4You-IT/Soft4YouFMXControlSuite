@@ -1396,7 +1396,8 @@ implementation
 
 uses
   System.IOUtils,
-  System.Generics.Defaults;
+  System.Generics.Defaults,
+  Soft4You.FMX.Controls.HTMLEditor.Strings;
 
 // -----------------------------------------------------------------------------
 // FMX helper for TS4YHTMLTextStyle
@@ -5550,14 +5551,14 @@ procedure TS4YHTMLEditor.BuildContextMenu;
 begin
   FContextMenu := TPopupMenu.Create(Self);
   FContextMenu.Stored := False;
-  AddItem('Undo', C_CONTEXT_POPUP_ITEM_UNDO);
-  AddItem('Redo', C_CONTEXT_POPUP_ITEM_REDO);
+  AddItem(S_CONTEXT_MENU_UNDO, C_CONTEXT_POPUP_ITEM_UNDO);
+  AddItem(S_CONTEXT_MENU_REDO, C_CONTEXT_POPUP_ITEM_REDO);
   AddSeparator;
-  AddItem('Cut', C_CONTEXT_POPUP_ITEM_CUT);
-  AddItem('Copy', C_CONTEXT_POPUP_ITEM_COPY);
-  AddItem('Paste', C_CONTEXT_POPUP_ITEM_PASTE);
+  AddItem(S_CONTEXT_MENU_CUT, C_CONTEXT_POPUP_ITEM_CUT);
+  AddItem(S_CONTEXT_MENU_COPY, C_CONTEXT_POPUP_ITEM_COPY);
+  AddItem(S_CONTEXT_MENU_PASTE, C_CONTEXT_POPUP_ITEM_PASTE);
   AddSeparator;
-  AddItem('Select All', C_CONTEXT_POPUP_ITEM_SELECT_ALL);
+  AddItem(S_CONTEXT_MENU_SELECT_ALL, C_CONTEXT_POPUP_ITEM_SELECT_ALL);
   PopupMenu := FContextMenu;
 end;
 

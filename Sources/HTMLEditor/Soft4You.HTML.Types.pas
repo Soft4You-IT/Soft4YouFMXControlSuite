@@ -41,12 +41,12 @@ const
   C_FONT_SIZE_HUGE       = 24.0;
 
 resourcestring
-  S_FONT_SIZE_VERY_SMALL = 'Molto piccolo';
-  S_FONT_SIZE_SMALL      = 'Piccolo';
-  S_FONT_SIZE_MEDIUM     = 'Normale';
-  S_FONT_SIZE_LARGE      = 'Grande';
-  S_FONT_SIZE_VERY_LARGE = 'Molto grande';
-  S_FONT_SIZE_HUGE       = 'Enorme';
+  S_FONT_SIZE_VERY_SMALL = 'Very small';
+  S_FONT_SIZE_SMALL      = 'Small';
+  S_FONT_SIZE_MEDIUM     = 'Normal';
+  S_FONT_SIZE_LARGE      = 'Large';
+  S_FONT_SIZE_VERY_LARGE = 'Very large';
+  S_FONT_SIZE_HUGE       = 'Huge';
 
 const
   /// <summary>Color of the border of a table cell when the table has borders and the cell does not say otherwise.</summary>
