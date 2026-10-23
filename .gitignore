@@ -44,6 +44,11 @@
 *.cfg
 *Resource.rc
 
+# Package resources are regenerated at every build (from the .rc files and the
+# project version info). Application .res files stay tracked: without them the
+# application loses its icon.
+Packages/**/*.res
+
 # Delphi local files (user-specific info)
 *.local
 *.identcache
