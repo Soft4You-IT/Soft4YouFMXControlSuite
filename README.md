@@ -32,7 +32,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 ## Requirements
 
 - Delphi 11 Alexandria or newer with FireMonkey (FMX).
-  The project files in `Packages\D12` and `Packages\D13` are copies of the Delphi 11 ones: the IDE upgrades them the first time it opens them. They have not been verified on Delphi 13 yet.
+  The project files in `Packages\D12` and `Packages\D13` are copies of the Delphi 11 ones: the IDE upgrades them the first time it opens them. They have been built and installed on Delphi 12 and on Delphi 13.1.
 - Optional: [Skia4Delphi](https://github.com/skia4delphi/skia4delphi) (MIT license), only for the unit `Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia` that renders SVG images (see [SVG images](#svg-images)). The packages do not require it; its platform support (for example Delphi 12 for Android) applies to that unit.
 
 ---
