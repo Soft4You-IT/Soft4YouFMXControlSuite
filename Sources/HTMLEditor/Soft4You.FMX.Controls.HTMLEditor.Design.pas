@@ -71,14 +71,15 @@ begin
   LForm := TForm.CreateNew(nil);
   try
     LForm.Caption  := 'HTML';
-    LForm.Width    := C_DLG_W;
-    LForm.Height   := C_DLG_H;
+    LForm.ClientWidth  := C_DLG_W;
+    LForm.ClientHeight := C_DLG_H;
     LForm.Position := poScreenCenter;
 
     LPanel            := TPanel.Create(LForm);
     LPanel.Parent     := LForm;
     LPanel.Align      := alBottom;
     LPanel.Height     := C_PANEL_H;
+    LPanel.Width      := LForm.ClientWidth;
     LPanel.BevelOuter := bvNone;
 
     LButtonCancel             := TButton.Create(LPanel);
@@ -89,7 +90,7 @@ begin
     LButtonCancel.Width       := C_BTN_W;
     LButtonCancel.Height      := C_BTN_H;
     LButtonCancel.Anchors     := [akRight, akTop];
-    LButtonCancel.Left        := C_DLG_W - C_BTN_W - C_MARGIN;
+    LButtonCancel.Left        := LForm.ClientWidth - C_BTN_W - C_MARGIN;
     LButtonCancel.Top         := (C_PANEL_H - C_BTN_H) div 2;
 
     LButtonOk             := TButton.Create(LPanel);
@@ -100,7 +101,7 @@ begin
     LButtonOk.Width       := C_BTN_W;
     LButtonOk.Height      := C_BTN_H;
     LButtonOk.Anchors     := [akRight, akTop];
-    LButtonOk.Left        := C_DLG_W - (C_BTN_W + C_MARGIN) * 2;
+    LButtonOk.Left        := LForm.ClientWidth - (C_BTN_W + C_MARGIN) * 2;
     LButtonOk.Top         := LButtonCancel.Top;
 
     LMemo            := TMemo.Create(LForm);
