@@ -1,0 +1,59 @@
+﻿package Soft4You.FMX.Controls.Suite;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'Soft4You FMX Control Suite (runtime, open source, MPL 2.0)'}
+{$LIBSUFFIX AUTO}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  rtl,
+  fmx,
+  bindengine,
+  bindcomp;
+
+contains
+  Soft4You.FMX.Controls.HTMLEditor in '..\..\Sources\HTMLEditor\Soft4You.FMX.Controls.HTMLEditor.pas',
+  Soft4You.FMX.Clipboard.Html in '..\..\Sources\HTMLEditor\Soft4You.FMX.Clipboard.Html.pas',
+  Soft4You.Unicode.EmojiData in '..\..\Sources\HTMLEditor\Soft4You.Unicode.EmojiData.pas',
+  Soft4You.HTML.Types in '..\..\Sources\HTMLEditor\Soft4You.HTML.Types.pas',
+  Soft4You.HTML.Document in '..\..\Sources\HTMLEditor\Soft4You.HTML.Document.pas',
+  Soft4You.HTML.Parser in '..\..\Sources\HTMLEditor\Soft4You.HTML.Parser.pas',
+  Soft4You.HTML.Generator in '..\..\Sources\HTMLEditor\Soft4You.HTML.Generator.pas',
+  Soft4You.HTML.ImageExporter in '..\..\Sources\HTMLEditor\Soft4You.HTML.ImageExporter.pas',
+  Soft4You.HTML.Colors in '..\..\Sources\HTMLEditor\Soft4You.HTML.Colors.pas',
+  Soft4You.FMX.Controls.FlexBox.Engine in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Engine.pas',
+  Soft4You.FMX.Controls.FlexBox.Strings in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Strings.pas',
+  Soft4You.FMX.Controls.FlexBox.Types in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Types.pas',
+  Soft4You.FMX.Controls.FlexBox.SizeConstraints in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.SizeConstraints.pas',
+  Soft4You.FMX.Controls.FlexBox.ItemBase in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.ItemBase.pas',
+  Soft4You.FMX.Controls.FlexBox.Breakpoints in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Breakpoints.pas',
+  Soft4You.FMX.Controls.FlexBox in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.pas',
+  Soft4You.FMX.Controls.Badge in '..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.pas',
+  Soft4You.FMX.Controls.Expander in '..\..\Sources\Expander\Soft4You.FMX.Controls.Expander.pas';
+
+end.
