@@ -36,11 +36,11 @@ uses
 
 type
   TS4YBadgeStyle = (
-    bdgsNumeric,        // Only current value is display if it's > 0. Max value property, controls the max value displayed
-    bdgsText            // Only text value is displayed is <> EmptyStr
+    bdgsNumeric,        // Only current value is displayed if it's > 0. Max value property, controls the max value displayed
+    bdgsText            // Only text value is displayed if <> EmptyStr
   );
 
-  // Used for autopositioning of the control relative to ParentControl
+  // Used for autopositioning of the badge control relative to ParentControl
   TS4YBadgeAutoPosition = (
     bdgpNone,                                          // No automatic positioning
     bdgpUpLeft, bdgpUpCenter, bdgpUpRight,
@@ -62,10 +62,10 @@ type
   );
   TS4YBadgeStyledBrushes = set of TS4YBadgeStyledBrush;
 
-  // Used internally to tarce blink state
+  // Used internally to trace blink state
   TS4YBadgeBlinkState = (
-    bbsVisible,         // The controls are visible
-    bbsHidden           // The controls are hidden
+    bbsVisible,         // The badge control is visible
+    bbsHidden           // The badge control is hidden
   );
 
 
