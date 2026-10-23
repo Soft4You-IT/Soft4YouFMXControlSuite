@@ -48,8 +48,13 @@ implementation
 uses
   System.SysUtils,
   System.Types,
+  {$IF Defined(S4Y_SKIA_LEGACY_UNITS) or (CompilerVersion < 36.0)}
   Skia,
   Skia.FMX,
+  {$ELSE}
+  System.Skia,
+  FMX.Skia,
+  {$IFEND}
   Soft4You.FMX.Controls.HTMLEditor;
 
 const
