@@ -152,6 +152,7 @@
         <DCCReference Include="bindengine.dcp"/>
         <DCCReference Include="bindcomp.dcp"/>
         <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.FMX.Controls.HTMLEditor.pas"/>
+        <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.FMX.Controls.HTMLEditor.Strings.pas"/>
         <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.FMX.Clipboard.Html.pas"/>
         <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.Unicode.EmojiData.pas"/>
         <DCCReference Include="..\..\Sources\HTMLEditor\Soft4You.HTML.Types.pas"/>

@@ -41,7 +41,8 @@ uses
   Vcl.StdCtrls,
   Vcl.Controls,
   Vcl.ExtCtrls,
-  Soft4You.FMX.Controls.HTMLEditor;
+  Soft4You.FMX.Controls.HTMLEditor,
+  Soft4You.FMX.Controls.HTMLEditor.Strings;
 
 // -----------------------------------------------------------------------------
 // TS4YHTMLPropertyEditor
@@ -82,7 +83,7 @@ begin
 
     LButtonCancel             := TButton.Create(LPanel);
     LButtonCancel.Parent      := LPanel;
-    LButtonCancel.Caption     := 'Annulla';
+    LButtonCancel.Caption     := S_PROPERTY_EDITOR_CANCEL;
     LButtonCancel.ModalResult := mrCancel;
     LButtonCancel.Cancel      := True;
     LButtonCancel.Width       := C_BTN_W;

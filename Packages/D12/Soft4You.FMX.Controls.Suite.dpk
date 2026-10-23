@@ -38,6 +38,7 @@ requires
 
 contains
   Soft4You.FMX.Controls.HTMLEditor in '..\..\Sources\HTMLEditor\Soft4You.FMX.Controls.HTMLEditor.pas',
+  Soft4You.FMX.Controls.HTMLEditor.Strings in '..\..\Sources\HTMLEditor\Soft4You.FMX.Controls.HTMLEditor.Strings.pas',
   Soft4You.FMX.Clipboard.Html in '..\..\Sources\HTMLEditor\Soft4You.FMX.Clipboard.Html.pas',
   Soft4You.Unicode.EmojiData in '..\..\Sources\HTMLEditor\Soft4You.Unicode.EmojiData.pas',
   Soft4You.HTML.Types in '..\..\Sources\HTMLEditor\Soft4You.HTML.Types.pas',
