@@ -1,0 +1,37 @@
+unit Soft4You.FMX.Controls.Expander.Register;
+
+{ *****************************************************************************
+  Soft4You FMX Control Suite - FireMonkey (FMX) controls for Delphi
+  TS4YExpander - expander with an icon, a badge and an animated height
+  Original author: Carlo Marona (Soft4You) - 2026
+
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+  ***************************************************************************** }
+
+interface
+
+// ---------------------------------------------------------------------------
+// Component registration (called by the IDE when the design-time package
+// is installed)
+// ---------------------------------------------------------------------------
+procedure Register;
+
+implementation
+
+{$R ExpanderDesign.res}
+
+uses
+  System.Classes,
+  Soft4You.FMX.Controls.Expander;
+
+procedure Register;
+begin
+  // The icon is read automatically from the bitmap resource whose name
+  // matches the class name in upper case ('TS4YEXPANDER'), compiled into the
+  // .res from ExpanderDesign.rc.
+  RegisterComponents('Soft4You FMX Controls Suite', [TS4YExpander]);
+end;
+
+end.

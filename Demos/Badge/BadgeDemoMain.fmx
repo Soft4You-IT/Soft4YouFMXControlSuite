@@ -1,0 +1,293 @@
+object BadgeDemoForm: TBadgeDemoForm
+  Left = 0
+  Top = 0
+  Caption = 'TS4YBadge demo'
+  Position = ScreenCenter
+  ClientHeight = 460
+  ClientWidth = 680
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object DemoLayout: TLayout
+    Align = Client
+    Size.Width = 400.000000000000000000
+    Size.Height = 460.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object MessagesButton: TButton
+      Position.X = 60.000000000000000000
+      Position.Y = 60.000000000000000000
+      Size.Width = 140.000000000000000000
+      Size.Height = 44.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'Messages'
+      object MessagesBadge: TS4YBadge
+        AutoPosition.AutoPosition = bdgpUpRight
+        CurrentValue = 3
+        Position.X = 130.000000000000000000
+        Position.Y = -10.000000000000000000
+        Size.Width = 20.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'NEW'
+      end
+    end
+    object ReleaseNotesLabel: TLabel
+      Position.X = 60.000000000000000000
+      Position.Y = 150.000000000000000000
+      Size.Width = 110.000000000000000000
+      Size.Height = 24.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Release notes'
+      TabOrder = 1
+      object ReleaseNotesBadge: TS4YBadge
+        AutoPosition.AutoPosition = bdgpCenterRight
+        AutoPosition.OffsetX = bdpoOuter
+        BadgeStyle = bdgsText
+        Fill.Color = xFF4CAF50
+        Position.X = 112.000000000000000000
+        Position.Y = 2.000000000000000000
+        Size.Width = 20.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'NEW'
+      end
+    end
+    object HintLabel: TLabel
+      Align = Bottom
+      Margins.Left = 16.000000000000000000
+      Margins.Right = 16.000000000000000000
+      Margins.Bottom = 16.000000000000000000
+      Position.X = 16.000000000000000000
+      Position.Y = 364.000000000000000000
+      Size.Width = 368.000000000000000000
+      Size.Height = 80.000000000000000000
+      Size.PlatformDefault = False
+      Text =
+        'Both badges are children of the control they decorate: the AutoPosition property ' +
+        'places them on one of the nine positions of their parent. Change the settings on the right.'
+      TabOrder = 2
+    end
+  end
+  object SettingsPanel: TPanel
+    Align = Right
+    Position.X = 400.000000000000000000
+    Size.Width = 280.000000000000000000
+    Size.Height = 460.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object CurrentValueLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 12.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'CurrentValue (0 hides the badge)'
+      TabOrder = 0
+    end
+    object CurrentValueSpinBox: TSpinBox
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Top
+      TabOrder = 1
+      Cursor = crIBeam
+      Max = 500.000000000000000000
+      Value = 3.000000000000000000
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 32.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      OnChange = CurrentValueSpinBoxChange
+    end
+    object MaxValueLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 68.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'MaxValue (above it: 99+)'
+      TabOrder = 2
+    end
+    object MaxValueSpinBox: TSpinBox
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Top
+      TabOrder = 3
+      Cursor = crIBeam
+      Min = 1.000000000000000000
+      Max = 999.000000000000000000
+      Value = 99.000000000000000000
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 88.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      OnChange = MaxValueSpinBoxChange
+    end
+    object BadgeStyleLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 124.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'BadgeStyle'
+      TabOrder = 4
+    end
+    object BadgeStyleComboBox: TComboBox
+      Align = Top
+      Items.Strings = (
+        'Numeric (shows CurrentValue)'
+        'Text (shows Text)')
+      ItemIndex = 0
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 144.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 5
+      OnChange = BadgeStyleComboBoxChange
+    end
+    object TextLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 180.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Text (used by the text style)'
+      TabOrder = 6
+    end
+    object TextEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Top
+      TabOrder = 7
+      Text = 'NEW'
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 200.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      OnChangeTracking = TextEditChangeTracking
+    end
+    object PositionLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 236.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'AutoPosition (on the button)'
+      TabOrder = 8
+    end
+    object PositionComboBox: TComboBox
+      Align = Top
+      Items.Strings = (
+        'None'
+        'Up left'
+        'Up center'
+        'Up right'
+        'Center left'
+        'Center'
+        'Center right'
+        'Bottom left'
+        'Bottom center'
+        'Bottom right')
+      ItemIndex = 3
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 256.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 9
+      OnChange = PositionComboBoxChange
+    end
+    object OffsetLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 292.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Offset from the edges of the button'
+      TabOrder = 10
+    end
+    object OffsetComboBox: TComboBox
+      Align = Top
+      Items.Strings = (
+        'Inner'
+        'Edge'
+        'Outer')
+      ItemIndex = 1
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 312.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 11
+      OnChange = OffsetComboBoxChange
+    end
+    object BlinkCheckBox: TCheckBox
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 352.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 12
+      Text = 'Blink'
+      OnChange = BlinkCheckBoxChange
+    end
+    object AutoRadiusCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 376.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 13
+      Text = 'AutoRadius'
+      OnChange = AutoRadiusCheckBoxChange
+    end
+  end
+end

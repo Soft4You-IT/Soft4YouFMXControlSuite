@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FMX FlexBox — Architecture & Roadmap</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --border: #1e2230;
+    --accent: #4f9eff;
+    --accent2: #ff6b4a;
+    --accent3: #50e3a4;
+    --text: #e8eaf0;
+    --muted: #5a6070;
+    --phase1: #4f9eff;
+    --phase2: #a78bfa;
+    --phase3: #50e3a4;
+    --phase4: #ff6b4a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 40px 24px;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79,158,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,158,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 960px; margin: 0 auto; position: relative; z-index: 1; }
+
+  /* Header */
+  header { margin-bottom: 56px; }
+  .tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 3px 10px;
+    border-radius: 2px;
+    margin-bottom: 16px;
+    letter-spacing: 0.1em;
+  }
+  h1 {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+  h1 span { color: var(--accent); }
+  .subtitle {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 400;
+    max-width: 540px;
+    line-height: 1.6;
+  }
+
+  /* Stats bar */
+  .stats {
+    display: flex;
+    gap: 32px;
+    margin-top: 32px;
+    padding: 20px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    flex-wrap: wrap;
+  }
+  .stat { display: flex; flex-direction: column; gap: 4px; }
+  .stat-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .stat-label { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* Architecture */
+  .section-title {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .arch-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    transition: border-color 0.2s, transform 0.2s;
+    cursor: default;
+  }
+  .arch-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .arch-card.highlight { border-color: rgba(79,158,255,0.4); background: rgba(79,158,255,0.04); }
+
+  .arch-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent2);
+    margin-bottom: 10px;
+  }
+  .arch-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .arch-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .arch-tag {
+    display: inline-block;
+    margin-top: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    background: rgba(79,158,255,0.1);
+    color: var(--accent);
+  }
+
+  /* Properties grid */
+  .props-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 48px;
+  }
+  .prop-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: border-color 0.2s;
+    cursor: default;
+  }
+  .prop-item:hover { border-color: var(--accent3); }
+  .prop-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .prop-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+  }
+  .prop-owner { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  /* Phases / Roadmap */
+  .phases { display: flex; flex-direction: column; gap: 0; margin-bottom: 48px; }
+
+  .phase {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 0;
+    position: relative;
+  }
+
+  .phase-left {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding-right: 32px;
+    padding-bottom: 32px;
+    position: relative;
+  }
+  .phase-left::after {
+    content: '';
+    position: absolute;
+    right: 15px;
+    top: 28px;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+  .phase:last-child .phase-left::after { display: none; }
+
+  .phase-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid;
+    background: var(--bg);
+    position: absolute;
+    right: 9px;
+    top: 4px;
+    z-index: 1;
+  }
+  .phase-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-right: 6px;
+    margin-top: 2px;
+  }
+
+  .phase-content {
+    padding-bottom: 32px;
+    padding-left: 0;
+  }
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .phase-name { font-size: 17px; font-weight: 600; }
+  .phase-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+
+  .phase-tasks { display: flex; flex-direction: column; gap: 8px; }
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    user-select: none;
+  }
+  .task:hover { border-color: var(--muted); }
+  .task.done { opacity: 0.5; }
+  .task.done .task-text { text-decoration: line-through; }
+  .task-check {
+    width: 16px; height: 16px;
+    border-radius: 3px;
+    border: 1.5px solid var(--muted);
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, border-color 0.2s;
+    font-size: 10px;
+  }
+  .task.done .task-check { background: var(--accent3); border-color: var(--accent3); color: #000; }
+  .task-text { color: var(--text); }
+  .task-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* Class diagram */
+  .class-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px;
+    margin-bottom: 48px;
+    font-family: 'JetBrains Mono', monospace;
+    overflow-x: auto;
+  }
+  .class-diagram svg { width: 100%; max-width: 800px; display: block; margin: 0 auto; }
+
+  /* Progress */
+  .progress-bar-wrap {
+    margin-top: 6px;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    background: var(--accent3);
+  }
+  .progress-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  @media (max-width: 600px) {
+    .arch-grid { grid-template-columns: 1fr; }
+    .phase { grid-template-columns: 48px 1fr; }
+    .phase-left { padding-right: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="tag">// FMX · FIREMONKEY · DELPHI</div>
+    <h1>TFlexBox<br><span>Component</span></h1>
+    <p class="subtitle">Architecture and roadmap for a faithful implementation of the CSS FlexBox model in FireMonkey, cross-platform.</p>
+
+    <div class="stats">
+      <div class="stat"><span class="stat-val">14</span><span class="stat-label">CSS properties</span></div>
+      <div class="stat"><span class="stat-val">2</span><span class="stat-label">Components</span></div>
+      <div class="stat"><span class="stat-val">4</span><span class="stat-label">Phases</span></div>
+      <div class="stat"><span class="stat-val">4</span><span class="stat-label">Platforms</span></div>
+    </div>
+  </header>
+
+  <!-- Architecture -->
+  <div class="section-title">Component architecture</div>
+  <div class="arch-grid">
+    <div class="arch-card highlight">
+      <div class="arch-icon">// CONTAINER</div>
+      <div class="arch-title">TFlexBox</div>
+      <div class="arch-desc">Extends <code>TControl</code>. Intercepts <code>DoRealign</code> to calculate and apply the flex layout to all the direct children. Exposes all the container properties.</div>
+      <span class="arch-tag">TControl → TFlexBox</span>
+    </div>
+    <div class="arch-card">
+      <div class="arch-icon">// ITEM PROPS</div>
+      <div class="arch-title">TFlexItem</div>
+      <div class="arch-desc">Record/class attached to every child through a <code>TDictionary</code>. Holds <code>order, grow, shrink, basis, alignSelf</code>. Accessible through a helper on <code>TControl</code>.</div>
+      <span class="arch-tag">Per-child metadata</span>
+    </div>
+    <div class="arch-card">
+      <div class="arch-icon">// ENGINE</div>
+      <div class="arch-title">TFlexEngine</div>
+      <div class="arch-desc">Internal stateless class that implements the pure FlexBox algorithm. Receives a <code>TFlexContext</code> and returns the calculated rects for every child. Testable in isolation.</div>
+      <span class="arch-tag">Pure algorithm</span>
+    </div>
+    <div class="arch-card">
+      <div class="arch-icon">// HELPER</div>
+      <div class="arch-title">FlexHelper / IDE Reg</div>
+      <div class="arch-desc">Design-time registration in the package. Custom property editor for <code>TFlexItem</code>. <code>SetFlex(ctrl, grow, shrink, basis)</code> helper for programmatic use.</div>
+      <span class="arch-tag">Design time + fluent API</span>
+    </div>
+  </div>
+
+  <!-- Properties -->
+  <div class="section-title">Supported properties</div>
+  <div class="props-grid">
+    <!-- Container props -->
+    <div class="prop-item">
+      <div class="prop-dot" style="background:#4f9eff"></div>
+      <div><div class="prop-name">flex-direction</div><div class="prop-owner">Container</div></div>
+    </div>
+    <div class="prop-item">
+      <div class="prop-dot" style="background:#4f9eff"></div>
+      <div><div class="prop-name">flex-wrap</div><div class="prop-owner">Container</div></div>
+    </div>
+    <div class="prop-item">
+      <div class="prop-dot" style="background:#4f9eff"></div>
+      <div><div class="prop-name">justify-content</div><div class="prop-owner">Container</div></div>
+    </div>
+    <div class="prop-item">
+      <div class="prop-dot" style="background:#4f9eff"></div>
+      <div><div class="prop-name">align-items</div><div class="prop-owner">Container</div></div>
+    </div>
+    <div class="prop-item">
+      <div class="prop-dot" style="background:#4f9eff"></div>
+      <div><div class="prop-name">align-content</div><div class="prop-owner">Container</div></div>
+    </div>
+    <div class="prop-item">
+      <div class="prop-dot" style="background:#4f9eff"></div>
+      <div><div class="prop-name">gap</div><div class="prop-owner">Container</div></div>
+    </div>
+    <div class="prop-item">
+      <div class="prop-dot" style="background:#4f9eff"></div>
+      <div><div class="prop-name">row-gap</div><div class="prop-owner">Container</div></div>
+    </div>
+    <div class="prop-item">
+      <div class="prop-dot" style="background:#4f9eff"></div>
+      <div><div class="prop-name">column-gap</div><div class="prop-owner">Container</div></div>
+    </div>
+    <!-- Item props -->
+    <div class="prop-item">
+      <div class="prop-dot" style="background:#50e3a4"></div>
+      <div><div class="prop-name">flex-grow</div><div class="prop-owner">Item</div></div>
+    </div>
+    <div class="prop-item">
+      <div class="prop-dot" style="background:#50e3a4"></div>
+      <div><div class="prop-name">flex-shrink</div><div class="prop-owner">Item</div></div>
+    </div>
+    <div class="prop-item">
+      <div class="prop-dot" style="background:#50e3a4"></div>
+      <div><div class="prop-name">flex-basis</div><div class="prop-owner">Item</div></div>
+    </div>
+    <div class="prop-item">
+      <div class="prop-dot" style="background:#50e3a4"></div>
+      <div><div class="prop-name">align-self</div><div class="prop-owner">Item</div></div>
+    </div>
+    <div class="prop-item">
+      <div class="prop-dot" style="background:#50e3a4"></div>
+      <div><div class="prop-name">order</div><div class="prop-owner">Item</div></div>
+    </div>
+    <div class="prop-item">
+      <div class="prop-dot" style="background:#ff6b4a"></div>
+      <div><div class="prop-name">min/max size</div><div class="prop-owner">Native FMX</div></div>
+    </div>
+  </div>
+
+  <!-- Roadmap -->
+  <div class="section-title">Development roadmap</div>
+  <div class="phases" id="phases">
+
+    <!-- Phase 1 -->
+    <div class="phase">
+      <div class="phase-left">
+        <span class="phase-num">01</span>
+        <div class="phase-dot" style="border-color:#4f9eff"></div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <span class="phase-name">Foundation</span>
+          <span class="phase-badge" style="background:rgba(79,158,255,0.12);color:#4f9eff">Core engine</span>
+        </div>
+        <div class="phase-tasks">
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">Structure of TFlexBox, TFlexItem, TFlexEngine</div><div class="task-sub">Base classes, enumerations, TFlexContext record</div></div>
+          </div>
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">Override DoRealign in TFlexBox</div><div class="task-sub">Main hook in the FMX layout cycle</div></div>
+          </div>
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">Single-line algorithm: row + no-wrap</div><div class="task-sub">flex-direction row/column, justify-content, align-items</div></div>
+          </div>
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">flex-grow and flex-shrink distribution</div><div class="task-sub">Distribution of the remaining space with grow/shrink factors</div></div>
+          </div>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:0%"></div></div>
+        <div class="progress-label" id="prog1">0 / 4 completed</div>
+      </div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="phase">
+      <div class="phase-left">
+        <span class="phase-num">02</span>
+        <div class="phase-dot" style="border-color:#a78bfa"></div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <span class="phase-name">Wrapping & Items</span>
+          <span class="phase-badge" style="background:rgba(167,139,250,0.12);color:#a78bfa">Multi-line</span>
+        </div>
+        <div class="phase-tasks">
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">flex-wrap: wrap / wrap-reverse</div><div class="task-sub">Calculation of rows/columns, breaking the children by size</div></div>
+          </div>
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">align-content (multi-line)</div><div class="task-sub">Distribution of the lines in the cross-axis space</div></div>
+          </div>
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">align-self for single items</div><div class="task-sub">Override of align-items on the single child</div></div>
+          </div>
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">order property + sorting</div><div class="task-sub">Sorting the children before the layout without changing the Z-order</div></div>
+          </div>
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">flex-basis: auto / px / %</div><div class="task-sub">Resolution of the basis from Width/Height or from a percentage of the container</div></div>
+          </div>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:0%"></div></div>
+        <div class="progress-label" id="prog2">0 / 5 completed</div>
+      </div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="phase">
+      <div class="phase-left">
+        <span class="phase-num">03</span>
+        <div class="phase-dot" style="border-color:#50e3a4"></div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <span class="phase-name">Gap & Polish</span>
+          <span class="phase-badge" style="background:rgba(80,227,164,0.12);color:#50e3a4">Spacing</span>
+        </div>
+        <div class="phase-tasks">
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">gap / row-gap / column-gap</div><div class="task-sub">Spacing between items and between rows, integrated in the calculation of the remaining space</div></div>
+          </div>
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">Respect for MinWidth/MinHeight/MaxWidth/MaxHeight</div><div class="task-sub">Clamp during grow/shrink, recalculation of the deficit</div></div>
+          </div>
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">Padding of the container</div><div class="task-sub">Subtraction of the Padding from the available size</div></div>
+          </div>
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">Margins of the children</div><div class="task-sub">Use of the FMX Margins in the calculation of the occupied space</div></div>
+          </div>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:0%"></div></div>
+        <div class="progress-label" id="prog3">0 / 4 completed</div>
+      </div>
+    </div>
+
+    <!-- Phase 4 -->
+    <div class="phase">
+      <div class="phase-left">
+        <span class="phase-num">04</span>
+        <div class="phase-dot" style="border-color:#ff6b4a"></div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <span class="phase-name">Design-time & Package</span>
+          <span class="phase-badge" style="background:rgba(255,107,74,0.12);color:#ff6b4a">IDE</span>
+        </div>
+        <div class="phase-tasks">
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">IDE registration package</div><div class="task-sub">RegisterComponents, icon in the FMX palette</div></div>
+          </div>
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">Property editor for TFlexItem</div><div class="task-sub">Sub-properties grow/shrink/basis/order in the Object Inspector</div></div>
+          </div>
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">DFM streaming support</div><div class="task-sub">DefineProperties to persist the TFlexItems tied to the children</div></div>
+          </div>
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">Tests on iOS and Android</div><div class="task-sub">Check of the behaviour with pixel density and layout passes</div></div>
+          </div>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:0%"></div></div>
+        <div class="progress-label" id="prog4">0 / 4 completed</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Key decision -->
+  <div class="section-title">Key architectural decisions</div>
+  <div class="arch-grid" style="margin-bottom:0">
+    <div class="arch-card">
+      <div class="arch-icon">⚠ CRITICAL</div>
+      <div class="arch-title">DoRealign vs. DoCalcSize</div>
+      <div class="arch-desc">In FMX the layout happens in <code>DoRealign</code>. <code>SetBoundsRect</code> must be called on the children without triggering a loop. Use <code>FDisableAlign</code> or an internal flag during the calculation.</div>
+    </div>
+    <div class="arch-card">
+      <div class="arch-icon">⚠ CRITICAL</div>
+      <div class="arch-title">Persistence of TFlexItem in the DFM</div>
+      <div class="arch-desc">The flex metadata belong to the child but are managed by the parent. Solution: <code>DefineProperties</code> in <code>TFlexBox</code> that serializes a list <code>ChildName=grow,shrink,basis,order,alignSelf</code>.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function toggleTask(el) {
+    el.classList.toggle('done');
+    el.querySelector('.task-check').textContent = el.classList.contains('done') ? '✓' : '';
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const phases = document.querySelectorAll('.phase');
+    phases.forEach((phase, i) => {
+      const tasks = phase.querySelectorAll('.task');
+      const done = phase.querySelectorAll('.task.done').length;
+      const total = tasks.length;
+      const pct = total ? (done / total * 100) : 0;
+      const fill = phase.querySelector('.progress-bar-fill');
+      const label = phase.querySelector('.progress-label') || document.getElementById('prog'+(i+1));
+      if (fill) fill.style.width = pct + '%';
+      const lbl = document.getElementById('prog'+(i+1));
+      if (lbl) lbl.textContent = done + ' / ' + total + ' completed';
+    });
+  }
+
+  updateProgress();
+</script>
+</body>
+</html>

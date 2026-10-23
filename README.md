@@ -10,17 +10,29 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 
 | Folder | Content |
 |---|---|
-| `Sources` | All component units (`.pas`) |
-| `Packages` | Runtime and design-time packages, project group |
-| `Graphics` | Source artwork: `Icons\S4YHTMLEditor.svg` is the master of the Tool Palette icon (`TS4YHTMLEditor.bmp`, 24x24) and of the IDE splash screen and About box bitmaps (`S4YSplash.bmp`, `S4YAbout.bmp`), all compiled with `S4YFMXHTMLEditorD.rc` into `Packages\S4YFMXHTMLEditorD.dcr` |
-| `Demo` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files) |
-| `Docs` | Additional documentation: [`DeveloperGuide.md`](Docs/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals, in Italian) |
+| `Sources\HTMLEditor` | Units of the HTML editor (`.pas`) |
+| `Sources\FlexBox` | Units of the FlexBox control (`TS4YFlexBox`, `TS4YFlexItem`) |
+| `Sources\Badge` | Units of the Badge control (`TS4YBadge`), with its styles and resource scripts |
+| `Sources\Expander` | Units of the Expander control (`TS4YExpander`), with its styles and resource scripts |
+| `Sources\Design` | Design-time unit shared by all the controls of the suite (IDE splash screen and About box) |
+| `Packages\D11`, `D12`, `D13` | Runtime and design-time packages and the project group, one folder for each Delphi version (11, 12, 13) |
+| `Graphics` | Source artwork: `HTMLEditor\Icons\S4YHTMLEditor.svg` is the master of the Tool Palette icon (`TS4YHTMLEditor.bmp`, 24x24) and `HTMLEditor\Icons` holds the toolbar icons of the demo; `Soft4YouFMXControlSuite.svg` is the master of the icon of the suite, shown in the IDE splash screen and About box (`S4YSplash.bmp` and `S4YAbout.bmp`, 24x24). All are compiled with `Soft4You.FMX.Controls.SuiteD.rc` into `Packages\D11\Soft4You.FMX.Controls.SuiteD.dcr` |
+| `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files) |
+| `Demos\FlexBox` | Sample FMX dashboard built with `TS4YFlexBox` |
+| `Demos\Badge` | Sample FMX application with `TS4YBadge`: a counter and a text badge, and the settings to change them |
+| `Demos\Expander` | Sample FMX application with three `TS4YExpander`: a badge on the header, the animation and the header click |
+| `Docs` | Additional documentation: [`DeveloperGuide.md`](Docs/HTMLEditor/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals) |
+| `Docs\FlexBox` | Documentation of the FlexBox control: [`README.md`](Docs/FlexBox/README.md) (installation, properties, examples), analysis and roadmap |
+| `Docs\Badge` | Documentation of the Badge control: [`README.md`](Docs/Badge/README.md) |
+| `Docs\Expander` | Documentation of the Expander control: [`README.md`](Docs/Expander/README.md) |
+| `Tests\FlexBox` | DUnitX tests of the FlexBox layout engine |
 
 ---
 
 ## Requirements
 
 - Delphi 11 Alexandria or newer with FireMonkey (FMX).
+  The project files in `Packages\D12` and `Packages\D13` are copies of the Delphi 11 ones: the IDE upgrades them the first time it opens them. They have been built and installed on Delphi 12 and on Delphi 13.1.
 - Optional: [Skia4Delphi](https://github.com/skia4delphi/skia4delphi) (MIT license), only for the unit `Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia` that renders SVG images (see [SVG images](#svg-images)). The packages do not require it; its platform support (for example Delphi 12 for Android) applies to that unit.
 
 ---
@@ -41,7 +53,7 @@ Original author: **Carlo Marona (Soft4You)** — project started in 2026.
 
 ## Code documentation
 
-The public API (the `TS4YHTMLEditor` control, its events and the types in `Soft4You.HTML.Types`) is documented with DocXML comments (`/// <summary>`), which Delphi shows as Help Insight tooltips in the code editor. For behaviour and warnings that do not fit in a tooltip, read the [Developer Guide](Docs/DeveloperGuide.md).
+The public API (the `TS4YHTMLEditor` control, its events and the types in `Soft4You.HTML.Types`) is documented with DocXML comments (`/// <summary>`), which Delphi shows as Help Insight tooltips in the code editor. For behaviour and warnings that do not fit in a tooltip, read the [Developer Guide](Docs/HTMLEditor/DeveloperGuide.md).
 
 ---
 
@@ -64,17 +76,17 @@ The public API (the `TS4YHTMLEditor` control, its events and the types in `Soft4
 
 ## Installation
 
-1. Open `Packages\S4YFMXHTMLEditor.dpk` (runtime package) and **Build** it.
-2. Open `Packages\S4YFMXHTMLEditorD.dpk` (design-time package, registers the component and the HTML property editor) and **Build** and **Install** it.
+1. Open `Packages\D11\Soft4You.FMX.Controls.Suite.dpk` (runtime package; use `D12` or `D13` for those versions of Delphi) and **Build** it.
+2. Open `Packages\D11\Soft4You.FMX.Controls.SuiteD.dpk` (design-time package, registers the component and the HTML property editor) and **Build** and **Install** it.
 3. `TS4YHTMLEditor` appears in the Tool Palette under the registered category.
-4. Add the `Sources` folder to the Delphi library path (needed to compile the Demo and your own projects).
+4. Add the `Sources\HTMLEditor` folder to the Delphi library path (needed to compile your own projects; the demos find the units of the repository through the search path of their project, so a copy of the same units elsewhere in the library path, for example in another library, is not used by them).
 5. Add `Soft4You.FMX.Controls.HTMLEditor` to the `uses` clause of any unit that references the component programmatically.
 
 ---
 
 ## Quick Start
 
-For how the control behaves, when events fire and what to be careful about, read the [Developer Guide](Docs/DeveloperGuide.md).
+For how the control behaves, when events fire and what to be careful about, read the [Developer Guide](Docs/HTMLEditor/DeveloperGuide.md).
 
 ```delphi
 uses
@@ -166,7 +178,7 @@ end;
 | `PlaceholderPrefix` | `string` | `''` | Prefix that identifies a placeholder run in raw text |
 | `PlaceholderSuffix` | `string` | `''` | Suffix that identifies a placeholder run in raw text |
 | `PrettyHTML` | `Boolean` | `False` | Emit indented HTML from the generator |
-| `ReadOnly` | `Boolean` | `False` | Blocks the user's typing, deleting, paste and the editing shortcuts; selection, copy and link clicks still work. It does not block the editing methods called from code; see the [Developer Guide](Docs/DeveloperGuide.md#4-read-only-mode) |
+| `ReadOnly` | `Boolean` | `False` | Blocks the user's typing, deleting, paste and the editing shortcuts; selection, copy and link clicks still work. It does not block the editing methods called from code; see the [Developer Guide](Docs/HTMLEditor/DeveloperGuide.md#4-read-only-mode) |
 | `ShowBorder` | `Boolean` | `True` | Draws a 1px border around the control |
 | `Title` | `string` | `''` | Document title (used in `FullHTML` export) |
 
@@ -376,7 +388,7 @@ Without both, the SVG image is drawn as "not found". The bitmap becomes owned by
 
 Only `data:` sources and local `.svg` files are rendered (the file is read as UTF-8); a remote `.svg` is not.
 
-**With Skia4Delphi, for the whole application** - add the unit `Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia` (in `Sources`) to the project. Nothing else is needed: the unit sets `TS4YHTMLEditor.DefaultSVGRenderer` in its `initialization` section, so every editor renders SVG.
+**With Skia4Delphi, for the whole application** - add the unit `Soft4You.FMX.Controls.HTMLEditor.SVGRenderer.Skia` (in `Sources\HTMLEditor`) to the project. Nothing else is needed: the unit sets `TS4YHTMLEditor.DefaultSVGRenderer` in its `initialization` section, so every editor renders SVG.
 
 ```delphi
 uses
@@ -390,6 +402,8 @@ HTMLEditor.HTML := '<p><img src="logo.svg"/></p>' +
 ```
 
 The unit needs Skia4Delphi in the library path of the project (the IDE package, or its sources). Add the unit to the project file or to a unit of the application, not to the editor packages: they do not require Skia4Delphi.
+
+Skia4Delphi 6.0 renamed its units (`Skia` and `Skia.FMX` became `System.Skia` and `FMX.Skia`). The unit uses the old names up to Delphi 11 and the new names from Delphi 12. If your Skia4Delphi does not match this rule, define `S4Y_SKIA_LEGACY_UNITS` in the conditional defines of the project to force the old names.
 
 **With Skia4Delphi, for a single editor** - assign the handler of `TS4YSkiaSVGRenderer` to `OnRenderSVG`. This overrides `DefaultSVGRenderer` for that editor only:
 
@@ -580,7 +594,7 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 
 ## Demo
 
-The `Demo\Desktop` folder contains a sample FMX application (`Demo\Desktop\S4YHTMLEditorDemo.dproj`, also part of the project group in `Packages`) with a complete toolbar, emoji picker, placeholder and color dialogs. The table button opens a menu that inserts and deletes rows and columns and styles the table under the caret (cell background, borders, padding and vertical alignment, table alignment, spacing, border and width). Install the component package first.
+The `Demos\HTMLEditor\Desktop` folder contains a sample FMX application (`Demos\HTMLEditor\Desktop\S4YHTMLEditorDemo.dproj`, also part of the project group in `Packages\D11`) with a complete toolbar, emoji picker, placeholder and color dialogs. The table button opens a menu that inserts and deletes rows and columns and styles the table under the caret (cell background, borders, padding and vertical alignment, table alignment, spacing, border and width). Install the component package first.
 
 ---
 

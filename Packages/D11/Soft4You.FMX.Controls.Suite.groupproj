@@ -1,0 +1,120 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{0CD6E8A8-38D7-4708-A5A8-799C00E283B8}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="Soft4You.FMX.Controls.Suite.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Soft4You.FMX.Controls.SuiteD.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\..\Demos\HTMLEditor\Desktop\S4YHTMLEditorDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\..\Demos\HTMLEditor\Mobile\S4YHTMLEditorMobile.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\..\Demos\FlexBox\S4YFlexBoxDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\..\Demos\Expander\S4YExpanderDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\..\Demos\Badge\S4YBadgeDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\..\Tests\FlexBox\S4YFlexBoxTests.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="Soft4You_FMX_Controls_Suite">
+        <MSBuild Projects="Soft4You.FMX.Controls.Suite.dproj"/>
+    </Target>
+    <Target Name="Soft4You_FMX_Controls_Suite:Clean">
+        <MSBuild Projects="Soft4You.FMX.Controls.Suite.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Soft4You_FMX_Controls_Suite:Make">
+        <MSBuild Projects="Soft4You.FMX.Controls.Suite.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Soft4You_FMX_Controls_SuiteD">
+        <MSBuild Projects="Soft4You.FMX.Controls.SuiteD.dproj"/>
+    </Target>
+    <Target Name="Soft4You_FMX_Controls_SuiteD:Clean">
+        <MSBuild Projects="Soft4You.FMX.Controls.SuiteD.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Soft4You_FMX_Controls_SuiteD:Make">
+        <MSBuild Projects="Soft4You.FMX.Controls.SuiteD.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="S4YHTMLEditorDemo">
+        <MSBuild Projects="..\..\Demos\HTMLEditor\Desktop\S4YHTMLEditorDemo.dproj"/>
+    </Target>
+    <Target Name="S4YHTMLEditorDemo:Clean">
+        <MSBuild Projects="..\..\Demos\HTMLEditor\Desktop\S4YHTMLEditorDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YHTMLEditorDemo:Make">
+        <MSBuild Projects="..\..\Demos\HTMLEditor\Desktop\S4YHTMLEditorDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="S4YHTMLEditorMobile">
+        <MSBuild Projects="..\..\Demos\HTMLEditor\Mobile\S4YHTMLEditorMobile.dproj"/>
+    </Target>
+    <Target Name="S4YHTMLEditorMobile:Clean">
+        <MSBuild Projects="..\..\Demos\HTMLEditor\Mobile\S4YHTMLEditorMobile.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YHTMLEditorMobile:Make">
+        <MSBuild Projects="..\..\Demos\HTMLEditor\Mobile\S4YHTMLEditorMobile.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="S4YFlexBoxDemo">
+        <MSBuild Projects="..\..\Demos\FlexBox\S4YFlexBoxDemo.dproj"/>
+    </Target>
+    <Target Name="S4YFlexBoxDemo:Clean">
+        <MSBuild Projects="..\..\Demos\FlexBox\S4YFlexBoxDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YFlexBoxDemo:Make">
+        <MSBuild Projects="..\..\Demos\FlexBox\S4YFlexBoxDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="S4YExpanderDemo">
+        <MSBuild Projects="..\..\Demos\Expander\S4YExpanderDemo.dproj"/>
+    </Target>
+    <Target Name="S4YExpanderDemo:Clean">
+        <MSBuild Projects="..\..\Demos\Expander\S4YExpanderDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YExpanderDemo:Make">
+        <MSBuild Projects="..\..\Demos\Expander\S4YExpanderDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="S4YBadgeDemo">
+        <MSBuild Projects="..\..\Demos\Badge\S4YBadgeDemo.dproj"/>
+    </Target>
+    <Target Name="S4YBadgeDemo:Clean">
+        <MSBuild Projects="..\..\Demos\Badge\S4YBadgeDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YBadgeDemo:Make">
+        <MSBuild Projects="..\..\Demos\Badge\S4YBadgeDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="S4YFlexBoxTests">
+        <MSBuild Projects="..\..\Tests\FlexBox\S4YFlexBoxTests.dproj"/>
+    </Target>
+    <Target Name="S4YFlexBoxTests:Clean">
+        <MSBuild Projects="..\..\Tests\FlexBox\S4YFlexBoxTests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YFlexBoxTests:Make">
+        <MSBuild Projects="..\..\Tests\FlexBox\S4YFlexBoxTests.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="Soft4You_FMX_Controls_Suite;Soft4You_FMX_Controls_SuiteD;S4YHTMLEditorDemo;S4YHTMLEditorMobile;S4YFlexBoxDemo;S4YExpanderDemo;S4YBadgeDemo;S4YFlexBoxTests"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="Soft4You_FMX_Controls_Suite:Clean;Soft4You_FMX_Controls_SuiteD:Clean;S4YHTMLEditorDemo:Clean;S4YHTMLEditorMobile:Clean;S4YFlexBoxDemo:Clean;S4YExpanderDemo:Clean;S4YBadgeDemo:Clean;S4YFlexBoxTests:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="Soft4You_FMX_Controls_Suite:Make;Soft4You_FMX_Controls_SuiteD:Make;S4YHTMLEditorDemo:Make;S4YHTMLEditorMobile:Make;S4YFlexBoxDemo:Make;S4YExpanderDemo:Make;S4YBadgeDemo:Make;S4YFlexBoxTests:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
