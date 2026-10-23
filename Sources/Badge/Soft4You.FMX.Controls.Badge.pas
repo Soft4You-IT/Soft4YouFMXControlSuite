@@ -35,12 +35,27 @@ uses
 
 
 type
+  /// <summary>
+  /// What a TS4YBadge shows.
+  /// </summary>
+  /// <remarks>
+  /// bdgsNumeric: CurrentValue is shown, as MaxValue+ when it is greater than MaxValue; at run time the badge is hidden while CurrentValue is not greater than 0.
+  /// bdgsText: Text is shown; at run time the badge is hidden while Text is empty.
+  /// At design time the badge is always visible.
+  /// </remarks>
   TS4YBadgeStyle = (
     bdgsNumeric,        // Only current value is displayed if it's > 0. Max value property, controls the max value displayed
     bdgsText            // Only text value is displayed if <> EmptyStr
   );
 
-  // Used for autopositioning of the badge control relative to ParentControl
+  /// <summary>
+  /// Where a TS4YBadge places itself on its parent control.
+  /// </summary>
+  /// <remarks>
+  /// bdgpNone: no automatic positioning, the badge stays where Position puts it.
+  /// The other values name one of the nine positions of the parent control: top, center or bottom combined with left, center or right.
+  /// How the badge sits on the edges of the parent is given by TS4YBadgePositionOffset.
+  /// </remarks>
   TS4YBadgeAutoPosition = (
     bdgpNone,                                          // No automatic positioning
     bdgpUpLeft, bdgpUpCenter, bdgpUpRight,
@@ -48,21 +63,45 @@ type
     bdgpBottomLeft, bdgpBottomCenter, bdgpBottomRight
   );
 
-  // Used for the offset of position relative to ParentControl edges
+  /// <summary>
+  /// How an automatically positioned TS4YBadge sits relative to an edge of its parent control.
+  /// </summary>
+  /// <remarks>
+  /// bdpoInner: the badge is inside the edge.
+  /// bdpoEdge: the badge is centered on the edge, half inside and half outside.
+  /// bdpoOuter: the badge is outside the edge.
+  /// The offset has no effect on an axis where the badge is centered on the parent.
+  /// </remarks>
   TS4YBadgePositionOffset = (
     bdpoInner,          // Positioning is made inner bounding edges
     bdpoEdge,           // Positioning is made over bounding edges
     bdpoOuter           // Positioning is made outer bounding edges
   );
 
-  // Brushes of the badge background that come from the style instead of the Fill/Stroke properties
+  /// <summary>
+  /// A brush of the badge background that can come from the style.
+  /// </summary>
+  /// <remarks>
+  /// bdgbFill: the fill of the background.
+  /// bdgbStroke: the border of the background.
+  /// </remarks>
   TS4YBadgeStyledBrush = (
     bdgbFill,           // The background fill is the one defined by the style
     bdgbStroke          // The background border is the one defined by the style
   );
+
+  /// <summary>
+  /// The brushes of the badge background that come from the style instead of the Fill and Stroke properties.
+  /// </summary>
   TS4YBadgeStyledBrushes = set of TS4YBadgeStyledBrush;
 
-  // Used internally to trace blink state
+  /// <summary>
+  /// Phase of the blinking of a badge, used internally.
+  /// </summary>
+  /// <remarks>
+  /// bbsVisible: the badge is in its visible phase.
+  /// bbsHidden: the badge is in its hidden phase.
+  /// </remarks>
   TS4YBadgeBlinkState = (
     bbsVisible,         // The badge control is visible
     bbsHidden           // The badge control is hidden
@@ -72,10 +111,18 @@ type
   TS4YBadge = class;
 
 
-  // Manage blink settings
+  /// <summary>
+  /// Blinking settings of a TS4YBadge.
+  /// </summary>
+  /// <remarks>
+  /// The badge blinks at run time only; at design time it is always visible.
+  /// While it blinks, the badge changes between visible and hidden every Interval milliseconds. A badge that is hidden because it has nothing to show (see TS4YBadgeStyle) does not blink.
+  /// </remarks>
   TS4YBadgeBlinkSettings = class(TPersistent)
   public const
+    /// <summary>Default value of Enabled.</summary>
     C_DEFAULT_ENABLED = False;
+    /// <summary>Default value of Interval, in milliseconds.</summary>
     C_DEFAULT_INTERVAL = 1000;
   private
     FEnabled: Boolean;
@@ -85,21 +132,35 @@ type
     procedure SetEnabled(const Value: Boolean);
     procedure SetInterval(const Value: Integer);
   public
+    /// <summary>Creates the settings with the default values.</summary>
     constructor Create;
 
+    /// <summary>Copies Enabled and Interval from another TS4YBadgeBlinkSettings; OnChange fires only if a value changes.</summary>
     procedure Assign(Source: TPersistent); override;
+    /// <summary>Restores the default values of Enabled and Interval and fires OnChange.</summary>
     procedure SetDefaultValues;
   published
+    /// <summary>Time between two changes of visibility, in milliseconds. The default is 1000.</summary>
     property Interval: Integer read FInterval write SetInterval default C_DEFAULT_INTERVAL;
+    /// <summary>True makes the badge blink at run time. The default is False.</summary>
     property Enabled: Boolean read FEnabled write SetEnabled default C_DEFAULT_ENABLED;
+    /// <summary>Fires when Enabled or Interval changes.</summary>
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
-  // Manage positioning settings included auto positioning
+  /// <summary>
+  /// Automatic positioning of a TS4YBadge on its parent control.
+  /// </summary>
+  /// <remarks>
+  /// AutoPosition chooses one of the nine positions of the parent; OffsetX and OffsetY say how the badge sits on the vertical and on the horizontal edges.
+  /// </remarks>
   TS4YBadgePosition = class(TPersistent)
   public const
+    /// <summary>Default value of AutoPosition.</summary>
     C_DEFAULT_POSITION = bdgpNone;
+    /// <summary>Default value of OffsetX.</summary>
     C_DEFAULT_OFFSET_X = bdpoEdge;
+    /// <summary>Default value of OffsetY.</summary>
     C_DEFAULT_OFFSET_Y = bdpoEdge;
   private
     FOffsetX: TS4YBadgePositionOffset;
@@ -110,33 +171,62 @@ type
     procedure SetAutoPosition(const Value: TS4YBadgeAutoPosition);
     procedure SetOffsetY(const Value: TS4YBadgePositionOffset);
   protected
+    /// <summary>Fires OnChange.</summary>
     procedure DoChange;
   public
+    /// <summary>Creates the settings with the default values.</summary>
     constructor Create;
 
+    /// <summary>Copies the settings from another TS4YBadgePosition; OnChange fires only if a value changes.</summary>
     procedure Assign(Source: TPersistent); override;
+    /// <summary>Restores the default values of all the settings and fires OnChange.</summary>
     procedure SetDefaultValues;
   published
+    /// <summary>Position of the badge on its parent control. The default is bdgpNone, no automatic positioning.</summary>
     property AutoPosition: TS4YBadgeAutoPosition read FAutoPosition write SetAutoPosition default C_DEFAULT_POSITION;
+    /// <summary>How the badge sits relative to the left and right edges of the parent. The default is bdpoEdge.</summary>
     property OffsetX: TS4YBadgePositionOffset read FOffsetX write SetOffsetX default C_DEFAULT_OFFSET_X;
+    /// <summary>How the badge sits relative to the top and bottom edges of the parent. The default is bdpoEdge.</summary>
     property OffsetY: TS4YBadgePositionOffset read FOffsetY write SetOffsetY default C_DEFAULT_OFFSET_Y;
 
+    /// <summary>Fires when AutoPosition, OffsetX or OffsetY changes.</summary>
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
 
+  /// <summary>
+  /// A badge like the notification counter of a smartphone icon: a small circle that shows a number, or a short text, over another control.
+  /// </summary>
+  /// <remarks>
+  /// With BadgeStyle = bdgsNumeric the badge shows CurrentValue and is hidden at run time while the value is 0; above MaxValue it shows MaxValue+, for example 99+.
+  /// With BadgeStyle = bdgsText it shows Text and is hidden at run time while the text is empty.
+  /// At design time the badge is always visible, so that it can be placed and formatted.
+  /// The color, the border and the font can be customized; the badge can blink (BlinkSettings) and can position itself on its parent control (AutoPosition).
+  /// The look comes from a style with two parts named background and text. Place the badge as a child of the control it decorates.
+  /// </remarks>
   TS4YBadge = class(TStyledControl, ITextSettings)
   public const
+    /// <summary>Default color of the border of the badge: white.</summary>
     C_DEFAULT_BORDER_COLOR: TAlphaColor = $FFFFFFFF;
+    /// <summary>Default kind of the brush of the border of the badge.</summary>
     C_DEFAULT_BORDER_KIND: TBrushKind = TBrushKind.Solid;
+    /// <summary>Default thickness of the border of the badge, in pixels.</summary>
     C_DEFAULT_BORDER_THICKNESS: Single = 1;
+    /// <summary>Default color of the background of the badge: red.</summary>
     C_DEFAULT_BACKGROUND_COLOR: TAlphaColor = $FFFF0000;
+    /// <summary>Default kind of the brush of the background of the badge.</summary>
     C_DEFAULT_BACKGROUND_KIND: TBrushKind = TBrushKind.Solid;
+    /// <summary>Default color of the text of the badge: white.</summary>
     C_DEFAULT_TEXT_COLOR: TAlphacolor = $FFFFFFFF;
+    /// <summary>Nominal size of the badge, in pixels. It is not used by the control, whose default size is the one returned by GetDefaultSize.</summary>
     C_DEFAULT_SIZE: Single = 20;
+    /// <summary>Default value of MaxValue.</summary>
     C_DEFAULT_MAX_VALUE = 99;
+    /// <summary>Default value of BadgeStyle.</summary>
     C_DEFAULT_BADGE_STYLE = bdgsNumeric;
+    /// <summary>Default value of AutoRadius.</summary>
     C_DEFAULT_AUTO_RADIUS = True;
+    /// <summary>Default value of StyledBrushes: both the fill and the border come from the style.</summary>
     C_DEFAULT_STYLED_BRUSHES: TS4YBadgeStyledBrushes = [bdgbFill, bdgbStroke];
   private
     FBackgroundStyleControl: TRectangle;
@@ -193,36 +283,57 @@ type
     procedure PositionChanged(Sender: TObject);
     procedure BlinkSettingsChangedHandler(Sender: TObject);
   protected
+    /// <summary>Applies the state of the badge (fill, border, text and visibility) to the parts of the style named background and text.</summary>
     procedure ApplyStyle; override;
+    /// <summary>Updates the corner radius after the badge is resized.</summary>
     procedure DoResized; override;
+    /// <summary>Releases the parts of the style found by ApplyStyle.</summary>
     procedure FreeStyle; override;
+    /// <summary>Returns the size of a new badge: 16 x 16.</summary>
     function GetDefaultSize: TSizeF; override;
+    /// <summary>Returns the style of the badge: the default style of the control when StyleLookup is empty.</summary>
     function GetStyleObject: TFmxObject; override;
+    /// <summary>Returns the class used for the text settings. A descendant can override it to change the defaults of the font and of the alignment.</summary>
     function GetTextSettingsClass: TTextSettingsInfo.TCustomTextSettingsClass; virtual;
+    /// <summary>Applies BlinkSettings at run time, once the badge is loaded.</summary>
     procedure Loaded; override;
 
+    /// <summary>True when the badge is to be drawn: it has something to show and, if it blinks, it is in its visible phase.</summary>
     property BadgeVisible: Boolean read GetBadgeVisible;
   public
+    /// <summary>Creates the badge with the default settings.</summary>
     constructor Create(AOwner: TComponent); override;
+    /// <summary>Destroys the badge.</summary>
     destructor Destroy; override;
 
+    /// <summary>Applies the current BlinkSettings. It is called when they change.</summary>
     procedure BlinkSettingsChanged; virtual;
+    /// <summary>Called when the resulting text settings of the badge change. It does nothing; a descendant can override it.</summary>
     procedure ResultTextSettingsChanged; virtual;
 
+    /// <summary>Default text settings of the badge: the ones in effect when nothing is customized.</summary>
     property DefaultTextSettings: TTextSettings read GetDefaultTextSettings;
+    /// <summary>Text settings in effect: the ones of the badge, with the parts that come from the style filled in.</summary>
     property ResultingTextSettings: TTextSettings read GetResultingTextSettings;
   published
     property Anchors;
     property Align;
+    /// <summary>Automatic positioning of the badge on its parent control.</summary>
     property AutoPosition: TS4YBadgePosition read FAutoPosition write SetAutoPosition;
+    /// <summary>True makes the badge round: the corner radius is half of its height. False uses the radius of the style. The default is True.</summary>
     property AutoRadius: Boolean read FAutoRadius write SetAutoRadius default C_DEFAULT_AUTO_RADIUS;
+    /// <summary>Fill of the background of the badge. Changing it makes the badge use its own fill instead of the one of the style (see StyledBrushes).</summary>
     property Fill: TBrush read FBackgroundFill write SetBackgroundFill;
+    /// <summary>What the badge shows: the number CurrentValue or the Text. The default is bdgsNumeric.</summary>
     property BadgeStyle: TS4YBadgeStyle read FBadgeStyle write SetBadgeStyle default C_DEFAULT_BADGE_STYLE;
+    /// <summary>Blinking of the badge at run time.</summary>
     property BlinkSettings: TS4YBadgeBlinkSettings read FBlinkSettings write SetBlinkSettings;
+    /// <summary>The number shown when BadgeStyle is bdgsNumeric. At run time the badge is hidden while it is 0 or less; above MaxValue the badge shows MaxValue+.</summary>
     property CurrentValue: integer read FCurrentValue write SetCurrentValue default 0;
     property Height;
     property HitTest;
     property Margins;
+    /// <summary>Highest value shown as a plain number; a greater CurrentValue is shown as MaxValue+, for example 99+. The default is 99.</summary>
     property MaxValue: integer read FMaxValue write SetMaxValue default C_DEFAULT_MAX_VALUE;
     property Opacity;
     property PopupMenu;
@@ -231,13 +342,23 @@ type
     property RotationCenter;
     property Scale;
     property Size;
+    /// <summary>Which text settings come from the style instead of from TextSettings.</summary>
     property StyledSettings: TStyledSettings read GetStyledSettings write SetStyledSettings stored StyledSettingsStored nodefault;
     property StyleLookup;
+    /// <summary>Border of the background of the badge. Changing it makes the badge use its own border instead of the one of the style (see StyledBrushes).</summary>
     property Stroke: TStrokeBrush read FBackgroundStroke write SetBackgroundStroke;
+    /// <summary>
+    /// Which brushes of the background come from the style: the fill (bdgbFill) and the border (bdgbStroke). A brush that is not in the set is taken from Fill or Stroke.
+    /// </summary>
+    /// <remarks>
+    /// Changing Fill or Stroke removes the matching brush from the set. Putting a brush back in the set makes the badge read it from the style again.
+    /// </remarks>
     // Must stay after Fill and Stroke: while streaming, modifying them switches the matching brush
     // off, so an explicit StyledBrushes stored in the form has to be read last to win.
     property StyledBrushes: TS4YBadgeStyledBrushes read FStyledBrushes write SetStyledBrushes stored StyledBrushesStored nodefault;
+    /// <summary>The text shown when BadgeStyle is bdgsText. At run time the badge is hidden while it is empty.</summary>
     property Text: String read FText write SetText;
+    /// <summary>Font and color of the text of the badge.</summary>
     property TextSettings: TTextSettings read GetTextSettings write SetTextSettings;
     property Visible;
     property Width;
