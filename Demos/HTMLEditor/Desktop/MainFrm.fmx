@@ -793,9 +793,6 @@ object frmMain: TfrmMain
   object StyleBook1: TStyleBook
     Styles = <
       item
-      end
-      item
-        Platform = 'Windows 10 Desktop'
         ResourcesBin = {
           464D585F5354594C4520322E35010610546F6F6C62617242746E4E6F54657874
           03740E0617546F6F6C62617244726F7044776E42746E4E6F5465787403770F00
