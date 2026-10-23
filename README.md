@@ -403,6 +403,8 @@ HTMLEditor.HTML := '<p><img src="logo.svg"/></p>' +
 
 The unit needs Skia4Delphi in the library path of the project (the IDE package, or its sources). Add the unit to the project file or to a unit of the application, not to the editor packages: they do not require Skia4Delphi.
 
+Skia4Delphi 6.0 renamed its units (`Skia` and `Skia.FMX` became `System.Skia` and `FMX.Skia`). The unit uses the old names up to Delphi 11 and the new names from Delphi 12. If your Skia4Delphi does not match this rule, define `S4Y_SKIA_LEGACY_UNITS` in the conditional defines of the project to force the old names.
+
 **With Skia4Delphi, for a single editor** - assign the handler of `TS4YSkiaSVGRenderer` to `OnRenderSVG`. This overrides `DefaultSVGRenderer` for that editor only:
 
 ```delphi
