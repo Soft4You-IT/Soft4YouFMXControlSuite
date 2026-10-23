@@ -99,7 +99,7 @@ Selection, copy and clicking links still work.
 
 ## 5. Images
 
-The complete rules for sources, relative paths, saving and local-file access are in the README section [Images and files](../../README.md#images-and-files). The points below are the ones that most often surprise.
+The complete rules for sources, relative paths, saving and local-file access are in the README section [Images and files](README.md#images-and-files). The points below are the ones that most often surprise.
 
 - **Loading is synchronous, on the UI thread.** A remote image (`http://`, `https://`) is downloaded while the document is being loaded, and the application waits for it. There is no timeout set by the component. For documents with many or slow remote images, set `AutoLoadRemoteImages := False` and call `LoadRemoteImages` at a moment of your choice, or supply the bitmaps yourself in `OnLoadImage`.
 - With `AutoLoadLocalImages` or `AutoLoadRemoteImages` set to `False`, the images are drawn as placeholders of 200 x 120 pixels (if the HTML gives no size) until you call `LoadLocalImages` or `LoadRemoteImages`.
