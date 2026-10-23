@@ -21,12 +21,22 @@ uses
   Soft4You.FMX.Controls.FlexBox.Engine;
 
 type
-  // How the width of a breakpoint is read (applies to the whole list):
-  // bmMaxWidth = "up to Width" (like max-width in CSS), bmMinWidth = "from Width
-  // up" (like min-width). The comparison is inclusive.
+  /// <summary>
+  /// How the width of a breakpoint is read. It applies to the whole list of breakpoints.
+  /// </summary>
+  /// <remarks>
+  /// bmMaxWidth: the breakpoint is active up to its Width, like max-width in CSS.
+  /// bmMinWidth: the breakpoint is active from its Width up, like min-width in CSS.
+  /// The comparison is inclusive.
+  /// </remarks>
   TS4YBreakpointMode = (bmMaxWidth, bmMinWidth);
 
-  // Flexbox (container) properties that a breakpoint can override
+  /// <summary>
+  /// A property of the flexbox container that a breakpoint can override.
+  /// </summary>
+  /// <remarks>
+  /// Each value stands for the property of TS4YFlexBox with the same name.
+  /// </remarks>
   TS4YContainerOverride = (
     coDirection,
     coWrap,
@@ -37,9 +47,17 @@ type
     coRowGap
   );
 
+  /// <summary>
+  /// The properties of the container that a breakpoint overrides.
+  /// </summary>
   TS4YContainerOverrides = set of TS4YContainerOverride;
 
-  // Item properties that a breakpoint can override
+  /// <summary>
+  /// A property of a flexbox item that a breakpoint can override.
+  /// </summary>
+  /// <remarks>
+  /// Each value stands for the property of TS4YFlexItem with the same name. ioFlexBasis covers FlexBasis and FlexBasisUnit together; ioWidth covers AutoWidth and Width; ioHeight covers AutoHeight and Height.
+  /// </remarks>
   TS4YItemOverride = (
     ioFlexGrow,
     ioFlexShrink,
@@ -56,20 +74,38 @@ type
     ioMaxHeight
   );
 
+  /// <summary>
+  /// The properties of an item that a breakpoint overrides.
+  /// </summary>
   TS4YItemOverrides = set of TS4YItemOverride;
 
-  // Outcome of the visibility override for an item: voNone = the Visible
-  // chosen by the user applies
+  /// <summary>
+  /// Outcome of the visibility override of an item at the current width.
+  /// </summary>
+  /// <remarks>
+  /// voNone: no override, the Visible chosen by the user applies.
+  /// voShow: the item is shown.
+  /// voHide: the item is hidden.
+  /// </remarks>
   TS4YVisibilityOverride = (voNone, voShow, voHide);
 
-  // Effective container properties for a layout (base + active breakpoints)
+  /// <summary>
+  /// The properties of the container in effect for a layout: the ones of the container, changed by the active breakpoints.
+  /// </summary>
   TS4YFlexSettings = record
+    /// <summary>Direction of the main axis.</summary>
     Direction: TFlexDirection;
+    /// <summary>Whether the items wrap onto more lines.</summary>
     Wrap: TFlexWrap;
+    /// <summary>Distribution of the items along the main axis.</summary>
     JustifyContent: TJustifyContent;
+    /// <summary>Alignment of the items on the cross axis.</summary>
     AlignItems: TAlignItems;
+    /// <summary>Distribution of the lines on the cross axis.</summary>
     AlignContent: TAlignContent;
+    /// <summary>Space between the columns, in pixels.</summary>
     ColumnGap: Single;
+    /// <summary>Space between the rows, in pixels.</summary>
     RowGap: Single;
   end;
 

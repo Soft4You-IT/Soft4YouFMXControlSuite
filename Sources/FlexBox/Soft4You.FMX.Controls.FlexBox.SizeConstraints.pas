@@ -23,6 +23,12 @@ uses
   System.Math;
 
 type
+  /// <summary>
+  /// Size limits of a flexbox item: minimum and maximum width and height, like min-width, max-width, min-height and max-height in CSS.
+  /// </summary>
+  /// <remarks>
+  /// A limit of 0 means no limit.
+  /// </remarks>
   TS4YFlexSizeConstraints = class(TPersistent)
   strict private
     FMaxHeight: Single;
@@ -41,16 +47,22 @@ type
     procedure SetMinHeight(Value: Single);
     procedure SetMinWidth(Value: Single);
   public
+    /// <summary>Copies the limits from another TS4YFlexSizeConstraints; OnChange fires only if a value changes.</summary>
     procedure Assign(Source: TPersistent); override;
 
-    // True if no limit is set
+    /// <summary>True if no limit is set.</summary>
     function IsEmpty: Boolean;
 
+    /// <summary>Fires when a limit changes.</summary>
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   published
+    /// <summary>Largest height of the item, in pixels. 0 means no limit.</summary>
     property MaxHeight: Single read FMaxHeight write SetMaxHeight stored IsMaxHeightStored;
+    /// <summary>Largest width of the item, in pixels. 0 means no limit.</summary>
     property MaxWidth: Single read FMaxWidth write SetMaxWidth stored IsMaxWidthStored;
+    /// <summary>Smallest height of the item, in pixels. 0 means no limit.</summary>
     property MinHeight: Single read FMinHeight write SetMinHeight stored IsMinHeightStored;
+    /// <summary>Smallest width of the item, in pixels. 0 means no limit.</summary>
     property MinWidth: Single read FMinWidth write SetMinWidth stored IsMinWidthStored;
   end;
 

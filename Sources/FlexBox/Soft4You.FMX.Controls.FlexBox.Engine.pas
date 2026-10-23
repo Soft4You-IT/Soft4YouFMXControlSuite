@@ -44,6 +44,15 @@ uses
 // ---------------------------------------------------------------------------
 
 type
+  /// <summary>
+  /// Direction of the main axis of the container (CSS flex-direction).
+  /// </summary>
+  /// <remarks>
+  /// fdRow: horizontal, from left to right (the default).
+  /// fdRowReverse: horizontal, from right to left.
+  /// fdColumn: vertical, from top to bottom.
+  /// fdColumnReverse: vertical, from bottom to top.
+  /// </remarks>
   TFlexDirection = (
     fdRow,            // default  -> main axis = horizontal, left->right
     fdRowReverse,     //          -> main axis = horizontal, right->left
@@ -51,12 +60,30 @@ type
     fdColumnReverse   //          -> main axis = vertical,   bottom->top
   );
 
+  /// <summary>
+  /// Whether the items wrap onto more lines (CSS flex-wrap).
+  /// </summary>
+  /// <remarks>
+  /// fwNoWrap: all the items stay on one line (the default).
+  /// fwWrap: the items wrap onto more lines, downwards or rightwards.
+  /// fwWrapReverse: the items wrap onto more lines, upwards or leftwards.
+  /// </remarks>
   TFlexWrap = (
     fwNoWrap,         // default  -> everything on one line
     fwWrap,           //          -> wrap downwards / rightwards
     fwWrapReverse     //          -> wrap upwards / leftwards
   );
 
+  /// <summary>
+  /// Distribution of the items along the main axis (CSS justify-content).
+  /// </summary>
+  /// <remarks>
+  /// jcFlexStart: the items are packed at the start of the line (the default).
+  /// jcFlexEnd: packed at the end. jcCenter: packed at the center.
+  /// jcSpaceBetween: the free space goes between the items; the first is at the start and the last at the end.
+  /// jcSpaceAround: the free space is shared around every item, so the space at the ends is half of the space between two items.
+  /// jcSpaceEvenly: the free space is split in equal parts between the items and at both ends.
+  /// </remarks>
   TJustifyContent = (
     jcFlexStart,      // default
     jcFlexEnd,
@@ -66,6 +93,14 @@ type
     jcSpaceEvenly
   );
 
+  /// <summary>
+  /// Alignment of the items on the cross axis (CSS align-items).
+  /// </summary>
+  /// <remarks>
+  /// aiStretch: an item with an automatic cross size stretches to the line (the default).
+  /// aiFlexStart, aiFlexEnd, aiCenter: the items are aligned at the start, at the end or at the center of the line.
+  /// aiBaseline: treated as aiFlexStart.
+  /// </remarks>
   TAlignItems = (
     aiStretch,        // default
     aiFlexStart,
@@ -74,6 +109,13 @@ type
     aiBaseline        // treated as FlexStart in this implementation
   );
 
+  /// <summary>
+  /// Alignment of one item on the cross axis, in place of the one of the container (CSS align-self).
+  /// </summary>
+  /// <remarks>
+  /// asAuto: the item uses the TAlignItems value of the container.
+  /// The other values mean the same as the matching TAlignItems values.
+  /// </remarks>
   TAlignSelf = (
     asAuto,           // inherits from the container (align-items)
     asStretch,
@@ -83,6 +125,14 @@ type
     asBaseline
   );
 
+  /// <summary>
+  /// Distribution of the lines on the cross axis when the items wrap onto more lines (CSS align-content).
+  /// </summary>
+  /// <remarks>
+  /// acFlexStart: the lines are packed at the start (the default). acFlexEnd: at the end. acCenter: at the center.
+  /// acSpaceBetween, acSpaceAround, acSpaceEvenly: the free space is shared between the lines as for TJustifyContent.
+  /// acStretch: the lines grow to fill the cross size of the container.
+  /// </remarks>
   TAlignContent = (
     acFlexStart,      // default when wrap
     acFlexEnd,
@@ -93,13 +143,26 @@ type
     acStretch
   );
 
+  /// <summary>
+  /// How the flex-basis of an item is read.
+  /// </summary>
+  /// <remarks>
+  /// fbuAuto: the basis is the width or the height of the item.
+  /// fbuPixel: the basis is a value in pixels.
+  /// fbuPercent: the basis is a percentage of the main size of the container.
+  /// </remarks>
   TFlexBasisUnit = (
     fbuAuto,          // uses the Width/Height of the item as basis
     fbuPixel,         // absolute value in pixels
     fbuPercent        // percentage of the main size of the container
   );
 
-  // Main size of the item relative to its flex-basis
+  /// <summary>
+  /// Main size of an item compared with its flex-basis.
+  /// </summary>
+  /// <remarks>
+  /// fisShrunk: smaller than the basis. fisAtBasis: equal to the basis, within the tolerance. fisGrown: greater than the basis.
+  /// </remarks>
   TFlexItemState = (
     fisShrunk,        // smaller than the basis
     fisAtBasis,       // equal to the basis (within the tolerance)
@@ -111,41 +174,55 @@ type
 // ---------------------------------------------------------------------------
 
 type
+  /// <summary>
+  /// Input data of one item for the layout.
+  /// </summary>
   TFlexItemInput = record
-    // "Natural" size of the control (Width x Height)
+    /// <summary>Natural width of the control.</summary>
     NaturalWidth  : Single;
+    /// <summary>Natural height of the control.</summary>
     NaturalHeight : Single;
 
-    // True = "auto" size (not explicitly chosen, like width/height: auto
-    // in CSS). Stretch on the cross axis applies only to an auto size; in a
-    // column the auto width fits the available width (fit-content).
+    /// <summary>True when the width is automatic, not explicitly chosen (like width: auto in CSS). Stretch on the cross axis applies only to an automatic size; in a column an automatic width fits the available width (fit-content).</summary>
     WidthAuto     : Boolean;
+    /// <summary>True when the height is automatic, not explicitly chosen (like height: auto in CSS).</summary>
     HeightAuto    : Boolean;
 
-    // Constraints (match FMX MinWidth, MaxWidth, MinHeight, MaxHeight)
-    MinWidth      : Single;   // 0 = no constraint
-    MaxWidth      : Single;   // 0 = no constraint
+    /// <summary>Smallest width, in pixels. 0 means no limit.</summary>
+    MinWidth      : Single;
+    /// <summary>Largest width, in pixels. 0 means no limit.</summary>
+    MaxWidth      : Single;
+    /// <summary>Smallest height, in pixels. 0 means no limit.</summary>
     MinHeight     : Single;
+    /// <summary>Largest height, in pixels. 0 means no limit.</summary>
     MaxHeight     : Single;
 
-    // Margins (FMX Margins: Left, Top, Right, Bottom)
+    /// <summary>Left margin, in pixels.</summary>
     MarginLeft    : Single;
+    /// <summary>Top margin, in pixels.</summary>
     MarginTop     : Single;
+    /// <summary>Right margin, in pixels.</summary>
     MarginRight   : Single;
+    /// <summary>Bottom margin, in pixels.</summary>
     MarginBottom  : Single;
 
-    // Flex properties of the item
-    FlexGrow      : Single;       // default 0
-    FlexShrink    : Single;       // default 1
-    FlexBasis     : Single;       // numeric value
-    FlexBasisUnit : TFlexBasisUnit; // interpretation of the value
-    AlignSelf     : TAlignSelf;   // default asAuto
-    Order         : Integer;      // default 0
+    /// <summary>How much of the free space the item takes (CSS flex-grow). The default is 0.</summary>
+    FlexGrow      : Single;
+    /// <summary>How much the item shrinks when the space is not enough (CSS flex-shrink). The default is 1.</summary>
+    FlexShrink    : Single;
+    /// <summary>Value of the flex-basis; FlexBasisUnit says how to read it.</summary>
+    FlexBasis     : Single;
+    /// <summary>How FlexBasis is read.</summary>
+    FlexBasisUnit : TFlexBasisUnit;
+    /// <summary>Alignment of the item on the cross axis. The default is asAuto.</summary>
+    AlignSelf     : TAlignSelf;
+    /// <summary>Position of the item in the order of the layout (CSS order). The default is 0.</summary>
+    Order         : Integer;
 
-    // Original index in the children array (used to return the results
-    // in the correct order, regardless of the sorting by Order)
+    /// <summary>Index of the item in the array of the children. The results are returned in this order, whatever the sorting by Order.</summary>
     OriginalIndex : Integer;
 
+    /// <summary>Returns an input with the default values: no limits, FlexGrow 0, FlexShrink 1, automatic basis, automatic width and height.</summary>
     class function Default: TFlexItemInput; static;
   end;
 
@@ -153,27 +230,37 @@ type
 // TFlexContext - everything that describes the container
 // ---------------------------------------------------------------------------
 
+  /// <summary>
+  /// The container and its items: everything the layout needs.
+  /// </summary>
   TFlexContext = record
-    // Available inner size (container Padding already subtracted)
+    /// <summary>Available inner width of the container, with the Padding already subtracted.</summary>
     AvailableWidth  : Single;
+    /// <summary>Available inner height of the container, with the Padding already subtracted.</summary>
     AvailableHeight : Single;
 
-    // Container properties
+    /// <summary>Direction of the main axis.</summary>
     Direction       : TFlexDirection;
+    /// <summary>Whether the items wrap onto more lines.</summary>
     Wrap            : TFlexWrap;
+    /// <summary>Distribution of the items along the main axis.</summary>
     JustifyContent  : TJustifyContent;
+    /// <summary>Alignment of the items on the cross axis.</summary>
     AlignItems      : TAlignItems;
+    /// <summary>Distribution of the lines on the cross axis.</summary>
     AlignContent    : TAlignContent;
-    ColumnGap       : Single;   // gap between items on the same main axis
-    RowGap          : Single;   // gap between the lines (cross axis)
+    /// <summary>Space between the items of a line, in pixels.</summary>
+    ColumnGap       : Single;
+    /// <summary>Space between the lines, in pixels.</summary>
+    RowGap          : Single;
 
-    // True: with Wrap = fwNoWrap the only line takes the whole cross size
-    // of the container (as in CSS). Default False: the line is as tall as the
-    // tallest item.
+    /// <summary>True: with Wrap = fwNoWrap the only line takes the whole cross size of the container (as in CSS). False, the default: the line is as high as the tallest item.</summary>
     SingleLineFillsContainer : Boolean;
 
+    /// <summary>The items to lay out.</summary>
     Items           : TArray<TFlexItemInput>;
 
+    /// <summary>Returns a context with the default values: fdRow, fwNoWrap, jcFlexStart, aiStretch, acFlexStart, no gaps and no items.</summary>
     class function Default: TFlexContext; static;
   end;
 
@@ -183,25 +270,39 @@ type
 //   of the container (padding excluded). TS4YFlexBox will translate them into FMX coordinates.
 // ---------------------------------------------------------------------------
 
+  /// <summary>
+  /// The rectangle computed for one item.
+  /// </summary>
+  /// <remarks>
+  /// The coordinates are relative to the top left corner of the available area of the container, with the Padding excluded.
+  /// </remarks>
   TFlexItemResult = record
+    /// <summary>Index of the item in the array of the children (OriginalIndex of its input).</summary>
     OriginalIndex : Integer;
+    /// <summary>Left edge of the item.</summary>
     Left          : Single;
+    /// <summary>Top edge of the item.</summary>
     Top           : Single;
+    /// <summary>Width of the item.</summary>
     Width         : Single;
+    /// <summary>Height of the item.</summary>
     Height        : Single;
-    BaseMain      : Single;   // resolved flex-basis (main size before grow/shrink)
-    LineIndex     : Integer;  // line index (in visual order)
+    /// <summary>Main size of the item before the free space is distributed: the resolved flex-basis.</summary>
+    BaseMain      : Single;
+    /// <summary>Index of the line of the item, in visual order.</summary>
+    LineIndex     : Integer;
   end;
 
 // ---------------------------------------------------------------------------
 // TFlexEngine
 // ---------------------------------------------------------------------------
 
+  /// <summary>
+  /// The CSS flexbox algorithm (W3C Level 1). It is stateless and does not depend on FireMonkey controls.
+  /// </summary>
   TFlexEngine = class
   public
-    // Main entry point.
-    // Returns an array of the same length as Context.Items,
-    // sorted by OriginalIndex (not by Order).
+    /// <summary>Computes the layout of the items of a context. It returns an array with the same length as Context.Items, sorted by OriginalIndex (not by Order).</summary>
     class function Calculate(const Context: TFlexContext): TArray<TFlexItemResult>;
 
   private

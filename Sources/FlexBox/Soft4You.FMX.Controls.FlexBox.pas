@@ -118,31 +118,63 @@ type
   TS4YFlexBox = class;
   TS4YFlexItem = class;
 
-  // Design-time wrapping handler, set by the design-time package
+  /// <summary>
+  /// Procedure that wraps in a flex item a control dropped on a flexbox at design time. The design-time package sets it.
+  /// </summary>
+  /// <param name="AFlexBox">The flexbox that received the control.</param>
+  /// <param name="AControl">The control to wrap.</param>
   TS4YFlexDesignWrapHandler = reference to procedure(const AFlexBox: TS4YFlexBox;
     const AControl: TControl);
 
-  // Change of the item state with respect to the flex-basis (at the first layout
-  // APreviousState equals AState)
+  /// <summary>
+  /// The state of an item with respect to its flex-basis changed: it became shrunk, at the basis or grown.
+  /// </summary>
+  /// <param name="Sender">The item.</param>
+  /// <param name="AState">The new state.</param>
+  /// <param name="APreviousState">The previous state. At the first layout it equals AState.</param>
   TS4YFlexItemStateEvent = procedure(Sender: TObject; AState,
     APreviousState: TFlexItemState) of object;
 
-  // Change of the item line (at the first layout APreviousLineIndex is -1)
+  /// <summary>
+  /// The line that holds an item changed.
+  /// </summary>
+  /// <param name="Sender">The item.</param>
+  /// <param name="ALineIndex">The new line, counted from 0.</param>
+  /// <param name="APreviousLineIndex">The previous line. At the first layout it is -1.</param>
   TS4YFlexItemLineEvent = procedure(Sender: TObject; ALineIndex,
     APreviousLineIndex: Integer) of object;
 
-  // Change of the flexbox line count (at the first layout APreviousLineCount is -1)
+  /// <summary>
+  /// The number of lines of a flexbox changed.
+  /// </summary>
+  /// <param name="Sender">The flexbox.</param>
+  /// <param name="ALineCount">The new number of lines.</param>
+  /// <param name="APreviousLineCount">The previous number of lines. At the first layout it is -1.</param>
   TS4YFlexLineCountEvent = procedure(Sender: TObject; ALineCount,
     APreviousLineCount: Integer) of object;
 
-  // Weak reference to an item, used by deferred drop requests
+  /// <summary>
+  /// Weak reference to an item, used by deferred drop requests.
+  /// </summary>
   IS4YFlexItemHandle = interface
     ['{7B1E3C52-5A0F-4D6B-9E34-2F1C8A6D0B71}']
+    /// <summary>Returns the item, or nil if it no longer exists.</summary>
     function GetItem: TS4YFlexItem;
+    /// <summary>Breaks the reference: Item becomes nil.</summary>
     procedure Detach;
+    /// <summary>The item, or nil if it no longer exists.</summary>
     property Item: TS4YFlexItem read GetItem;
   end;
 
+  /// <summary>
+  /// An element of a TS4YFlexBox. It hosts one control and exposes the CSS properties of a flexbox item (flex-grow, flex-shrink, flex-basis, align-self, order).
+  /// </summary>
+  /// <remarks>
+  /// Every control that takes part in the layout lives inside an item. The flexbox creates the item by itself when a control is dropped on it; for several controls, use a container (a layout, a panel) as the content of the item.
+  /// An item lives only inside a TS4YFlexBox: at run time any other parent raises EInvalidOperation. An item left without controls is deleted.
+  /// Width and Height are automatic (AutoWidth and AutoHeight are True) until the user sets them. An automatic size on the cross axis stretches according to AlignItems and AlignSelf; an explicit size does not stretch.
+  /// The properties of the item can be changed by the active breakpoints of the flexbox without altering the values set here, including Visible.
+  /// </remarks>
   TS4YFlexItem = class(TS4YFlexItemBase)
   strict private
     FFlexGrow: Single;
@@ -213,83 +245,101 @@ type
     procedure SetSizeConstraints(Value: TS4YFlexSizeConstraints);
     procedure SizeConstraintsChanged(Sender: TObject);
   protected
+    /// <summary>Saves the size chosen by the user (DesignWidth and DesignHeight) apart from the size computed by the layout.</summary>
     procedure DefineProperties(Filer: TFiler); override;
+    /// <summary>Keeps one control in the item: a second control goes back to the flexbox, which creates an item for it.</summary>
     procedure DoAddObject(const AObject: TFmxObject); override;
+    /// <summary>Called when the state of the item with respect to its flex-basis changes. It fires OnFlexStateChanged.</summary>
     procedure DoFlexStateChanged(AState, APreviousState: TFlexItemState); virtual;
+    /// <summary>Sets the visibility chosen by the user. While a breakpoint overrides the visibility, the override applies until the breakpoint ends.</summary>
     procedure SetVisible(const Value: Boolean); override;
+    /// <summary>Tells whether Visible is saved: the value saved is the one chosen by the user, not the one of an active breakpoint.</summary>
     function VisibleStored: Boolean; override;
+    /// <summary>Called when the position or the size of the item changed since the last notified layout. It fires OnLayoutChanged.</summary>
     procedure DoLayoutChanged; virtual;
+    /// <summary>Called when the line that holds the item changes. It fires OnLineChanged.</summary>
     procedure DoLineChanged(ALineIndex, APreviousLineIndex: Integer); virtual;
+    /// <summary>Realigns the content and, if the height is automatic, makes the item follow the height of the content.</summary>
     procedure DoRealign; override;
+    /// <summary>Deletes the item when its last control is removed.</summary>
     procedure DoRemoveObject(const AObject: TFmxObject); override;
+    /// <summary>Completes the loading of the item.</summary>
     procedure Loaded; override;
+    /// <summary>Sets the size of the item. A size that the layout did not set is a choice of the user and becomes the natural size of the item.</summary>
     function DoSetSize(const ASize: TControlSize; const NewPlatformDefault: Boolean;
       ANewWidth, ANewHeight: Single; var ALastWidth, ALastHeight: Single): Boolean; override;
+    /// <summary>Sets the parent of the item. At run time the parent must be a TS4YFlexBox, otherwise EInvalidOperation is raised.</summary>
     procedure SetParent(const Value: TFmxObject); override;
   public
+    /// <summary>Creates the item with the default values.</summary>
     constructor Create(AOwner: TComponent); override;
+    /// <summary>Destroys the item.</summary>
     destructor Destroy; override;
 
-    // Applies the bounds computed by the layout without altering the design size
+    /// <summary>Applies the bounds computed by the layout without altering the size chosen by the user.</summary>
     procedure ApplyLayoutBounds(ALeft, ATop, AWidth, AHeight: Single);
 
-    // Called by the flexbox at every layout: shows/hides the item according to the
-    // active breakpoints, without losing the Visible chosen by the user
+    /// <summary>Shows or hides the item according to the active breakpoints, without losing the Visible chosen by the user. The flexbox calls it at every layout.</summary>
     procedure ApplyVisibilityOverride(AVisibility: TS4YVisibilityOverride);
 
-    // Called by the flexbox: the second one stores the outcome of the last layout, the
-    // first one (after the layout is done) fires the events if something changed
+    /// <summary>Fires the events of the item (OnFlexStateChanged, OnLineChanged, OnLayoutChanged) for what changed in the last layout. The flexbox calls it when the layout is done.</summary>
     procedure NotifyLayoutOutcome;
+    /// <summary>Stores the outcome of the last layout: the final main size, the main size before the free space was distributed, and the line. The flexbox calls it at every layout.</summary>
     procedure StoreLayoutOutcome(AMainSize, ABaseMain: Single; ALineIndex: Integer);
 
-    // "Auto" height: the item follows the height of the content (like CSS height: auto)
+    /// <summary>Makes the item follow the height of the content, like height: auto in CSS.</summary>
     procedure UseContentHeight;
 
-    // Converts to TFlexItemInput for TFlexEngine
+    /// <summary>Returns the input data of the item for TFlexEngine.</summary>
     function ToEngineInput: TFlexItemInput;
 
+    /// <summary>The flexbox that contains the item.</summary>
     property FlexBox: TS4YFlexBox read GetFlexBox;
   published
+    /// <summary>Alignment of the item on the cross axis, in place of the AlignItems of the flexbox (CSS align-self). The default is asAuto: the item uses AlignItems.</summary>
     property AlignSelf: TAlignSelf read FAlignSelf write SetAlignSelf default asAuto;
-    // True: the height follows the content (height: auto). False: explicit height,
-    // also set by changing Height or by resizing the item in the designer.
+    /// <summary>True: the height follows the content (like height: auto in CSS). False: explicit height, also set by changing Height or by resizing the item in the designer.</summary>
     property AutoHeight: Boolean read GetAutoHeight write SetAutoHeight stored IsAutoHeightStored;
-    // True: the width is not an explicit choice (width: auto). On the cross axis
-    // the item stretches and, in a column, fits the width of the flexbox;
-    // the design width stays the starting one. False: explicit width,
-    // also set by changing Width or by resizing the item in the designer.
+    /// <summary>True: the width is not an explicit choice (like width: auto in CSS). On the cross axis the item stretches and, in a column, fits the width of the flexbox; the design width stays the starting one. False: explicit width, also set by changing Width or by resizing the item in the designer.</summary>
     property AutoWidth: Boolean read GetAutoWidth write SetAutoWidth stored IsAutoWidthStored;
-    // True: the automatic size (width and height not explicit) is that
-    // of the content itself, for example a TLabel with AutoSize. The content is
-    // no longer Align = Top: it keeps its size, at the top left (after the
-    // Padding), even if the item grows. False: the content follows the width
-    // of the item.
+    /// <summary>True: the automatic size (width and height not explicit) is that of the content itself, for example a TLabel with AutoSize. The content is no longer Align = Top: it keeps its size, at the top left (after the Padding), even if the item grows. False: the content follows the width of the item. The default is False.</summary>
     property FitContent: Boolean read FFitContent write SetFitContent default False;
+    /// <summary>Initial main size of the item (CSS flex-basis). FlexBasisUnit says how the value is read.</summary>
     property FlexBasis: Single read FFlexBasis write SetFlexBasis;
+    /// <summary>How FlexBasis is read: the size of the item (fbuAuto, the default), pixels or a percentage of the main size of the flexbox.</summary>
     property FlexBasisUnit: TFlexBasisUnit read FFlexBasisUnit write SetFlexBasisUnit default fbuAuto;
+    /// <summary>How much of the free space the item takes, compared with the other items (CSS flex-grow). The default is 0: the item does not grow.</summary>
     property FlexGrow: Single read FFlexGrow write SetFlexGrow;
+    /// <summary>How much the item shrinks, compared with the other items, when the space is not enough (CSS flex-shrink). The default is 1.</summary>
     property FlexShrink: Single read FFlexShrink write SetFlexShrink stored IsFlexShrinkStored;
     property Height;
-    // Position of the item in the flexbox (source order): not saved, the order
-    // is already that of the objects in the file
+    /// <summary>Position of the item in the flexbox (source order). It is not saved, because the order is already that of the objects in the file.</summary>
     property Index stored False;
     property Margins;
+    /// <summary>Position of the item in the layout, whatever its source order (CSS order). Items with a lower value come first. The default is 0.</summary>
     property Order: Integer read FOrder write SetOrder default 0;
     property Padding;
     property Size;
-    // Size limits like min-/max-width and min-/max-height in CSS (0 = no
-    // limit): they apply even with an explicit size and apply to the layout
-    // of the item, not to the content
+    /// <summary>Smallest and largest size of the item, like min-width, max-width, min-height and max-height in CSS (0 means no limit). They apply even to an explicit size, and to the layout of the item, not to its content.</summary>
     property SizeConstraints: TS4YFlexSizeConstraints read FSizeConstraints write SetSizeConstraints;
     property Visible;
     property Width;
+    /// <summary>Fires when the item becomes shrunk, at its flex-basis or grown after a layout.</summary>
     property OnFlexStateChanged: TS4YFlexItemStateEvent read FOnFlexStateChanged write FOnFlexStateChanged;
-    // Position or size of the item changed since the last notified layout
-    // (also at the first layout)
+    /// <summary>Fires when the position or the size of the item changed since the last notified layout, also at the first layout.</summary>
     property OnLayoutChanged: TNotifyEvent read FOnLayoutChanged write FOnLayoutChanged;
+    /// <summary>Fires when the item moves to another line of the flexbox.</summary>
     property OnLineChanged: TS4YFlexItemLineEvent read FOnLineChanged write FOnLineChanged;
   end;
 
+  /// <summary>
+  /// A container that lays out its items with the CSS flexbox model (W3C Level 1).
+  /// </summary>
+  /// <remarks>
+  /// The flexbox exposes the CSS properties of the container: Direction, Wrap, JustifyContent, AlignItems, AlignContent, ColumnGap and RowGap. Each control that takes part in the layout lives in a TS4YFlexItem.
+  /// When a control that is not an item becomes a child of the flexbox, the flexbox creates an item with the same position and size and moves the control into it; the margins of the control go to the item. At design time the item is created by the designer, through DesignWrapHandler.
+  /// Breakpoints change the properties of the container and of the items according to the width of the flexbox, also at design time, without altering the values set in the Object Inspector.
+  /// </remarks>
   TS4YFlexBox = class(TControl)
   strict private
     class var FDesignWrapHandler: TS4YFlexDesignWrapHandler;
@@ -335,70 +385,83 @@ type
     procedure SetRowGap(Value: Single);
     procedure SetWrap(Value: TFlexWrap);
   protected
+    /// <summary>Wraps in an item a control that is not an item and becomes a child of the flexbox (at design time through DesignWrapHandler).</summary>
     procedure DoAddObject(const AObject: TFmxObject); override;
+    /// <summary>Called when the set of active breakpoints changes. It fires OnBreakpointsChanged.</summary>
     procedure DoBreakpointsChanged; virtual;
+    /// <summary>Called when a layout has been applied to the items. It fires OnLayoutApplied.</summary>
     procedure DoLayoutApplied; virtual;
+    /// <summary>Called when the number of lines changes. It fires OnLineCountChanged.</summary>
     procedure DoLineCountChanged(ALineCount, APreviousLineCount: Integer); virtual;
+    /// <summary>Computes the layout and applies it to the items.</summary>
     procedure DoRealign; override;
+    /// <summary>When an item is deleted, removes the breakpoint overrides that refer to it.</summary>
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
-    // Layout inclusion predicate
+    /// <summary>True if the control takes part in the layout: it is a visible item that is not loading or being destroyed.</summary>
     class function IsFlexChild(AChild: TControl): Boolean; static;
 
+    /// <summary>Creates the flexbox with the default settings and no breakpoints.</summary>
     constructor Create(AOwner: TComponent); override;
+    /// <summary>Destroys the flexbox.</summary>
     destructor Destroy; override;
 
-    // Forces a layout recalculation (useful after programmatic changes)
+    /// <summary>Forces the layout to be computed again, for example after changes made by code.</summary>
     procedure InvalidateLayout;
 
-    // Creates a TS4YFlexItem child of the flexbox and moves the control into it
+    /// <summary>Creates an item in the flexbox and moves the control into it. Position, size and margins of the control go to the item.</summary>
     function WrapControl(const AControl: TControl): TS4YFlexItem;
 
-    // Moves the control into the given item (already created by the caller,
-    // for example by the designer), copying position, size and margins
+    /// <summary>Moves the control into an item that the caller already created, for example the designer, copying position, size and margins.</summary>
     procedure WrapInItem(const AControl: TControl; const AItem: TS4YFlexItem);
 
-    // Breakpoints that match the width in the last layout (empty at
-    // design time), in the order of application
+    /// <summary>The breakpoints that matched the width in the last layout, in the order in which they were applied. It is empty at design time.</summary>
     property ActiveBreakpoints: TArray<TS4YFlexBreakpoint> read FActiveBreakpoints;
 
-    // True while DoRealign is computing the layout
+    /// <summary>True while the layout is being computed.</summary>
     property UpdatingLayout: Boolean read GetUpdatingLayout;
 
-    // Set by the design-time package to perform wrapping in the designer
+    /// <summary>Procedure that the design-time package sets to wrap in an item the controls dropped on a flexbox in the designer.</summary>
     class property DesignWrapHandler: TS4YFlexDesignWrapHandler
       read FDesignWrapHandler write FDesignWrapHandler;
 
   published
     property Align;
+    /// <summary>Distribution of the lines on the cross axis when the items wrap onto more lines (CSS align-content). The default is acFlexStart.</summary>
     property AlignContent: TAlignContent read FAlignContent write SetAlignContent default acFlexStart;
+    /// <summary>Alignment of the items on the cross axis (CSS align-items). The default is aiStretch.</summary>
     property AlignItems: TAlignItems read FAlignItems write SetAlignItems default aiStretch;
     property Anchors;
-    // How the Width of the breakpoints is read: up to (default) or from. It applies to
-    // the whole list; changing it keeps the rules but they read the opposite way.
+    /// <summary>How the Width of the breakpoints is read: up to the width (bmMaxWidth, the default) or from the width up (bmMinWidth). It applies to the whole list; changing it keeps the breakpoints but they read the opposite way.</summary>
     property BreakpointMode: TS4YBreakpointMode read FBreakpointMode write SetBreakpointMode default bmMaxWidth;
-    // Thresholds on the flexbox width with overrides of its properties and of
-    // those of the items. They also apply at design time.
+    /// <summary>Width thresholds that change the properties of the flexbox and of its items. They also apply at design time.</summary>
     property Breakpoints: TS4YFlexBreakpoints read FBreakpoints write SetBreakpoints;
     property ClipChildren;
+    /// <summary>Space between the items of a line, in pixels (CSS column-gap).</summary>
     property ColumnGap: Single read FColumnGap write SetColumnGap;
+    /// <summary>Direction of the main axis (CSS flex-direction). The default is fdRow.</summary>
     property Direction: TFlexDirection read FDirection write SetDirection default fdRow;
     property Height;
     property HitTest;
+    /// <summary>Distribution of the items along the main axis (CSS justify-content). The default is jcFlexStart.</summary>
     property JustifyContent: TJustifyContent read FJustifyContent write SetJustifyContent default jcFlexStart;
     property Margins;
     property Opacity;
     property Padding;
     property Position;
+    /// <summary>Space between the lines, in pixels (CSS row-gap).</summary>
     property RowGap: Single read FRowGap write SetRowGap;
     property Size;
     property Visible;
     property Width;
+    /// <summary>Whether the items wrap onto more lines (CSS flex-wrap). The default is fwNoWrap.</summary>
     property Wrap: TFlexWrap read FWrap write SetWrap default fwNoWrap;
-    // Changes the set of active breakpoints (also at the first layout, if there are any)
+    /// <summary>Fires when the set of active breakpoints changes, also at the first layout if there are any.</summary>
     property OnBreakpointsChanged: TNotifyEvent read FOnBreakpointsChanged write FOnBreakpointsChanged;
     property OnClick;
+    /// <summary>Fires after a layout has been applied to the items and their events have been fired.</summary>
     property OnLayoutApplied: TNotifyEvent read FOnLayoutApplied write FOnLayoutApplied;
+    /// <summary>Fires when the number of lines changes.</summary>
     property OnLineCountChanged: TS4YFlexLineCountEvent read FOnLineCountChanged write FOnLineCountChanged;
     property OnResize;
   end;
