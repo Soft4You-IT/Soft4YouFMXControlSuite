@@ -75,7 +75,6 @@ type
   public
     /// <summary>Creates the settings for the badge of the given expander, with the default values.</summary>
     constructor Create(const AExpander: TS4YExpander);
-    /// <summary>Destroys the settings.</summary>
     destructor Destroy; override;
 
     /// <summary>Copies the settings to the badge of the style. It does nothing if the style has no badge yet; the expander calls it again when the style is applied.</summary>
@@ -87,7 +86,7 @@ type
   published
     /// <summary>Blinking of the badge at run time. See TS4YBadgeBlinkSettings.</summary>
     property BlinkSettings: TS4YBadgeBlinkSettings read FBlinkSettings write SetBlinkSettings;
-    /// <summary>The number shown when Style is bdgsNumeric. The badge is hidden while it is 0 or less; above MaxValue it shows MaxValue+.</summary>
+    /// <summary>The number shown when Style is bdgsNumeric. At run time the badge is hidden while it is 0 or less; above MaxValue it shows MaxValue+.</summary>
     property CurrentValue: Integer read FCurrentValue write SetCurrentValue default 0;
     /// <summary>True makes the badge react to the mouse, which OnClick and PopupMenu need. With False a click on the badge reaches the header of the expander. The default is False.</summary>
     property HitTest: Boolean read FHitTest write SetHitTest default False;
@@ -97,9 +96,9 @@ type
     property PopupMenu: TPopupMenu read FPopupMenu write SetPopupMenu;
     /// <summary>What the badge shows: the number CurrentValue or the Text. The default is bdgsNumeric.</summary>
     property Style: TS4YBadgeStyle read FStyle write SetStyle default TS4YBadge.C_DEFAULT_BADGE_STYLE;
-    /// <summary>The text shown when Style is bdgsText. The badge is hidden while it is empty.</summary>
+    /// <summary>The text shown when Style is bdgsText. At run time the badge is hidden while it is empty.</summary>
     property Text: string read FText write SetText;
-    /// <summary>True shows the badge. It stays hidden anyway while it has nothing to show (see Style). The default is False.</summary>
+    /// <summary>True shows the badge. At run time it stays hidden anyway while it has nothing to show (see Style). The default is False.</summary>
     property Visible: Boolean read FVisible write SetVisible default False;
 
     /// <summary>Fires when the user clicks the badge. It needs HitTest to be True.</summary>
@@ -160,7 +159,7 @@ type
     procedure BadgeChanged; virtual;
     /// <summary>Sets the height of the control after it expanded or collapsed, with the animation if Animated is True.</summary>
     procedure DoExpandedChanged; override;
-    /// <summary>Called before the control expands or collapses.</summary>
+    /// <summary>Remembers the height before the change, from which the animation starts.</summary>
     procedure DoExpandedChanging; override;
     /// <summary>Realigns the content and gives it the Padding of the expander.</summary>
     procedure DoRealign; override;
@@ -176,7 +175,6 @@ type
   public
     /// <summary>Creates the expander with the default settings.</summary>
     constructor Create(AOwner: TComponent); override;
-    /// <summary>Destroys the expander.</summary>
     destructor Destroy; override;
   published
     /// <summary>True animates the height when the control expands or collapses. The default is False.</summary>
