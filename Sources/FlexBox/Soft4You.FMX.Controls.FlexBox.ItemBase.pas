@@ -23,6 +23,9 @@ uses
   FMX.Controls;
 
 type
+  /// <summary>
+  /// Base class of TS4YFlexItem. It only lets the breakpoints refer to a flex item without depending on the unit of TS4YFlexItem.
+  /// </summary>
   TS4YFlexItemBase = class(TControl);
 
 implementation
