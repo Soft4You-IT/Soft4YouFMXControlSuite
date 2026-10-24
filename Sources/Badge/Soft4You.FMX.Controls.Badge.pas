@@ -298,12 +298,11 @@ type
     /// <summary>Applies BlinkSettings at run time, once the badge is loaded.</summary>
     procedure Loaded; override;
 
-    /// <summary>True when the badge is to be drawn: it has something to show and, if it blinks, it is in its visible phase.</summary>
+    /// <summary>True when the badge is to be drawn at run time: it has something to show and, if it blinks, it is in its visible phase.</summary>
     property BadgeVisible: Boolean read GetBadgeVisible;
   public
     /// <summary>Creates the badge with the default settings.</summary>
     constructor Create(AOwner: TComponent); override;
-    /// <summary>Destroys the badge.</summary>
     destructor Destroy; override;
 
     /// <summary>Applies the current BlinkSettings. It is called when they change.</summary>
