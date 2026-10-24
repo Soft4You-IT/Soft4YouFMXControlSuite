@@ -415,7 +415,7 @@ type
     /// <summary>Moves the control into an item that the caller already created, for example the designer, copying position, size and margins.</summary>
     procedure WrapInItem(const AControl: TControl; const AItem: TS4YFlexItem);
 
-    /// <summary>The breakpoints that matched the width in the last layout, in the order in which they were applied. It is empty at design time.</summary>
+    /// <summary>The breakpoints that matched the width in the last layout, in the order in which they were applied.</summary>
     property ActiveBreakpoints: TArray<TS4YFlexBreakpoint> read FActiveBreakpoints;
 
     /// <summary>True while the layout is being computed.</summary>

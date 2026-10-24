@@ -325,7 +325,7 @@ LItem.Index := 0;
 ## Events
 
 The events fire **when the layout is finished** and only if something has
-changed; they do not fire at design time nor while loading. A handler that
+changed. A handler that
 changes the content starts a new layout: it does not re-enter the one in
 progress. During the construction (adding the items, intermediate resizing) the
 layout is calculated again at every change, so the events can fire several times
