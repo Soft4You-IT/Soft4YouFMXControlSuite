@@ -199,7 +199,8 @@ Details:
 - **Notification**: a parent does not tell a child that is not aligned that its size
   changed. The flexbox hooks the `OnResized` of its parent (`OnResize` of a form),
   keeping the handler that was already assigned. If you assign another handler after
-  it, the flexbox no longer follows the parent until the next layout.
+  it, the flexbox no longer follows the parent until the next layout. This is a known
+  limitation that will be reviewed (see "Known limits").
 - **Breakpoints**: they read the width that the parent gives, not the width the
   flexbox may have grown to.
 - **Items that shrink**: the width needed is the sum of the minimum widths of the
@@ -884,6 +885,16 @@ tried yet is a context menu entry (`IComponentEditor`: Move first/before/after/l
 - A content with automatic height does not fill the item when this is stretched or
   made to grow by the layout (in CSS it would, because it would be the item).
 - Reordering by dragging: the Structure view is not updated (see Design time).
+- **To be reviewed**: with `FitContent` the flexbox hooks the `OnResized` event of its
+  parent (`OnResize` of a form) to follow its size. Taking over an event of another
+  control is not acceptable as a final solution: the user cannot freely assign a
+  handler to the `OnResized` of that parent (the one assigned last wins, and if it is
+  yours the flexbox stops following the parent), and the flexbox changes a property
+  that does not belong to it. In a scroll box the hooked object is the internal
+  content, so the user is not affected; with a panel, a layout or a form the user is.
+  Until a better mechanism is found, assign your handler before setting
+  `FitContent`, or call `InvalidateLayout` of the flexbox from your handler. See the
+  roadmap.
 - `FitContent` does not measure a flexbox nested in an item: its minimum size is not
   known to the outer one, which can crop it.
 - `FitContent` gives the flexbox the height of its content: it does not fill a taller
