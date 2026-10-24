@@ -135,6 +135,19 @@ type
     [Test] procedure Test_Cross_MinHeight_RaisesSize;
     [Test] procedure Test_Column_Cross_MaxWidth_LimitsStretch;
     [Test] procedure Test_Wrap_UsesClampedSizeToFillLine;
+
+    // -----------------------------------------------------------------------
+    // 15. MEASURE (smallest size that does not crop the items)
+    // -----------------------------------------------------------------------
+    [Test] procedure Test_Measure_NoItems_IsZero;
+    [Test] procedure Test_Measure_Row_NoShrink_SumsSizesGapsAndMargins;
+    [Test] procedure Test_Measure_Row_ShrinkableItems_NeedNoWidth;
+    [Test] procedure Test_Measure_Row_MinWidth_SumsMinimums;
+    [Test] procedure Test_Measure_Row_IgnoresAvailableSizeAndJustify;
+    [Test] procedure Test_Measure_RowReverse_SameAsRow;
+    [Test] procedure Test_Measure_Row_Wrap_WidestItemAndLinesAtAvailableWidth;
+    [Test] procedure Test_Measure_Column_NoShrink_SumsHeightsAndGaps;
+    [Test] procedure Test_Measure_Column_AutoWidth_IsNotCappedByAvailableWidth;
   end;
 
 implementation
@@ -1064,6 +1077,154 @@ begin
   R := TFlexEngine.Calculate(Ctx);
   AssertRect(R[0],   0, 0, 100, 40, 'item0');
   AssertRect(R[1], 100, 0, 100, 40, 'item1 same line');
+end;
+
+// ===========================================================================
+// 15. MEASURE
+// ===========================================================================
+
+procedure TFlexEngineTests.Test_Measure_NoItems_IsZero;
+var LSize: TFlexContentSize;
+begin
+  LSize := TFlexEngine.Measure(DefaultCtx(400, 300));
+  Assert.AreEqual(Single(0), LSize.Width, TOLERANCE, 'width');
+  Assert.AreEqual(Single(0), LSize.Height, TOLERANCE, 'height');
+end;
+
+procedure TFlexEngineTests.Test_Measure_Row_NoShrink_SumsSizesGapsAndMargins;
+
+// Three items of 100 x 40 that do not shrink, ColumnGap 10, right margin 5 on the last
+// Width = 300 + 2 * 10 + 5 = 325; height = 40
+var Ctx: TFlexContext; LSize: TFlexContentSize;
+begin
+  Ctx := DefaultCtx(50, 20);
+  Ctx.ColumnGap := 10;
+  Ctx.Items := [MakeItem(100,40,0,0), MakeItem(100,40,0,0), MakeItem(100,40,0,0)];
+  Ctx.Items[2].MarginRight := 5;
+
+  LSize := TFlexEngine.Measure(Ctx);
+  Assert.AreEqual(Single(325), LSize.Width, TOLERANCE, 'width');
+  Assert.AreEqual(Single(40), LSize.Height, TOLERANCE, 'height');
+end;
+
+procedure TFlexEngineTests.Test_Measure_Row_ShrinkableItems_NeedNoWidth;
+
+// Items that shrink without a minimum never crop: no width is needed
+var Ctx: TFlexContext; LSize: TFlexContentSize;
+begin
+  Ctx := DefaultCtx(50, 20);
+  Ctx.Items := [MakeItem(100,40), MakeItem(100,40), MakeItem(100,40)];
+
+  LSize := TFlexEngine.Measure(Ctx);
+  Assert.AreEqual(Single(0), LSize.Width, TOLERANCE, 'width');
+  Assert.AreEqual(Single(40), LSize.Height, TOLERANCE, 'height');
+end;
+
+procedure TFlexEngineTests.Test_Measure_Row_MinWidth_SumsMinimums;
+
+// Three items that shrink down to MinWidth 80, ColumnGap 10: 3 * 80 + 2 * 10 = 260
+var Ctx: TFlexContext; LSize: TFlexContentSize;
+begin
+  Ctx := DefaultCtx(50, 20);
+  Ctx.ColumnGap := 10;
+  Ctx.Items := [MakeItem(100,40), MakeItem(100,40), MakeItem(100,40)];
+
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].MinWidth := 80;
+
+  LSize := TFlexEngine.Measure(Ctx);
+  Assert.AreEqual(Single(260), LSize.Width, TOLERANCE, 'width');
+end;
+
+procedure TFlexEngineTests.Test_Measure_Row_IgnoresAvailableSizeAndJustify;
+
+// The result does not grow with the available size and does not depend on how
+// the free space is distributed
+var Ctx: TFlexContext; LSmall, LLarge: TFlexContentSize;
+begin
+  Ctx := DefaultCtx(100, 100);
+  Ctx.Items := [MakeItem(100,40,1,0), MakeItem(100,40,1,0)];
+  LSmall := TFlexEngine.Measure(Ctx);
+
+  Ctx := DefaultCtx(1000, 800);
+  Ctx.JustifyContent := jcSpaceBetween;
+  Ctx.AlignContent := acStretch;
+  Ctx.Items := [MakeItem(100,40,1,0), MakeItem(100,40,1,0)];
+  LLarge := TFlexEngine.Measure(Ctx);
+
+  Assert.AreEqual(Single(200), LSmall.Width, TOLERANCE, 'small width');
+  Assert.AreEqual(LSmall.Width, LLarge.Width, TOLERANCE, 'width');
+  Assert.AreEqual(LSmall.Height, LLarge.Height, TOLERANCE, 'height');
+end;
+
+procedure TFlexEngineTests.Test_Measure_RowReverse_SameAsRow;
+var Ctx: TFlexContext; LRow, LReverse: TFlexContentSize;
+begin
+  Ctx := DefaultCtx(50, 20);
+  Ctx.Items := [MakeItem(100,40,0,0), MakeItem(60,30,0,0)];
+  LRow := TFlexEngine.Measure(Ctx);
+
+  Ctx.Direction := fdRowReverse;
+  LReverse := TFlexEngine.Measure(Ctx);
+
+  Assert.AreEqual(Single(160), LReverse.Width, TOLERANCE, 'width');
+  Assert.AreEqual(LRow.Width, LReverse.Width, TOLERANCE, 'same width');
+  Assert.AreEqual(LRow.Height, LReverse.Height, TOLERANCE, 'same height');
+end;
+
+procedure TFlexEngineTests.Test_Measure_Row_Wrap_WidestItemAndLinesAtAvailableWidth;
+
+// Wrap, items of 100, 150 and 80 that do not shrink, height 40, RowGap 5
+// Width = the widest item (150). Height depends on the width that the container has:
+//   available 400: one line -> 40
+//   available 200: 100 | 150 | 80 on three lines -> 3 * 40 + 2 * 5 = 130
+var Ctx: TFlexContext; LWide, LNarrow: TFlexContentSize;
+begin
+  Ctx := DefaultCtx(400, 100);
+  Ctx.Wrap := fwWrap;
+  Ctx.RowGap := 5;
+  Ctx.Items := [MakeItem(100,40,0,0), MakeItem(150,40,0,0), MakeItem(80,40,0,0)];
+  LWide := TFlexEngine.Measure(Ctx);
+
+  Ctx.AvailableWidth := 200;
+  LNarrow := TFlexEngine.Measure(Ctx);
+
+  Assert.AreEqual(Single(150), LWide.Width, TOLERANCE, 'wide: width');
+  Assert.AreEqual(Single(40), LWide.Height, TOLERANCE, 'wide: height');
+  Assert.AreEqual(Single(150), LNarrow.Width, TOLERANCE, 'narrow: width');
+  Assert.AreEqual(Single(130), LNarrow.Height, TOLERANCE, 'narrow: height');
+end;
+
+procedure TFlexEngineTests.Test_Measure_Column_NoShrink_SumsHeightsAndGaps;
+
+// Column, three items of 50 x 30 that do not shrink, RowGap and ColumnGap 10
+// Height = 3 * 30 + 2 * 10 = 110; width = 50
+var Ctx: TFlexContext; LSize: TFlexContentSize;
+begin
+  Ctx := DefaultCtx(20, 20);
+  Ctx.Direction := fdColumn;
+  Ctx.ColumnGap := 10;
+  Ctx.RowGap := 10;
+  Ctx.Items := [MakeItem(50,30,0,0), MakeItem(50,30,0,0), MakeItem(50,30,0,0)];
+
+  LSize := TFlexEngine.Measure(Ctx);
+  Assert.AreEqual(Single(110), LSize.Height, TOLERANCE, 'height');
+  Assert.AreEqual(Single(50), LSize.Width, TOLERANCE, 'width');
+end;
+
+procedure TFlexEngineTests.Test_Measure_Column_AutoWidth_IsNotCappedByAvailableWidth;
+
+// In a column an automatic width fits the available width when the layout is
+// computed; the measure needs the natural width, otherwise a narrow container
+// would never see that the content is wider
+var Ctx: TFlexContext; LSize: TFlexContentSize;
+begin
+  Ctx := DefaultCtx(20, 400);
+  Ctx.Direction := fdColumn;
+  Ctx.Items := [MakeItem(120,30), MakeItem(90,30)];
+
+  LSize := TFlexEngine.Measure(Ctx);
+  Assert.AreEqual(Single(120), LSize.Width, TOLERANCE, 'width');
 end;
 
 initialization

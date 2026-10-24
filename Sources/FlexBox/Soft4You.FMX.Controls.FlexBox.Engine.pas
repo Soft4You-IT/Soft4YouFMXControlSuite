@@ -294,6 +294,23 @@ type
   end;
 
 // ---------------------------------------------------------------------------
+// TFlexContentSize - smallest size that does not crop the items
+// ---------------------------------------------------------------------------
+
+  /// <summary>
+  /// The smallest size of a container at which none of its items is cropped.
+  /// </summary>
+  /// <remarks>
+  /// The Padding of the container is not included, like in TFlexContext.
+  /// </remarks>
+  TFlexContentSize = record
+    /// <summary>Smallest width, in pixels.</summary>
+    Width  : Single;
+    /// <summary>Smallest height, in pixels.</summary>
+    Height : Single;
+  end;
+
+// ---------------------------------------------------------------------------
 // TFlexEngine
 // ---------------------------------------------------------------------------
 
@@ -304,6 +321,9 @@ type
   public
     /// <summary>Computes the layout of the items of a context. It returns an array with the same length as Context.Items, sorted by OriginalIndex (not by Order).</summary>
     class function Calculate(const Context: TFlexContext): TArray<TFlexItemResult>;
+
+    /// <summary>Computes the smallest size at which the items of a context are not cropped. The items shrink as far as their FlexShrink, MinWidth and MinHeight allow; the others keep their size. On the main axis the size is the sum of the items of a line (the widest item when they wrap); on the cross axis it is the height of the lines, computed with the main size that the container really has: the greater of the available one and the smallest one. A percentage basis counts as the natural size. The available size of the context is only the starting point: the result does not grow with it.</summary>
+    class function Measure(const Context: TFlexContext): TFlexContentSize;
 
   private
     // - Internal types -
@@ -370,6 +390,11 @@ type
     class procedure PositionCrossAxis(var WItems: TArray<TWorkItem>;
                       var Line: TFlexLine;
                       ContainerAlignItems: TAlignItems); static;
+
+    // Largest end (position + size + trailing margin) of the results on one axis
+    class function  MeasureExtent(const Context: TFlexContext;
+                      const Results: TArray<TFlexItemResult>;
+                      HorizontalAxis: Boolean): Single; static;
 
     // Utility: clamp with min/max (0 = disabled)
     class function  ClampSize(Value, MinVal, MaxVal: Single): Single; static; inline;
@@ -1202,6 +1227,92 @@ begin
   end;
 
   Result := Results;
+end;
+
+// ===========================================================================
+// Measure - smallest size that does not crop the items
+// ===========================================================================
+
+class function TFlexEngine.MeasureExtent(const Context: TFlexContext;
+  const Results: TArray<TFlexItemResult>; HorizontalAxis: Boolean): Single;
+var
+  LIndex: Integer;
+begin
+  Result := 0;
+
+  for LIndex := 0 to High(Results) do
+  begin
+    if HorizontalAxis then
+    begin
+      Result := Max(Result, Results[LIndex].Left + Results[LIndex].Width +
+        Context.Items[Results[LIndex].OriginalIndex].MarginRight);
+    end
+    else
+    begin
+      Result := Max(Result, Results[LIndex].Top + Results[LIndex].Height +
+        Context.Items[Results[LIndex].OriginalIndex].MarginBottom);
+    end;
+  end;
+end;
+
+class function TFlexEngine.Measure(const Context: TFlexContext): TFlexContentSize;
+var
+  LCrossSize: Single;
+  LMainAvailable: Single;
+  LMinimumMain: Single;
+  LProbe: TFlexContext;
+  LResults: TArray<TFlexItemResult>;
+  LRow: Boolean;
+begin
+  Result.Width := 0;
+  Result.Height := 0;
+
+  if Length(Context.Items) = 0 then
+    Exit;
+
+  LRow := IsRow(Context.Direction);
+
+  // The probes ignore how the free space is distributed: only the sizes count
+  LProbe := Context;
+  LProbe.JustifyContent := jcFlexStart;
+  LProbe.AlignContent := acFlexStart;
+  LProbe.SingleLineFillsContainer := False;
+
+  if LRow then
+    LProbe.Direction := fdRow
+  else
+    LProbe.Direction := fdColumn;
+
+  // Main axis: with no space the items shrink as far as they can
+  LProbe.AvailableWidth := 0;
+  LProbe.AvailableHeight := 0;
+  LResults := Calculate(LProbe);
+  LMinimumMain := MeasureExtent(Context, LResults, LRow);
+
+  // Cross axis: the lines are those of the main size that the container has
+  if LRow then
+    LMainAvailable := Context.AvailableWidth
+  else
+    LMainAvailable := Context.AvailableHeight;
+
+  if LRow then
+    LProbe.AvailableWidth := Max(LMinimumMain, LMainAvailable)
+  else
+    LProbe.AvailableHeight := Max(LMinimumMain, LMainAvailable);
+
+  LResults := Calculate(LProbe);
+  LCrossSize := MeasureExtent(Context, LResults, not LRow);
+
+  if LRow then
+  begin
+    Result.Width := LMinimumMain;
+    Result.Height := LCrossSize;
+  end
+  else
+  begin
+    Result.Width := LCrossSize;
+    Result.Height := LMinimumMain;
+  end;
 end;
 
 end.
