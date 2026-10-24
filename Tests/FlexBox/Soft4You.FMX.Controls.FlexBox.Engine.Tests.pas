@@ -147,7 +147,10 @@ type
     [Test] procedure Test_Measure_RowReverse_SameAsRow;
     [Test] procedure Test_Measure_Row_Wrap_WidestItemAndLinesAtAvailableWidth;
     [Test] procedure Test_Measure_Column_NoShrink_SumsHeightsAndGaps;
-    [Test] procedure Test_Measure_Column_AutoWidth_IsNotCappedByAvailableWidth;
+    [Test] procedure Test_Measure_Column_ShrinkableItems_KeepNaturalHeight;
+    [Test] procedure Test_Measure_Column_Wrap_IsIgnored;
+    [Test] procedure Test_Measure_Column_AutoWidth_FitsAvailableWidth;
+    [Test] procedure Test_Measure_Column_ExplicitWidth_NeedsItsWidth;
   end;
 
 implementation
@@ -1201,7 +1204,7 @@ procedure TFlexEngineTests.Test_Measure_Column_NoShrink_SumsHeightsAndGaps;
 // Height = 3 * 30 + 2 * 10 = 110; width = 50
 var Ctx: TFlexContext; LSize: TFlexContentSize;
 begin
-  Ctx := DefaultCtx(20, 20);
+  Ctx := DefaultCtx(100, 20);
   Ctx.Direction := fdColumn;
   Ctx.ColumnGap := 10;
   Ctx.RowGap := 10;
@@ -1212,16 +1215,58 @@ begin
   Assert.AreEqual(Single(50), LSize.Width, TOLERANCE, 'width');
 end;
 
-procedure TFlexEngineTests.Test_Measure_Column_AutoWidth_IsNotCappedByAvailableWidth;
+procedure TFlexEngineTests.Test_Measure_Column_ShrinkableItems_KeepNaturalHeight;
 
-// In a column an automatic width fits the available width when the layout is
-// computed; the measure needs the natural width, otherwise a narrow container
-// would never see that the content is wider
+// The height of a column is not limited: the items do not shrink to the height
+// that the context happens to have
 var Ctx: TFlexContext; LSize: TFlexContentSize;
 begin
-  Ctx := DefaultCtx(20, 400);
+  Ctx := DefaultCtx(100, 20);
   Ctx.Direction := fdColumn;
-  Ctx.Items := [MakeItem(120,30), MakeItem(90,30)];
+  Ctx.Items := [MakeItem(50,30), MakeItem(50,30), MakeItem(50,30)];
+
+  LSize := TFlexEngine.Measure(Ctx);
+  Assert.AreEqual(Single(90), LSize.Height, TOLERANCE, 'height');
+end;
+
+procedure TFlexEngineTests.Test_Measure_Column_Wrap_IsIgnored;
+
+// With a height that follows the content there is nothing to wrap against
+var Ctx: TFlexContext; LSize: TFlexContentSize;
+begin
+  Ctx := DefaultCtx(200, 50);
+  Ctx.Direction := fdColumn;
+  Ctx.Wrap := fwWrap;
+  Ctx.Items := [MakeItem(50,30), MakeItem(50,30), MakeItem(50,30)];
+
+  LSize := TFlexEngine.Measure(Ctx);
+  Assert.AreEqual(Single(90), LSize.Height, TOLERANCE, 'height');
+  Assert.AreEqual(Single(50), LSize.Width, TOLERANCE, 'width');
+end;
+
+procedure TFlexEngineTests.Test_Measure_Column_AutoWidth_FitsAvailableWidth;
+
+// An automatic width in a column fits the available width, so it never needs
+// more room than that
+var Ctx: TFlexContext; LSize: TFlexContentSize;
+begin
+  Ctx := DefaultCtx(80, 400);
+  Ctx.Direction := fdColumn;
+  Ctx.Items := [MakeItem(120,30), MakeItem(60,30)];
+
+  LSize := TFlexEngine.Measure(Ctx);
+  Assert.AreEqual(Single(80), LSize.Width, TOLERANCE, 'width');
+end;
+
+procedure TFlexEngineTests.Test_Measure_Column_ExplicitWidth_NeedsItsWidth;
+
+// An explicit width is not reduced: the container needs room for it
+var Ctx: TFlexContext; LSize: TFlexContentSize;
+begin
+  Ctx := DefaultCtx(80, 400);
+  Ctx.Direction := fdColumn;
+  Ctx.Items := [MakeItem(120,30), MakeItem(60,30)];
+  Ctx.Items[0].WidthAuto := False;
 
   LSize := TFlexEngine.Measure(Ctx);
   Assert.AreEqual(Single(120), LSize.Width, TOLERANCE, 'width');

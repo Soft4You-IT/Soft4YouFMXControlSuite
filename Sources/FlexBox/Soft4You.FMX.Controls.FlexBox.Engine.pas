@@ -298,15 +298,15 @@ type
 // ---------------------------------------------------------------------------
 
   /// <summary>
-  /// The smallest size of a container at which none of its items is cropped.
+  /// The size of a container whose width is limited and whose height follows the content, so that none of its items is cropped.
   /// </summary>
   /// <remarks>
   /// The Padding of the container is not included, like in TFlexContext.
   /// </remarks>
   TFlexContentSize = record
-    /// <summary>Smallest width, in pixels.</summary>
+    /// <summary>Smallest width at which no item is cropped, in pixels.</summary>
     Width  : Single;
-    /// <summary>Smallest height, in pixels.</summary>
+    /// <summary>Height that the content needs at the width of the container (the greater of AvailableWidth and Width), in pixels.</summary>
     Height : Single;
   end;
 
@@ -322,7 +322,7 @@ type
     /// <summary>Computes the layout of the items of a context. It returns an array with the same length as Context.Items, sorted by OriginalIndex (not by Order).</summary>
     class function Calculate(const Context: TFlexContext): TArray<TFlexItemResult>;
 
-    /// <summary>Computes the smallest size at which the items of a context are not cropped. The items shrink as far as their FlexShrink, MinWidth and MinHeight allow; the others keep their size. On the main axis the size is the sum of the items of a line (the widest item when they wrap); on the cross axis it is the height of the lines, computed with the main size that the container really has: the greater of the available one and the smallest one. A percentage basis counts as the natural size. The available size of the context is only the starting point: the result does not grow with it.</summary>
+    /// <summary>Computes the size of a container whose width is limited by AvailableWidth and whose height follows the content (CSS height: auto). AvailableHeight is not used. In a row the items shrink as far as their FlexShrink, MinWidth and MinHeight allow: Width is the sum of the items of a line (the widest item when they wrap) and Height is that of the lines at the width of the container. In a column the items do not shrink and do not wrap: Height is the sum of their heights and Width is the widest item, where an automatic width fits AvailableWidth. A percentage basis counts as the natural size. FlexGrow is not taken into account.</summary>
     class function Measure(const Context: TFlexContext): TFlexContentSize;
 
   private
@@ -1258,11 +1258,10 @@ end;
 class function TFlexEngine.Measure(const Context: TFlexContext): TFlexContentSize;
 var
   LCrossSize: Single;
-  LMainAvailable: Single;
+  LIndex: Integer;
   LMinimumMain: Single;
   LProbe: TFlexContext;
   LResults: TArray<TFlexItemResult>;
-  LRow: Boolean;
 begin
   Result.Width := 0;
   Result.Height := 0;
@@ -1270,48 +1269,44 @@ begin
   if Length(Context.Items) = 0 then
     Exit;
 
-  LRow := IsRow(Context.Direction);
-
   // The probes ignore how the free space is distributed: only the sizes count
   LProbe := Context;
   LProbe.JustifyContent := jcFlexStart;
   LProbe.AlignContent := acFlexStart;
   LProbe.SingleLineFillsContainer := False;
 
-  if LRow then
-    LProbe.Direction := fdRow
-  else
-    LProbe.Direction := fdColumn;
-
-  // Main axis: with no space the items shrink as far as they can
-  LProbe.AvailableWidth := 0;
-  LProbe.AvailableHeight := 0;
-  LResults := Calculate(LProbe);
-  LMinimumMain := MeasureExtent(Context, LResults, LRow);
-
-  // Cross axis: the lines are those of the main size that the container has
-  if LRow then
-    LMainAvailable := Context.AvailableWidth
-  else
-    LMainAvailable := Context.AvailableHeight;
-
-  if LRow then
-    LProbe.AvailableWidth := Max(LMinimumMain, LMainAvailable)
-  else
-    LProbe.AvailableHeight := Max(LMinimumMain, LMainAvailable);
-
-  LResults := Calculate(LProbe);
-  LCrossSize := MeasureExtent(Context, LResults, not LRow);
-
-  if LRow then
+  if IsRow(Context.Direction) then
   begin
+    LProbe.Direction := fdRow;
+
+    // Width: with no space the items shrink as far as they can
+    LProbe.AvailableWidth := 0;
+    LProbe.AvailableHeight := 0;
+    LResults := Calculate(LProbe);
+    LMinimumMain := MeasureExtent(Context, LResults, True);
+
+    // Height: the lines are those of the width that the container has
+    LProbe.AvailableWidth := Max(LMinimumMain, Context.AvailableWidth);
+    LResults := Calculate(LProbe);
+    LCrossSize := MeasureExtent(Context, LResults, False);
+
     Result.Width := LMinimumMain;
     Result.Height := LCrossSize;
   end
   else
   begin
-    Result.Width := LCrossSize;
-    Result.Height := LMinimumMain;
+    LProbe.Direction := fdColumn;
+
+    // The height is not limited: the items keep their size and never wrap
+    LProbe.Wrap := fwNoWrap;
+    LProbe.AvailableHeight := 0;
+
+    for LIndex := 0 to High(LProbe.Items) do
+      LProbe.Items[LIndex].FlexShrink := 0;
+
+    LResults := Calculate(LProbe);
+    Result.Height := MeasureExtent(Context, LResults, False);
+    Result.Width := MeasureExtent(Context, LResults, True);
   end;
 end;
 
