@@ -609,7 +609,7 @@ var
   LPreviousLineIndex: Integer;
   LPreviousState: TFlexItemState;
 begin
-  if (ComponentState * [csDesigning, csLoading, csDestroying] <> []) or
+  if (ComponentState * [csLoading, csDestroying] <> []) or
     (FOutcomeLineIndex < 0) then
   begin
     Exit;
@@ -1535,7 +1535,7 @@ var
   LChild: TControl;
   LPreviousLineCount: Integer;
 begin
-  if ComponentState * [csDesigning, csLoading, csDestroying] <> [] then
+  if ComponentState * [csLoading, csDestroying] <> [] then
   begin
     Exit;
   end;
