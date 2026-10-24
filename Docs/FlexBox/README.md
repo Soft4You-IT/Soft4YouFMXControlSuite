@@ -204,6 +204,11 @@ Details:
   items of a line. An item with `FlexShrink > 0` and no `MinWidth` counts as zero,
   because the layout shrinks it down to nothing: the flexbox grows beyond the parent
   only for items with `FlexShrink = 0` or with a `MinWidth`.
+- **Minimum width of the whole flexbox**: `MinWidth` sets a floor for the width
+  (for example `MinWidth = 1000` for a dashboard that must not be narrower). The
+  items wrap at that width, and a parent that is narrower scrolls horizontally.
+  It is the way to get a horizontal bar with `Wrap`, where the width needed without
+  it would be only that of the widest item. It has no effect without `FitContent`.
 - **Direction**: in a column the height is the sum of the heights of the items (they
   do not shrink) and there is no wrapping, because the height is not limited.
 - **Width and Height are not yours to set**: while `FitContent` is `True` they come
@@ -317,6 +322,7 @@ FMX), so in theory it is portable, but the compatibility has to be checked.
 | `ColumnGap`       | `column-gap`       | `Single` (pixels)                                               |
 | `RowGap`          | `row-gap`          | `Single` (pixels)                                               |
 | `FitContent`      | `width: auto; height: auto` of a block container | `Boolean` (default: `False`), see "Scrolling and FitContent" |
+| `MinWidth`        | `min-width` of the container, only with `FitContent` | `Single` >= 0 (default: 0 = no minimum) |
 
 ### Item (on TS4YFlexItem)
 

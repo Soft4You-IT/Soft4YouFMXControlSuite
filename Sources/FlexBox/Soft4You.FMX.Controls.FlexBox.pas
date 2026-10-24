@@ -97,6 +97,9 @@
   child that is not aligned, so the flexbox hooks the OnResized of the parent
   (OnResize of a form), chaining the handler that was already there.
   The breakpoints read the width that the parent gives, not the grown one.
+  MinWidth is a floor for the width of the flexbox, for a layout that must not be
+  narrower than that (for example with Wrap, where the smallest width without
+  cropping is only that of the widest item).
   A scroll bar that appears or disappears changes the width of the parent: the
   layout is repeated, up to C_MAX_FIT_PASSES times.
 
@@ -373,6 +376,7 @@ type
     FNotifiedBreakpointIndexes: TArray<Integer>;
     FFitContent: Boolean;
     FHookedParent: TFmxObject;
+    FMinWidth: Single;
     FPreviousParentResized: TNotifyEvent;
     FOnBreakpointsChanged: TNotifyEvent;
     FOnLayoutApplied: TNotifyEvent;
@@ -392,6 +396,7 @@ type
     procedure HookParent;
     procedure ParentResized(Sender: TObject);
     procedure SetFitContent(Value: Boolean);
+    procedure SetMinWidth(Value: Single);
     procedure UnhookParent;
     procedure BreakpointsChanged(Sender: TObject);
     procedure NotifyBreakpointsChanged;
@@ -479,6 +484,8 @@ type
     /// <summary>Distribution of the items along the main axis (CSS justify-content). The default is jcFlexStart.</summary>
     property JustifyContent: TJustifyContent read FJustifyContent write SetJustifyContent default jcFlexStart;
     property Margins;
+    /// <summary>Smallest width of the flexbox when FitContent is True, in pixels: the width is the greater of the width of the parent, MinWidth and the smallest width at which no item is cropped, and the items wrap at that width. If the parent is narrower, the parent crops the flexbox or, if it scrolls, shows the horizontal bar. 0 means no minimum. It has no effect without FitContent. The default is 0.</summary>
+    property MinWidth: Single read FMinWidth write SetMinWidth;
     property Opacity;
     property Padding;
     property Position;
@@ -1707,21 +1714,23 @@ var
   LMeasure: TFlexContentSize;
   LNewHeight: Single;
   LNewWidth: Single;
+  LOuterWidth: Single;
   LPaddingHorizontal: Single;
   LPaddingVertical: Single;
 begin
   LPaddingHorizontal := Padding.Left + Padding.Right;
   LPaddingVertical := Padding.Top + Padding.Bottom;
-  AContext.AvailableWidth := Max(0, AAvailableSize.Width - LPaddingHorizontal);
+  LOuterWidth := Max(AAvailableSize.Width, FMinWidth);
+  AContext.AvailableWidth := Max(0, LOuterWidth - LPaddingHorizontal);
 
-  LNewWidth := AAvailableSize.Width;
+  LNewWidth := LOuterWidth;
   LNewHeight := Height;
 
   // Without items the height stays as it is: an empty flexbox must not disappear
   if Length(AContext.Items) > 0 then
   begin
     LMeasure := TFlexEngine.Measure(AContext);
-    LNewWidth := Max(AAvailableSize.Width, LMeasure.Width + LPaddingHorizontal);
+    LNewWidth := Max(LOuterWidth, LMeasure.Width + LPaddingHorizontal);
     LNewHeight := LMeasure.Height + LPaddingVertical;
   end;
 
@@ -1775,6 +1784,17 @@ begin
       HookParent;
     end;
 
+    InvalidateLayout;
+  end;
+end;
+
+procedure TS4YFlexBox.SetMinWidth(Value: Single);
+begin
+  Value := Max(0, Value);
+
+  if not SameValue(FMinWidth, Value) then
+  begin
+    FMinWidth := Value;
     InvalidateLayout;
   end;
 end;
