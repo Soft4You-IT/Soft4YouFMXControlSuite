@@ -29,6 +29,13 @@ uses
 type
   TS4YExpander = class;
 
+  /// <summary>
+  /// Settings of the badge shown on the header of a TS4YExpander.
+  /// </summary>
+  /// <remarks>
+  /// They are the settings an application needs to drive at run time: what the badge shows, whether it is visible, whether it reacts to the mouse and whether it blinks.
+  /// Its look (colors, position) comes from the style of the expander. The settings can be changed at any time: they are applied to the badge as soon as the style provides it.
+  /// </remarks>
   // Small facade exposing only the badge settings an application actually needs to
   // drive at runtime (value/visibility/interaction), instead of publishing the whole
   // TS4YBadge sub-component - which would let callers override anything the style
@@ -63,28 +70,53 @@ type
     procedure BlinkSettingsChangedHandler(Sender: TObject);
     property Badge: TS4YBadge read GetBadge;
   protected
+    /// <summary>Fires OnChange.</summary>
     procedure DoChange;
   public
+    /// <summary>Creates the settings for the badge of the given expander, with the default values.</summary>
     constructor Create(const AExpander: TS4YExpander);
     destructor Destroy; override;
 
+    /// <summary>Copies the settings to the badge of the style. It does nothing if the style has no badge yet; the expander calls it again when the style is applied.</summary>
     procedure ApplyToBadge;
+    /// <summary>Copies all the settings from another TS4YExpanderBadgeSettings and fires OnChange.</summary>
     procedure Assign(Source: TPersistent); override;
+    /// <summary>Restores the default values of all the settings and fires OnChange.</summary>
     procedure SetDefaultValues;
   published
+    /// <summary>Blinking of the badge at run time. See TS4YBadgeBlinkSettings.</summary>
     property BlinkSettings: TS4YBadgeBlinkSettings read FBlinkSettings write SetBlinkSettings;
+    /// <summary>The number shown when Style is bdgsNumeric. At run time the badge is hidden while it is 0 or less; above MaxValue it shows MaxValue+.</summary>
     property CurrentValue: Integer read FCurrentValue write SetCurrentValue default 0;
+    /// <summary>True makes the badge react to the mouse, which OnClick and PopupMenu need. With False a click on the badge reaches the header of the expander. The default is False.</summary>
     property HitTest: Boolean read FHitTest write SetHitTest default False;
+    /// <summary>Highest value shown as a plain number; a greater CurrentValue is shown as MaxValue+, for example 99+. The default is 99.</summary>
     property MaxValue: Integer read FMaxValue write SetMaxValue default TS4YBadge.C_DEFAULT_MAX_VALUE;
+    /// <summary>Popup menu of the badge. It needs HitTest to be True.</summary>
     property PopupMenu: TPopupMenu read FPopupMenu write SetPopupMenu;
+    /// <summary>What the badge shows: the number CurrentValue or the Text. The default is bdgsNumeric.</summary>
     property Style: TS4YBadgeStyle read FStyle write SetStyle default TS4YBadge.C_DEFAULT_BADGE_STYLE;
+    /// <summary>The text shown when Style is bdgsText. At run time the badge is hidden while it is empty.</summary>
     property Text: string read FText write SetText;
+    /// <summary>True shows the badge. At run time it stays hidden anyway while it has nothing to show (see Style). The default is False.</summary>
     property Visible: Boolean read FVisible write SetVisible default False;
 
+    /// <summary>Fires when the user clicks the badge. It needs HitTest to be True.</summary>
     property OnClick: TNotifyEvent read FOnClick write SetOnClick;
+    /// <summary>Fires when one of the settings changes.</summary>
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
+  /// <summary>
+  /// An expander (a collapsible panel with a header) that extends the standard FMX TExpander with an icon in the header, an optional height animation, a click on the whole header and a badge counter on the header.
+  /// </summary>
+  /// <remarks>
+  /// The icon comes from an image list (Images and ImageIndex) and is shown only if ShowIcon is True and the index points to a real image.
+  /// With Animated = True the height of the control changes smoothly when it expands or collapses.
+  /// With ClickOnHeader = True a click anywhere on the header expands or collapses the control, not only on the arrow button.
+  /// The badge is configured with BadgeSettings; its look comes from the style.
+  /// A custom style can provide the parts named header (the area that reacts to the click), icon and badge.
+  /// </remarks>
   TS4YExpander = class(TExpander, IGlyph)
   private
     FBadge: TS4YBadge;
@@ -121,30 +153,51 @@ type
     function IGlyph.GetImages = GetImageList;
     procedure IGlyph.SetImages = SetImageList;
   protected
+    /// <summary>Applies the settings of the expander (icon, click on the header, badge) to the parts of the style named icon, header and badge.</summary>
     procedure ApplyStyle; override;
+    /// <summary>Called when a badge setting changes: it applies the settings to the badge. A descendant can override it.</summary>
     procedure BadgeChanged; virtual;
+    /// <summary>Sets the height of the control after it expanded or collapsed, with the animation if Animated is True.</summary>
     procedure DoExpandedChanged; override;
+    /// <summary>Remembers the height before the change, from which the animation starts.</summary>
     procedure DoExpandedChanging; override;
+    /// <summary>Realigns the content and gives it the Padding of the expander.</summary>
     procedure DoRealign; override;
+    /// <summary>Sets the size of the control. While it is expanded the height is kept as ExpandedHeight; while it is collapsed the height can still be set, as the base class would ignore it.</summary>
     function DoSetSize(const ASize: TControlSize; const NewPlatformDefault: Boolean;
       ANewWidth, ANewHeight: Single; var ALastWidth, ALastHeight: Single): Boolean; override;
+    /// <summary>Releases the parts of the style found by ApplyStyle.</summary>
     procedure FreeStyle; override;
+    /// <summary>Returns the style of the expander: the default style of the control when StyleLookup is empty.</summary>
     function GetStyleObject: TFmxObject; override;
+    /// <summary>Called when the image list or the image index change: it refreshes the icon. A descendant can override it.</summary>
     procedure ImagesChanged; virtual;
   public
+    /// <summary>Creates the expander with the default settings.</summary>
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    /// <summary>True animates the height when the control expands or collapses. The default is False.</summary>
     property Animated: Boolean read FAnimated write FAnimated default False;
+    /// <summary>Duration of the height animation, in seconds. The default is 0.25.</summary>
     property AnimationDuration: Single read FAnimationDuration write FAnimationDuration;
+    /// <summary>Settings of the badge shown on the header.</summary>
     property BadgeSettings: TS4YExpanderBadgeSettings read FBadgeSettings write SetBadgeSettings;
+    /// <summary>True makes a click anywhere on the header expand or collapse the control. The default is True.</summary>
     property ClickOnHeader: Boolean read FClickOnHeader write SetClickOnHeader default True;
-    // Height the control takes when expanded. Saved (in the form file) only while collapsed, because a
-    // collapsed control is streamed with the height of its header: without this the height to restore on
-    // expansion is lost, so IsExpanded = True does not expand it, neither at design time nor at run time.
+    /// <summary>
+    /// Height of the control when it is expanded.
+    /// </summary>
+    /// <remarks>
+    /// It is saved in the form only while the control is collapsed, because a collapsed control is saved with the height of its header: without it the height to restore on expansion would be lost.
+    /// When the control is expanded, Height already holds it. Changing it on an expanded control resizes the control.
+    /// </remarks>
     property ExpandedHeight: Single read FExpandedHeight write SetExpandedHeight stored IsExpandedHeightStored;
+    /// <summary>Index in Images of the image shown as the icon of the header. The default is -1, no icon.</summary>
     property ImageIndex: TImageIndex read GetImageIndex write SetImageIndex default -1;
+    /// <summary>Image list that holds the icon of the header.</summary>
     property Images: TCustomImageList read GetImages write SetImages;
+    /// <summary>True shows the icon of the header, when Images and ImageIndex point to an image. The default is True.</summary>
     property ShowIcon: Boolean read FShowIcon write SetShowIcon default True;
   end;
 
