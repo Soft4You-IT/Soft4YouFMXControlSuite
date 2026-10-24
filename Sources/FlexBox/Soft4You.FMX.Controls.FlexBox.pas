@@ -352,6 +352,7 @@ type
   /// The flexbox exposes the CSS properties of the container: Direction, Wrap, JustifyContent, AlignItems, AlignContent, ColumnGap and RowGap. Each control that takes part in the layout lives in a TS4YFlexItem.
   /// When a control that is not an item becomes a child of the flexbox, the flexbox creates an item with the same position and size and moves the control into it; the margins of the control go to the item. At design time the item is created by the designer, through DesignWrapHandler.
   /// Breakpoints change the properties of the container and of the items according to the width of the flexbox, also at design time, without altering the values set in the Object Inspector.
+  /// The flexbox does not scroll, as in CSS. To see content that does not fit, put it in a scroll box with FitContent = True: the flexbox takes the width of its parent and the height of its content, and the scroll box shows its scroll bars.
   /// </remarks>
   TS4YFlexBox = class(TControl)
   strict private
