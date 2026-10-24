@@ -87,6 +87,19 @@
   compact array parallel to Context.Items: OriginalIndex is the index in
   FlexChildren and not in Controls[].
 
+  FIT CONTENT
+  -----------
+  With FitContent = True (and Align = None) the flexbox sizes itself like a CSS
+  block container: the width is that of the parent (or the smallest width that
+  does not crop the items, if greater) and the height is that of the content.
+  The parent is not asked to align the flexbox: it reacts to the bounds of its
+  child, so a scroll box shows its scroll bars. The parent does not notify a
+  child that is not aligned, so the flexbox hooks the OnResized of the parent
+  (OnResize of a form), chaining the handler that was already there.
+  The breakpoints read the width that the parent gives, not the grown one.
+  A scroll bar that appears or disappears changes the width of the parent: the
+  layout is repeated, up to C_MAX_FIT_PASSES times.
+
   MINIMAL USE
   -----------
     LFlexBox := TS4YFlexBox.Create(Self);
@@ -357,6 +370,9 @@ type
     FBreakpointMode: TS4YBreakpointMode;
     FBreakpoints: TS4YFlexBreakpoints;
     FNotifiedBreakpointIndexes: TArray<Integer>;
+    FFitContent: Boolean;
+    FHookedParent: TFmxObject;
+    FPreviousParentResized: TNotifyEvent;
     FOnBreakpointsChanged: TNotifyEvent;
     FOnLayoutApplied: TNotifyEvent;
     FOnLineCountChanged: TS4YFlexLineCountEvent;
@@ -368,7 +384,14 @@ type
     function IsLoadingOrDestroying: Boolean;
     function ApplyResults(const AResults: TArray<TFlexItemResult>;
       const AFlexChildren: TArray<TControl>; ADirection: TFlexDirection): Integer;
-    function ResolveSettings: TS4YFlexSettings;
+    function IsFitContentActive(out AAvailableSize: TSizeF): Boolean;
+    function ResolveSettings(AWidth: Single): TS4YFlexSettings;
+    function TryGetParentSize(out ASize: TSizeF): Boolean;
+    procedure FitToContent(var AContext: TFlexContext; const AAvailableSize: TSizeF);
+    procedure HookParent;
+    procedure ParentResized(Sender: TObject);
+    procedure SetFitContent(Value: Boolean);
+    procedure UnhookParent;
     procedure BreakpointsChanged(Sender: TObject);
     procedure NotifyBreakpointsChanged;
     procedure NotifyLayoutApplied(const AFlexChildren: TArray<TControl>;
@@ -395,8 +418,12 @@ type
     procedure DoLineCountChanged(ALineCount, APreviousLineCount: Integer); virtual;
     /// <summary>Computes the layout and applies it to the items.</summary>
     procedure DoRealign; override;
+    /// <summary>Computes the layout again once the control is loaded, which sizes a flexbox with FitContent.</summary>
+    procedure Loaded; override;
     /// <summary>When an item is deleted, removes the breakpoint overrides that refer to it.</summary>
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    /// <summary>Follows the size of the new parent when FitContent is True.</summary>
+    procedure ParentChanged; override;
   public
     /// <summary>True if the control takes part in the layout: it is a visible item that is not loading or being destroyed.</summary>
     class function IsFlexChild(AChild: TControl): Boolean; static;
@@ -408,6 +435,9 @@ type
 
     /// <summary>Forces the layout to be computed again, for example after changes made by code.</summary>
     procedure InvalidateLayout;
+
+    /// <summary>Returns the size that the flexbox needs to show all its items, Padding included: the smallest width at which no item is cropped, and the height of the content at the current width. It is the size that FitContent gives to the flexbox, whatever FitContent is.</summary>
+    function MeasureContent: TSizeF;
 
     /// <summary>Creates an item in the flexbox and moves the control into it. Position, size and margins of the control go to the item.</summary>
     function WrapControl(const AControl: TControl): TS4YFlexItem;
@@ -441,6 +471,8 @@ type
     property ColumnGap: Single read FColumnGap write SetColumnGap;
     /// <summary>Direction of the main axis (CSS flex-direction). The default is fdRow.</summary>
     property Direction: TFlexDirection read FDirection write SetDirection default fdRow;
+    /// <summary>True: the flexbox sizes itself (CSS block container). The width is that of the parent, minus its Padding and the Margins of the flexbox, or the smallest width at which no item is cropped if that is greater; the height is that of the content. A parent that scrolls shows its scroll bars; any other parent crops what does not fit. It needs Align = None and a parent: otherwise the size comes from the parent and FitContent has no effect. While it is True, Width and Height are decided by the flexbox. The default is False.</summary>
+    property FitContent: Boolean read FFitContent write SetFitContent default False;
     property Height;
     property HitTest;
     /// <summary>Distribution of the items along the main axis (CSS justify-content). The default is jcFlexStart.</summary>
@@ -469,7 +501,12 @@ type
 implementation
 
 uses
+  FMX.Forms,
   Soft4You.FMX.Controls.FlexBox.Strings;
+
+const
+  // Layouts of a flexbox that fits its content when the parent changes size in the meantime
+  C_MAX_FIT_PASSES = 3;
 
 type
   TS4YFlexItemHandle = class(TInterfacedObject, IS4YFlexItemHandle)
@@ -1341,6 +1378,7 @@ end;
 
 destructor TS4YFlexBox.Destroy;
 begin
+  UnhookParent;
   // Emptying the collection during destruction must no longer notify the flexbox
   FBreakpoints.OnChanged := nil;
   FreeAndNil(FBreakpoints);
@@ -1365,7 +1403,7 @@ begin
   InvalidateLayout;
 end;
 
-function TS4YFlexBox.ResolveSettings: TS4YFlexSettings;
+function TS4YFlexBox.ResolveSettings(AWidth: Single): TS4YFlexSettings;
 begin
   Result.Direction := FDirection;
   Result.Wrap := FWrap;
@@ -1375,7 +1413,7 @@ begin
   Result.ColumnGap := FColumnGap;
   Result.RowGap := FRowGap;
 
-  Result := FBreakpoints.Resolve(Width, FBreakpointMode, Result, FActiveBreakpoints);
+  Result := FBreakpoints.Resolve(AWidth, FBreakpointMode, Result, FActiveBreakpoints);
 end;
 
 function TS4YFlexBox.IsLoadingOrDestroying: Boolean;
@@ -1562,23 +1600,55 @@ var
   LLineCount: Integer;
   LApplied: Boolean;
   LSettings: TS4YFlexSettings;
+  LAvailableSize: TSizeF;
+  LCurrentSize: TSizeF;
+  LFitting: Boolean;
+  LPass: Integer;
+  LRepeat: Boolean;
 begin
   // Reentrancy guard; no layout during loading or destruction
   if not UpdatingLayout and not IsLoadingOrDestroying then
   begin
-    LApplied := False;
     LLineCount := 0;
+    LPass := 0;
     BeginLayout;
     try
-      LSettings := ResolveSettings;
-      LContext := BuildContext(LSettings, LFlexChildren);
+      repeat
+        Inc(LPass);
+        LFitting := IsFitContentActive(LAvailableSize);
 
-      if Length(LContext.Items) > 0 then
-      begin
-        LResults := TFlexEngine.Calculate(LContext);
-        LLineCount := ApplyResults(LResults, LFlexChildren, LSettings.Direction);
-        LApplied := True;
-      end;
+        if LFitting then
+        begin
+          LSettings := ResolveSettings(LAvailableSize.Width);
+        end
+        else
+        begin
+          LSettings := ResolveSettings(Width);
+        end;
+
+        LContext := BuildContext(LSettings, LFlexChildren);
+
+        if LFitting then
+        begin
+          FitToContent(LContext, LAvailableSize);
+        end;
+
+        LApplied := False;
+
+        if Length(LContext.Items) > 0 then
+        begin
+          LResults := TFlexEngine.Calculate(LContext);
+          LLineCount := ApplyResults(LResults, LFlexChildren, LSettings.Direction);
+          LApplied := True;
+        end;
+
+        // The size of the flexbox can make a scroll bar appear or disappear, which
+        // changes the size that the parent gives: the layout is repeated for that
+        LRepeat := LFitting and (LPass < C_MAX_FIT_PASSES) and
+          IsFitContentActive(LCurrentSize) and
+          not (SameValue(LCurrentSize.Width, LAvailableSize.Width, 0.5) and
+          SameValue(LCurrentSize.Height, LAvailableSize.Height, 0.5));
+      until not LRepeat;
     finally
       EndLayout;
     end;
@@ -1589,6 +1659,182 @@ begin
     begin
       NotifyLayoutApplied(LFlexChildren, LLineCount);
     end;
+  end;
+end;
+
+function TS4YFlexBox.TryGetParentSize(out ASize: TSizeF): Boolean;
+var
+  LParent: TControl;
+begin
+  Result := True;
+
+  if Parent is TControl then
+  begin
+    LParent := TControl(Parent);
+    ASize := TSizeF.Create(
+      LParent.Width - LParent.Padding.Left - LParent.Padding.Right,
+      LParent.Height - LParent.Padding.Top - LParent.Padding.Bottom);
+  end
+  else if Parent is TCommonCustomForm then
+  begin
+    ASize := TSizeF.Create(TCommonCustomForm(Parent).ClientWidth,
+      TCommonCustomForm(Parent).ClientHeight);
+  end
+  else
+  begin
+    ASize := TSizeF.Create(0, 0);
+    Result := False;
+  end;
+end;
+
+function TS4YFlexBox.IsFitContentActive(out AAvailableSize: TSizeF): Boolean;
+begin
+  Result := FFitContent and (Align = TAlignLayout.None) and
+    TryGetParentSize(AAvailableSize);
+
+  if Result then
+  begin
+    AAvailableSize := TSizeF.Create(
+      Max(0, AAvailableSize.Width - Margins.Left - Margins.Right),
+      Max(0, AAvailableSize.Height - Margins.Top - Margins.Bottom));
+  end;
+end;
+
+procedure TS4YFlexBox.FitToContent(var AContext: TFlexContext;
+  const AAvailableSize: TSizeF);
+var
+  LMeasure: TFlexContentSize;
+  LNewHeight: Single;
+  LNewWidth: Single;
+  LPaddingHorizontal: Single;
+  LPaddingVertical: Single;
+begin
+  LPaddingHorizontal := Padding.Left + Padding.Right;
+  LPaddingVertical := Padding.Top + Padding.Bottom;
+  AContext.AvailableWidth := Max(0, AAvailableSize.Width - LPaddingHorizontal);
+
+  LNewWidth := AAvailableSize.Width;
+  LNewHeight := Height;
+
+  // Without items the height stays as it is: an empty flexbox must not disappear
+  if Length(AContext.Items) > 0 then
+  begin
+    LMeasure := TFlexEngine.Measure(AContext);
+    LNewWidth := Max(AAvailableSize.Width, LMeasure.Width + LPaddingHorizontal);
+    LNewHeight := LMeasure.Height + LPaddingVertical;
+  end;
+
+  SetBounds(Position.X, Position.Y, LNewWidth, LNewHeight);
+  AContext.AvailableWidth := Width - LPaddingHorizontal;
+  AContext.AvailableHeight := Height - LPaddingVertical;
+end;
+
+function TS4YFlexBox.MeasureContent: TSizeF;
+var
+  LContext: TFlexContext;
+  LFlexChildren: TArray<TControl>;
+  LMeasure: TFlexContentSize;
+  LSettings: TS4YFlexSettings;
+begin
+  LSettings := ResolveSettings(Width);
+  LContext := BuildContext(LSettings, LFlexChildren);
+  LMeasure := TFlexEngine.Measure(LContext);
+  Result := TSizeF.Create(LMeasure.Width + Padding.Left + Padding.Right,
+    LMeasure.Height + Padding.Top + Padding.Bottom);
+end;
+
+procedure TS4YFlexBox.Loaded;
+begin
+  inherited;
+  InvalidateLayout;
+end;
+
+procedure TS4YFlexBox.ParentChanged;
+begin
+  inherited;
+  UnhookParent;
+
+  if FFitContent then
+  begin
+    HookParent;
+  end;
+
+  InvalidateLayout;
+end;
+
+procedure TS4YFlexBox.SetFitContent(Value: Boolean);
+begin
+  if FFitContent <> Value then
+  begin
+    FFitContent := Value;
+    UnhookParent;
+
+    if FFitContent then
+    begin
+      HookParent;
+    end;
+
+    InvalidateLayout;
+  end;
+end;
+
+procedure TS4YFlexBox.HookParent;
+begin
+  if Parent is TControl then
+  begin
+    FHookedParent := Parent;
+    FPreviousParentResized := TControl(Parent).OnResized;
+    TControl(Parent).OnResized := ParentResized;
+  end
+  else if Parent is TCommonCustomForm then
+  begin
+    FHookedParent := Parent;
+    FPreviousParentResized := TCommonCustomForm(Parent).OnResize;
+    TCommonCustomForm(Parent).OnResize := ParentResized;
+  end;
+end;
+
+procedure TS4YFlexBox.UnhookParent;
+var
+  LHandler: TMethod;
+begin
+  if FHookedParent <> nil then
+  begin
+    // If the user assigned another handler after ours, theirs stays
+    if FHookedParent is TControl then
+    begin
+      LHandler := TMethod(TControl(FHookedParent).OnResized);
+
+      if (LHandler.Data = Pointer(Self)) and (LHandler.Code = @TS4YFlexBox.ParentResized) then
+      begin
+        TControl(FHookedParent).OnResized := FPreviousParentResized;
+      end;
+    end
+    else if FHookedParent is TCommonCustomForm then
+    begin
+      LHandler := TMethod(TCommonCustomForm(FHookedParent).OnResize);
+
+      if (LHandler.Data = Pointer(Self)) and (LHandler.Code = @TS4YFlexBox.ParentResized) then
+      begin
+        TCommonCustomForm(FHookedParent).OnResize := FPreviousParentResized;
+      end;
+    end;
+
+    FHookedParent := nil;
+    FPreviousParentResized := nil;
+  end;
+end;
+
+procedure TS4YFlexBox.ParentResized(Sender: TObject);
+begin
+  if Assigned(FPreviousParentResized) then
+  begin
+    FPreviousParentResized(Sender);
+  end;
+
+  if FFitContent then
+  begin
+    InvalidateLayout;
   end;
 end;
 
