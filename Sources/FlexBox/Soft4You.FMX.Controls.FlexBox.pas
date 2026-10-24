@@ -477,7 +477,7 @@ type
     property ColumnGap: Single read FColumnGap write SetColumnGap;
     /// <summary>Direction of the main axis (CSS flex-direction). The default is fdRow.</summary>
     property Direction: TFlexDirection read FDirection write SetDirection default fdRow;
-    /// <summary>True: the flexbox sizes itself (CSS block container). The width is that of the parent, minus its Padding and the Margins of the flexbox, or the smallest width at which no item is cropped if that is greater; the height is that of the content. A parent that scrolls shows its scroll bars; any other parent crops what does not fit. It needs Align = None and a parent: otherwise the size comes from the parent and FitContent has no effect. While it is True, Width and Height are decided by the flexbox. The default is False.</summary>
+    /// <summary>True: the flexbox sizes itself (CSS block container). The width is that of the parent, minus its Padding and the Margins of the flexbox, or the smallest width at which no item is cropped if that is greater; the height is that of the content. A parent that scrolls shows its scroll bars; any other parent crops what does not fit. It needs Align = None and a parent: otherwise the size comes from the parent and FitContent has no effect. While it is True, Width and Height are decided by the flexbox. To follow its parent the flexbox hooks the OnResized event of the parent (OnResize of a form): assign your own handler before setting FitContent. The default is False.</summary>
     property FitContent: Boolean read FFitContent write SetFitContent default False;
     property Height;
     property HitTest;

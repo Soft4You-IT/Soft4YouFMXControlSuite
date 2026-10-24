@@ -337,7 +337,7 @@
     <div class="stats">
       <div class="stat"><span class="stat-val">14</span><span class="stat-label">CSS properties</span></div>
       <div class="stat"><span class="stat-val">2</span><span class="stat-label">Components</span></div>
-      <div class="stat"><span class="stat-val">4</span><span class="stat-label">Phases</span></div>
+      <div class="stat"><span class="stat-val">5</span><span class="stat-label">Phases</span></div>
       <div class="stat"><span class="stat-val">4</span><span class="stat-label">Platforms</span></div>
     </div>
   </header>
@@ -575,6 +575,28 @@
         </div>
         <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:0%"></div></div>
         <div class="progress-label" id="prog4">0 / 4 completed</div>
+      </div>
+    </div>
+
+    <!-- Phase 5 -->
+    <div class="phase">
+      <div class="phase-left">
+        <span class="phase-num">05</span>
+        <div class="phase-dot" style="border-color:#f5c542"></div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-header">
+          <span class="phase-name">Review</span>
+          <span class="phase-badge" style="background:rgba(245,197,66,0.12);color:#f5c542">Open points</span>
+        </div>
+        <div class="phase-tasks">
+          <div class="task" onclick="toggleTask(this)">
+            <div class="task-check"></div>
+            <div><div class="task-text">FitContent: do not hook the events of the parent</div><div class="task-sub">To follow the size of the parent the flexbox takes over its OnResized (OnResize of a form), chaining the handler that was there. The user cannot freely assign his own handler and the flexbox changes a property that is not its own. Look for a mechanism that does not use the events of another control</div></div>
+          </div>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:0%"></div></div>
+        <div class="progress-label" id="prog5">0 / 1 completed</div>
       </div>
     </div>
 
