@@ -143,7 +143,9 @@ With `FitContent = True` (default `False`) the item takes the **own size of the
 content**: the automatic (not explicit) width and height become those of the
 content plus the `Padding` of the item. It is the case of a `TLabel` with
 `AutoSize` (and `WordWrap = False`, otherwise `AutoSize` adapts only the height),
-of a button or of an image that already have their own size.
+of a button or of an image that already have their own size. It is a property of the
+item, not to be confused with `FitContent` of the flexbox (see "Scrolling and
+FitContent").
 
 - The content is no longer `Align = Top`: it keeps its size, at the top left
   (after the `Padding` of the item), even when the item grows because of
@@ -158,6 +160,66 @@ of a button or of an image that already have their own size.
 - Setting `FitContent = False` again brings the content back to `Align = Top`.
 - A `TLabel` created at run time takes its own size only when the text changes:
   assign `Text` after inserting it in the flexbox.
+
+### Scrolling and FitContent
+
+As in CSS, **the flexbox does not scroll**. When the parent is smaller than the
+content, what does not fit is cropped (if the parent clips its children). The
+scrolling is a job of the parent: a `TScrollBox` shows the scroll bars by itself
+when a child extends beyond its area.
+
+For that the flexbox must be allowed to take the size its content needs, so it must
+not be aligned to the parent (an `Align`, or the `akRight` anchor, makes the parent
+decide the size). With `FitContent = True` the flexbox sizes itself like a CSS
+block container:
+
+| | Rule |
+|---|---|
+| Position | the one you set, typically (0, 0) with `Align = None` and the anchors on left and top |
+| Width | the width of the parent (minus its `Padding` and the `Margins` of the flexbox) or, if greater, the smallest width at which no item is cropped |
+| Height | the height of the content at that width (like `height: auto`); it does not fill the parent |
+
+To use it:
+
+1. Put a `TScrollBox` (any scroll box) in the form, with `Align = Client`.
+2. Drop the `TS4YFlexBox` in the scroll box, leave `Align = None` and set
+   `FitContent = True`.
+
+The flexbox follows the parent: when the form is resized the width follows, the
+items wrap again, the breakpoints apply and the height changes. When the content
+is taller than the scroll box the vertical bar appears (and the width of the
+flexbox becomes that of the area without the bar); when the content is wider than
+the parent, it is the horizontal bar.
+
+Details:
+
+- **Size of the parent**: `Width` and `Height` of the parent minus its `Padding`
+  (`ClientWidth` and `ClientHeight` if the parent is a form). In a scroll box the
+  parent is its content area, which already excludes the scroll bars.
+- **Notification**: a parent does not tell a child that is not aligned that its size
+  changed. The flexbox hooks the `OnResized` of its parent (`OnResize` of a form),
+  keeping the handler that was already assigned. If you assign another handler after
+  it, the flexbox no longer follows the parent until the next layout.
+- **Breakpoints**: they read the width that the parent gives, not the width the
+  flexbox may have grown to.
+- **Items that shrink**: the width needed is the sum of the minimum widths of the
+  items of a line. An item with `FlexShrink > 0` and no `MinWidth` counts as zero,
+  because the layout shrinks it down to nothing: the flexbox grows beyond the parent
+  only for items with `FlexShrink = 0` or with a `MinWidth` (or with the `MinWidth`
+  of the flexbox, next point).
+- **Minimum width of the whole flexbox**: `MinWidth` sets a floor for the width
+  (for example `MinWidth = 1000` for a dashboard that must not be narrower). The
+  items wrap at that width, and a parent that is narrower scrolls horizontally.
+  It is the way to get a horizontal bar with `Wrap`, where the width needed without
+  it would be only that of the widest item. It has no effect without `FitContent`.
+- **Direction**: in a column the height is the sum of the heights of the items (they
+  do not shrink) and there is no wrapping, because the height is not limited.
+- **Width and Height are not yours to set**: while `FitContent` is `True` they come
+  from the layout, also at design time.
+- **No effect**: with `Align` other than `None`, or without a parent, `FitContent`
+  does nothing and the size is the one that the parent gives.
+- `MeasureContent` returns the size that `FitContent` would give, `Padding`
+  included, whatever the value of the property.
 
 ---
 
@@ -262,6 +324,8 @@ FMX), so in theory it is portable, but the compatibility has to be checked.
 | `AlignContent`    | `align-content`    | `acFlexStart/End/Center/SpaceBetween/SpaceAround/Evenly/Stretch`|
 | `ColumnGap`       | `column-gap`       | `Single` (pixels)                                               |
 | `RowGap`          | `row-gap`          | `Single` (pixels)                                               |
+| `FitContent`      | `width: auto; height: auto` of a block container | `Boolean` (default: `False`), see "Scrolling and FitContent" |
+| `MinWidth`        | `min-width` of the container, only with `FitContent` | `Single` >= 0 (default: 0 = no minimum) |
 
 ### Item (on TS4YFlexItem)
 
@@ -315,6 +379,9 @@ LItem := LFlexBox.WrapControl(LButton);
 
 // Force a new calculation
 LFlexBox.InvalidateLayout;
+
+// Size needed to show all the items (the one FitContent gives)
+LSize := LFlexBox.MeasureContent;
 
 // Reordering: with the same Order the position of the item counts
 LItem.Index := 0;
@@ -469,6 +536,7 @@ it is part of the project group in `Packages\D11`. It shows:
 | Bar chart | nested flexbox with `AlignItems = aiFlexEnd`, 12 items with explicit height and `FlexBasis = 0`, `FlexGrow = 1` |
 | Traffic, orders, activity | `FlexBasis` in pixels and proportional grow (2:1) |
 | Breakpoints (main flexbox) | below 1000 px it hides "Team activity"; below 760 px it shows only KPIs and chart |
+| Scrolling (main flexbox) | inside a `TScrollBox` with `FitContent = True`: when the window is too small the content is reached with the scroll bar |
 
 Two things remain in the code: the sidebar hides below 700 px of form width (the
 sidebar is not an item of a flexbox) and the StatusBar shows sizes, number of rows
@@ -816,6 +884,10 @@ tried yet is a context menu entry (`IComponentEditor`: Move first/before/after/l
 - A content with automatic height does not fill the item when this is stretched or
   made to grow by the layout (in CSS it would, because it would be the item).
 - Reordering by dragging: the Structure view is not updated (see Design time).
+- `FitContent` does not measure a flexbox nested in an item: its minimum size is not
+  known to the outer one, which can crop it.
+- `FitContent` gives the flexbox the height of its content: it does not fill a taller
+  parent (for that, use `Align = Client` without `FitContent`).
 - Forms saved before the automatic height are converted when opened (content from
   `Client` to `Top`).
 
@@ -829,11 +901,12 @@ uses Soft4You.FMX.Controls.FlexBox.Engine.Tests;
 // Or use the DUnitX GUI runner
 ```
 
-The unit is in `Tests\FlexBox`. The 48 tests cover: row/column, justify-content
+The unit is in `Tests\FlexBox`. The 60 tests cover: row/column, justify-content
 (all the values), flex-grow, flex-shrink, flex-basis (auto/px/%), align-items,
 align-self, order, wrap/wrap-reverse, gap, align-content, reverse, automatic and
-explicit sizes and single line (`SingleLineFillsContainer`). They test the engine
-only (`TFlexEngine`), not the components.
+explicit sizes and single line (`SingleLineFillsContainer`), min/max of the sizes
+and the measure of the content (`TFlexEngine.Measure`, used by `FitContent`). They
+test the engine only (`TFlexEngine`), not the components.
 
 ---
 

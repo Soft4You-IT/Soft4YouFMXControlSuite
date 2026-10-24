@@ -128,6 +128,7 @@ type
     ActivityCard: TRectangle;
     ActivityItem: TS4YFlexItem;
     MainFlexBox: TS4YFlexBox;
+    MainScrollBox: TScrollBox;
     StatusBar1: TStatusBar;
     LabelFormSize: TLabel;
     procedure FormResize(Sender: TObject);
