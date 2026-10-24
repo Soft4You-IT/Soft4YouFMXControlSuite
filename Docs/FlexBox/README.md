@@ -143,7 +143,9 @@ With `FitContent = True` (default `False`) the item takes the **own size of the
 content**: the automatic (not explicit) width and height become those of the
 content plus the `Padding` of the item. It is the case of a `TLabel` with
 `AutoSize` (and `WordWrap = False`, otherwise `AutoSize` adapts only the height),
-of a button or of an image that already have their own size.
+of a button or of an image that already have their own size. It is a property of the
+item, not to be confused with `FitContent` of the flexbox (see "Scrolling and
+FitContent").
 
 - The content is no longer `Align = Top`: it keeps its size, at the top left
   (after the `Padding` of the item), even when the item grows because of
@@ -203,7 +205,8 @@ Details:
 - **Items that shrink**: the width needed is the sum of the minimum widths of the
   items of a line. An item with `FlexShrink > 0` and no `MinWidth` counts as zero,
   because the layout shrinks it down to nothing: the flexbox grows beyond the parent
-  only for items with `FlexShrink = 0` or with a `MinWidth`.
+  only for items with `FlexShrink = 0` or with a `MinWidth` (or with the `MinWidth`
+  of the flexbox, next point).
 - **Minimum width of the whole flexbox**: `MinWidth` sets a floor for the width
   (for example `MinWidth = 1000` for a dashboard that must not be narrower). The
   items wrap at that width, and a parent that is narrower scrolls horizontally.
