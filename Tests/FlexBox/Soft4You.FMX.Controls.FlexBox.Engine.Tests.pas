@@ -151,6 +151,17 @@ type
     [Test] procedure Test_Measure_Column_Wrap_IsIgnored;
     [Test] procedure Test_Measure_Column_AutoWidth_FitsAvailableWidth;
     [Test] procedure Test_Measure_Column_ExplicitWidth_NeedsItsWidth;
+
+    // -----------------------------------------------------------------------
+    // 16. AUTOMATIC MINIMUM (min-width: auto)
+    // -----------------------------------------------------------------------
+    [Test] procedure Test_AutoMin_Row_StopsShrinking;
+    [Test] procedure Test_AutoMin_Row_OtherItemsKeepShrinking;
+    [Test] procedure Test_AutoMin_Row_ExplicitMinWidthPrevails;
+    [Test] procedure Test_AutoMin_Row_CappedByMaxWidth;
+    [Test] procedure Test_AutoMin_Column_UsesHeight;
+    [Test] procedure Test_AutoMin_Row_CrossAxisNotAffected;
+    [Test] procedure Test_Measure_Row_AutoMin_SumsContents;
   end;
 
 implementation
@@ -1270,6 +1281,137 @@ begin
 
   LSize := TFlexEngine.Measure(Ctx);
   Assert.AreEqual(Single(120), LSize.Width, TOLERANCE, 'width');
+end;
+
+// ===========================================================================
+// 16. AUTOMATIC MINIMUM
+// ===========================================================================
+
+procedure TFlexEngineTests.Test_AutoMin_Row_StopsShrinking;
+
+// Container=200. Items: 150+150=300, both with an automatic minimum of 150.
+// Neither shrinks: the items overflow the container.
+var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
+begin
+  Ctx := DefaultCtx(200, 100);
+  Ctx.Items := [MakeItem(150,40), MakeItem(150,40)];
+
+  for var I := 0 to High(Ctx.Items) do
+  begin
+    Ctx.Items[I].OriginalIndex := I;
+    Ctx.Items[I].AutoMinWidth := 150;
+  end;
+
+  R := TFlexEngine.Calculate(Ctx);
+  AssertRect(R[0],   0, 0, 150, 40, 'item0');
+  AssertRect(R[1], 150, 0, 150, 40, 'item1');
+end;
+
+procedure TFlexEngineTests.Test_AutoMin_Row_OtherItemsKeepShrinking;
+
+// Item0 cannot go below 150; item1 has no minimum and absorbs the overflow: 200 - 150 = 50
+var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
+begin
+  Ctx := DefaultCtx(200, 100);
+  Ctx.Items := [MakeItem(150,40), MakeItem(150,40)];
+
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].OriginalIndex := I;
+
+  Ctx.Items[0].AutoMinWidth := 150;
+
+  R := TFlexEngine.Calculate(Ctx);
+  AssertRect(R[0],   0, 0, 150, 40, 'item0');
+  AssertRect(R[1], 150, 0,  50, 40, 'item1');
+end;
+
+procedure TFlexEngineTests.Test_AutoMin_Row_ExplicitMinWidthPrevails;
+
+// With MinWidth > 0 the automatic minimum does not apply: both items shrink to 100
+var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
+begin
+  Ctx := DefaultCtx(200, 100);
+  Ctx.Items := [MakeItem(150,40), MakeItem(150,40)];
+
+  for var I := 0 to High(Ctx.Items) do
+  begin
+    Ctx.Items[I].OriginalIndex := I;
+    Ctx.Items[I].AutoMinWidth := 150;
+    Ctx.Items[I].MinWidth := 60;
+  end;
+
+  R := TFlexEngine.Calculate(Ctx);
+  AssertRect(R[0],   0, 0, 100, 40, 'item0');
+  AssertRect(R[1], 100, 0, 100, 40, 'item1');
+end;
+
+procedure TFlexEngineTests.Test_AutoMin_Row_CappedByMaxWidth;
+
+// The automatic minimum never exceeds MaxWidth: the item is 100, not 150
+var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
+begin
+  Ctx := DefaultCtx(200, 100);
+  Ctx.Items := [MakeItem(150,40)];
+  Ctx.Items[0].OriginalIndex := 0;
+  Ctx.Items[0].AutoMinWidth := 150;
+  Ctx.Items[0].MaxWidth := 100;
+
+  R := TFlexEngine.Calculate(Ctx);
+  AssertRect(R[0], 0, 0, 100, 40, 'item0');
+end;
+
+procedure TFlexEngineTests.Test_AutoMin_Column_UsesHeight;
+
+// In a column the main axis is vertical: AutoMinHeight stops the shrinking.
+// Container=200 high. Items: 150+150=300 high, neither shrinks.
+var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
+begin
+  Ctx := DefaultCtx(300, 200);
+  Ctx.Direction := fdColumn;
+  Ctx.Items := [MakeItem(40,150), MakeItem(40,150)];
+
+  for var I := 0 to High(Ctx.Items) do
+  begin
+    Ctx.Items[I].OriginalIndex := I;
+    Ctx.Items[I].AutoMinHeight := 150;
+  end;
+
+  R := TFlexEngine.Calculate(Ctx);
+  Assert.AreEqual(Single(0), R[0].Top, TOLERANCE, 'item0 top');
+  Assert.AreEqual(Single(150), R[0].Height, TOLERANCE, 'item0 height');
+  Assert.AreEqual(Single(150), R[1].Top, TOLERANCE, 'item1 top');
+  Assert.AreEqual(Single(150), R[1].Height, TOLERANCE, 'item1 height');
+end;
+
+procedure TFlexEngineTests.Test_AutoMin_Row_CrossAxisNotAffected;
+
+// In a row the height is the cross axis: AutoMinHeight does not raise it
+var Ctx: TFlexContext; R: TArray<TFlexItemResult>;
+begin
+  Ctx := DefaultCtx(400, 100);
+  Ctx.Items := [MakeItem(50,40)];
+  Ctx.Items[0].OriginalIndex := 0;
+  Ctx.Items[0].AutoMinHeight := 80;
+
+  R := TFlexEngine.Calculate(Ctx);
+  AssertRect(R[0], 0, 0, 50, 40, 'item0');
+end;
+
+procedure TFlexEngineTests.Test_Measure_Row_AutoMin_SumsContents;
+
+// Items that shrink, each with an automatic minimum of 100, ColumnGap 10:
+// 3 * 100 + 2 * 10 = 320 (without it no width would be needed)
+var Ctx: TFlexContext; LSize: TFlexContentSize;
+begin
+  Ctx := DefaultCtx(50, 20);
+  Ctx.ColumnGap := 10;
+  Ctx.Items := [MakeItem(100,40), MakeItem(100,40), MakeItem(100,40)];
+
+  for var I := 0 to High(Ctx.Items) do
+    Ctx.Items[I].AutoMinWidth := 100;
+
+  LSize := TFlexEngine.Measure(Ctx);
+  Assert.AreEqual(Single(320), LSize.Width, TOLERANCE, 'width');
 end;
 
 initialization

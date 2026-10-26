@@ -8,7 +8,14 @@ uses
   DUnitX.Loggers.Console,
   DUnitX.TestFramework,
   Soft4You.FMX.Controls.FlexBox.Engine in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Engine.pas',
-  Soft4You.FMX.Controls.FlexBox.Engine.Tests in 'Soft4You.FMX.Controls.FlexBox.Engine.Tests.pas';
+  Soft4You.FMX.Controls.FlexBox.Engine.Tests in 'Soft4You.FMX.Controls.FlexBox.Engine.Tests.pas',
+  Soft4You.FMX.Controls.FlexBox.Breakpoints in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Breakpoints.pas',
+  Soft4You.FMX.Controls.FlexBox.ItemBase in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.ItemBase.pas',
+  Soft4You.FMX.Controls.FlexBox.SizeConstraints in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.SizeConstraints.pas',
+  Soft4You.FMX.Controls.FlexBox.Strings in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Strings.pas',
+  Soft4You.FMX.Controls.FlexBox.Types in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Types.pas',
+  Soft4You.FMX.Controls.FlexBox in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.pas',
+  Soft4You.FMX.Controls.FlexBox.Streaming.Tests in 'Soft4You.FMX.Controls.FlexBox.Streaming.Tests.pas';
 
 var
   LRunner: ITestRunner;

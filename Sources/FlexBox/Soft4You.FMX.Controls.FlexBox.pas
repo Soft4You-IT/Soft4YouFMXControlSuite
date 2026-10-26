@@ -74,6 +74,14 @@
   stretch and is not reduced. With Wrap = fwNoWrap the line takes the whole
   cross size of the flexbox (as in CSS).
 
+  AUTOMATIC MINIMUM
+  -----------------
+  As min-width: auto in CSS, an item with FitContent does not shrink below its
+  content on the main axis (ToEngineInput fills AutoMinWidth/AutoMinHeight; the
+  engine uses them only while MinWidth/MinHeight is 0). The flexbox with FitContent
+  therefore grows beyond its parent, and a scroll box shows the scroll bar, with the
+  default FlexShrink.
+
   PROBLEM 1 - Realign loop
   ------------------------
   FMX calls DoRealign in cascade when a child changes size.
@@ -318,8 +326,8 @@ type
     property AutoHeight: Boolean read GetAutoHeight write SetAutoHeight stored IsAutoHeightStored;
     /// <summary>True: the width is not an explicit choice (like width: auto in CSS). On the cross axis the item stretches and, in a column, fits the width of the flexbox; the design width stays the starting one. False: explicit width, also set by changing Width or by resizing the item in the designer.</summary>
     property AutoWidth: Boolean read GetAutoWidth write SetAutoWidth stored IsAutoWidthStored;
-    /// <summary>True: the automatic size (width and height not explicit) is that of the content itself, for example a TLabel with AutoSize. The content is no longer Align = Top: it keeps its size, at the top left (after the Padding), even if the item grows. False: the content follows the width of the item. The default is False.</summary>
-    property FitContent: Boolean read FFitContent write SetFitContent default False;
+    /// <summary>True: the automatic size (width and height not explicit) is that of the content itself, for example a TLabel with AutoSize. The content is no longer Align = Top: it keeps its size, at the top left (after the Padding), even if the item grows, and the item does not shrink below it (like min-width: auto in CSS). False: the content follows the width of the item. The default is True.</summary>
+    property FitContent: Boolean read FFitContent write SetFitContent default True;
     /// <summary>Initial main size of the item (CSS flex-basis). FlexBasisUnit says how the value is read.</summary>
     property FlexBasis: Single read FFlexBasis write SetFlexBasis;
     /// <summary>How FlexBasis is read: the size of the item (fbuAuto, the default), pixels or a percentage of the main size of the flexbox.</summary>
@@ -559,6 +567,7 @@ begin
   FSizeConstraints.OnChange := SizeConstraintsChanged;
   FFlexGrow := 0;
   FFlexShrink := 1;
+  FFitContent := True;
   FFlexBasis := 0;
   FFlexBasisUnit := fbuAuto;
   FAlignSelf := asAuto;
@@ -1320,6 +1329,8 @@ end;
 function TS4YFlexItem.ToEngineInput: TFlexItemInput;
 var
   LContent: TControl;
+  LContentHeight: Single;
+  LContentWidth: Single;
 begin
   Result := TFlexItemInput.Default;
   Result.NaturalWidth := FDesignWidth;
@@ -1331,18 +1342,26 @@ begin
 
     if LContent <> nil then
     begin
+      LContentWidth := LContent.Width + LContent.Margins.Left + LContent.Margins.Right +
+        Padding.Left + Padding.Right;
+      LContentHeight := LContent.Height + LContent.Margins.Top + LContent.Margins.Bottom +
+        Padding.Top + Padding.Bottom;
+
       // Own size of the content, only for automatic sizes
       if not FWidthExplicit then
       begin
-        Result.NaturalWidth := LContent.Width + LContent.Margins.Left + LContent.Margins.Right +
-          Padding.Left + Padding.Right;
+        Result.NaturalWidth := LContentWidth;
       end;
 
       if not FHeightExplicit then
       begin
-        Result.NaturalHeight := LContent.Height + LContent.Margins.Top + LContent.Margins.Bottom +
-          Padding.Top + Padding.Bottom;
+        Result.NaturalHeight := LContentHeight;
       end;
+
+      // The item does not shrink below its content (CSS min-width: auto), nor
+      // below its explicit size if that is smaller
+      Result.AutoMinWidth := Min(Result.NaturalWidth, LContentWidth);
+      Result.AutoMinHeight := Min(Result.NaturalHeight, LContentHeight);
     end;
   end;
 

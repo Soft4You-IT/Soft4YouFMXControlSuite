@@ -76,6 +76,13 @@
         </DelphiCompile>
         <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Engine.pas"/>
         <DCCReference Include="Soft4You.FMX.Controls.FlexBox.Engine.Tests.pas"/>
+        <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Breakpoints.pas"/>
+        <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.ItemBase.pas"/>
+        <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.SizeConstraints.pas"/>
+        <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Strings.pas"/>
+        <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Types.pas"/>
+        <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.pas"/>
+        <DCCReference Include="Soft4You.FMX.Controls.FlexBox.Streaming.Tests.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
