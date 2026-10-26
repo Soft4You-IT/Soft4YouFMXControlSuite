@@ -196,6 +196,10 @@ type
     MinHeight     : Single;
     /// <summary>Largest height, in pixels. 0 means no limit.</summary>
     MaxHeight     : Single;
+    /// <summary>Automatic smallest width, in pixels: the width of the content of the item (like min-width: auto in CSS). It stops the shrinking on the main axis, and only while MinWidth is 0. 0 means no automatic minimum.</summary>
+    AutoMinWidth  : Single;
+    /// <summary>Automatic smallest height, in pixels: the height of the content of the item (like min-height: auto in CSS). It stops the shrinking on the main axis, and only while MinHeight is 0. 0 means no automatic minimum.</summary>
+    AutoMinHeight : Single;
 
     /// <summary>Left margin, in pixels.</summary>
     MarginLeft    : Single;
@@ -1099,6 +1103,19 @@ begin
         WItems[I].HypotheticalCross := Min(WItems[I].HypotheticalCross,
           Max(0, CrossAvail - Context.Items[Idx].MarginLeft - Context.Items[Idx].MarginRight));
       end;
+    end;
+
+    // Automatic minimum (CSS min-width: auto): on the main axis only, an item does
+    // not shrink below its content unless MinWidth is set (0 = auto)
+    if WItems[I].Input.MinWidth <= 0 then
+    begin
+      if Row then
+        WItems[I].Input.MinWidth := Context.Items[Idx].AutoMinWidth
+      else
+        WItems[I].Input.MinWidth := Context.Items[Idx].AutoMinHeight;
+
+      if WItems[I].Input.MaxWidth > 0 then
+        WItems[I].Input.MinWidth := Min(WItems[I].Input.MinWidth, WItems[I].Input.MaxWidth);
     end;
 
     WItems[I].FlexBase := WItems[I].HypotheticalMain;
