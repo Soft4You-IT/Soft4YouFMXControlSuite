@@ -120,6 +120,7 @@ type
     /// <summary>FlexGrow of the item while the breakpoint is active. It applies when Overrides contains ioFlexGrow.</summary>
     property FlexGrow: Single read FFlexGrow write SetFlexGrow;
     /// <summary>FlexShrink of the item while the breakpoint is active. It applies when Overrides contains ioFlexShrink.</summary>
+    [Default(1)]
     property FlexShrink: Single read FFlexShrink write SetFlexShrink stored IsFlexShrinkStored;
     /// <summary>Height of the item while the breakpoint is active. It applies when Overrides contains ioHeight.</summary>
     property Height: Single read FHeight write SetHeight;

@@ -327,6 +327,7 @@ type
     /// <summary>How much of the free space the item takes, compared with the other items (CSS flex-grow). The default is 0: the item does not grow.</summary>
     property FlexGrow: Single read FFlexGrow write SetFlexGrow;
     /// <summary>How much the item shrinks, compared with the other items, when the space is not enough (CSS flex-shrink). The default is 1.</summary>
+    [Default(1)]
     property FlexShrink: Single read FFlexShrink write SetFlexShrink stored IsFlexShrinkStored;
     property Height;
     /// <summary>Position of the item in the flexbox (source order). It is not saved, because the order is already that of the objects in the file.</summary>
