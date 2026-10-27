@@ -389,6 +389,32 @@ The published properties of `TS4YFlexItem` are only these, plus `Height`,
 `Margins`, `Padding`, `Size`, `Visible` and `Width`: position and alignment are
 decided by the flexbox.
 
+### Items that share the space equally (`flex: 1`)
+
+`FlexGrow` shares only the space that is left after the bases of the items. With
+`FlexBasisUnit = fbuAuto` (the default) the basis is the natural size of the item,
+so the size of the item is its content plus its share of the free space, as
+`flex: 1 1 auto` in CSS. When the content changes size, the item changes size too,
+even if there is free space.
+
+Example: a flexbox 500 wide with two items, contents 100 and 100, `FlexGrow = 1`:
+the free space is 300 and the items are 250 and 250. If the first content becomes
+150, the free space is 250 and the items are 275 and 225.
+
+For items that share the whole space in equal parts, whatever their content (as
+`flex: 1` in CSS, that is `flex-basis: 0`), set on every item:
+
+| Property        | Value      |
+|-----------------|------------|
+| `FlexGrow`      | `1`        |
+| `FlexBasis`     | `0`        |
+| `FlexBasisUnit` | `fbuPixel` |
+
+The automatic minimum still applies: an item whose content has `Align = None`
+does not become narrower than its content, even if its share is smaller. To make
+the content fill the item, set `Align = Top` on the content. For shares that are
+not equal, give different values of `FlexGrow` (for example 2 and 1).
+
 ---
 
 ## Programmatic API
