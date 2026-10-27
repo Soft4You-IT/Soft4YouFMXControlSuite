@@ -14,9 +14,6 @@ unit Soft4You.FMX.Controls.BlockScrollBox;
   Soft4You.FMX.Controls.BlockScrollBox - scroll box with the CSS block flow
   ==========================================================================
 
-  PROTOTYPE: the flow, the Align of the children, the order by Position.Y and
-  the children with their own rules (IS4YBlockFlowChild).
-
   BLOCK FLOW
   ----------
   As display: block in CSS, the children are stacked from the top in the order
@@ -35,6 +32,7 @@ unit Soft4You.FMX.Controls.BlockScrollBox;
     Right  : own width, on the right (margin-left: auto)
   A child wider than the box is on the left, as a block with auto margins in
   CSS, and the horizontal scroll bar shows the rest.
+
   CHILDREN WITH THEIR OWN RULES
   -----------------------------
   A child that implements IS4YBlockFlowChild (the flexbox) and has an automatic

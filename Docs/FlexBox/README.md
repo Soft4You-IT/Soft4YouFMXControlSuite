@@ -212,7 +212,20 @@ is taller than the scroll box the vertical bar appears (and the width of the
 flexbox becomes that of the area without the bar); when the content is wider than
 the parent, it is the horizontal bar.
 
-Details:
+In a `TS4YBlockScrollBox` (the scroll box with the CSS block flow, see
+[its README](../BlockScrollBox/README.md)) the rules are those of a block in the
+flow of a web page, and some of the details below do not apply:
+
+- The box gives the position and the width: with `AutoWidth` (or `Align = Top`) the
+  width is that of the box minus its `Padding` and the `Margins` of the flexbox, and
+  it does **not** grow to the smallest width at which no item is cropped
+  (`width: auto` of CSS). Items that do not fit overflow the flexbox, and the
+  horizontal bar of the box counts them; with `ClipChildren = True` they are cropped
+  and there is no bar (`overflow: hidden`). `MinWidth` still makes the flexbox wider.
+- The flexbox does not hook the `OnResized` of the parent: the box tells it its width.
+- When the height of the flexbox changes, the blocks after it move.
+
+Details (outside a `TS4YBlockScrollBox`):
 
 - **Size of the parent**: `Width` and `Height` of the parent minus its `Padding`
   (`ClientWidth` and `ClientHeight` if the parent is a form). In a scroll box the
@@ -310,9 +323,11 @@ Soft4You.FMX.Controls.FlexBox.SizeConstraints.pas
 Soft4You.FMX.Controls.FlexBox.ItemBase.pas
 Soft4You.FMX.Controls.FlexBox.Breakpoints.pas
 Soft4You.FMX.Controls.FlexBox.pas
+Soft4You.FMX.Controls.BlockScrollBox.Abstracts.pas   (in Sources\BlockScrollBox)
 ```
 
-No external dependencies.
+The last one holds the interfaces with which the flexbox takes part in the flow of a
+`TS4YBlockScrollBox`. No external dependencies.
 
 ### With the runtime package
 
@@ -953,8 +968,8 @@ tried yet is a context menu entry (`IComponentEditor`: Move first/before/after/l
   that does not belong to it. In a scroll box the hooked object is the internal
   content, so the user is not affected; with a panel, a layout or a form the user is.
   Until a better mechanism is found, assign your handler before the flexbox gets
-  its parent, or call `InvalidateLayout` of the flexbox from your handler. See the
-  roadmap.
+  its parent, or call `InvalidateLayout` of the flexbox from your handler. In a
+  `TS4YBlockScrollBox` nothing is hooked. See the roadmap.
 - The automatic size does not measure a flexbox nested in an item: its minimum size
   is not known to the outer one, which can crop it.
 - `AutoHeight` gives the flexbox the height of its content: it does not fill a taller
@@ -973,7 +988,7 @@ uses Soft4You.FMX.Controls.FlexBox.Engine.Tests;
 ```
 
 The units are in `Tests\FlexBox` and the project `S4YFlexBoxTests.dproj` runs all
-of them (96 tests):
+of them (97 tests):
 
 - `Engine.Tests` (67 tests): row/column, justify-content (all the values),
   flex-grow, flex-shrink, flex-basis (auto/px/%), align-items, align-self, order,
@@ -982,7 +997,7 @@ of them (96 tests):
   minimum of the items and the measure of the content (`TFlexEngine.Measure`, used
   by `AutoWidth` and `AutoHeight`). They test the engine only (`TFlexEngine`).
 - `Item.Tests` (8): the size of an item by the `Align` of its content.
-- `AutoSize.Tests` (19): the automatic size of the flexbox, with `Align = None`,
+- `AutoSize.Tests` (20): the automatic size of the flexbox, with `Align = None`,
   `Top`, `Bottom` and `Client`, and its saving and loading.
 - `Streaming.Tests` (2): saving and loading of `FlexShrink` of an item.
 
