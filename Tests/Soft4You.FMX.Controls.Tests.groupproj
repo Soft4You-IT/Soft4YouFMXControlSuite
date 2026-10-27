@@ -6,6 +6,9 @@
         <Projects Include="FlexBox\S4YFlexBoxTests.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="BlockScrollBox\S4YBlockScrollBoxTests.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -23,14 +26,23 @@
     <Target Name="S4YFlexBoxTests:Make">
         <MSBuild Projects="FlexBox\S4YFlexBoxTests.dproj" Targets="Make"/>
     </Target>
+    <Target Name="S4YBlockScrollBoxTests">
+        <MSBuild Projects="BlockScrollBox\S4YBlockScrollBoxTests.dproj"/>
+    </Target>
+    <Target Name="S4YBlockScrollBoxTests:Clean">
+        <MSBuild Projects="BlockScrollBox\S4YBlockScrollBoxTests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YBlockScrollBoxTests:Make">
+        <MSBuild Projects="BlockScrollBox\S4YBlockScrollBoxTests.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="S4YFlexBoxTests"/>
+        <CallTarget Targets="S4YFlexBoxTests;S4YBlockScrollBoxTests"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="S4YFlexBoxTests:Clean"/>
+        <CallTarget Targets="S4YFlexBoxTests:Clean;S4YBlockScrollBoxTests:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="S4YFlexBoxTests:Make"/>
+        <CallTarget Targets="S4YFlexBoxTests:Make;S4YBlockScrollBoxTests:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
