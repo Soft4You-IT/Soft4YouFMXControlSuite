@@ -16,7 +16,8 @@ uses
   Soft4You.FMX.Controls.FlexBox.Types in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Types.pas',
   Soft4You.FMX.Controls.FlexBox in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.pas',
   Soft4You.FMX.Controls.FlexBox.Streaming.Tests in 'Soft4You.FMX.Controls.FlexBox.Streaming.Tests.pas',
-  Soft4You.FMX.Controls.FlexBox.Item.Tests in 'Soft4You.FMX.Controls.FlexBox.Item.Tests.pas';
+  Soft4You.FMX.Controls.FlexBox.Item.Tests in 'Soft4You.FMX.Controls.FlexBox.Item.Tests.pas',
+  Soft4You.FMX.Controls.FlexBox.AutoSize.Tests in 'Soft4You.FMX.Controls.FlexBox.AutoSize.Tests.pas';
 
 var
   LRunner: ITestRunner;

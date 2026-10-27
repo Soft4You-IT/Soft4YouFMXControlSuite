@@ -21,7 +21,7 @@ type
   [TestFixture]
   TFlexItemContentAlignTests = class
   private
-    // Helper: a flexbox with FitContent in a parent of the given width, with
+    // Helper: a flexbox in a parent of the given width, with
     // three items of design width 100 and a content of 100 x 30 each
     function CreateFlexBox(AParentWidth: Single; AContentAlign: TAlignLayout;
       out AParent: TRectangle): TS4YFlexBox;
@@ -66,7 +66,6 @@ begin
 
   Result := TS4YFlexBox.Create(nil);
   Result.Parent := AParent;
-  Result.FitContent := True;
 
   for var I := 1 to 3 do
   begin
