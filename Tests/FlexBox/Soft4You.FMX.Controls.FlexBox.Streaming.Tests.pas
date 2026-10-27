@@ -29,9 +29,6 @@ type
   public
     [Test] procedure Test_FlexShrink_Zero_SurvivesSaveAndLoad;
     [Test] procedure Test_FlexShrink_Default_IsNotSaved;
-    [Test] procedure Test_FitContent_Default_IsTrue;
-    [Test] procedure Test_FitContent_False_SurvivesSaveAndLoad;
-    [Test] procedure Test_FitContent_Default_IsNotSaved;
   end;
 
 implementation
@@ -128,53 +125,6 @@ begin
     LItem := CreateItem(LBox);
 
     Assert.AreEqual(0, Pos('FlexShrink', SaveAsText(LItem)), 'FlexShrink in the saved state');
-  finally
-    LBox.Free;
-  end;
-end;
-
-// ===========================================================================
-// FitContent
-// ===========================================================================
-
-procedure TFlexItemStreamingTests.Test_FitContent_Default_IsTrue;
-var LItem: TS4YFlexItem;
-begin
-  LItem := TS4YFlexItem.Create(nil);
-  try
-    Assert.IsTrue(LItem.FitContent, 'FitContent');
-  finally
-    LItem.Free;
-  end;
-end;
-
-procedure TFlexItemStreamingTests.Test_FitContent_False_SurvivesSaveAndLoad;
-var LBox: TS4YFlexBox; LItem, LLoaded: TS4YFlexItem;
-begin
-  LBox := TS4YFlexBox.Create(nil);
-  try
-    LItem := CreateItem(LBox);
-    LItem.FitContent := False;
-
-    LLoaded := LoadCopy(LItem);
-    try
-      Assert.IsFalse(LLoaded.FitContent, 'FitContent');
-    finally
-      LLoaded.Free;
-    end;
-  finally
-    LBox.Free;
-  end;
-end;
-
-procedure TFlexItemStreamingTests.Test_FitContent_Default_IsNotSaved;
-var LBox: TS4YFlexBox; LItem: TS4YFlexItem;
-begin
-  LBox := TS4YFlexBox.Create(nil);
-  try
-    LItem := CreateItem(LBox);
-
-    Assert.AreEqual(0, Pos('FitContent', SaveAsText(LItem)), 'FitContent in the saved state');
   finally
     LBox.Free;
   end;

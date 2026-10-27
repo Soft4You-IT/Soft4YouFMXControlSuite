@@ -132,41 +132,43 @@ automatic size on the cross axis adapts, an explicit one does not:
   lines are as tall as their content.
 
 The design width remains the natural width of the item: it is the `FlexBasis`
-when this is `fbuAuto`, and the starting width of the fit-content. With
-`FitContent = False` on the item the content (`Align = Top`) follows the width of
-the item. With `FitContent = True`, the default, the item takes the own width of
-the content (for example a `TLabel` with `AutoSize`): see "Width from the
-content".
+when this is `fbuAuto`, and the starting width of the fit-content. It applies when
+the content follows the width of the item (`Align = Top`). If the content has its
+own size (`Align = None`) the item takes it: see "Width from the content".
 
 ### Width from the content
 
-With `FitContent = True` (the default, like the automatic width of a flex item in
-CSS, which is the width of its content) the item takes the **own size of the
-content**: the automatic (not explicit) width and height become those of the
-content plus the `Padding` of the item. It is the case of a `TLabel` with
-`AutoSize` (and `WordWrap = False`, otherwise `AutoSize` adapts only the height),
-of a button or of an image that already have their own size. It is a property of the
-item, not to be confused with `FitContent` of the flexbox (see "Scrolling and
-FitContent").
+The `Align` of the content decides where the automatic size of the item comes
+from:
 
-- The content is no longer `Align = Top`: it keeps its size, at the top left
-  (after the `Padding` of the item), even when the item grows because of
-  `FlexGrow` or stretch. It is not stretched, otherwise its own size would be
-  lost at the next layout.
+| `Align` of the content | The content | Automatic size of the item |
+|---|---|---|
+| `None` (the default of a control dropped in the item) | keeps its own size, at the top left | width and height of the content plus the `Padding` of the item, like `width: auto` in CSS |
+| `Top` | follows the width of the item | width: the design one, which adapts; height: that of the content |
+
+A content with its own size is the case of a `TLabel` with `AutoSize` (and
+`WordWrap = False`, otherwise `AutoSize` adapts only the height), of a button or of
+an image that already have their own size.
+
+- With `Align = None` the content stays at the top left (after the `Padding` of
+  the item), even when the item grows because of `FlexGrow` or stretch. It is not
+  stretched, otherwise its own size would be lost at the next layout.
 - When the content changes size (for example the text of a label), the flexbox
-  calculates itself again. The item hooks the `OnResized` event of the content,
-  chaining the handler that the user may already have assigned; if the user
-  assigns another one afterwards, the size is anyway read again at every layout.
+  calculates itself again. With `Align = None` the item hooks the `OnResized`
+  event of the content, chaining the handler that the user may already have
+  assigned; if the user assigns another one afterwards, the size is anyway read
+  again at every layout. Changing the `Align` of the content calculates the layout
+  again too.
 - An explicit size (`AutoWidth = False`, `AutoHeight = False`) stays the chosen
-  one: `FitContent` applies only to the automatic sizes.
-- **Minimum size** (`min-width: auto` in CSS): on the main axis the item does not
-  shrink below its content, plus the `Padding` of the item (or below its explicit
-  size, if that is smaller). A `MinWidth` or `MinHeight` greater than 0 in
-  `SizeConstraints` replaces it. As 0 means "auto" and not "no minimum", an item
+  one: the size of the content applies only to the automatic sizes.
+- **Minimum size** (`min-width: auto` in CSS): on the main axis an item with a
+  content that has `Align = None` does not shrink below it, plus the `Padding` of
+  the item (or below its explicit size, if that is smaller). A `MinWidth` or
+  `MinHeight` greater than 0 in `SizeConstraints` replaces it. As 0 means "auto" and not "no minimum", an item
   that must shrink below its content needs a small `MinWidth` (for example 1).
 - To make the content follow the width of the item, for example a panel or a memo
-  that must fill a card that grows with `FlexGrow`, set `FitContent = False`: the
-  content goes back to `Align = Top`.
+  that must fill a card that grows with `FlexGrow`, set `Align = Top` on the
+  content.
 - A `TLabel` created at run time takes its own size only when the text changes:
   assign `Text` after inserting it in the flexbox.
 
@@ -214,9 +216,9 @@ Details:
   flexbox may have grown to.
 - **Items that shrink**: the width needed is the sum of the minimum widths of the
   items of a line. The minimum of an item is its `MinWidth`, if set; otherwise,
-  with `FitContent` on the item (the default), the width of its content; otherwise
+  with a content that has `Align = None`, the width of its content; otherwise
   zero, because the layout shrinks it down to nothing. The flexbox grows beyond the
-  parent for items with `FitContent`, with `FlexShrink = 0` or with a `MinWidth`
+  parent for items with such a content, with `FlexShrink = 0` or with a `MinWidth`
   (or with the `MinWidth` of the flexbox, next point).
 - **Minimum width of the whole flexbox**: `MinWidth` sets a floor for the width
   (for example `MinWidth = 1000` for a dashboard that must not be narrower). The
@@ -350,7 +352,6 @@ FMX), so in theory it is portable, but the compatibility has to be checked.
 | `Order`           | `order`          | `Integer` (default: 0)                     |
 | `AutoHeight`      | `height: auto`   | `Boolean` (default: `True`)                |
 | `AutoWidth`       | `width: auto`    | `Boolean` (default: `True`)                |
-| `FitContent`      | `width/height: auto` = size of the content, `min-width: auto` | `Boolean` (default: `True`), see "Width from the content" |
 | `SizeConstraints` | `min-/max-width`, `min-/max-height` | group with `MinWidth`, `MaxWidth`, `MinHeight`, `MaxHeight` (`Single` >= 0, default: 0 = no limit), like `Margins` |
 | `Index`           | *(source order)* | position of the item in the flexbox, not saved |
 
@@ -542,17 +543,17 @@ it is part of the project group in `Packages\D11`. It shows:
 | Area | What it shows |
 |------|---------------|
 | Sidebar (column) | `Direction = fdColumn`, "spacer" item with `FlexGrow = 1` that pushes "Log out" to the bottom |
-| Header | `JustifyContent = jcSpaceBetween`, `AlignItems = aiCenter`, title (`AutoSize` label) and user button with `FitContent` (width from the content), search hidden below 560 px with an `ioVisible` override |
+| Header | `JustifyContent = jcSpaceBetween`, `AlignItems = aiCenter`, title (`AutoSize` label) and user button with `Align = None` (width from the content), search hidden below 560 px with an `ioVisible` override |
 | KPI cards | `Wrap`, `FlexBasis` in percent (23%, 48% below 760 px) and `FlexGrow` |
 | Bar chart | nested flexbox with `AlignItems = aiFlexEnd`, 12 items with explicit height and `FlexBasis = 0`, `FlexGrow = 1` |
 | Traffic, orders, activity | `FlexBasis` in pixels and proportional grow (2:1) |
 | Breakpoints (main flexbox) | below 1000 px it hides "Team activity"; below 760 px it shows only KPIs and chart |
 | Scrolling (main flexbox) | inside a `TScrollBox` with `FitContent = True`: when the window is too small the content is reached with the scroll bar |
 
-The items whose content must fill the item (the menu buttons, the cards and the
-bars of the chart, which grow with `FlexGrow`) have `FitContent = False`. The title and the
-user button of the header keep the default, `True`: their width is that of the
-content.
+The contents that must fill their item (the menu buttons, the cards and the bars
+of the chart, which grow with `FlexGrow`) have `Align = Top`. The title and the
+user button of the header have `Align = None`: the width of their item is that of
+the content.
 
 Two things remain in the code: the sidebar hides below 700 px of form width (the
 sidebar is not an item of a flexbox) and the StatusBar shows sizes, number of rows
@@ -891,9 +892,11 @@ tried yet is a context menu entry (`IComponentEditor`: Move first/before/after/l
 
 ## Known limits
 
-- With `FitContent = False` on the item the automatic width is the design one,
-  which adapts (stretch and fit-content); the width calculated from the content
-  (for example a `TLabel` with `AutoSize`) needs `FitContent = True`, the default.
+- With `Align = Top` on the content the automatic width of the item is the design
+  one, which adapts (stretch and fit-content); the width calculated from the
+  content (for example a `TLabel` with `AutoSize`) needs `Align = None`.
+- An item does not support a content with `Align = Client` together with an
+  automatic height: the content becomes `Align = Top` when the form is loaded.
 - `FlexBasis` and `FlexGrow` apply on the main axis: going from row to column (for
   example with a breakpoint) a basis of 320 px becomes a height: this is fixed with
   the item overrides of the breakpoint (see "Item overrides").

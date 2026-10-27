@@ -76,8 +76,9 @@
 
   AUTOMATIC MINIMUM
   -----------------
-  As min-width: auto in CSS, an item with FitContent does not shrink below its
-  content on the main axis (ToEngineInput fills AutoMinWidth/AutoMinHeight; the
+  As min-width: auto in CSS, an item whose content has Align = None (its own
+  size) does not shrink below it on the main axis (ToEngineInput fills
+  AutoMinWidth/AutoMinHeight; the
   engine uses them only while MinWidth/MinHeight is 0). The flexbox with FitContent
   therefore grows beyond its parent, and a scroll box shows the scroll bar, with the
   default FlexShrink.
@@ -197,6 +198,7 @@ type
   /// Every control that takes part in the layout lives inside an item. The flexbox creates the item by itself when a control is dropped on it; for several controls, use a container (a layout, a panel) as the content of the item.
   /// An item lives only inside a TS4YFlexBox: at run time any other parent raises EInvalidOperation. An item left without controls is deleted.
   /// Width and Height are automatic (AutoWidth and AutoHeight are True) until the user sets them. An automatic size on the cross axis stretches according to AlignItems and AlignSelf; an explicit size does not stretch.
+  /// The Align of the content decides where the automatic size comes from. With Align = None the content keeps its own size, at the top left of the item, and the item takes it (like width: auto in CSS), without shrinking below it. With Align = Top the content follows the width of the item, and the item takes its height.
   /// The properties of the item can be changed by the active breakpoints of the flexbox without altering the values set here, including Visible.
   /// </remarks>
   TS4YFlexItem = class(TS4YFlexItemBase)
@@ -231,16 +233,15 @@ type
     FOnLineChanged: TS4YFlexItemLineEvent;
     FOnLayoutChanged: TNotifyEvent;
     FNotifiedBounds: TRectF;
-    FFitContent: Boolean;
+    FContentSelfSized: Boolean;
     FHookedContent: TControl;
     FPreviousContentResized: TNotifyEvent;
 
-    procedure ApplyFitContent(const AContent: TControl);
     procedure ContentResized(Sender: TObject);
     procedure HookContent(const AContent: TControl);
     procedure PlaceContent;
-    procedure SetFitContent(Value: Boolean);
     procedure UnhookContent;
+    procedure UpdateContentSizing;
     function GetAutoHeight: Boolean;
     function GetAutoWidth: Boolean;
     function GetContent: TControl;
@@ -326,8 +327,6 @@ type
     property AutoHeight: Boolean read GetAutoHeight write SetAutoHeight stored IsAutoHeightStored;
     /// <summary>True: the width is not an explicit choice (like width: auto in CSS). On the cross axis the item stretches and, in a column, fits the width of the flexbox; the design width stays the starting one. False: explicit width, also set by changing Width or by resizing the item in the designer.</summary>
     property AutoWidth: Boolean read GetAutoWidth write SetAutoWidth stored IsAutoWidthStored;
-    /// <summary>True: the automatic size (width and height not explicit) is that of the content itself, for example a TLabel with AutoSize. The content is no longer Align = Top: it keeps its size, at the top left (after the Padding), even if the item grows, and the item does not shrink below it (like min-width: auto in CSS). False: the content follows the width of the item. The default is True.</summary>
-    property FitContent: Boolean read FFitContent write SetFitContent default True;
     /// <summary>Initial main size of the item (CSS flex-basis). FlexBasisUnit says how the value is read.</summary>
     property FlexBasis: Single read FFlexBasis write SetFlexBasis;
     /// <summary>How FlexBasis is read: the size of the item (fbuAuto, the default), pixels or a percentage of the main size of the flexbox.</summary>
@@ -567,7 +566,6 @@ begin
   FSizeConstraints.OnChange := SizeConstraintsChanged;
   FFlexGrow := 0;
   FFlexShrink := 1;
-  FFitContent := True;
   FFlexBasis := 0;
   FFlexBasisUnit := fbuAuto;
   FAlignSelf := asAuto;
@@ -788,59 +786,40 @@ begin
   // The content (Align = Top) changed height: the item follows it (only with
   // automatic height)
   UpdateContentHeight;
+
+  // A change of the Align of the content changes where its size comes from
+  UpdateContentSizing;
   PlaceContent;
 end;
 
-procedure TS4YFlexItem.SetFitContent(Value: Boolean);
+procedure TS4YFlexItem.UpdateContentSizing;
 var
   LContent: TControl;
+  LSelfSized: Boolean;
 begin
-  if FFitContent = Value then
-  begin
-    Exit;
-  end;
-
-  FFitContent := Value;
-
-  // During loading Align and sizes come from the file (see Loaded)
   if IsLoadingOrDestroying then
   begin
     Exit;
   end;
 
   LContent := GetContent;
+  LSelfSized := (LContent <> nil) and (LContent.Align = TAlignLayout.None);
 
-  if Value then
+  if LSelfSized then
   begin
-    if LContent <> nil then
-    begin
-      ApplyFitContent(LContent);
-    end;
+    HookContent(LContent);
   end
   else
   begin
     UnhookContent;
-
-    if LContent <> nil then
-    begin
-      LContent.Align := TAlignLayout.Top;
-    end;
-
-    UpdateContentHeight;
   end;
 
-  InvalidateFlexBox;
-end;
-
-procedure TS4YFlexItem.ApplyFitContent(const AContent: TControl);
-begin
-  if AContent.Align <> TAlignLayout.None then
+  // The size of a content with its own size is read at every layout
+  if LSelfSized <> FContentSelfSized then
   begin
-    AContent.Align := TAlignLayout.None;
+    FContentSelfSized := LSelfSized;
+    InvalidateFlexBox;
   end;
-
-  HookContent(AContent);
-  PlaceContent;
 end;
 
 procedure TS4YFlexItem.HookContent(const AContent: TControl);
@@ -884,7 +863,7 @@ begin
 
   // The own size of the content changed (for example the text of
   // a label with AutoSize): the item rereads it at every layout
-  if FFitContent and not IsLoadingOrDestroying then
+  if not IsLoadingOrDestroying then
   begin
     InvalidateFlexBox;
   end;
@@ -898,7 +877,8 @@ var
 begin
   LContent := GetContent;
 
-  if FFitContent and (LContent <> nil) and not IsLoadingOrDestroying then
+  if (LContent <> nil) and (LContent.Align = TAlignLayout.None) and
+    not IsLoadingOrDestroying then
   begin
     LLeft := Padding.Left + LContent.Margins.Left;
     LTop := Padding.Top + LContent.Margins.Top;
@@ -1000,8 +980,9 @@ var
 begin
   LContent := GetContent;
 
-  // With FitContent the own height of the content is read in ToEngineInput
-  if FHeightExplicit or FFitContent or (LContent = nil) or IsLoadingOrDestroying then
+  // With Align = None the own height of the content is read in ToEngineInput
+  if FHeightExplicit or (LContent = nil) or (LContent.Align = TAlignLayout.None) or
+    IsLoadingOrDestroying then
   begin
     Exit;
   end;
@@ -1017,24 +998,9 @@ begin
 end;
 
 procedure TS4YFlexItem.UseContentHeight;
-var
-  LContent: TControl;
 begin
   FHeightExplicit := False;
-  LContent := GetContent;
-
-  if LContent <> nil then
-  begin
-    if FFitContent then
-    begin
-      ApplyFitContent(LContent);
-    end
-    else
-    begin
-      LContent.Align := TAlignLayout.Top;
-    end;
-  end;
-
+  UpdateContentSizing;
   UpdateContentHeight;
 end;
 
@@ -1153,17 +1119,12 @@ begin
   // it keeps the height it had)
   LContent := GetContent;
 
-  if FFitContent then
-  begin
-    if LContent <> nil then
-    begin
-      ApplyFitContent(LContent);
-    end;
-  end
-  else if (LContent <> nil) and (LContent.Align = TAlignLayout.Client) then
+  if (LContent <> nil) and (LContent.Align = TAlignLayout.Client) then
   begin
     LContent.Align := TAlignLayout.Top;
   end;
+
+  UpdateContentSizing;
 
   if not FHeightExplicit then
   begin
@@ -1257,10 +1218,11 @@ begin
       end;
     end;
   end
-  else if FFitContent and (AObject is TControl) and (ControlsCount = 1) and
+  else if (AObject is TControl) and (ControlsCount = 1) and
     not IsLoadingOrDestroying and IsContentControl(TControl(AObject)) then
   begin
-    ApplyFitContent(TControl(AObject));
+    UpdateContentSizing;
+    PlaceContent;
   end;
 end;
 
@@ -1336,11 +1298,12 @@ begin
   Result.NaturalWidth := FDesignWidth;
   Result.NaturalHeight := FDesignHeight;
 
-  if FFitContent and not IsLoadingOrDestroying then
-  begin
-    LContent := GetContent;
+  LContent := GetContent;
 
-    if LContent <> nil then
+  // A content with Align = None has its own size, which the item reads
+  if not IsLoadingOrDestroying then
+  begin
+    if (LContent <> nil) and (LContent.Align = TAlignLayout.None) then
     begin
       LContentWidth := LContent.Width + LContent.Margins.Left + LContent.Margins.Right +
         Padding.Left + Padding.Right;
