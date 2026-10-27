@@ -79,7 +79,7 @@
   As min-width: auto in CSS, an item whose content has Align = None (its own
   size) does not shrink below it on the main axis (ToEngineInput fills
   AutoMinWidth/AutoMinHeight; the
-  engine uses them only while MinWidth/MinHeight is 0). The flexbox with FitContent
+  engine uses them only while MinWidth/MinHeight is 0). The flexbox with AutoWidth
   therefore grows beyond its parent, and a scroll box shows the scroll bar, with the
   default FlexShrink.
 
@@ -96,15 +96,24 @@
   compact array parallel to Context.Items: OriginalIndex is the index in
   FlexChildren and not in Controls[].
 
-  FIT CONTENT
-  -----------
-  With FitContent = True (and Align = None) the flexbox sizes itself like a CSS
-  block container: the width is that of the parent (or the smallest width that
-  does not crop the items, if greater) and the height is that of the content.
-  The parent is not asked to align the flexbox: it reacts to the bounds of its
-  child, so a scroll box shows its scroll bars. The parent does not notify a
-  child that is not aligned, so the flexbox hooks the OnResized of the parent
-  (OnResize of a form), chaining the handler that was already there.
+  AUTOMATIC SIZE
+  --------------
+  As width: auto and height: auto in CSS, the size of the flexbox is automatic
+  (AutoWidth, AutoHeight) until the user chooses it: a Width or Height set after
+  the first layout makes that size explicit (see DoSetSize). AutoWidth needs
+  Align = None: the width is that of the parent (or the smallest width that does
+  not crop the items, if greater). AutoHeight works with Align = None, Top and
+  Bottom: the height is that of the content at the width of the flexbox.
+  The position is never changed: with AutoWidth the width is the space from
+  Position.X to the right edge of the area of the parent (Padding.Right of the
+  parent and Margins.Right of the flexbox taken away), like position: absolute
+  with left set and right: 0. Moving the flexbox repeats the layout
+  (DoMatrixChanged for Position, Move for SetBounds).
+  With Align = None the parent is not asked to align the flexbox: it reacts to
+  the bounds of its child, so a scroll box shows its scroll bars. The parent does
+  not notify a child that is not aligned, so with AutoWidth the flexbox hooks the
+  OnResized of the parent (OnResize of a form), chaining the handler that was
+  already there.
   The breakpoints read the width that the parent gives, not the grown one.
   MinWidth is a floor for the width of the flexbox, for a layout that must not be
   narrower than that (for example with Wrap, where the smallest width without
@@ -363,7 +372,7 @@ type
   /// The flexbox exposes the CSS properties of the container: Direction, Wrap, JustifyContent, AlignItems, AlignContent, ColumnGap and RowGap. Each control that takes part in the layout lives in a TS4YFlexItem.
   /// When a control that is not an item becomes a child of the flexbox, the flexbox creates an item with the same position and size and moves the control into it; the margins of the control go to the item. At design time the item is created by the designer, through DesignWrapHandler.
   /// Breakpoints change the properties of the container and of the items according to the width of the flexbox, also at design time, without altering the values set in the Object Inspector.
-  /// The flexbox does not scroll, as in CSS. To see content that does not fit, put it in a scroll box with FitContent = True: the flexbox takes the width of its parent and the height of its content, and the scroll box shows its scroll bars.
+  /// The flexbox does not scroll, as in CSS. To see content that does not fit, put it in a scroll box with Align = None: the flexbox takes the width of its parent and the height of its content (AutoWidth and AutoHeight), and the scroll box shows its scroll bars.
   /// </remarks>
   TS4YFlexBox = class(TControl)
   strict private
@@ -382,9 +391,14 @@ type
     FBreakpointMode: TS4YBreakpointMode;
     FBreakpoints: TS4YFlexBreakpoints;
     FNotifiedBreakpointIndexes: TArray<Integer>;
-    FFitContent: Boolean;
+    FApplyingAutoSize: Boolean;
+    FHasLayoutSize: Boolean;
+    FHeightExplicit: Boolean;
     FHookedParent: TFmxObject;
+    FLayoutHeight: Single;
+    FLayoutWidth: Single;
     FMinWidth: Single;
+    FWidthExplicit: Boolean;
     FPreviousParentResized: TNotifyEvent;
     FOnBreakpointsChanged: TNotifyEvent;
     FOnLayoutApplied: TNotifyEvent;
@@ -397,15 +411,24 @@ type
     function IsLoadingOrDestroying: Boolean;
     function ApplyResults(const AResults: TArray<TFlexItemResult>;
       const AFlexChildren: TArray<TControl>; ADirection: TFlexDirection): Integer;
-    function IsFitContentActive(out AAvailableSize: TSizeF): Boolean;
+    function GetAutoHeight: Boolean;
+    function GetAutoWidth: Boolean;
+    function IsAutoHeightActive: Boolean;
+    function IsAutoHeightStored: Boolean;
+    function IsAutoWidthActive(out AAvailableWidth: Single): Boolean;
+    function IsAutoWidthStored: Boolean;
     function ResolveSettings(AWidth: Single): TS4YFlexSettings;
-    function TryGetParentSize(out ASize: TSizeF): Boolean;
-    procedure FitToContent(var AContext: TFlexContext; const AAvailableSize: TSizeF);
+    function TryGetParentArea(out AArea: TRectF): Boolean;
+    procedure ApplyAutoSize(var AContext: TFlexContext; UseAutoWidth, UseAutoHeight: Boolean;
+      AAvailableWidth: Single);
+    procedure FollowPosition;
     procedure HookParent;
     procedure ParentResized(Sender: TObject);
-    procedure SetFitContent(Value: Boolean);
+    procedure SetAutoHeight(Value: Boolean);
+    procedure SetAutoWidth(Value: Boolean);
     procedure SetMinWidth(Value: Single);
     procedure UnhookParent;
+    procedure UpdateParentHook;
     procedure BreakpointsChanged(Sender: TObject);
     procedure NotifyBreakpointsChanged;
     procedure NotifyLayoutApplied(const AFlexChildren: TArray<TControl>;
@@ -430,13 +453,20 @@ type
     procedure DoLayoutApplied; virtual;
     /// <summary>Called when the number of lines changes. It fires OnLineCountChanged.</summary>
     procedure DoLineCountChanged(ALineCount, APreviousLineCount: Integer); virtual;
+    /// <summary>With AutoWidth the width depends on the position: when Position changes, the layout is repeated.</summary>
+    procedure DoMatrixChanged(Sender: TObject); override;
     /// <summary>Computes the layout and applies it to the items.</summary>
     procedure DoRealign; override;
-    /// <summary>Computes the layout again once the control is loaded, which sizes a flexbox with FitContent.</summary>
+    /// <summary>Sets the size of the flexbox. A size that the layout did not set, and that the Align leaves to the user, is a choice of the user after the first layout: that size becomes explicit (AutoWidth or AutoHeight becomes False).</summary>
+    function DoSetSize(const ASize: TControlSize; const NewPlatformDefault: Boolean;
+      ANewWidth, ANewHeight: Single; var ALastWidth, ALastHeight: Single): Boolean; override;
+    /// <summary>Computes the layout again once the control is loaded, which sizes a flexbox with an automatic size.</summary>
     procedure Loaded; override;
+    /// <summary>With AutoWidth the width depends on the position: when SetBounds moves the flexbox without resizing it (as the designer does), the layout is repeated.</summary>
+    procedure Move; override;
     /// <summary>When an item is deleted, removes the breakpoint overrides that refer to it.</summary>
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    /// <summary>Follows the size of the new parent when FitContent is True.</summary>
+    /// <summary>Follows the size of the new parent when AutoWidth is True.</summary>
     procedure ParentChanged; override;
   public
     /// <summary>True if the control takes part in the layout: it is a visible item that is not loading or being destroyed.</summary>
@@ -450,7 +480,7 @@ type
     /// <summary>Forces the layout to be computed again, for example after changes made by code.</summary>
     procedure InvalidateLayout;
 
-    /// <summary>Returns the size that the flexbox needs to show all its items, Padding included: the smallest width at which no item is cropped, and the height of the content at the current width. It is the size that FitContent gives to the flexbox, whatever FitContent is.</summary>
+    /// <summary>Returns the size that the flexbox needs to show all its items, Padding included: the smallest width at which no item is cropped, and the height of the content at the current width. It is the size that AutoWidth and AutoHeight give to the flexbox, whatever their value.</summary>
     function MeasureContent: TSizeF;
 
     /// <summary>Creates an item in the flexbox and moves the control into it. Position, size and margins of the control go to the item.</summary>
@@ -476,6 +506,10 @@ type
     /// <summary>Alignment of the items on the cross axis (CSS align-items). The default is aiStretch.</summary>
     property AlignItems: TAlignItems read FAlignItems write SetAlignItems default aiStretch;
     property Anchors;
+    /// <summary>True: the height is that of the content at the width of the flexbox (like height: auto in CSS). It works with Align = None, Top and Bottom. Without items the height stays as it is. It becomes False when the user sets the height, after the first layout. While it is True, the height is decided by the flexbox. The default is True.</summary>
+    property AutoHeight: Boolean read GetAutoHeight write SetAutoHeight stored IsAutoHeightStored;
+    /// <summary>True: the width is the space from the left of the flexbox (Position.X) to the right edge of the parent, minus the Padding.Right of the parent and the Margins.Right of the flexbox, or the smallest width at which no item is cropped if that is greater. The position is not changed: at X = 0 the flexbox is as wide as the parent (like the width: auto of a block in CSS). A parent that scrolls shows its scroll bars; any other parent crops what does not fit. It needs Align = None and a parent. While it is True the width is decided by the flexbox. It becomes False when the user sets the width, after the first layout: assign Width after the Parent. To follow its parent the flexbox hooks the OnResized event of the parent (OnResize of a form): assign your own handler before. The default is True.</summary>
+    property AutoWidth: Boolean read GetAutoWidth write SetAutoWidth stored IsAutoWidthStored;
     /// <summary>How the Width of the breakpoints is read: up to the width (bmMaxWidth, the default) or from the width up (bmMinWidth). It applies to the whole list; changing it keeps the breakpoints but they read the opposite way.</summary>
     property BreakpointMode: TS4YBreakpointMode read FBreakpointMode write SetBreakpointMode default bmMaxWidth;
     /// <summary>Width thresholds that change the properties of the flexbox and of its items. They also apply at design time.</summary>
@@ -485,14 +519,12 @@ type
     property ColumnGap: Single read FColumnGap write SetColumnGap;
     /// <summary>Direction of the main axis (CSS flex-direction). The default is fdRow.</summary>
     property Direction: TFlexDirection read FDirection write SetDirection default fdRow;
-    /// <summary>True: the flexbox sizes itself (CSS block container). The width is that of the parent, minus its Padding and the Margins of the flexbox, or the smallest width at which no item is cropped if that is greater; the height is that of the content. A parent that scrolls shows its scroll bars; any other parent crops what does not fit. It needs Align = None and a parent: otherwise the size comes from the parent and FitContent has no effect. While it is True, Width and Height are decided by the flexbox. To follow its parent the flexbox hooks the OnResized event of the parent (OnResize of a form): assign your own handler before setting FitContent. The default is False.</summary>
-    property FitContent: Boolean read FFitContent write SetFitContent default False;
     property Height;
     property HitTest;
     /// <summary>Distribution of the items along the main axis (CSS justify-content). The default is jcFlexStart.</summary>
     property JustifyContent: TJustifyContent read FJustifyContent write SetJustifyContent default jcFlexStart;
     property Margins;
-    /// <summary>Smallest width of the flexbox when FitContent is True, in pixels: the width is the greater of the width of the parent, MinWidth and the smallest width at which no item is cropped, and the items wrap at that width. If the parent is narrower, the parent crops the flexbox or, if it scrolls, shows the horizontal bar. 0 means no minimum. It has no effect without FitContent. The default is 0.</summary>
+    /// <summary>Smallest width of the flexbox when AutoWidth is True, in pixels: the width is the greater of the width of the parent, MinWidth and the smallest width at which no item is cropped, and the items wrap at that width. If the parent is narrower, the parent crops the flexbox or, if it scrolls, shows the horizontal bar. 0 means no minimum. It has no effect without AutoWidth. The default is 0.</summary>
     property MinWidth: Single read FMinWidth write SetMinWidth;
     property Opacity;
     property Padding;
@@ -1591,26 +1623,29 @@ var
   LLineCount: Integer;
   LApplied: Boolean;
   LSettings: TS4YFlexSettings;
-  LAvailableSize: TSizeF;
-  LCurrentSize: TSizeF;
-  LFitting: Boolean;
+  LAvailableWidth: Single;
+  LCurrentWidth: Single;
+  LAutoHeight: Boolean;
+  LAutoWidth: Boolean;
   LPass: Integer;
   LRepeat: Boolean;
 begin
   // Reentrancy guard; no layout during loading or destruction
   if not UpdatingLayout and not IsLoadingOrDestroying then
   begin
+    UpdateParentHook;
     LLineCount := 0;
     LPass := 0;
     BeginLayout;
     try
       repeat
         Inc(LPass);
-        LFitting := IsFitContentActive(LAvailableSize);
+        LAutoWidth := IsAutoWidthActive(LAvailableWidth);
+        LAutoHeight := IsAutoHeightActive;
 
-        if LFitting then
+        if LAutoWidth then
         begin
-          LSettings := ResolveSettings(LAvailableSize.Width);
+          LSettings := ResolveSettings(LAvailableWidth);
         end
         else
         begin
@@ -1619,9 +1654,9 @@ begin
 
         LContext := BuildContext(LSettings, LFlexChildren);
 
-        if LFitting then
+        if LAutoWidth or LAutoHeight then
         begin
-          FitToContent(LContext, LAvailableSize);
+          ApplyAutoSize(LContext, LAutoWidth, LAutoHeight, LAvailableWidth);
         end;
 
         LApplied := False;
@@ -1634,12 +1669,16 @@ begin
         end;
 
         // The size of the flexbox can make a scroll bar appear or disappear, which
-        // changes the size that the parent gives: the layout is repeated for that
-        LRepeat := LFitting and (LPass < C_MAX_FIT_PASSES) and
-          IsFitContentActive(LCurrentSize) and
-          not (SameValue(LCurrentSize.Width, LAvailableSize.Width, 0.5) and
-          SameValue(LCurrentSize.Height, LAvailableSize.Height, 0.5));
+        // changes the width that the parent gives: the layout is repeated for that
+        LRepeat := LAutoWidth and (LPass < C_MAX_FIT_PASSES) and
+          IsAutoWidthActive(LCurrentWidth) and
+          not SameValue(LCurrentWidth, LAvailableWidth, 0.5);
       until not LRepeat;
+
+      // From now on a size different from this one is a choice of the user
+      FLayoutWidth := Width;
+      FLayoutHeight := Height;
+      FHasLayoutSize := True;
     finally
       EndLayout;
     end;
@@ -1653,7 +1692,34 @@ begin
   end;
 end;
 
-function TS4YFlexBox.TryGetParentSize(out ASize: TSizeF): Boolean;
+function TS4YFlexBox.DoSetSize(const ASize: TControlSize; const NewPlatformDefault: Boolean;
+  ANewWidth, ANewHeight: Single; var ALastWidth, ALastHeight: Single): Boolean;
+begin
+  // A size not set by the layout is a choice of the user, but only after the
+  // first layout (the size given when the flexbox is created is not) and only
+  // for the sizes that the Align leaves to the user. A size equal to that of the
+  // last layout is an echo (for example the designer reapplying the values).
+  if not FApplyingAutoSize and FHasLayoutSize and
+    (ComponentState * [csLoading, csReading] = []) and
+    not (SameValue(ANewWidth, FLayoutWidth, 0.001) and SameValue(ANewHeight, FLayoutHeight, 0.001)) then
+  begin
+    if (Align = TAlignLayout.None) and not SameValue(ANewWidth, Width, 0.001) then
+    begin
+      FWidthExplicit := True;
+    end;
+
+    if (Align in [TAlignLayout.None, TAlignLayout.Top, TAlignLayout.Bottom]) and
+      not SameValue(ANewHeight, Height, 0.001) then
+    begin
+      FHeightExplicit := True;
+    end;
+  end;
+
+  Result := inherited DoSetSize(ASize, NewPlatformDefault, ANewWidth, ANewHeight,
+    ALastWidth, ALastHeight);
+end;
+
+function TS4YFlexBox.TryGetParentArea(out AArea: TRectF): Boolean;
 var
   LParent: TControl;
 begin
@@ -1662,37 +1728,45 @@ begin
   if Parent is TControl then
   begin
     LParent := TControl(Parent);
-    ASize := TSizeF.Create(
-      LParent.Width - LParent.Padding.Left - LParent.Padding.Right,
-      LParent.Height - LParent.Padding.Top - LParent.Padding.Bottom);
+    AArea := TRectF.Create(LParent.Padding.Left, LParent.Padding.Top,
+      LParent.Width - LParent.Padding.Right, LParent.Height - LParent.Padding.Bottom);
   end
   else if Parent is TCommonCustomForm then
   begin
-    ASize := TSizeF.Create(TCommonCustomForm(Parent).ClientWidth,
+    AArea := TRectF.Create(0, 0, TCommonCustomForm(Parent).ClientWidth,
       TCommonCustomForm(Parent).ClientHeight);
   end
   else
   begin
-    ASize := TSizeF.Create(0, 0);
+    AArea := TRectF.Empty;
     Result := False;
   end;
 end;
 
-function TS4YFlexBox.IsFitContentActive(out AAvailableSize: TSizeF): Boolean;
+function TS4YFlexBox.IsAutoWidthActive(out AAvailableWidth: Single): Boolean;
+var
+  LParentArea: TRectF;
 begin
-  Result := FFitContent and (Align = TAlignLayout.None) and
-    TryGetParentSize(AAvailableSize);
+  AAvailableWidth := 0;
+  Result := not FWidthExplicit and (Align = TAlignLayout.None) and
+    TryGetParentArea(LParentArea);
 
   if Result then
   begin
-    AAvailableSize := TSizeF.Create(
-      Max(0, AAvailableSize.Width - Margins.Left - Margins.Right),
-      Max(0, AAvailableSize.Height - Margins.Top - Margins.Bottom));
+    // From the position of the flexbox to the right edge of the area of the
+    // parent, with the right margin of the flexbox taken away
+    AAvailableWidth := Max(0, LParentArea.Right - Margins.Right - Position.X);
   end;
 end;
 
-procedure TS4YFlexBox.FitToContent(var AContext: TFlexContext;
-  const AAvailableSize: TSizeF);
+function TS4YFlexBox.IsAutoHeightActive: Boolean;
+begin
+  Result := not FHeightExplicit and
+    (Align in [TAlignLayout.None, TAlignLayout.Top, TAlignLayout.Bottom]);
+end;
+
+procedure TS4YFlexBox.ApplyAutoSize(var AContext: TFlexContext;
+  UseAutoWidth, UseAutoHeight: Boolean; AAvailableWidth: Single);
 var
   LMeasure: TFlexContentSize;
   LNewHeight: Single;
@@ -1703,7 +1777,16 @@ var
 begin
   LPaddingHorizontal := Padding.Left + Padding.Right;
   LPaddingVertical := Padding.Top + Padding.Bottom;
-  LOuterWidth := Max(AAvailableSize.Width, FMinWidth);
+
+  if UseAutoWidth then
+  begin
+    LOuterWidth := Max(AAvailableWidth, FMinWidth);
+  end
+  else
+  begin
+    LOuterWidth := Width;
+  end;
+
   AContext.AvailableWidth := Max(0, LOuterWidth - LPaddingHorizontal);
 
   LNewWidth := LOuterWidth;
@@ -1713,13 +1796,57 @@ begin
   if Length(AContext.Items) > 0 then
   begin
     LMeasure := TFlexEngine.Measure(AContext);
-    LNewWidth := Max(LOuterWidth, LMeasure.Width + LPaddingHorizontal);
-    LNewHeight := LMeasure.Height + LPaddingVertical;
+
+    if UseAutoWidth then
+    begin
+      LNewWidth := Max(LOuterWidth, LMeasure.Width + LPaddingHorizontal);
+    end;
+
+    if UseAutoHeight then
+    begin
+      LNewHeight := LMeasure.Height + LPaddingVertical;
+    end;
   end;
 
-  SetBounds(Position.X, Position.Y, LNewWidth, LNewHeight);
+  FApplyingAutoSize := True;
+  try
+    SetBounds(Position.X, Position.Y, LNewWidth, LNewHeight);
+  finally
+    FApplyingAutoSize := False;
+  end;
+
   AContext.AvailableWidth := Width - LPaddingHorizontal;
   AContext.AvailableHeight := Height - LPaddingVertical;
+end;
+
+procedure TS4YFlexBox.DoMatrixChanged(Sender: TObject);
+begin
+  inherited;
+
+  // Only an assignment of Position: inside SetBounds the layout cannot run (the
+  // control is updating) and Move follows; scale and rotation do not change the width
+  if Sender = Position then
+  begin
+    FollowPosition;
+  end;
+end;
+
+procedure TS4YFlexBox.Move;
+begin
+  inherited;
+  FollowPosition;
+end;
+
+procedure TS4YFlexBox.FollowPosition;
+begin
+  // With an automatic width the space up to the right edge of the parent depends
+  // on the position
+  if not FApplyingAutoSize and FHasLayoutSize and not FWidthExplicit and
+    (Align = TAlignLayout.None) and
+    (ComponentState * [csLoading, csReading, csDestroying] = []) then
+  begin
+    InvalidateLayout;
+  end;
 end;
 
 function TS4YFlexBox.MeasureContent: TSizeF;
@@ -1745,29 +1872,62 @@ end;
 procedure TS4YFlexBox.ParentChanged;
 begin
   inherited;
-  UnhookParent;
-
-  if FFitContent then
-  begin
-    HookParent;
-  end;
-
+  UpdateParentHook;
   InvalidateLayout;
 end;
 
-procedure TS4YFlexBox.SetFitContent(Value: Boolean);
+function TS4YFlexBox.GetAutoHeight: Boolean;
 begin
-  if FFitContent <> Value then
-  begin
-    FFitContent := Value;
-    UnhookParent;
+  Result := not FHeightExplicit;
+end;
 
-    if FFitContent then
+function TS4YFlexBox.GetAutoWidth: Boolean;
+begin
+  Result := not FWidthExplicit;
+end;
+
+function TS4YFlexBox.IsAutoHeightStored: Boolean;
+begin
+  Result := FHeightExplicit;
+end;
+
+function TS4YFlexBox.IsAutoWidthStored: Boolean;
+begin
+  Result := FWidthExplicit;
+end;
+
+procedure TS4YFlexBox.SetAutoHeight(Value: Boolean);
+begin
+  if Value = FHeightExplicit then
+  begin
+    FHeightExplicit := not Value;
+    InvalidateLayout;
+  end;
+end;
+
+procedure TS4YFlexBox.SetAutoWidth(Value: Boolean);
+begin
+  if Value = FWidthExplicit then
+  begin
+    FWidthExplicit := not Value;
+    InvalidateLayout;
+  end;
+end;
+
+procedure TS4YFlexBox.UpdateParentHook;
+begin
+  // The size of the parent matters only to an automatic width
+  if not FWidthExplicit and (Align = TAlignLayout.None) and (Parent <> nil) then
+  begin
+    if FHookedParent <> Parent then
     begin
+      UnhookParent;
       HookParent;
     end;
-
-    InvalidateLayout;
+  end
+  else
+  begin
+    UnhookParent;
   end;
 end;
 
@@ -1836,7 +1996,7 @@ begin
     FPreviousParentResized(Sender);
   end;
 
-  if FFitContent then
+  if not FWidthExplicit then
   begin
     InvalidateLayout;
   end;
