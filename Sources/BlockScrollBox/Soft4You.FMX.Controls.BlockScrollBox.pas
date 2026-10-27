@@ -14,8 +14,8 @@ unit Soft4You.FMX.Controls.BlockScrollBox;
   Soft4You.FMX.Controls.BlockScrollBox - scroll box with the CSS block flow
   ==========================================================================
 
-  PROTOTYPE: the flow, the Align of the children and the order by Position.Y.
-  The interface with the flexbox (IS4YBlockFlowChild) comes later.
+  PROTOTYPE: the flow, the Align of the children, the order by Position.Y and
+  the children with their own rules (IS4YBlockFlowChild).
 
   BLOCK FLOW
   ----------
@@ -35,6 +35,16 @@ unit Soft4You.FMX.Controls.BlockScrollBox;
     Right  : own width, on the right (margin-left: auto)
   A child wider than the box is on the left, as a block with auto margins in
   CSS, and the horizontal scroll bar shows the rest.
+  CHILDREN WITH THEIR OWN RULES
+  -----------------------------
+  A child that implements IS4YBlockFlowChild (the flexbox) and has an automatic
+  width (GetFlowAutoWidth) is width: auto in CSS, with Align = None too: the
+  flow gives it the available width with SetFlowBounds, never more, and the
+  child sets its height. What its content overflows (GetFlowOverflowWidth)
+  counts for the horizontal scroll bar, as the scrollable overflow in CSS.
+  The content of the box implements IS4YBlockFlowContainer: the child knows it
+  is in the flow without knowing the class of the box.
+
   The Anchors of the children do not count in the flow. A child with Align =
   None gets Anchors = [akTop]: with the default anchors FMX does not tell the
   parent that the child was moved with SetBounds (TControl.RequestAlign), which
@@ -61,13 +71,14 @@ uses
   System.Types,
   FMX.Controls,
   FMX.Layouts,
-  FMX.Types;
+  FMX.Types,
+  Soft4You.FMX.Controls.BlockScrollBox.Abstracts;
 
 type
   TS4YBlockScrollBox = class;
 
   /// <summary>Content of TS4YBlockScrollBox: it places the children with the block flow instead of the alignment of FMX.</summary>
-  TS4YBlockScrollContent = class(TScrollContent)
+  TS4YBlockScrollContent = class(TScrollContent, IS4YBlockFlowContainer)
   protected
     procedure DoRealign; override;
   end;
@@ -318,6 +329,8 @@ procedure TS4YBlockScrollBox.PlaceChildren;
 var
   LAvailableWidth: Single;
   LChild: TControl;
+  LContentWidth: Single;
+  LFlowChild: IS4YBlockFlowChild;
   LLeft: Single;
   LNeededWidth: Single;
   LOuterWidth: Single;
@@ -337,30 +350,46 @@ begin
       LTop := LTop + LChild.Margins.Top;
       LOuterWidth := Max(0, LAvailableWidth - LChild.Margins.Left - LChild.Margins.Right);
       LLeft := Padding.Left + LChild.Margins.Left;
-      LWidth := LChild.Width;
-
-      case LChild.Align of
-        TAlignLayout.Top:
-          LWidth := LOuterWidth;
-        TAlignLayout.Center:
-          LLeft := LLeft + Max(0, (LOuterWidth - LWidth) / 2);
-        TAlignLayout.Right:
-          LLeft := LLeft + Max(0, LOuterWidth - LWidth);
-      end;
-
       FFlowTops.AddOrSetValue(LChild, LTop);
 
-      if not (SameValue(LChild.Position.X, LLeft, 0.001) and SameValue(LChild.Position.Y, LTop, 0.001) and
-        SameValue(LChild.Width, LWidth, 0.001)) then
+      if Supports(LChild, IS4YBlockFlowChild, LFlowChild) and LFlowChild.GetFlowAutoWidth then
       begin
-        LChild.SetBounds(LLeft, LTop, LWidth, LChild.Height);
+        // width: auto: the available width, never more; the child sets its height
+        LFlowChild.SetFlowBounds(LLeft, LTop, LOuterWidth);
+        LContentWidth := LFlowChild.GetFlowOverflowWidth;
+      end
+      else
+      begin
+        LWidth := LChild.Width;
+
+        case LChild.Align of
+          TAlignLayout.Top:
+            LWidth := LOuterWidth;
+          TAlignLayout.Center:
+            LLeft := LLeft + Max(0, (LOuterWidth - LWidth) / 2);
+          TAlignLayout.Right:
+            LLeft := LLeft + Max(0, LOuterWidth - LWidth);
+        end;
+
+        if not (SameValue(LChild.Position.X, LLeft, 0.001) and SameValue(LChild.Position.Y, LTop, 0.001) and
+          SameValue(LChild.Width, LWidth, 0.001)) then
+        begin
+          LChild.SetBounds(LLeft, LTop, LWidth, LChild.Height);
+        end;
+
+        LContentWidth := LWidth;
+
+        if LFlowChild <> nil then
+        begin
+          LContentWidth := LFlowChild.GetFlowOverflowWidth;
+        end;
       end;
 
-      // A child that fills the width has no width of its own to keep
-      if LChild.Align <> TAlignLayout.Top then
+      // A child that fills the width has no width of its own to keep, but what
+      // its content overflows counts
+      if (LChild.Align <> TAlignLayout.Top) or (LFlowChild <> nil) then
       begin
-        LNeededWidth := Max(LNeededWidth, Padding.Left + LChild.Margins.Left + LWidth +
-          LChild.Margins.Right + Padding.Right);
+        LNeededWidth := Max(LNeededWidth, LLeft + LContentWidth + LChild.Margins.Right + Padding.Right);
       end;
 
       LTop := LTop + LChild.Height + LChild.Margins.Bottom;

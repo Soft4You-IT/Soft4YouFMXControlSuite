@@ -176,6 +176,7 @@
             <Form>Soft4You.FMX.Controls.Badge.Win.res</Form>
         </RcCompile>
         <DCCReference Include="..\..\Sources\Expander\Soft4You.FMX.Controls.Expander.pas"/>
+        <DCCReference Include="..\..\Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.Abstracts.pas"/>
         <DCCReference Include="..\..\Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.pas"/>
         <RcCompile Include="..\..\Sources\Expander\Soft4You.FMX.Controls.Expander.Mac.rc">
             <Form>Soft4You.FMX.Controls.Expander.Mac.res</Form>

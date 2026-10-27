@@ -114,6 +114,12 @@
   not notify a child that is not aligned, so with AutoWidth the flexbox hooks the
   OnResized of the parent (OnResize of a form), chaining the handler that was
   already there.
+  In the block flow (a parent that implements IS4YBlockFlowContainer, the
+  content of TS4YBlockScrollBox) the flexbox implements IS4YBlockFlowChild: with
+  AutoWidth or Align = Top it is width: auto, the flow gives it position and
+  width (SetFlowBounds) and it does not grow beyond them; the items that do not
+  fit overflow and the box shows the horizontal bar (GetFlowOverflowWidth).
+  There it does not hook the parent and does not follow its position.
   The breakpoints read the width that the parent gives, not the grown one.
   MinWidth is a floor for the width of the flexbox, for a layout that must not be
   narrower than that (for example with Wrap, where the smallest width without
@@ -142,6 +148,7 @@ uses
   System.Types,
   FMX.Types,
   FMX.Controls,
+  Soft4You.FMX.Controls.BlockScrollBox.Abstracts,
   Soft4You.FMX.Controls.FlexBox.Breakpoints,
   Soft4You.FMX.Controls.FlexBox.Engine,
   Soft4You.FMX.Controls.FlexBox.ItemBase,
@@ -373,8 +380,9 @@ type
   /// When a control that is not an item becomes a child of the flexbox, the flexbox creates an item with the same position and size and moves the control into it; the margins of the control go to the item. At design time the item is created by the designer, through DesignWrapHandler.
   /// Breakpoints change the properties of the container and of the items according to the width of the flexbox, also at design time, without altering the values set in the Object Inspector.
   /// The flexbox does not scroll, as in CSS. To see content that does not fit, put it in a scroll box with Align = None: the flexbox takes the width of its parent and the height of its content (AutoWidth and AutoHeight), and the scroll box shows its scroll bars.
+  /// In a TS4YBlockScrollBox the box gives the position and the width to a flexbox with AutoWidth or Align = Top, like the width: auto of CSS: the items that do not fit overflow and the box shows the horizontal bar.
   /// </remarks>
-  TS4YFlexBox = class(TControl)
+  TS4YFlexBox = class(TControl, IS4YBlockFlowChild)
   strict private
     class var FDesignWrapHandler: TS4YFlexDesignWrapHandler;
   strict private
@@ -392,6 +400,8 @@ type
     FBreakpoints: TS4YFlexBreakpoints;
     FNotifiedBreakpointIndexes: TArray<Integer>;
     FApplyingAutoSize: Boolean;
+    FFlowWidth: Single;
+    FHasFlowWidth: Boolean;
     FHasLayoutSize: Boolean;
     FHeightExplicit: Boolean;
     FHookedParent: TFmxObject;
@@ -417,6 +427,7 @@ type
     function IsAutoHeightStored: Boolean;
     function IsAutoWidthActive(out AAvailableWidth: Single): Boolean;
     function IsAutoWidthStored: Boolean;
+    function IsInBlockFlow: Boolean;
     function ResolveSettings(AWidth: Single): TS4YFlexSettings;
     function TryGetParentArea(out AArea: TRectF): Boolean;
     procedure ApplyAutoSize(var AContext: TFlexContext; UseAutoWidth, UseAutoHeight: Boolean;
@@ -460,6 +471,10 @@ type
     /// <summary>Sets the size of the flexbox. A size that the layout did not set, and that the Align leaves to the user, is a choice of the user after the first layout: that size becomes explicit (AutoWidth or AutoHeight becomes False).</summary>
     function DoSetSize(const ASize: TControlSize; const NewPlatformDefault: Boolean;
       ANewWidth, ANewHeight: Single; var ALastWidth, ALastHeight: Single): Boolean; override;
+    /// <summary>True if the width is automatic in the block flow: AutoWidth with Align = None, or Align = Top.</summary>
+    function GetFlowAutoWidth: Boolean;
+    /// <summary>The right edge of the items after the layout, from the left of the flexbox, Padding.Right and margins included: more than the width when the items overflow. With ClipChildren nothing overflows and it is the width.</summary>
+    function GetFlowOverflowWidth: Single;
     /// <summary>Computes the layout again once the control is loaded, which sizes a flexbox with an automatic size.</summary>
     procedure Loaded; override;
     /// <summary>With AutoWidth the width depends on the position: when SetBounds moves the flexbox without resizing it (as the designer does), the layout is repeated.</summary>
@@ -468,6 +483,8 @@ type
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     /// <summary>Follows the size of the new parent when AutoWidth is True.</summary>
     procedure ParentChanged; override;
+    /// <summary>Takes the position and the width given by the block flow, then computes the layout and the height.</summary>
+    procedure SetFlowBounds(ALeft, ATop, AWidth: Single);
   public
     /// <summary>True if the control takes part in the layout: it is a visible item that is not loading or being destroyed.</summary>
     class function IsFlexChild(AChild: TControl): Boolean; static;
@@ -508,7 +525,7 @@ type
     property Anchors;
     /// <summary>True: the height is that of the content at the width of the flexbox (like height: auto in CSS). It works with Align = None, Top and Bottom. Without items the height stays as it is. It becomes False when the user sets the height, after the first layout. While it is True, the height is decided by the flexbox. The default is True.</summary>
     property AutoHeight: Boolean read GetAutoHeight write SetAutoHeight stored IsAutoHeightStored;
-    /// <summary>True: the width is the space from the left of the flexbox (Position.X) to the right edge of the parent, minus the Padding.Right of the parent and the Margins.Right of the flexbox, or the smallest width at which no item is cropped if that is greater. The position is not changed: at X = 0 the flexbox is as wide as the parent (like the width: auto of a block in CSS). A parent that scrolls shows its scroll bars; any other parent crops what does not fit. It needs Align = None and a parent. While it is True the width is decided by the flexbox. It becomes False when the user sets the width, after the first layout: assign Width after the Parent. To follow its parent the flexbox hooks the OnResized event of the parent (OnResize of a form): assign your own handler before. The default is True.</summary>
+    /// <summary>True: the width is the space from the left of the flexbox (Position.X) to the right edge of the parent, minus the Padding.Right of the parent and the Margins.Right of the flexbox, or the smallest width at which no item is cropped if that is greater. The position is not changed: at X = 0 the flexbox is as wide as the parent (like the width: auto of a block in CSS). A parent that scrolls shows its scroll bars; any other parent crops what does not fit. In a TS4YBlockScrollBox the width is the one that the box gives (or MinWidth, if greater), never more: the items that do not fit overflow and the box shows the horizontal bar. It needs Align = None and a parent. While it is True the width is decided by the flexbox. It becomes False when the user sets the width, after the first layout: assign Width after the Parent. To follow its parent the flexbox hooks the OnResized event of the parent (OnResize of a form): assign your own handler before. The default is True.</summary>
     property AutoWidth: Boolean read GetAutoWidth write SetAutoWidth stored IsAutoWidthStored;
     /// <summary>How the Width of the breakpoints is read: up to the width (bmMaxWidth, the default) or from the width up (bmMinWidth). It applies to the whole list; changing it keeps the breakpoints but they read the opposite way.</summary>
     property BreakpointMode: TS4YBreakpointMode read FBreakpointMode write SetBreakpointMode default bmMaxWidth;
@@ -1748,15 +1765,34 @@ var
   LParentArea: TRectF;
 begin
   AAvailableWidth := 0;
-  Result := not FWidthExplicit and (Align = TAlignLayout.None) and
-    TryGetParentArea(LParentArea);
 
-  if Result then
+  if IsInBlockFlow then
   begin
-    // From the position of the flexbox to the right edge of the area of the
-    // parent, with the right margin of the flexbox taken away
-    AAvailableWidth := Max(0, LParentArea.Right - Margins.Right - Position.X);
+    // The width that the flow gives
+    Result := not FWidthExplicit and (Align = TAlignLayout.None) and FHasFlowWidth;
+
+    if Result then
+    begin
+      AAvailableWidth := FFlowWidth;
+    end;
+  end
+  else
+  begin
+    Result := not FWidthExplicit and (Align = TAlignLayout.None) and
+      TryGetParentArea(LParentArea);
+
+    if Result then
+    begin
+      // From the position of the flexbox to the right edge of the area of the
+      // parent, with the right margin of the flexbox taken away
+      AAvailableWidth := Max(0, LParentArea.Right - Margins.Right - Position.X);
+    end;
   end;
+end;
+
+function TS4YFlexBox.IsInBlockFlow: Boolean;
+begin
+  Result := Supports(Parent, IS4YBlockFlowContainer);
 end;
 
 function TS4YFlexBox.IsAutoHeightActive: Boolean;
@@ -1797,7 +1833,8 @@ begin
   begin
     LMeasure := TFlexEngine.Measure(AContext);
 
-    if UseAutoWidth then
+    // In the block flow the width does not grow: the items overflow, as in CSS
+    if UseAutoWidth and not IsInBlockFlow then
     begin
       LNewWidth := Max(LOuterWidth, LMeasure.Width + LPaddingHorizontal);
     end;
@@ -1840,9 +1877,9 @@ end;
 procedure TS4YFlexBox.FollowPosition;
 begin
   // With an automatic width the space up to the right edge of the parent depends
-  // on the position
+  // on the position; in the block flow the position is that of the flow
   if not FApplyingAutoSize and FHasLayoutSize and not FWidthExplicit and
-    (Align = TAlignLayout.None) and
+    (Align = TAlignLayout.None) and not IsInBlockFlow and
     (ComponentState * [csLoading, csReading, csDestroying] = []) then
   begin
     InvalidateLayout;
@@ -1872,8 +1909,66 @@ end;
 procedure TS4YFlexBox.ParentChanged;
 begin
   inherited;
+  // A new parent in the block flow gives its own width
+  FHasFlowWidth := False;
   UpdateParentHook;
   InvalidateLayout;
+end;
+
+function TS4YFlexBox.GetFlowAutoWidth: Boolean;
+begin
+  Result := (Align = TAlignLayout.Top) or ((Align = TAlignLayout.None) and not FWidthExplicit);
+end;
+
+function TS4YFlexBox.GetFlowOverflowWidth: Single;
+var
+  LChild: TControl;
+begin
+  Result := Width;
+
+  // A flexbox that crops its items has nothing that overflows (overflow: hidden)
+  if not ClipChildren then
+  begin
+    for var I := 0 to ControlsCount - 1 do
+    begin
+      LChild := Controls[I];
+
+      if IsFlexChild(LChild) then
+      begin
+        Result := Max(Result, LChild.Position.X + LChild.Width + LChild.Margins.Right + Padding.Right);
+      end;
+    end;
+  end;
+end;
+
+procedure TS4YFlexBox.SetFlowBounds(ALeft, ATop, AWidth: Single);
+var
+  LWidth: Single;
+  LWidthChanged: Boolean;
+begin
+  LWidthChanged := not FHasFlowWidth or not SameValue(FFlowWidth, AWidth, 0.001);
+  FFlowWidth := AWidth;
+  FHasFlowWidth := True;
+
+  // With Align = None the layout applies the width (MinWidth included)
+  LWidth := Width;
+  if Align = TAlignLayout.Top then
+  begin
+    LWidth := AWidth;
+  end;
+
+  // Not a choice of the user: AutoWidth stays True
+  FApplyingAutoSize := True;
+  try
+    SetBounds(ALeft, ATop, LWidth, Height);
+  finally
+    FApplyingAutoSize := False;
+  end;
+
+  if LWidthChanged then
+  begin
+    InvalidateLayout;
+  end;
 end;
 
 function TS4YFlexBox.GetAutoHeight: Boolean;
@@ -1916,8 +2011,10 @@ end;
 
 procedure TS4YFlexBox.UpdateParentHook;
 begin
-  // The size of the parent matters only to an automatic width
-  if not FWidthExplicit and (Align = TAlignLayout.None) and (Parent <> nil) then
+  // The size of the parent matters only to an automatic width; the block flow
+  // gives the width by itself
+  if not FWidthExplicit and (Align = TAlignLayout.None) and (Parent <> nil) and
+    not IsInBlockFlow then
   begin
     if FHookedParent <> Parent then
     begin

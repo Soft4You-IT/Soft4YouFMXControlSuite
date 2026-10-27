@@ -74,6 +74,7 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
+        <DCCReference Include="..\..\Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.Abstracts.pas"/>
         <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Engine.pas"/>
         <DCCReference Include="Soft4You.FMX.Controls.FlexBox.Engine.Tests.pas"/>
         <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Breakpoints.pas"/>
