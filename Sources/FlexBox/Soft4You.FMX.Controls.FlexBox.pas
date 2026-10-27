@@ -119,6 +119,9 @@
   AutoWidth or Align = Top it is width: auto, the flow gives it position and
   width (SetFlowBounds) and it does not grow beyond them; the items that do not
   fit overflow and the box shows the horizontal bar (GetFlowOverflowWidth).
+  The items are placed after the size of the flexbox is applied: when their
+  right edge differs from the one the flow read, the flexbox asks the flow to
+  arrange its children again.
   There it does not hook the parent and does not follow its position.
   The breakpoints read the width that the parent gives, not the grown one.
   MinWidth is a floor for the width of the flexbox, for a layout that must not be
@@ -400,6 +403,7 @@ type
     FBreakpoints: TS4YFlexBreakpoints;
     FNotifiedBreakpointIndexes: TArray<Integer>;
     FApplyingAutoSize: Boolean;
+    FFlowOverflowWidth: Single;
     FFlowWidth: Single;
     FHasFlowWidth: Boolean;
     FHasLayoutSize: Boolean;
@@ -428,6 +432,7 @@ type
     function IsAutoWidthActive(out AAvailableWidth: Single): Boolean;
     function IsAutoWidthStored: Boolean;
     function IsInBlockFlow: Boolean;
+    function MeasureOverflowWidth: Single;
     function ResolveSettings(AWidth: Single): TS4YFlexSettings;
     function TryGetParentArea(out AArea: TRectF): Boolean;
     procedure ApplyAutoSize(var AContext: TFlexContext; UseAutoWidth, UseAutoHeight: Boolean;
@@ -1634,6 +1639,7 @@ end;
 
 procedure TS4YFlexBox.DoRealign;
 var
+  LAlignRoot: IAlignRoot;
   LContext: TFlexContext;
   LResults: TArray<TFlexItemResult>;
   LFlexChildren: TArray<TControl>;
@@ -1698,6 +1704,13 @@ begin
       FHasLayoutSize := True;
     finally
       EndLayout;
+    end;
+
+    // The flow read the right edge of the items before they were placed
+    if IsInBlockFlow and Supports(Parent, IAlignRoot, LAlignRoot) and
+      not SameValue(MeasureOverflowWidth, FFlowOverflowWidth, 0.001) then
+    begin
+      LAlignRoot.Realign;
     end;
 
     // Events fire after the layout is done: a handler that changes the
@@ -1921,6 +1934,13 @@ begin
 end;
 
 function TS4YFlexBox.GetFlowOverflowWidth: Single;
+begin
+  // The value that the flow knows: a layout that changes it tells the flow
+  Result := MeasureOverflowWidth;
+  FFlowOverflowWidth := Result;
+end;
+
+function TS4YFlexBox.MeasureOverflowWidth: Single;
 var
   LChild: TControl;
 begin
