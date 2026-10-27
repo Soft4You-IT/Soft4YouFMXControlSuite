@@ -1,0 +1,84 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{5BDE9217-C9BA-4609-B611-6768B6C46B74}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="HTMLEditor\Desktop\S4YHTMLEditorDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="HTMLEditor\Mobile\S4YHTMLEditorMobile.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FlexBox\S4YFlexBoxDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Expander\S4YExpanderDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Badge\S4YBadgeDemo.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="S4YHTMLEditorDemo">
+        <MSBuild Projects="HTMLEditor\Desktop\S4YHTMLEditorDemo.dproj"/>
+    </Target>
+    <Target Name="S4YHTMLEditorDemo:Clean">
+        <MSBuild Projects="HTMLEditor\Desktop\S4YHTMLEditorDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YHTMLEditorDemo:Make">
+        <MSBuild Projects="HTMLEditor\Desktop\S4YHTMLEditorDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="S4YHTMLEditorMobile">
+        <MSBuild Projects="HTMLEditor\Mobile\S4YHTMLEditorMobile.dproj"/>
+    </Target>
+    <Target Name="S4YHTMLEditorMobile:Clean">
+        <MSBuild Projects="HTMLEditor\Mobile\S4YHTMLEditorMobile.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YHTMLEditorMobile:Make">
+        <MSBuild Projects="HTMLEditor\Mobile\S4YHTMLEditorMobile.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="S4YFlexBoxDemo">
+        <MSBuild Projects="FlexBox\S4YFlexBoxDemo.dproj"/>
+    </Target>
+    <Target Name="S4YFlexBoxDemo:Clean">
+        <MSBuild Projects="FlexBox\S4YFlexBoxDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YFlexBoxDemo:Make">
+        <MSBuild Projects="FlexBox\S4YFlexBoxDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="S4YExpanderDemo">
+        <MSBuild Projects="Expander\S4YExpanderDemo.dproj"/>
+    </Target>
+    <Target Name="S4YExpanderDemo:Clean">
+        <MSBuild Projects="Expander\S4YExpanderDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YExpanderDemo:Make">
+        <MSBuild Projects="Expander\S4YExpanderDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="S4YBadgeDemo">
+        <MSBuild Projects="Badge\S4YBadgeDemo.dproj"/>
+    </Target>
+    <Target Name="S4YBadgeDemo:Clean">
+        <MSBuild Projects="Badge\S4YBadgeDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YBadgeDemo:Make">
+        <MSBuild Projects="Badge\S4YBadgeDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="S4YHTMLEditorDemo;S4YHTMLEditorMobile;S4YFlexBoxDemo;S4YExpanderDemo;S4YBadgeDemo"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="S4YHTMLEditorDemo:Clean;S4YHTMLEditorMobile:Clean;S4YFlexBoxDemo:Clean;S4YExpanderDemo:Clean;S4YBadgeDemo:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="S4YHTMLEditorDemo:Make;S4YHTMLEditorMobile:Make;S4YFlexBoxDemo:Make;S4YExpanderDemo:Make;S4YBadgeDemo:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

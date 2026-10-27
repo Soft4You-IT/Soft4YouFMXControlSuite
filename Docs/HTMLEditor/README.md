@@ -543,4 +543,4 @@ All placeholder runs are accessible at O(1) via the `Placeholders` property (a `
 
 ## Demo
 
-The `Demos\HTMLEditor\Desktop` folder contains a sample FMX application (`Demos\HTMLEditor\Desktop\S4YHTMLEditorDemo.dproj`, also part of the project group in `Packages\D11`) with a complete toolbar, emoji picker, placeholder and color dialogs. The table button opens a menu that inserts and deletes rows and columns and styles the table under the caret (cell background, borders, padding and vertical alignment, table alignment, spacing, border and width). Install the component package first.
+The `Demos\HTMLEditor\Desktop` folder contains a sample FMX application (`Demos\HTMLEditor\Desktop\S4YHTMLEditorDemo.dproj`, also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) with a complete toolbar, emoji picker, placeholder and color dialogs. The table button opens a menu that inserts and deletes rows and columns and styles the table under the caret (cell background, borders, padding and vertical alignment, table alignment, spacing, border and width). Install the component package first.

@@ -27,7 +27,7 @@ Soft4YouFMXControlSuite/
 ├── Packages/D11/
 │   ├── Soft4You.FMX.Controls.Suite.dpk / .dproj      <- RUNTIME package -> Build (do not Install)
 │   ├── Soft4You.FMX.Controls.SuiteD.dpk / .dproj     <- DESIGN package  -> Install
-│   └── Soft4You.FMX.Controls.Suite.groupproj         <- Group with the packages and the demos
+│   └── Soft4You.FMX.Controls.Suite.groupproj         <- Group with the two packages
 ├── Graphics/FlexBox/
 │   ├── FlexBoxDesign.rc                              <- Resource script of the palette icons (resources TS4YFLEXBOX and TS4YFLEXITEM)
 │   ├── FlexBoxDesign.res                             <- Compiled from FlexBoxDesign.rc (see below)
@@ -579,7 +579,7 @@ value of the item. Notes:
 with standard FMX controls inside the flexboxes, without application logic (the
 data is fixed in the `.fmx`). It needs the suite packages
 (`Soft4You.FMX.Controls.Suite` and `Soft4You.FMX.Controls.SuiteD`) installed, and
-it is part of the project group in `Packages\D11`. It shows:
+it is part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`. It shows:
 
 | Area | What it shows |
 |------|---------------|
@@ -965,6 +965,9 @@ tried yet is a context menu entry (`IComponentEditor`: Move first/before/after/l
 ---
 
 ## Running the tests
+
+The test projects of the suite are in the project group
+`Tests\Soft4You.FMX.Controls.Tests.groupproj`.
 
 ```delphi
 // In a DUnitX console project:
