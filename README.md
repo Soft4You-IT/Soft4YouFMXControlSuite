@@ -32,6 +32,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Graphics` | Source artwork: `HTMLEditor\Icons\S4YHTMLEditor.svg` is the master of the Tool Palette icon (`TS4YHTMLEditor.bmp`, 24x24) and `HTMLEditor\Icons` holds the toolbar icons of the demo; `Soft4YouFMXControlSuite.svg` is the master of the icon of the suite, shown in the IDE splash screen and About box (`S4YSplash.bmp` and `S4YAbout.bmp`, 24x24). All are compiled with `Soft4You.FMX.Controls.SuiteD.rc` into `Packages\D11\Soft4You.FMX.Controls.SuiteD.dcr` |
 | `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files) |
 | `Demos\FlexBox` | Sample FMX dashboard built with `TS4YFlexBox` |
+| `Demos\BlockScrollBox` | Sample FMX application with `TS4YBlockScrollBox`: a page of blocks with a flexbox of cards, and the settings to make them overflow, add blocks and change their order |
 | `Demos\Badge` | Sample FMX application with `TS4YBadge`: a counter and a text badge, and the settings to change them |
 | `Demos\Expander` | Sample FMX application with three `TS4YExpander`: a badge on the header, the animation and the header click |
 | `Docs\HTMLEditor` | Documentation of the HTML editor: [`README.md`](Docs/HTMLEditor/README.md) (installation, properties, methods, events), [`DeveloperGuide.md`](Docs/HTMLEditor/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals) |

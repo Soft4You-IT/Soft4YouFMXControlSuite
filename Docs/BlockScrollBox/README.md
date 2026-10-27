@@ -20,6 +20,7 @@ Add the folder `Sources\BlockScrollBox` to the Delphi library path to compile yo
 | `Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.Abstracts.pas` | The interfaces between the flow and the children with their own rules (`IS4YBlockFlowContainer`, `IS4YBlockFlowChild`) |
 | `Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.Register.pas` | Registration in the Tool Palette (design time) |
 | `Tests\BlockScrollBox` | DUnitX tests of the flow (see "Running the tests") |
+| `Demos\BlockScrollBox` | Sample application (see "Demo") |
 
 ## The block flow
 
@@ -78,6 +79,8 @@ A `TS4YFlexBox` takes part in the flow with its own rules (it implements `IS4YBl
 
 A flexbox with `AutoWidth = False` keeps its own width, like any other child with `Align = None`, `Center` or `Right`; the bar still counts its items that overflow.
 
+Changing `ClipChildren` of the flexbox does not start a layout: call `ArrangeChildren` of the box afterwards, so that the horizontal bar follows.
+
 ### Example
 
 A page with a title, a flexbox of cards and a footer, in a box that fills the form:
@@ -121,6 +124,10 @@ end;
 ```
 
 In the designer, drop a `TS4YBlockScrollBox` on the form with `Align = Client`, then drop the children in it in the order of the page: each one goes at the end.
+
+## Demo
+
+`Demos\BlockScrollBox\S4YBlockScrollBoxDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) is a page in a `TS4YBlockScrollBox`: a title, a paragraph that wraps, a flexbox of six cards, a block in the center, one on the right, a block 900 pixels wide that makes the horizontal bar appear, and a footer. Resize the window: the cards wrap again and the blocks after them move. The panel on the right turns off the wrapping of the cards (they overflow and the horizontal bar counts them), sets `ClipChildren` and `MinWidth` of the flexbox, adds a block at the end of the flow and moves the footer to the top or back to the end with `Position.Y`. Install the suite packages first.
 
 ## Limits
 

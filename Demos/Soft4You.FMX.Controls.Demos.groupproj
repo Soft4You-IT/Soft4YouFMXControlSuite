@@ -18,6 +18,9 @@
         <Projects Include="Badge\S4YBadgeDemo.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="BlockScrollBox\S4YBlockScrollBoxDemo.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -71,14 +74,23 @@
     <Target Name="S4YBadgeDemo:Make">
         <MSBuild Projects="Badge\S4YBadgeDemo.dproj" Targets="Make"/>
     </Target>
+    <Target Name="S4YBlockScrollBoxDemo">
+        <MSBuild Projects="BlockScrollBox\S4YBlockScrollBoxDemo.dproj"/>
+    </Target>
+    <Target Name="S4YBlockScrollBoxDemo:Clean">
+        <MSBuild Projects="BlockScrollBox\S4YBlockScrollBoxDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YBlockScrollBoxDemo:Make">
+        <MSBuild Projects="BlockScrollBox\S4YBlockScrollBoxDemo.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="S4YHTMLEditorDemo;S4YHTMLEditorMobile;S4YFlexBoxDemo;S4YExpanderDemo;S4YBadgeDemo"/>
+        <CallTarget Targets="S4YHTMLEditorDemo;S4YHTMLEditorMobile;S4YFlexBoxDemo;S4YExpanderDemo;S4YBadgeDemo;S4YBlockScrollBoxDemo"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="S4YHTMLEditorDemo:Clean;S4YHTMLEditorMobile:Clean;S4YFlexBoxDemo:Clean;S4YExpanderDemo:Clean;S4YBadgeDemo:Clean"/>
+        <CallTarget Targets="S4YHTMLEditorDemo:Clean;S4YHTMLEditorMobile:Clean;S4YFlexBoxDemo:Clean;S4YExpanderDemo:Clean;S4YBadgeDemo:Clean;S4YBlockScrollBoxDemo:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="S4YHTMLEditorDemo:Make;S4YHTMLEditorMobile:Make;S4YFlexBoxDemo:Make;S4YExpanderDemo:Make;S4YBadgeDemo:Make"/>
+        <CallTarget Targets="S4YHTMLEditorDemo:Make;S4YHTMLEditorMobile:Make;S4YFlexBoxDemo:Make;S4YExpanderDemo:Make;S4YBadgeDemo:Make;S4YBlockScrollBoxDemo:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
