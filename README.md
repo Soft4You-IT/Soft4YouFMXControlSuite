@@ -28,7 +28,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Sources\Badge` | Units of the Badge control (`TS4YBadge`), with its styles and resource scripts |
 | `Sources\Expander` | Units of the Expander control (`TS4YExpander`), with its styles and resource scripts |
 | `Sources\Design` | Design-time unit shared by all the controls of the suite (IDE splash screen and About box) |
-| `Packages\D11`, `D12`, `D13` | Runtime and design-time packages and the project group, one folder for each Delphi version (11, 12, 13) |
+| `Packages\D11`, `D12`, `D13` | Runtime and design-time packages and their project group, one folder for each Delphi version (11, 12, 13) |
 | `Graphics` | Source artwork: `HTMLEditor\Icons\S4YHTMLEditor.svg` is the master of the Tool Palette icon (`TS4YHTMLEditor.bmp`, 24x24) and `HTMLEditor\Icons` holds the toolbar icons of the demo; `Soft4YouFMXControlSuite.svg` is the master of the icon of the suite, shown in the IDE splash screen and About box (`S4YSplash.bmp` and `S4YAbout.bmp`, 24x24). All are compiled with `Soft4You.FMX.Controls.SuiteD.rc` into `Packages\D11\Soft4You.FMX.Controls.SuiteD.dcr` |
 | `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files) |
 | `Demos\FlexBox` | Sample FMX dashboard built with `TS4YFlexBox` |
@@ -61,7 +61,7 @@ The suite has two packages, in a folder for each version of Delphi (`Packages\D1
 | `Soft4You.FMX.Controls.Suite` | Runtime | **Build** (do not install) |
 | `Soft4You.FMX.Controls.SuiteD` | Design time | **Build** and **Install** |
 
-1. Open `Packages\D11\Soft4You.FMX.Controls.Suite.groupproj` (use `D12` or `D13` for those versions of Delphi). The group also contains the demos.
+1. Open `Packages\D11\Soft4You.FMX.Controls.Suite.groupproj` (use `D12` or `D13` for those versions of Delphi). The group contains the two packages; the demos and the tests have a group of their own, `Demos\Soft4You.FMX.Controls.Demos.groupproj` and `Tests\Soft4You.FMX.Controls.Tests.groupproj`, the same for every version of Delphi.
 2. Build the runtime package `Soft4You.FMX.Controls.Suite`.
 3. Build and install the design-time package `Soft4You.FMX.Controls.SuiteD`. It registers the controls, their property editors and the splash screen and About box of the suite.
 4. Add the folders of the controls you use (`Sources\HTMLEditor`, `Sources\FlexBox`, `Sources\BlockScrollBox`, `Sources\Badge`, `Sources\Expander`) to the Delphi library path; the FlexBox also needs `Sources\BlockScrollBox`, to compile your own projects with their units. The demos find the units of the repository through the search path of their project.

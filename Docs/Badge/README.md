@@ -76,7 +76,7 @@ In the designer, drop a `TS4YBadge` on the form (or on a control), set `AutoPosi
 
 ## Demo
 
-`Demos\Badge\S4YBadgeDemo.dproj` (also part of the project group in `Packages\D11`) is a small application with a button and a label that carry a badge each: a numeric counter on the button and a green `NEW` text badge on the label. The panel on the right changes `CurrentValue`, `MaxValue`, `BadgeStyle`, `Text`, `AutoPosition`, the offset, `BlinkSettings` and `AutoRadius` of the badge of the button at run time. Install the suite packages first.
+`Demos\Badge\S4YBadgeDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) is a small application with a button and a label that carry a badge each: a numeric counter on the button and a green `NEW` text badge on the label. The panel on the right changes `CurrentValue`, `MaxValue`, `BadgeStyle`, `Text`, `AutoPosition`, the offset, `BlinkSettings` and `AutoRadius` of the badge of the button at run time. Install the suite packages first.
 
 ## Notes
 
