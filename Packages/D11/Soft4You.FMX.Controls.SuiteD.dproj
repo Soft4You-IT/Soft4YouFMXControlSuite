@@ -160,6 +160,7 @@
         <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Register.pas"/>
         <DCCReference Include="..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.Register.pas"/>
         <DCCReference Include="..\..\Sources\Expander\Soft4You.FMX.Controls.Expander.Register.pas"/>
+        <DCCReference Include="..\..\Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.Register.pas"/>
         <RcCompile Include="..\..\Graphics\FlexBox\FlexBoxDesign.rc">
             <Form>FlexBoxDesign.res</Form>
         </RcCompile>
