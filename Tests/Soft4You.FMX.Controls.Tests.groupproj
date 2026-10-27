@@ -1,0 +1,36 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{316CA55D-6F69-4DAB-A369-9F6556DB9D72}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="FlexBox\S4YFlexBoxTests.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="S4YFlexBoxTests">
+        <MSBuild Projects="FlexBox\S4YFlexBoxTests.dproj"/>
+    </Target>
+    <Target Name="S4YFlexBoxTests:Clean">
+        <MSBuild Projects="FlexBox\S4YFlexBoxTests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YFlexBoxTests:Make">
+        <MSBuild Projects="FlexBox\S4YFlexBoxTests.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="S4YFlexBoxTests"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="S4YFlexBoxTests:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="S4YFlexBoxTests:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
