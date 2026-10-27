@@ -84,6 +84,7 @@
         <DCCReference Include="..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.pas"/>
         <DCCReference Include="Soft4You.FMX.Controls.FlexBox.Streaming.Tests.pas"/>
         <DCCReference Include="Soft4You.FMX.Controls.FlexBox.Item.Tests.pas"/>
+        <DCCReference Include="Soft4You.FMX.Controls.FlexBox.AutoSize.Tests.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
