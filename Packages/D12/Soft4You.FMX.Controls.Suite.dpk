@@ -55,6 +55,8 @@ contains
   Soft4You.FMX.Controls.FlexBox.Breakpoints in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Breakpoints.pas',
   Soft4You.FMX.Controls.FlexBox in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.pas',
   Soft4You.FMX.Controls.Badge in '..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.pas',
-  Soft4You.FMX.Controls.Expander in '..\..\Sources\Expander\Soft4You.FMX.Controls.Expander.pas';
+  Soft4You.FMX.Controls.Expander in '..\..\Sources\Expander\Soft4You.FMX.Controls.Expander.pas',
+  Soft4You.FMX.Controls.BlockScrollBox.Abstracts in '..\..\Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.Abstracts.pas',
+  Soft4You.FMX.Controls.BlockScrollBox in '..\..\Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.pas';
 
 end.

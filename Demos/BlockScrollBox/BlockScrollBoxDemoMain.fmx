@@ -1,0 +1,356 @@
+object BlockScrollBoxDemoForm: TBlockScrollBoxDemoForm
+  Left = 0
+  Top = 0
+  Caption = 'TS4YBlockScrollBox demo'
+  Position = ScreenCenter
+  ClientHeight = 600
+  ClientWidth = 960
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object PageBox: TS4YBlockScrollBox
+    Align = Client
+    Padding.Left = 16.000000000000000000
+    Padding.Top = 16.000000000000000000
+    Padding.Right = 16.000000000000000000
+    Padding.Bottom = 16.000000000000000000
+    Size.Width = 700.000000000000000000
+    Size.Height = 600.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Viewport.Width = 700.000000000000000000
+    Viewport.Height = 600.000000000000000000
+    object TitleLabel: TLabel
+      Align = Top
+      StyledSettings = [Family, FontColor]
+      Position.X = 16.000000000000000000
+      Position.Y = 16.000000000000000000
+      Size.Width = 668.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 22.000000000000000000
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      Text = 'A page in the block flow'
+    end
+    object IntroLabel: TLabel
+      Align = Top
+      AutoSize = True
+      Margins.Top = 8.000000000000000000
+      Position.X = 16.000000000000000000
+      Position.Y = 56.000000000000000000
+      Size.Width = 668.000000000000000000
+      Size.Height = 48.000000000000000000
+      Size.PlatformDefault = False
+      Text =
+        'The blocks of this page are stacked from the top, each one under' +
+        ' the previous one, as the blocks of a web page. Resize the window' +
+        ': the cards wrap again and the blocks after them move. Use the s' +
+        'ettings on the right to make the cards overflow, to add blocks a' +
+        'nd to change their order.'
+    end
+    object CardsFlexBox: TS4YFlexBox
+      Anchors = [akTop]
+      ColumnGap = 12.000000000000000000
+      Margins.Top = 12.000000000000000000
+      RowGap = 12.000000000000000000
+      Wrap = fwWrap
+      Position.X = 16.000000000000000000
+      Position.Y = 116.000000000000000000
+      Size.Width = 668.000000000000000000
+      Size.Height = 192.000000000000000000
+      Size.PlatformDefault = False
+      object Card1Item: TS4YFlexItem
+        Size.Width = 160.000000000000000000
+        Size.Height = 90.000000000000000000
+        Size.PlatformDefault = False
+        object Card1Rectangle: TRectangle
+          Fill.Color = xFFDBEAFE
+          Size.Width = 160.000000000000000000
+          Size.Height = 90.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Color = xFFCBD5E1
+          XRadius = 8.000000000000000000
+          YRadius = 8.000000000000000000
+          object Card1Label: TLabel
+            Align = Client
+            Size.Width = 160.000000000000000000
+            Size.Height = 90.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.HorzAlign = Center
+            Text = 'Card 1'
+          end
+        end
+      end
+      object Card2Item: TS4YFlexItem
+        Size.Width = 160.000000000000000000
+        Size.Height = 90.000000000000000000
+        Size.PlatformDefault = False
+        object Card2Rectangle: TRectangle
+          Fill.Color = xFFDCFCE7
+          Size.Width = 160.000000000000000000
+          Size.Height = 90.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Color = xFFCBD5E1
+          XRadius = 8.000000000000000000
+          YRadius = 8.000000000000000000
+          object Card2Label: TLabel
+            Align = Client
+            Size.Width = 160.000000000000000000
+            Size.Height = 90.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.HorzAlign = Center
+            Text = 'Card 2'
+          end
+        end
+      end
+      object Card3Item: TS4YFlexItem
+        Size.Width = 160.000000000000000000
+        Size.Height = 90.000000000000000000
+        Size.PlatformDefault = False
+        object Card3Rectangle: TRectangle
+          Fill.Color = xFFFEE2E2
+          Size.Width = 160.000000000000000000
+          Size.Height = 90.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Color = xFFCBD5E1
+          XRadius = 8.000000000000000000
+          YRadius = 8.000000000000000000
+          object Card3Label: TLabel
+            Align = Client
+            Size.Width = 160.000000000000000000
+            Size.Height = 90.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.HorzAlign = Center
+            Text = 'Card 3'
+          end
+        end
+      end
+      object Card4Item: TS4YFlexItem
+        Size.Width = 160.000000000000000000
+        Size.Height = 90.000000000000000000
+        Size.PlatformDefault = False
+        object Card4Rectangle: TRectangle
+          Fill.Color = xFFF3E8FF
+          Size.Width = 160.000000000000000000
+          Size.Height = 90.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Color = xFFCBD5E1
+          XRadius = 8.000000000000000000
+          YRadius = 8.000000000000000000
+          object Card4Label: TLabel
+            Align = Client
+            Size.Width = 160.000000000000000000
+            Size.Height = 90.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.HorzAlign = Center
+            Text = 'Card 4'
+          end
+        end
+      end
+      object Card5Item: TS4YFlexItem
+        Size.Width = 160.000000000000000000
+        Size.Height = 90.000000000000000000
+        Size.PlatformDefault = False
+        object Card5Rectangle: TRectangle
+          Fill.Color = xFFE0F2FE
+          Size.Width = 160.000000000000000000
+          Size.Height = 90.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Color = xFFCBD5E1
+          XRadius = 8.000000000000000000
+          YRadius = 8.000000000000000000
+          object Card5Label: TLabel
+            Align = Client
+            Size.Width = 160.000000000000000000
+            Size.Height = 90.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.HorzAlign = Center
+            Text = 'Card 5'
+          end
+        end
+      end
+      object Card6Item: TS4YFlexItem
+        Size.Width = 160.000000000000000000
+        Size.Height = 90.000000000000000000
+        Size.PlatformDefault = False
+        object Card6Rectangle: TRectangle
+          Fill.Color = xFFFFEDD5
+          Size.Width = 160.000000000000000000
+          Size.Height = 90.000000000000000000
+          Size.PlatformDefault = False
+          Stroke.Color = xFFCBD5E1
+          XRadius = 8.000000000000000000
+          YRadius = 8.000000000000000000
+          object Card6Label: TLabel
+            Align = Client
+            Size.Width = 160.000000000000000000
+            Size.Height = 90.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.HorzAlign = Center
+            Text = 'Card 6'
+          end
+        end
+      end
+    end
+    object CenterButton: TButton
+      Align = Center
+      Margins.Top = 12.000000000000000000
+      Position.X = 250.000000000000000000
+      Position.Y = 320.000000000000000000
+      Size.Width = 200.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'A block in the center'
+    end
+    object RightLabel: TLabel
+      Align = Right
+      Margins.Top = 12.000000000000000000
+      Position.X = 464.000000000000000000
+      Position.Y = 364.000000000000000000
+      Size.Width = 220.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.HorzAlign = Trailing
+      Text = 'A block on the right'
+    end
+    object WideRectangle: TRectangle
+      Anchors = [akTop]
+      Fill.Color = xFFF1F5F9
+      Margins.Top = 12.000000000000000000
+      Position.X = 16.000000000000000000
+      Position.Y = 396.000000000000000000
+      Size.Width = 900.000000000000000000
+      Size.Height = 60.000000000000000000
+      Size.PlatformDefault = False
+      Stroke.Color = xFF94A3B8
+      object WideLabel: TLabel
+        Align = Client
+        Size.Width = 900.000000000000000000
+        Size.Height = 60.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.HorzAlign = Center
+        Text = 'A block 900 pixels wide: the horizontal bar shows the rest'
+      end
+    end
+    object FooterLabel: TLabel
+      Align = Top
+      Margins.Top = 12.000000000000000000
+      Position.X = 16.000000000000000000
+      Position.Y = 468.000000000000000000
+      Size.Width = 668.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'The footer of the page'
+    end
+  end
+  object SettingsPanel: TPanel
+    Align = Right
+    Position.X = 700.000000000000000000
+    Size.Width = 260.000000000000000000
+    Size.Height = 600.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object WrapCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 12.000000000000000000
+      Size.Width = 236.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'Wrap the cards'
+      OnChange = WrapCheckBoxChange
+    end
+    object ClipChildrenCheckBox: TCheckBox
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 36.000000000000000000
+      Size.Width = 236.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Text = 'ClipChildren of the cards'
+      OnChange = ClipChildrenCheckBoxChange
+    end
+    object MinWidthLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 68.000000000000000000
+      Size.Width = 236.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'MinWidth of the cards (0 = none)'
+    end
+    object MinWidthSpinBox: TSpinBox
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Top
+      TabOrder = 2
+      Cursor = crIBeam
+      Max = 2000.000000000000000000
+      Increment = 100.000000000000000000
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 92.000000000000000000
+      Size.Width = 236.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      OnChange = MinWidthSpinBoxChange
+    end
+    object AddBlockButton: TButton
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 16.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 130.000000000000000000
+      Size.Width = 236.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      Text = 'Add a block'
+      OnClick = AddBlockButtonClick
+    end
+    object FooterToTopButton: TButton
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 170.000000000000000000
+      Size.Width = 236.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 4
+      Text = 'Move the footer to the top'
+      OnClick = FooterToTopButtonClick
+    end
+    object FooterToEndButton: TButton
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 210.000000000000000000
+      Size.Width = 236.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 5
+      Text = 'Move the footer to the end'
+      OnClick = FooterToEndButtonClick
+    end
+  end
+end

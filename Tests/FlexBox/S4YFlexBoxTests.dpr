@@ -7,6 +7,7 @@ uses
   System.SysUtils,
   DUnitX.Loggers.Console,
   DUnitX.TestFramework,
+  Soft4You.FMX.Controls.BlockScrollBox.Abstracts in '..\..\Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.Abstracts.pas',
   Soft4You.FMX.Controls.FlexBox.Engine in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Engine.pas',
   Soft4You.FMX.Controls.FlexBox.Engine.Tests in 'Soft4You.FMX.Controls.FlexBox.Engine.Tests.pas',
   Soft4You.FMX.Controls.FlexBox.Breakpoints in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Breakpoints.pas',

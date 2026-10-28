@@ -10,6 +10,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 |---|---|---|
 | `TS4YHTMLEditor` | WYSIWYG HTML editor: formatting, lists, tables, images, links, placeholders, find and replace | [Docs\HTMLEditor](Docs/HTMLEditor/README.md) |
 | `TS4YFlexBox`, `TS4YFlexItem` | Container that lays out its items with the CSS Flexbox model (W3C Level 1) | [Docs\FlexBox](Docs/FlexBox/README.md) |
+| `TS4YBlockScrollBox` | Scroll box that stacks its children as the blocks of the CSS flow (`display: block`); a `TS4YFlexBox` in it behaves as a block of a web page | [Docs\BlockScrollBox](Docs/BlockScrollBox/README.md) |
 | `TS4YBadge` | Badge like the notification counter of a smartphone icon: a number or a short text over another control | [Docs\Badge](Docs/Badge/README.md) |
 | `TS4YExpander` | Collapsible panel with an icon in the header, a height animation, a click on the whole header and a badge counter | [Docs\Expander](Docs/Expander/README.md) |
 
@@ -23,6 +24,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 |---|---|
 | `Sources\HTMLEditor` | Units of the HTML editor (`.pas`) |
 | `Sources\FlexBox` | Units of the FlexBox control (`TS4YFlexBox`, `TS4YFlexItem`) |
+| `Sources\BlockScrollBox` | Units of the BlockScrollBox control (`TS4YBlockScrollBox`) and the interfaces of the block flow, used by the FlexBox too |
 | `Sources\Badge` | Units of the Badge control (`TS4YBadge`), with its styles and resource scripts |
 | `Sources\Expander` | Units of the Expander control (`TS4YExpander`), with its styles and resource scripts |
 | `Sources\Design` | Design-time unit shared by all the controls of the suite (IDE splash screen and About box) |
@@ -30,13 +32,16 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Graphics` | Source artwork: `HTMLEditor\Icons\S4YHTMLEditor.svg` is the master of the Tool Palette icon (`TS4YHTMLEditor.bmp`, 24x24) and `HTMLEditor\Icons` holds the toolbar icons of the demo; `Soft4YouFMXControlSuite.svg` is the master of the icon of the suite, shown in the IDE splash screen and About box (`S4YSplash.bmp` and `S4YAbout.bmp`, 24x24). All are compiled with `Soft4You.FMX.Controls.SuiteD.rc` into `Packages\D11\Soft4You.FMX.Controls.SuiteD.dcr` |
 | `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files) |
 | `Demos\FlexBox` | Sample FMX dashboard built with `TS4YFlexBox` |
+| `Demos\BlockScrollBox` | Sample FMX application with `TS4YBlockScrollBox`: a page of blocks with a flexbox of cards, and the settings to make them overflow, add blocks and change their order |
 | `Demos\Badge` | Sample FMX application with `TS4YBadge`: a counter and a text badge, and the settings to change them |
 | `Demos\Expander` | Sample FMX application with three `TS4YExpander`: a badge on the header, the animation and the header click |
 | `Docs\HTMLEditor` | Documentation of the HTML editor: [`README.md`](Docs/HTMLEditor/README.md) (installation, properties, methods, events), [`DeveloperGuide.md`](Docs/HTMLEditor/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals) |
 | `Docs\FlexBox` | Documentation of the FlexBox control: [`README.md`](Docs/FlexBox/README.md) (installation, properties, examples), analysis and roadmap |
+| `Docs\BlockScrollBox` | Documentation of the BlockScrollBox control: [`README.md`](Docs/BlockScrollBox/README.md) |
 | `Docs\Badge` | Documentation of the Badge control: [`README.md`](Docs/Badge/README.md) |
 | `Docs\Expander` | Documentation of the Expander control: [`README.md`](Docs/Expander/README.md) |
 | `Tests\FlexBox` | DUnitX tests of the FlexBox layout engine |
+| `Tests\BlockScrollBox` | DUnitX tests of the block flow of `TS4YBlockScrollBox` |
 
 ---
 
@@ -60,7 +65,7 @@ The suite has two packages, in a folder for each version of Delphi (`Packages\D1
 1. Open `Packages\D11\Soft4You.FMX.Controls.Suite.groupproj` (use `D12` or `D13` for those versions of Delphi). The group contains the two packages; the demos and the tests have a group of their own, `Demos\Soft4You.FMX.Controls.Demos.groupproj` and `Tests\Soft4You.FMX.Controls.Tests.groupproj`, the same for every version of Delphi.
 2. Build the runtime package `Soft4You.FMX.Controls.Suite`.
 3. Build and install the design-time package `Soft4You.FMX.Controls.SuiteD`. It registers the controls, their property editors and the splash screen and About box of the suite.
-4. Add the folders of the controls you use (`Sources\HTMLEditor`, `Sources\FlexBox`, `Sources\Badge`, `Sources\Expander`) to the Delphi library path, to compile your own projects with their units. The demos find the units of the repository through the search path of their project.
+4. Add the folders of the controls you use (`Sources\HTMLEditor`, `Sources\FlexBox`, `Sources\BlockScrollBox`, `Sources\Badge`, `Sources\Expander`) to the Delphi library path; the FlexBox also needs `Sources\BlockScrollBox`, to compile your own projects with their units. The demos find the units of the repository through the search path of their project.
 
 The compiled units and the demo executables are written in `Bin`; the `.bpl` and `.dcp` files of the packages go to the shared folders of the IDE.
 
@@ -68,7 +73,7 @@ The compiled units and the demo executables are written in `Bin`; the `.bpl` and
 
 ## Demos and tests
 
-Each control has a sample application in `Demos\<Control>`. Install the packages first. The HTML editor also has a mobile test app (`Demos\HTMLEditor\Mobile`, work in progress). The layout engine of `TS4YFlexBox` is covered by DUnitX tests (`Tests\FlexBox`).
+Each control has a sample application in `Demos\<Control>`. Install the packages first. The HTML editor also has a mobile test app (`Demos\HTMLEditor\Mobile`, work in progress). The layout engine of `TS4YFlexBox` is covered by DUnitX tests (`Tests\FlexBox`), and so is the block flow of `TS4YBlockScrollBox` (`Tests\BlockScrollBox`).
 
 ---
 
