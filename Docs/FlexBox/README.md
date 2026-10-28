@@ -31,8 +31,8 @@ Soft4YouFMXControlSuite/
 ├── Graphics/FlexBox/
 │   ├── FlexBoxDesign.rc                              <- Resource script of the palette icons (resources TS4YFLEXBOX and TS4YFLEXITEM)
 │   ├── FlexBoxDesign.res                             <- Compiled from FlexBoxDesign.rc (see below)
-│   ├── FlexBox24.bmp / FlexBox16.bmp                 <- Icon of TS4YFlexBox (the palette uses the 24x24 one)
-│   └── FlexItem24.bmp / FlexItem16.bmp               <- Icon of TS4YFlexItem
+│   ├── TS4YFlexBox.svg / FlexBox24.bmp               <- Icon of TS4YFlexBox: vector master and 24x24 bitmap
+│   └── TS4YFlexItem.svg / FlexItem24.bmp             <- Icon of TS4YFlexItem: vector master and 24x24 bitmap
 ├── Tests/FlexBox/
 │   ├── Soft4You.FMX.Controls.FlexBox.Engine.Tests.pas    <- DUnitX tests of the engine
 │   └── Soft4You.FMX.Controls.FlexBox.*.Tests.pas         <- DUnitX tests of the components (see "Running the tests")
