@@ -48,6 +48,9 @@
 # project version info). Application .res files stay tracked: without them the
 # application loses its icon.
 Packages/**/*.res
+# Resources compiled by the packages from the .rc files (styles, palette icons and
+# version info); the build creates the folder
+Resources/
 
 # Delphi local files (user-specific info)
 *.local

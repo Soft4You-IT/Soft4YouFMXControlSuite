@@ -102,6 +102,7 @@
         <DesignOnlyPackage>true</DesignOnlyPackage>
         <DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
         <DllSuffix>$(Auto)</DllSuffix>
+        <BRCC_OutputDir>..\..\Resources</BRCC_OutputDir>
         <SanitizedProjectName>Soft4You_FMX_Controls_SuiteD</SanitizedProjectName>
         <DCC_Description>Soft4You FMX Control Suite (design-time, open source, MPL 2.0)</DCC_Description>
     </PropertyGroup>
