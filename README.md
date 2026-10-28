@@ -13,6 +13,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 | `TS4YBlockScrollBox` | Scroll box that stacks its children as the blocks of the CSS flow (`display: block`); a `TS4YFlexBox` in it behaves as a block of a web page | [Docs\BlockScrollBox](Docs/BlockScrollBox/README.md) |
 | `TS4YBadge` | Badge like the notification counter of a smartphone icon: a number or a short text over another control | [Docs\Badge](Docs/Badge/README.md) |
 | `TS4YExpander` | Collapsible panel with an icon in the header, a height animation, a click on the whole header and a badge counter | [Docs\Expander](Docs/Expander/README.md) |
+| `TS4YColorSelector` | Foreground and background color swatches, like in the drawing programs: a click asks the application to change one of the two colors | [Docs\ColorSelector](Docs/ColorSelector/README.md) |
 
 All the controls are built into the same two packages and appear in the Tool Palette page **Soft4You FMX Controls Suite**. `TS4YExpander` uses `TS4YBadge`, so the two are always installed together.
 
@@ -27,6 +28,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Sources\BlockScrollBox` | Units of the BlockScrollBox control (`TS4YBlockScrollBox`) and the interfaces of the block flow, used by the FlexBox too |
 | `Sources\Badge` | Units of the Badge control (`TS4YBadge`), with its styles and resource scripts |
 | `Sources\Expander` | Units of the Expander control (`TS4YExpander`), with its styles and resource scripts |
+| `Sources\ColorSelector` | Units of the ColorSelector control (`TS4YColorSelector`) and the types of its event |
 | `Sources\Design` | Design-time unit shared by all the controls of the suite (IDE splash screen and About box) |
 | `Packages\D11`, `D12`, `D13` | Runtime and design-time packages and their project group, one folder for each Delphi version (11, 12, 13) |
 | `Resources` | Resources compiled by the packages from the `.rc` files (styles of the Badge and the Expander, Tool Palette icons, version information); created when the packages are built, not in the repository |
@@ -39,6 +41,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Docs\HTMLEditor` | Documentation of the HTML editor: [`README.md`](Docs/HTMLEditor/README.md) (installation, properties, methods, events), [`DeveloperGuide.md`](Docs/HTMLEditor/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals) |
 | `Docs\FlexBox` | Documentation of the FlexBox control: [`README.md`](Docs/FlexBox/README.md) (installation, properties, examples), analysis and roadmap |
 | `Docs\BlockScrollBox` | Documentation of the BlockScrollBox control: [`README.md`](Docs/BlockScrollBox/README.md) |
+| `Docs\ColorSelector` | Documentation of the ColorSelector control: [`README.md`](Docs/ColorSelector/README.md) |
 | `Docs\Badge` | Documentation of the Badge control: [`README.md`](Docs/Badge/README.md) |
 | `Docs\Expander` | Documentation of the Expander control: [`README.md`](Docs/Expander/README.md) |
 | `Tests\FlexBox` | DUnitX tests of the FlexBox layout engine |
@@ -67,7 +70,7 @@ The suite has two packages, in a folder for each version of Delphi (`Packages\D1
 2. Build the runtime package `Soft4You.FMX.Controls.Suite`.
 3. Build and install the design-time package `Soft4You.FMX.Controls.SuiteD`. It registers the controls, their property editors and the splash screen and About box of the suite.
    The 64-bit IDE (Delphi 12.3 and newer) loads only packages built for Windows 64-bit: select the **Windows 64-bit** platform for both packages, build them, and install `Soft4You.FMX.Controls.SuiteD` from the 64-bit IDE. The 32-bit IDE needs the **Windows 32-bit** build, as before.
-4. Add the folders of the controls you use (`Sources\HTMLEditor`, `Sources\FlexBox`, `Sources\BlockScrollBox`, `Sources\Badge`, `Sources\Expander`) to the Delphi library path; the FlexBox also needs `Sources\BlockScrollBox`, to compile your own projects with their units. Add also the folder `Resources`: the packages compile into it the resources with the styles of the Badge and the Expander, so build the packages before your projects. The demos find the units of the repository through the search path of their project.
+4. Add the folders of the controls you use (`Sources\HTMLEditor`, `Sources\FlexBox`, `Sources\BlockScrollBox`, `Sources\Badge`, `Sources\Expander`, `Sources\ColorSelector`) to the Delphi library path; the FlexBox also needs `Sources\BlockScrollBox`, to compile your own projects with their units. Add also the folder `Resources`: the packages compile into it the resources with the styles of the Badge and the Expander, so build the packages before your projects. The demos find the units of the repository through the search path of their project.
 
 The compiled units and the demo executables are written in `Bin`; the `.bpl` and `.dcp` files of the packages go to the shared folders of the IDE.
 
@@ -119,7 +122,7 @@ The public API of every control is documented with DocXML comments (`/// <summar
 The suite is the work of Carlo Marona (Soft4You), who designs and directs it. Artificial intelligence was used for part of the controls, through [Claude](https://www.anthropic.com/claude) (Anthropic) and Claude Code:
 
 - `TS4YHTMLEditor` and `TS4YFlexBox` were developed with the assistance of Claude from the start.
-- `TS4YBadge` and `TS4YExpander` were first written by Carlo Marona and later refined with the assistance of Claude, mainly `TS4YExpander`.
+- `TS4YBadge`, `TS4YExpander` and `TS4YColorSelector` were first written by Carlo Marona and later refined with the assistance of Claude, mainly `TS4YExpander`.
 
 ---
 

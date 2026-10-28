@@ -46,6 +46,7 @@ contains
   Soft4You.FMX.Controls.FlexBox.Register in '..\..\Sources\FlexBox\Soft4You.FMX.Controls.FlexBox.Register.pas',
   Soft4You.FMX.Controls.Badge.Register in '..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.Register.pas',
   Soft4You.FMX.Controls.Expander.Register in '..\..\Sources\Expander\Soft4You.FMX.Controls.Expander.Register.pas',
-  Soft4You.FMX.Controls.BlockScrollBox.Register in '..\..\Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.Register.pas';
+  Soft4You.FMX.Controls.BlockScrollBox.Register in '..\..\Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.Register.pas',
+  Soft4You.FMX.Controls.ColorSelector.Register in '..\..\Sources\ColorSelector\Soft4You.FMX.Controls.ColorSelector.Register.pas';
 
 end.
