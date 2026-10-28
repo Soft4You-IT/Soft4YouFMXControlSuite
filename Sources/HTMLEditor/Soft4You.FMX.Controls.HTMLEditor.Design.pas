@@ -34,6 +34,8 @@ procedure Register;
 
 implementation
 
+{$R HTMLEditorDesign.res}
+
 uses
   System.Classes,
   Data.Bind.Components,

@@ -29,8 +29,8 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Sources\Expander` | Units of the Expander control (`TS4YExpander`), with its styles and resource scripts |
 | `Sources\Design` | Design-time unit shared by all the controls of the suite (IDE splash screen and About box) |
 | `Packages\D11`, `D12`, `D13` | Runtime and design-time packages and their project group, one folder for each Delphi version (11, 12, 13) |
-| `Graphics` | Source artwork: `HTMLEditor\Icons\S4YHTMLEditor.svg` is the master of the Tool Palette icon (`TS4YHTMLEditor.bmp`, 24x24) and `HTMLEditor\Icons` holds the toolbar icons of the demo; `Soft4YouFMXControlSuite.svg` is the master of the icon of the suite, shown in the IDE splash screen and About box (`S4YSplash.bmp` and `S4YAbout.bmp`, 24x24). All are compiled with `Soft4You.FMX.Controls.SuiteD.rc` into `Packages\D11\Soft4You.FMX.Controls.SuiteD.dcr` |
-| `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files) |
+| `Graphics` | Source artwork: one folder for each control with its Tool Palette icon (24x24 bitmap, its SVG master and the resource script `XxxDesign.rc` compiled into the design-time package); `Soft4YouFMXControlSuite.svg` is the master of the icon of the suite, shown in the IDE splash screen and About box (`S4YSplash.bmp` and `S4YAbout.bmp`, 24x24), compiled with `Soft4You.FMX.Controls.SuiteD.rc` into `Soft4You.FMX.Controls.SuiteD.dcr` of each `Packages` folder |
+| `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files), `Icons` (toolbar icons of the desktop demo) |
 | `Demos\FlexBox` | Sample FMX dashboard built with `TS4YFlexBox` |
 | `Demos\BlockScrollBox` | Sample FMX application with `TS4YBlockScrollBox`: a page of blocks with a flexbox of cards, and the settings to make them overflow, add blocks and change their order |
 | `Demos\Badge` | Sample FMX application with `TS4YBadge`: a counter and a text badge, and the settings to change them |
