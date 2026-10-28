@@ -26,7 +26,7 @@ Add the folder `Sources\Badge` to the Delphi library path to compile your own pr
 | `Graphics\Badge\TS4YBadge.svg` | Vector master of the icon of the Tool Palette |
 | `Graphics\Badge\TS4YBadge.bmp`, `BadgeDesign.rc` | Icon of the Tool Palette (24x24 bitmap) and the resource script that links it |
 
-The style resource is linked into the package (`{$R *.win.res}` or `{$R *.mac.res}` in the unit), so the badge looks the same without any other file. With another `StyleLookup` the badge uses that style instead.
+The style resource is linked into the package (`{$R *.win.res}` or `{$R *.mac.res}` in the unit), so the badge looks the same without any other file. The packages compile it from the `.rc` file into the folder `Resources`, which your projects need in the library path. With another `StyleLookup` the badge uses that style instead.
 
 ## Properties
 

@@ -155,6 +155,12 @@ Lo schema per gli utenti è nella sezione "Versioning" del README. Regole operat
 - **Release**: Minor pari, +2 rispetto al rilascio precedente (mai calcolata dalla Debug); `Release` +1 per un rilascio di sole correzioni; `Major` +1 (Minor e Release a 0) per modifiche incompatibili, come una proprietà published rinominata o tolta. Si imposta sul ramo `rel_*`.
 - **Configurazione predefinita**: sul ramo `rel_*` si porta a Release (`<Config Condition="'$(Config)'==''">Release</Config>` nei sei dproj), così chi scarica il tag compila in Release. Il commit di bump dopo il merge del rilascio in `develop` la riporta a Debug.
 
+## Risorse compilate (`Resources`)
+
+Gli `RcCompile` dei pacchetti (stili di Badge ed Expander, icone `XxxDesign.rc`) e la risorsa di progetto con le informazioni di versione (`Soft4You.FMX.Controls.Suite.res`, `...SuiteD.res`) vanno in `Resources\` nella radice: `BRCC_OutputDir` nel gruppo Base dei sei dproj. La build crea la cartella e la aggiunge da sola al percorso di ricerca delle risorse, quindi non va messa nel `DCC_UnitSearchPath` dei pacchetti; la cartella è esclusa da git. Applicazioni e demo che usano Badge o Expander dai sorgenti hanno bisogno di `Resources` nel percorso di ricerca e dei pacchetti già compilati.
+
+La cartella è condivisa da D11, D12 e D13: ogni build sovrascrive `Suite.res` e `SuiteD.res` di quella precedente. È innocuo solo finché le informazioni di versione sono identiche nei sei dproj (vedi "Versioning dei pacchetti").
+
 ## File .pas — line ending
 
 Scrivere sempre i file `.pas` con line ending **CRLF** (`\r\n`). I file con soli LF compilano ma l'IDE Delphi non riesce a eseguire il refactoring dei nomi. Quando si genera un file `.pas` via PowerShell, normalizzare prima di scrivere:

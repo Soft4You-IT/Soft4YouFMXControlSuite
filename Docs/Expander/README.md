@@ -21,7 +21,7 @@ Add the folder `Sources\Expander` (and `Sources\Badge`) to the Delphi library pa
 | `Graphics\Expander\TS4YExpander.svg` | Vector master of the icon of the Tool Palette |
 | `Graphics\Expander\TS4YExpander.bmp`, `ExpanderDesign.rc` | Icon of the Tool Palette (24x24 bitmap) and the resource script that links it |
 
-The style resource is linked into the package (`{$R *.win.res}` or `{$R *.mac.res}` in the unit), so the control looks the same without any other file. The style has the elements the control looks for by name: `header` (the clickable header), `icon` (a `TGlyph` for the icon) and `badge` (a `TS4YBadge`). With another `StyleLookup` the control uses that style instead, and the elements that it does not have are simply not shown.
+The style resource is linked into the package (`{$R *.win.res}` or `{$R *.mac.res}` in the unit), so the control looks the same without any other file. The packages compile it from the `.rc` file into the folder `Resources`, which your projects need in the library path. The style has the elements the control looks for by name: `header` (the clickable header), `icon` (a `TGlyph` for the icon) and `badge` (a `TS4YBadge`). With another `StyleLookup` the control uses that style instead, and the elements that it does not have are simply not shown.
 
 ## What it adds to TExpander
 

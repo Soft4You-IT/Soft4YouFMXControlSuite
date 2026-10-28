@@ -29,6 +29,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Sources\Expander` | Units of the Expander control (`TS4YExpander`), with its styles and resource scripts |
 | `Sources\Design` | Design-time unit shared by all the controls of the suite (IDE splash screen and About box) |
 | `Packages\D11`, `D12`, `D13` | Runtime and design-time packages and their project group, one folder for each Delphi version (11, 12, 13) |
+| `Resources` | Resources compiled by the packages from the `.rc` files (styles of the Badge and the Expander, Tool Palette icons, version information); created when the packages are built, not in the repository |
 | `Graphics` | Source artwork: one folder for each control with its Tool Palette icon (24x24 bitmap, its SVG master and the resource script `XxxDesign.rc` compiled into the design-time package); `Soft4YouFMXControlSuite.svg` is the master of the icon of the suite, shown in the IDE splash screen and About box (`S4YSplash.bmp` and `S4YAbout.bmp`, 24x24), compiled with `Soft4You.FMX.Controls.SuiteD.rc` into `Soft4You.FMX.Controls.SuiteD.dcr` of each `Packages` folder |
 | `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files), `Icons` (toolbar icons of the desktop demo) |
 | `Demos\FlexBox` | Sample FMX dashboard built with `TS4YFlexBox` |
@@ -66,7 +67,7 @@ The suite has two packages, in a folder for each version of Delphi (`Packages\D1
 2. Build the runtime package `Soft4You.FMX.Controls.Suite`.
 3. Build and install the design-time package `Soft4You.FMX.Controls.SuiteD`. It registers the controls, their property editors and the splash screen and About box of the suite.
    The 64-bit IDE (Delphi 12.3 and newer) loads only packages built for Windows 64-bit: select the **Windows 64-bit** platform for both packages, build them, and install `Soft4You.FMX.Controls.SuiteD` from the 64-bit IDE. The 32-bit IDE needs the **Windows 32-bit** build, as before.
-4. Add the folders of the controls you use (`Sources\HTMLEditor`, `Sources\FlexBox`, `Sources\BlockScrollBox`, `Sources\Badge`, `Sources\Expander`) to the Delphi library path; the FlexBox also needs `Sources\BlockScrollBox`, to compile your own projects with their units. The demos find the units of the repository through the search path of their project.
+4. Add the folders of the controls you use (`Sources\HTMLEditor`, `Sources\FlexBox`, `Sources\BlockScrollBox`, `Sources\Badge`, `Sources\Expander`) to the Delphi library path; the FlexBox also needs `Sources\BlockScrollBox`, to compile your own projects with their units. Add also the folder `Resources`: the packages compile into it the resources with the styles of the Badge and the Expander, so build the packages before your projects. The demos find the units of the repository through the search path of their project.
 
 The compiled units and the demo executables are written in `Bin`; the `.bpl` and `.dcp` files of the packages go to the shared folders of the IDE.
 
