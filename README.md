@@ -1,5 +1,12 @@
 # Soft4You FMX Control Suite
 
+[![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](LICENSE)
+[![Delphi 11+](https://img.shields.io/badge/Delphi-11%2B-e62329.svg)](https://www.embarcadero.com/products/delphi)
+[![Framework: FMX](https://img.shields.io/badge/Framework-FMX-8a2be2.svg)](https://docwiki.embarcadero.com/RADStudio/en/FireMonkey)
+[![Tested on Windows](https://img.shields.io/badge/Tested%20on-Windows-0078d6.svg)](#requirements)
+[![CSS Flexbox Level 1](https://img.shields.io/badge/CSS%20Flexbox-Level%201-1572b6.svg)](https://www.w3.org/TR/css-flexbox-1/)
+[![Dependencies: none](https://img.shields.io/badge/Dependencies-none-success.svg)](#requirements)
+
 A suite of native controls for Delphi FireMonkey (FMX), by Soft4You. 100% Delphi: no WebBrowser, no COM/OLE and no third-party dependency is required.
 
 Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on Windows with Delphi 11.3 (RAD Studio 22.0); the packages have also been built and installed on Delphi 12 and 13.1.
