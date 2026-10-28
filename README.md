@@ -77,6 +77,21 @@ Each control has a sample application in `Demos\<Control>`. Install the packages
 
 ---
 
+## Versioning
+
+The suite has a single version, the same for the two packages and for every version of Delphi. It is written in the version information of the packages (the properties of the `.bpl` file) as `Major.Minor.Release.Build`:
+
+| Part | Changes when |
+|---|---|
+| `Major` | A change is not compatible with the previous version: for example a published property renamed or removed, which stops the forms that use it from loading |
+| `Minor` | New controls or features. **Even** in the releases, **odd** in the development builds |
+| `Release` | A release with fixes only |
+| `Build` | Always `0` |
+
+The releases are tagged on `main`, and their packages open in the **Release** configuration, with the version of the release (for example `1.2.0.0`). The `develop` branch opens in the **Debug** configuration, with an odd `Minor` (for example `1.3.0.0`): a package with an odd `Minor` is a development build, not a release. The changes that are not compatible are listed under "Breaking changes" in the notes of each release.
+
+---
+
 ## License
 
 Released under the **Mozilla Public License 2.0** (MPL-2.0) — see [LICENSE](LICENSE).

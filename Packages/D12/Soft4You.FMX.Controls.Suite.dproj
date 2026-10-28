@@ -69,6 +69,12 @@
         <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win32)'!=''">
+        <Cfg_2_Win32>true</Cfg_2_Win32>
+        <CfgParent>Cfg_2</CfgParent>
+        <Cfg_2>true</Cfg_2>
+        <Base>true</Base>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
         <DCC_DcuOutput>..\..\Bin\D12\$(Platform)\$(Config)</DCC_DcuOutput>
         <DCC_ExeOutput>..\..\Bin\D12\$(Platform)\$(Config)</DCC_ExeOutput>
@@ -114,7 +120,7 @@
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <BT_BuildType>Debug</BT_BuildType>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Soft4You;FileDescription=Soft4You FMX Control Suite (runtime);FileVersion=1.0.0.0;InternalName=Soft4You.FMX.Controls.Suite;LegalCopyright=Copyright (c) 2023-2026 Carlo Marona (Soft4You);LegalTrademarks=;OriginalFilename=;ProgramID=com.soft4you.$(MSBuildProjectName);ProductName=Soft4You FMX Control Suite;ProductVersion=1.0.0.0;Comments=Open source, Mozilla Public License 2.0</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DCC_UsePackage>rtl;fmx;bindengine;bindcomp;$(DCC_UsePackage)</DCC_UsePackage>
     </PropertyGroup>
@@ -134,6 +140,8 @@
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_MinorVer>1</VerInfo_MinorVer>
+        <VerInfo_Keys>CompanyName=Soft4You;FileDescription=Soft4You FMX Control Suite (runtime);FileVersion=1.1.0.0;InternalName=Soft4You.FMX.Controls.Suite;LegalCopyright=Copyright (c) 2023-2026 Carlo Marona (Soft4You);LegalTrademarks=;OriginalFilename=;ProgramID=com.soft4you.$(MSBuildProjectName);ProductName=Soft4You FMX Control Suite;ProductVersion=1.1.0.0;Comments=Open source, Mozilla Public License 2.0</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <DllSuffix>$(Auto)</DllSuffix>
     </PropertyGroup>
@@ -142,6 +150,11 @@
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
         <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
         <DCC_DebugInformation>0</DCC_DebugInformation>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Keys>CompanyName=Soft4You;FileDescription=Soft4You FMX Control Suite (runtime);FileVersion=1.0.0.0;InternalName=Soft4You.FMX.Controls.Suite;LegalCopyright=Copyright (c) 2023-2026 Carlo Marona (Soft4You);LegalTrademarks=;OriginalFilename=;ProgramID=com.soft4you.$(MSBuildProjectName);ProductName=Soft4You FMX Control Suite;ProductVersion=1.0.0.0;Comments=Open source, Mozilla Public License 2.0</VerInfo_Keys>
+        <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
