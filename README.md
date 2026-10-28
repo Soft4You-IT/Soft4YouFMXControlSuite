@@ -65,6 +65,7 @@ The suite has two packages, in a folder for each version of Delphi (`Packages\D1
 1. Open `Packages\D11\Soft4You.FMX.Controls.Suite.groupproj` (use `D12` or `D13` for those versions of Delphi). The group contains the two packages; the demos and the tests have a group of their own, `Demos\Soft4You.FMX.Controls.Demos.groupproj` and `Tests\Soft4You.FMX.Controls.Tests.groupproj`, the same for every version of Delphi.
 2. Build the runtime package `Soft4You.FMX.Controls.Suite`.
 3. Build and install the design-time package `Soft4You.FMX.Controls.SuiteD`. It registers the controls, their property editors and the splash screen and About box of the suite.
+   The 64-bit IDE (Delphi 12.3 and newer) loads only packages built for Windows 64-bit: select the **Windows 64-bit** platform for both packages, build them, and install `Soft4You.FMX.Controls.SuiteD` from the 64-bit IDE. The 32-bit IDE needs the **Windows 32-bit** build, as before.
 4. Add the folders of the controls you use (`Sources\HTMLEditor`, `Sources\FlexBox`, `Sources\BlockScrollBox`, `Sources\Badge`, `Sources\Expander`) to the Delphi library path; the FlexBox also needs `Sources\BlockScrollBox`, to compile your own projects with their units. The demos find the units of the repository through the search path of their project.
 
 The compiled units and the demo executables are written in `Bin`; the `.bpl` and `.dcp` files of the packages go to the shared folders of the IDE.
