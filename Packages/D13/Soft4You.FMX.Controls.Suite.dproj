@@ -159,12 +159,14 @@
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Debug>true</VerInfo_Debug>
         <VerInfo_MinorVer>7</VerInfo_MinorVer>
         <VerInfo_Keys>CompanyName=Soft4You;FileDescription=Soft4You FMX Control Suite (runtime);FileVersion=1.7.0.0;InternalName=Soft4You.FMX.Controls.Suite;LegalCopyright=Copyright (c) 2023-2026 Carlo Marona (Soft4You);LegalTrademarks=;OriginalFilename=;ProgramID=com.soft4you.$(MSBuildProjectName);ProductName=Soft4You FMX Control Suite;ProductVersion=1.7.0.0;Comments=Open source, Mozilla Public License 2.0</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Debug>true</VerInfo_Debug>
         <VerInfo_MinorVer>7</VerInfo_MinorVer>
         <VerInfo_Keys>CompanyName=Soft4You;FileDescription=Soft4You FMX Control Suite (runtime);FileVersion=1.7.0.0;InternalName=Soft4You.FMX.Controls.Suite;LegalCopyright=Copyright (c) 2023-2026 Carlo Marona (Soft4You);LegalTrademarks=;OriginalFilename=;ProgramID=com.soft4you.$(MSBuildProjectName);ProductName=Soft4You FMX Control Suite;ProductVersion=1.7.0.0;Comments=Open source, Mozilla Public License 2.0</VerInfo_Keys>
         <VerInfo_Locale>1033</VerInfo_Locale>

@@ -10,7 +10,7 @@
   ***************************************************************************** }
 
 { Design-time only: shows the suite in the IDE splash screen and in the
-  About box. The bitmaps (24x24, lower-left pixel = transparent color) are
+  About box, with the version read from the package. The bitmaps (24x24, lower-left pixel = transparent color) are
   linked from Soft4You.FMX.Controls.SuiteD.dcr. }
 
 interface
@@ -25,7 +25,9 @@ uses
 const
   C_SPLASH_BITMAP_NAME = 'S4YSPLASH';
   C_ABOUT_BITMAP_NAME = 'S4YABOUT';
+  C_PLUGIN_TITLE_FORMAT = '%s %d.%d.%d';
   S_PLUGIN_TITLE = 'Soft4You FMX Control Suite';
+  S_DEVELOPMENT_SUFFIX = ' (development)';
   S_PLUGIN_DESCRIPTION = 'Open source FireMonkey (FMX) controls for Delphi. ' +
     'Copyright (c) 2023-2026 Carlo Marona (Soft4You).';
   S_LICENSE_STATUS = 'MPL 2.0';
@@ -36,6 +38,43 @@ var
 function LoadPluginBitmap(const AResourceName: string): HBITMAP;
 begin
   Result := LoadBitmap(FindResourceHInstance(HInstance), PChar(AResourceName));
+end;
+
+function GetPluginTitle: string;
+var
+  LFileName: string;
+  LHandle: DWORD;
+  LInfoSize: DWORD;
+  LBuffer: TBytes;
+  LFixedInfo: PVSFixedFileInfo;
+  LFixedInfoSize: UINT;
+begin
+  Result := S_PLUGIN_TITLE;
+  LFileName := GetModuleName(HInstance);
+  LInfoSize := GetFileVersionInfoSize(PChar(LFileName), LHandle);
+
+  if LInfoSize = 0 then
+  begin
+    Exit;
+  end;
+
+  SetLength(LBuffer, LInfoSize);
+
+  if not GetFileVersionInfo(PChar(LFileName), 0, LInfoSize, Pointer(LBuffer)) or
+    not VerQueryValue(Pointer(LBuffer), '\', Pointer(LFixedInfo), LFixedInfoSize) then
+  begin
+    Exit;
+  end;
+
+  Result := Format(C_PLUGIN_TITLE_FORMAT, [S_PLUGIN_TITLE, HiWord(LFixedInfo.dwProductVersionMS),
+    LoWord(LFixedInfo.dwProductVersionMS), HiWord(LFixedInfo.dwProductVersionLS)]);
+
+  // The Debug configuration sets the "Debug build" flag of the version
+  // information: it marks a development build
+  if (LFixedInfo.dwFileFlags and LFixedInfo.dwFileFlagsMask and VS_FF_DEBUG) <> 0 then
+  begin
+    Result := Result + S_DEVELOPMENT_SUFFIX;
+  end;
 end;
 
 procedure RegisterSplashScreen;
@@ -51,7 +90,7 @@ begin
 
   if LBitmap <> 0 then
   begin
-    SplashScreenServices.AddPluginBitmap(S_PLUGIN_TITLE, LBitmap, False, S_LICENSE_STATUS);
+    SplashScreenServices.AddPluginBitmap(GetPluginTitle, LBitmap, False, S_LICENSE_STATUS);
   end;
 end;
 
@@ -69,7 +108,7 @@ begin
 
   if LBitmap <> 0 then
   begin
-    AboutPluginIndex := LAboutBoxServices.AddPluginInfo(S_PLUGIN_TITLE,
+    AboutPluginIndex := LAboutBoxServices.AddPluginInfo(GetPluginTitle,
       S_PLUGIN_DESCRIPTION, LBitmap, False, S_LICENSE_STATUS);
   end;
 end;
