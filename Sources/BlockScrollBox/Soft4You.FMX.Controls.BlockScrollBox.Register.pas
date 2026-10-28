@@ -20,13 +20,14 @@ procedure Register;
 
 implementation
 
+{$R BlockScrollBoxDesign.res}
+
 uses
   System.Classes,
   Soft4You.FMX.Controls.BlockScrollBox;
 
 procedure Register;
 begin
-  // PROTOTYPE: no icon yet, the palette shows the generic one
   RegisterComponents('Soft4You FMX Controls Suite', [TS4YBlockScrollBox]);
 end;
 

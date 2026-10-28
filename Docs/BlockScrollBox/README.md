@@ -19,6 +19,8 @@ Add the folder `Sources\BlockScrollBox` to the Delphi library path to compile yo
 | `Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.pas` | The control |
 | `Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.Abstracts.pas` | The interfaces between the flow and the children with their own rules (`IS4YBlockFlowContainer`, `IS4YBlockFlowChild`) |
 | `Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.Register.pas` | Registration in the Tool Palette (design time) |
+| `Graphics\BlockScrollBox\TS4YBlockScrollBox.svg` | Vector master of the icon of the Tool Palette |
+| `Graphics\BlockScrollBox\TS4YBlockScrollBox.bmp`, `BlockScrollBoxDesign.rc` | Icon of the Tool Palette (24x24 bitmap) and the resource script that links it |
 | `Tests\BlockScrollBox` | DUnitX tests of the flow (see "Running the tests") |
 | `Demos\BlockScrollBox` | Sample application (see "Demo") |
 
