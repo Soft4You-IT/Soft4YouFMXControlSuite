@@ -144,6 +144,24 @@ I costruttori e distruttori appartengono solo alla sezione `public`.
   ```
 - Usare metodi getter/setter solo quando: (1) c'è logica da eseguire, oppure (2) la classe implementa un'interfaccia che li richiede
 
+## Intestazione dei sorgenti
+
+Ogni unit di `Sources` inizia con questa intestazione, subito dopo la riga `unit`: la riga del copyright riporta gli anni del file (anno di creazione, oppure `primo-ultimo` se il codice è più vecchio), il testo della licenza è quello dell'Exhibit A della MPL 2.0.
+
+```delphi
+{ *****************************************************************************
+  Soft4You FMX Control Suite - FireMonkey (FMX) controls for Delphi
+  TS4YXxx - descrizione breve del contenuto della unit
+  Copyright (c) 2026 Carlo Marona (Soft4You)
+
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+  ***************************************************************************** }
+```
+
+La riga del copyright non si toglie e non si sostituisce con "Original author": la MPL (sezione 3.4) obbliga chi ridistribuisce a conservare le copyright notice. Lo stesso testo (`Copyright (c) 2023-2026 Carlo Marona (Soft4You)`) è in `LegalCopyright` delle informazioni di versione e nella descrizione dello splash/About.
+
 ## Versioning dei pacchetti
 
 Lo schema per gli utenti è nella sezione "Versioning" del README. Regole operative:

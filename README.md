@@ -104,7 +104,7 @@ MPL-2.0 is a file-level copyleft license:
 - if you modify the source files of these controls and distribute the result (in source or binary form), you must make the source of your modified files available under the MPL-2.0, so that improvements flow back to the original component;
 - your own files that merely use the controls are not affected and may stay under any license.
 
-Original author: **Carlo Marona (Soft4You)** — project started in 2026.
+Copyright (c) 2023-2026 **Carlo Marona (Soft4You)**. The suite started in 2026; the Badge comes from earlier code (2023).
 
 ---
 

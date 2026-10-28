@@ -2,7 +2,7 @@
 
 { *****************************************************************************
   Soft4You FMX Control Suite - FireMonkey (FMX) controls for Delphi
-  Original author: Carlo Marona (Soft4You) - 2026
+  Copyright (c) 2026 Carlo Marona (Soft4You)
 
   This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -27,7 +27,7 @@ const
   C_ABOUT_BITMAP_NAME = 'S4YABOUT';
   S_PLUGIN_TITLE = 'Soft4You FMX Control Suite';
   S_PLUGIN_DESCRIPTION = 'Open source FireMonkey (FMX) controls for Delphi. ' +
-    'Copyright Soft4You 2026.';
+    'Copyright (c) 2023-2026 Carlo Marona (Soft4You).';
   S_LICENSE_STATUS = 'MPL 2.0';
 
 var

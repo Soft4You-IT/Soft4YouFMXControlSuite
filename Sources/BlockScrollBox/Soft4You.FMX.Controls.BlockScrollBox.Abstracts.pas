@@ -3,7 +3,7 @@ unit Soft4You.FMX.Controls.BlockScrollBox.Abstracts;
 { *****************************************************************************
   Soft4You FMX Control Suite - FireMonkey (FMX) controls for Delphi
   TS4YBlockScrollBox - scroll box with the CSS block flow
-  Original author: Carlo Marona (Soft4You) - 2026
+  Copyright (c) 2026 Carlo Marona (Soft4You)
 
   This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
