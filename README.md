@@ -100,7 +100,7 @@ The suite has a single version, the same for the two packages and for every vers
 | `Release` | A release with fixes only |
 | `Build` | Always `0` |
 
-The releases are tagged on `main`, and their packages open in the **Release** configuration, with the version of the release (for example `1.2.0.0`). The `develop` branch opens in the **Debug** configuration, with an odd `Minor` (for example `1.3.0.0`): a package with an odd `Minor` is a development build, not a release. The IDE splash screen and About box show the version of the installed package, followed by "(development)" for a development build (the Debug configuration sets the "Debug build" flag of the version information). The changes that are not compatible are listed under "Breaking changes" in the notes of each release.
+The releases are tagged on `main`, and their packages open in the **Release** configuration, with the version of the release (for example `1.2.0.0`). The `develop` branch opens in the **Debug** configuration, with an odd `Minor` (for example `1.3.0.0`): a package with an odd `Minor` is a development build, not a release. The IDE splash screen and About box show the version of the installed package, followed by "(development)" for a development build (the Debug configuration sets the "Debug build" flag of the version information). The changes of each release are listed in [CHANGELOG.md](CHANGELOG.md), and those that are not compatible under "Breaking changes".
 
 ---
 
