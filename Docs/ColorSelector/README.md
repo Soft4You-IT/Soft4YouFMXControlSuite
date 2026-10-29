@@ -61,7 +61,3 @@ begin
   end;
 end;
 ```
-
-## Upgrading from the private library
-
-The control comes from an earlier library of Soft4You, where the types of the event were `TColorTarget` and `TOnColorSelect`, declared in the unit of the control. In the suite they are `TS4YColorTarget` and `TS4YColorSelectEvent`, in `Soft4You.FMX.Controls.ColorSelector.Types`: in an existing form add that unit to the `uses` and change `TColorTarget` to `TS4YColorTarget` in the handlers of `OnColorSelect`. The values `ctForeground` and `ctBackground` and the names of the properties did not change.
