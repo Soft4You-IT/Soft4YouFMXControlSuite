@@ -46,7 +46,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Demos\Badge` | Sample FMX application with `TS4YBadge`: a counter and a text badge, and the settings to change them |
 | `Demos\Expander` | Sample FMX application with three `TS4YExpander`: a badge on the header, the animation and the header click |
 | `Docs\HTMLEditor` | Documentation of the HTML editor: [`README.md`](Docs/HTMLEditor/README.md) (installation, properties, methods, events), [`DeveloperGuide.md`](Docs/HTMLEditor/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals) |
-| `Docs\FlexBox` | Documentation of the FlexBox control: [`README.md`](Docs/FlexBox/README.md) (installation, properties, examples), analysis and roadmap |
+| `Docs\FlexBox` | Documentation of the FlexBox control: [`README.md`](Docs/FlexBox/README.md) (installation, properties, examples) |
 | `Docs\BlockScrollBox` | Documentation of the BlockScrollBox control: [`README.md`](Docs/BlockScrollBox/README.md) |
 | `Docs\ColorSelector` | Documentation of the ColorSelector control: [`README.md`](Docs/ColorSelector/README.md) |
 | `Docs\Badge` | Documentation of the Badge control: [`README.md`](Docs/Badge/README.md) |
@@ -101,6 +101,12 @@ The suite has a single version, the same for the two packages and for every vers
 | `Build` | Always `0` |
 
 The releases are tagged on `main`, and their packages open in the **Release** configuration, with the version of the release (for example `1.2.0.0`). The `develop` branch opens in the **Debug** configuration, with an odd `Minor` (for example `1.3.0.0`): a package with an odd `Minor` is a development build, not a release. The IDE splash screen and About box show the version of the installed package, followed by "(development)" for a development build (the Debug configuration sets the "Debug build" flag of the version information). The changes of each release are listed in [CHANGELOG.md](CHANGELOG.md), and those that are not compatible under "Breaking changes".
+
+---
+
+## Contributing
+
+Issues and pull requests are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md) for how to report a problem, how to propose a change and the coding rules.
 
 ---
 
