@@ -1355,10 +1355,6 @@ object frmMain: TfrmMain
               410946D4C3C00583EB21B6A2B1F5109D60643DF42578CAB2596292DC7F2B75FD
               C10C5F4E73025046EFCAF2E3A731D649E782F475EDA4EB22A6AECE8A0CE65B3A
               89C356D2DDF9A75C00A8B245B12B1494CE0000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\format_italic_24dp_5F6368_FILL0_wght400_GRAD0_' +
-              'opsz24.png'
           end>
         Name = 'format_italic_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1377,10 +1373,6 @@ object frmMain: TfrmMain
               24D621A7244F6EE023CDFF89E2A28D45506AE4B75C8868DFD665BA3DD8807B09
               ED6DF020F6C79C923CD820D5A1346F00BF43A9C3DB0652EF7CE2021465D0FD5A
               14550D0000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\border_horizontal_24dp_5F6368_FILL0_wght400_GR' +
-              'AD0_opsz24.png'
           end>
         Name = 'border_horizontal_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1406,10 +1398,6 @@ object frmMain: TfrmMain
               0A44DF4CCB4E88A8F40E8EEE7D6F55AB40B1DA922E8BAFF8637410061F2B8523
               0008DA5E3989FAF11AD3CBC48285E51BFBCE77D60DB65F6E0000000049454E44
               AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\file_open_24dp_5F6368_FILL0_wght400_GRAD0_opsz' +
-              '24.png'
           end>
         Name = 'file_open_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1439,10 +1427,6 @@ object frmMain: TfrmMain
               66F4B43EEC357357949B37F27F5CD71D1736B73626DA94925EF39BEDDFC6D21F
               ACA2B0B9B501B0EE70EE5A006026FABBAD3D703FF80BBFD7ABA22F76475F0000
               000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\code_xml_24dp_5F6368_FILL0_wght400_GRAD0_opsz2' +
-              '4.png'
           end>
         Name = 'code_xml_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1465,10 +1449,6 @@ object frmMain: TfrmMain
               567F41993FD6354395ED7D593FEFAAC7225D809EF925B424A2E7B7F01286DECB
               B266DA39B622348EABE3772893C95C8E2FA3B96A76D712409C0000000049454E
               44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\html_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.pn' +
-              'g'
           end>
         Name = 'html_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1494,10 +1474,6 @@ object frmMain: TfrmMain
               6BE32AC8757BFBE38A9DF6847C246736A2F03F10E27007DC3C50CD4E44D91E2C
               63E91489482A3F39A56C0F7C74AEBB34766F0AC330E5AD4E6123B374A6D6EDFD
               DFE11DEBEFA151BEC4F2990000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\convert_to_text_24dp_5F6368_FILL0_wght400_GRAD' +
-              '0_opsz24.png'
           end>
         Name = 'convert_to_text_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1521,10 +1497,6 @@ object frmMain: TfrmMain
               24D3713FD52E8FAD023621F817153119F672E7FCFD06195D692529692129972B
               C764E85A7B0060B6F3E9A87FB95C3EBFEADA9E1D630DBA714BB23CA6784B0000
               000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\format_bold_24dp_5F6368_FILL0_wght400_GRAD0_op' +
-              'sz24.png'
           end>
         Name = 'format_bold_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1548,10 +1520,6 @@ object frmMain: TfrmMain
               83B12D7D9CDC2B0A83B1CDACEEA557ACEEF20EDF0D12DFC0EBDD2E41B4277D16
               CCBC0A83E1BEF4896F102DA7999F4812EB3FEC290000FC023F784BCA129A66FA
               0000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\format_underlined_24dp_5F6368_FILL0_wght400_GR' +
-              'AD0_opsz24.png'
           end>
         Name = 'format_underlined_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1574,10 +1542,6 @@ object frmMain: TfrmMain
               8A26130B0BD31E545510F1D8C4D4627471AC005B59420AC0A61FA70FA80550EA
               0374DBC9050BE7CE809B8BE2837FFFFF5921F3C9017FFEFCB144171B05780100
               BB664A2EB677A4370000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\image_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.p' +
-              'ng'
           end>
         Name = 'image_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1602,10 +1566,6 @@ object frmMain: TfrmMain
               474EB7B6D1787A7C58D0A71A3617AEEBC6B6830600445164EDECEE7DFBFDBD6E
               2F41854F6634B09CCD174A3F52BD2C029D65194EF53C4DDE8D7BA39967F33677
               ABCF272F336C5C2CC7B0C90000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\file_export_24dp_5F6368_FILL0_wght400_GRAD0_op' +
-              'sz24.png'
           end>
         Name = 'file_export_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1630,10 +1590,6 @@ object frmMain: TfrmMain
               795BB8C00FDF270022F66E78D57B767DA182CFBDAB8A98B149A2DE81EBF9EA2F
               5A849FFEAF6C022B767356FD1263D7DC68C9FFE20375F35E106EC6643C000000
               0049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\label_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.p' +
-              'ng'
           end>
         Name = 'label_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1653,10 +1609,6 @@ object frmMain: TfrmMain
               800C603E24248F0C68EE83A16FC1682A4201D84280E63E18FA16D03715FDFBFF
               CF0A994F0EF8F3E78F25BAD828C00B00E0C736C30E08E7260000000049454E44
               AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\table_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.p' +
-              'ng'
           end>
         Name = 'table_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1676,10 +1628,6 @@ object frmMain: TfrmMain
               8BE283D8A4344B2646A6630C0C0C0C7FFEFCB15CBA70CE0964F9910946531106
               184D452483D15484014653D108040076066E830E1402E40000000049454E44AE
               426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\format_list_bulleted_24dp_5F6368_FILL0_wght400' +
-              '_GRAD0_opsz24.png'
           end>
         Name = 'format_list_bulleted_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1703,10 +1651,6 @@ object frmMain: TfrmMain
               AAF20AA0B1087266E4C95DD436F5125A0A66E4DBF7D7DE9C277311009CABF2E5
               9468ECFF492CCE0493D9BC18816E53BE64A701235B13A1F225FADF7C020C9992
               B21DE3CB700000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\format_list_numbered_24dp_5F6368_FILL0_wght400' +
-              '_GRAD0_opsz24.png'
           end>
         Name = 'format_list_numbered_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1736,10 +1680,6 @@ object frmMain: TfrmMain
               6162349081FC04000CFEA8D7EAF5939FBEE4798C3189754D4DE4ECC25C52D035
               465CE1A90D0060235F4C0BF06F0060E63DCFAD1CAA9AF188E2D2AC1EFD517F61
               26DED5EB779B7F63A2B330FCA385530000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\format_clear_24dp_5F6368_FILL0_wght400_GRAD0_o' +
-              'psz24.png'
           end>
         Name = 'format_clear_24dp_5F6368_FILL0_wght400_GRAD0_opsz24'
       end
@@ -1761,10 +1701,6 @@ object frmMain: TfrmMain
               701C1CF6C5BC56F5C4CE53797842CE794F4A7932B2671DE8D8CD49A283EFA7F5
               9C87F03A8879E310BFE7E0EDDC00C3986BE6DF6938E60000000049454E44AE42
               6082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\format_indent_decrease_24dp_5F6368_FILL0_wght4' +
-              '00_GRAD0_opsz24.png'
           end>
         Name = 'format_indent_decrease_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1785,10 +1721,6 @@ object frmMain: TfrmMain
               C57C0759F1AA878887BA541B631FEBC0478883B70DB4C6FDF9A4B674174AA781
               46BD1EEA38741A4839ABAAAAA1334AB403D7710874F0FB8CFFC11FF000710F72
               E5926A59E20000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\format_indent_increase_24dp_5F6368_FILL0_wght4' +
-              '00_GRAD0_opsz24.png'
           end>
         Name = 'format_indent_increase_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1806,10 +1738,6 @@ object frmMain: TfrmMain
               BF16CD9BC90EE333214BFEF9F9E53F329F1CF0970A660C2E801207E880983841
               0F7374801207E8809838197E618E0E46F3C1C083D17C30F060341F8C00000001
               AA4F25C14390480000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\format_align_center_24dp_5F6368_FILL0_wght400_' +
-              'GRAD0_opsz24.png'
           end>
         Name = 'format_align_center_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1828,10 +1756,6 @@ object frmMain: TfrmMain
               F18F7B59CDDF8CA3C23FDE856E10B746E806F9B646E806486C433740F2B5A11B
               C4AD11BA41BEAD11BA0112DBD00D90EFB4A9E6045FD94F250924251400000000
               49454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\format_align_left_24dp_5F6368_FILL0_wght400_GR' +
-              'AD0_opsz24.png'
           end>
         Name = 'format_align_left_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1850,10 +1774,6 @@ object frmMain: TfrmMain
               7F5CCB6CFEBE637BE01FDF726A80306DC20608D3267903666B246CC06C8D246F
               80306DC20608D3267903666B246CC06C8DE46BF0BA1D687C4F25D602E8F50000
               000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\format_align_right_24dp_5F6368_FILL0_wght400_G' +
-              'RAD0_opsz24.png'
           end>
         Name = 'format_align_right_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -1884,10 +1804,6 @@ object frmMain: TfrmMain
               B8DEE79F296F26C9AC88EDB65BFE71DA9BF892F947BF0A058CCF198C31377EC4
               FADBEFB1F984C12B9DDE91A0015CF7C54A5AF47DFFBB23DC4B6B3319DAB5EC72
               63CCC4DD5CF17FF8052FFEC0DC1EB0ABBF0000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\placeholder_24dp_5F6368_FILL0_wght400_GRAD0_op' +
-              'sz24.png'
           end>
         Name = 'placeholder_24dp_5F6368_FILL0_wght400_GRAD0_opsz24'
       end
@@ -1909,10 +1825,6 @@ object frmMain: TfrmMain
               A482C8A41D7E0D92475BE453346770AA0E6C65BD41DD63ADE119D14723E16E2B
               5737637D119838A589D31F7A21E3E00C4CE33630798694720000000049454E44
               AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\format_strikethrough_24dp_5F6368_FILL0_wght400' +
-              '_GRAD0_opsz24.png'
           end>
         Name = 'format_strikethrough_24dp_5F6368_FILL0_wght400_GRAD0_opsz24'
       end
@@ -1930,10 +1842,6 @@ object frmMain: TfrmMain
               004A49444154484B6360180504002332273E29FD270323231BB218A9E0FFFFFF
               BF16CD9BC90EE333214BFEF9F9E53F329F1CF0970A660C2E301A07030F46E360
               E0C1681C0C3C188D831100008BBB4F25745D61D00000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\format_align_justify_24dp_5F6368_FILL0_wght400' +
-              '_GRAD0_opsz24.png'
           end>
         Name = 'format_align_justify_24dp_5F6368_FILL0_wght400_GRAD0_opsz24'
       end
@@ -1963,10 +1871,6 @@ object frmMain: TfrmMain
               9B98CD661DC92EB262F33AB63200488CE97EFDCCC663AA1C43DB170A60E2BD0E
               3CC9011CC7599C9F5FD3C7C7D15A9A4A822CE3AEAD6DE2E8E8CF779AA6BBF6E6
               FF073F01B57F9BB247A5D3E80000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\find_in_page_24dp_5F6368_FILL0_wght400_GRAD0_o' +
-              'psz24.png'
           end>
         Name = 'find_in_page_24dp_5F6368_FILL0_wght400_GRAD0_opsz24'
       end
@@ -2002,10 +1906,6 @@ object frmMain: TfrmMain
               300C0082C8F7CB4543CDC14E060070C5B48FA5741E1FB517A2CD70B45A5DFA90
               E4D1CB40C2B0DC09029535C64EA83C41AC1269F96AB9B0AAF2FF1F7E029F1315
               2A4FE87D1C0000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\add_reaction_24dp_5F6368_FILL0_wght400_GRAD0_o' +
-              'psz24.png'
           end>
         Name = 'add_reaction_24dp_5F6368_FILL0_wght400_GRAD0_opsz24'
       end
@@ -2032,10 +1932,6 @@ object frmMain: TfrmMain
               7FD0700C7FC300045BE9BB42685A1CE07030B82AE2304EE36AF6690C80513905
               703AFEE4179451A79F01341F9FF8B967FE63FE000C0C9AD98BC3A96D00000000
               49454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\text_increase_24dp_5F6368_FILL0_wght400_GRAD0_' +
-              'opsz24.png'
           end>
         Name = 'text_increase_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -2061,10 +1957,6 @@ object frmMain: TfrmMain
               789724AF1BB27CC103B7C90004DBE9D65CA8FA39C0D76EF772FE1DC6695C74EF
               C70018959F004EB37D3F90479D7E02D049F6C3F79E79C2FC03FD158F1FF5A81E
               E50000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\text_decrease_24dp_5F6368_FILL0_wght400_GRAD0_' +
-              'opsz24.png'
           end>
         Name = 'text_decrease_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -2092,10 +1984,6 @@ object frmMain: TfrmMain
               D4C676BD4DA9C146DB7B66E241109C33715888373ADE5313CFA3D440AAD20550
               CD1FDAB93CE711D3077F60E78A941A008C46A37C10F49FD8FAEE4EEFB1AD9DF0
               7FF20348859DEF9C2FF4210000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\superscript_24dp_5F6368_FILL0_wght400_GRAD0_op' +
-              'sz24.png'
           end>
         Name = 'superscript_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -2124,10 +2012,6 @@ object frmMain: TfrmMain
               DA7C15FA1ECE1BDB7471AB9DF2BB717EB09FF6FBFD9A5FF35FB89FC8529AE05F
               69341A07F62748C1BE1D7334FC025231A34182CCF7D10000000049454E44AE42
               6082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\subscript_24dp_5F6368_FILL0_wght400_GRAD0_opsz' +
-              '24.png'
           end>
         Name = 'subscript_24dp_5F6368_FILL0_wght400_GRAD0_opsz'
       end
@@ -2150,10 +2034,6 @@ object frmMain: TfrmMain
               F5B000931211E90180998B671EC7B3050050FA3030530600223A9EDA26B7675E
               56FAFA52FAFA62F32449DEEC0645C64537CAE4AA770000000049454E44AE4260
               82}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\keyboard_arrow_down_24dp_5F6368_FILL0_wght400_' +
-              'GRAD0_opsz24.png'
           end>
         Name = 'keyboard_arrow_down_24dp_5F6368_FILL0_wght400_GRAD0_opsz24'
       end
@@ -2177,10 +2057,6 @@ object frmMain: TfrmMain
               88F60F76554B3D0294C676A659BAAAF7F712DD0E94BC01586377F22C7DAAF72B
               CA0D2A226201CC7BD1768F034CB374551ADBF99C358D773CCFFB071F2AAB494C
               666D04BF0000000049454E44AE426082}
-            FileName = 
-              'C:\Users\Carlo\Documents\Embarcadero\Studio\22.0\Libs\S4YFMXHTML' +
-              'Editor\Demo\Icons\keyboard_arrow_up_24dp_5F6368_FILL0_wght400_GR' +
-              'AD0_opsz24.png'
           end>
         Name = 'keyboard_arrow_up_24dp_5F6368_FILL0_wght400_GRAD0_opsz24'
       end>
