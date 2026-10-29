@@ -37,9 +37,7 @@ Soft4YouFMXControlSuite/
 │   ├── Soft4You.FMX.Controls.FlexBox.Engine.Tests.pas    <- DUnitX tests of the engine
 │   └── Soft4You.FMX.Controls.FlexBox.*.Tests.pas         <- DUnitX tests of the components (see "Running the tests")
 ├── Docs/FlexBox/
-│   ├── README.md                                     <- This file
-│   ├── ANALYSIS_ChildrenFiltering.md                 <- Analysis of the children filtering
-│   └── fmx-flexbox-roadmap.html                      <- Architecture and roadmap
+│   └── README.md                                     <- This file
 └── Demos/FlexBox/
     └── S4YFlexBoxDemo.dpr / frmMain.pas / .fmx       <- Sample dashboard (see "Demo")
 ```
@@ -969,7 +967,7 @@ tried yet is a context menu entry (`IComponentEditor`: Move first/before/after/l
   content, so the user is not affected; with a panel, a layout or a form the user is.
   Until a better mechanism is found, assign your handler before the flexbox gets
   its parent, or call `InvalidateLayout` of the flexbox from your handler. In a
-  `TS4YBlockScrollBox` nothing is hooked. See the roadmap.
+  `TS4YBlockScrollBox` nothing is hooked.
 - The automatic size does not measure a flexbox nested in an item: its minimum size
   is not known to the outer one, which can crop it.
 - `AutoHeight` gives the flexbox the height of its content: it does not fill a taller

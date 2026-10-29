@@ -2,7 +2,7 @@
 
 The changes of each release of the Soft4You FMX Control Suite, the newest first. The version numbers are explained in the section "Versioning" of the [README](README.md); each release has the sections that apply among **Added**, **Changed**, **Fixed** and **Breaking changes** (changes that can stop existing projects from compiling or forms from loading).
 
-## 1.0.0 - unreleased
+## 1.0.0 - 2026-10-29
 
 First public release.
 
