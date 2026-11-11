@@ -1,0 +1,342 @@
+object StepProgressBarDemoForm: TStepProgressBarDemoForm
+  Left = 0
+  Top = 0
+  Caption = 'TS4YStepProgressBar demo'
+  Position = ScreenCenter
+  ClientHeight = 560
+  ClientWidth = 860
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object DemoLayout: TLayout
+    Align = Client
+    Size.Width = 580.000000000000000000
+    Size.Height = 560.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object InstallTitleLabel: TLabel
+      Position.X = 20.000000000000000000
+      Position.Y = 16.000000000000000000
+      Size.Width = 540.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Installation: the buttons Previous and Next move the current step'
+      TabOrder = 1
+    end
+    object InstallBar: TS4YStepProgressBar
+      CurrentStep = 1
+      Position.X = 20.000000000000000000
+      Position.Y = 44.000000000000000000
+      Size.Width = 540.000000000000000000
+      Size.Height = 90.000000000000000000
+      Size.PlatformDefault = False
+      Steps = <
+        item
+          Caption = 'Start'
+        end
+        item
+          Caption = 'Download'
+          Description = 'Package of 12 MB'
+        end
+        item
+          Caption = 'Verify'
+          Description = 'Checksum and signature'
+        end
+        item
+          Caption = 'Copy files'
+        end
+        item
+          Caption = 'Finish'
+        end>
+      OnStepChanged = InstallBarStepChanged
+    end
+    object WizardTitleLabel: TLabel
+      Position.X = 20.000000000000000000
+      Position.Y = 164.000000000000000000
+      Size.Width = 540.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Wizard: click a step, or click the bar and use the arrow keys, Home and End'
+      TabOrder = 2
+    end
+    object WizardBar: TS4YStepProgressBar
+      Interactions = [stiClickMarker, stiClickLabel, stiHandCursor, stiKeyboard]
+      Orientation = Vertical
+      Position.X = 20.000000000000000000
+      Position.Y = 192.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 300.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      Steps = <
+        item
+          Caption = 'Account'
+          Description = 'Name and e-mail'
+        end
+        item
+          Caption = 'Address'
+          Description = 'Where to ship the order'
+        end
+        item
+          Caption = 'Payment'
+          Description = 'Card or bank transfer'
+        end
+        item
+          Caption = 'Confirm'
+        end>
+      OnStepChanged = WizardBarStepChanged
+      OnStepChanging = WizardBarStepChanging
+    end
+    object WizardStatusLabel: TLabel
+      Position.X = 300.000000000000000000
+      Position.Y = 192.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 120.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.VertAlign = Leading
+      Text =
+        'Current step: Account. OnStepChanging does not allow skipping a step ' +
+        'forward: click the next step, or any step before.'
+      TabOrder = 4
+    end
+  end
+  object SettingsPanel: TPanel
+    Align = Right
+    Position.X = 580.000000000000000000
+    Size.Width = 280.000000000000000000
+    Size.Height = 560.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object InstallSettingsLabel: TLabel
+      Align = Top
+      Text = 'Installation bar'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 12.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+    end
+    object NextButton: TButton
+      Align = Top
+      Text = 'Next'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 40.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 30.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      OnClick = NextButtonClick
+    end
+    object PreviousButton: TButton
+      Align = Top
+      Text = 'Previous'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 78.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 30.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      OnClick = PreviousButtonClick
+    end
+    object FailedCheckBox: TCheckBox
+      Align = Top
+      Text = 'Current step failed'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 116.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      OnChange = FailedCheckBoxChange
+    end
+    object WizardSettingsLabel: TLabel
+      Align = Top
+      Text = 'Wizard bar: Interactions'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 16.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 154.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 4
+    end
+    object ClickMarkerCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Text = 'stiClickMarker'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 182.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 5
+      OnChange = InteractionCheckBoxChange
+    end
+    object ClickLabelCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Text = 'stiClickLabel'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 212.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 6
+      OnChange = InteractionCheckBoxChange
+    end
+    object HandCursorCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Text = 'stiHandCursor'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 242.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 7
+      OnChange = InteractionCheckBoxChange
+    end
+    object KeyboardCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Text = 'stiKeyboard'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 272.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 8
+      OnChange = InteractionCheckBoxChange
+    end
+    object AllBarsSettingsLabel: TLabel
+      Align = Top
+      Text = 'Both bars'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 16.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 310.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 9
+    end
+    object HighlightProgressCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Text = 'HighlightProgress'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 338.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 10
+      OnChange = HighlightProgressCheckBoxChange
+    end
+    object AnimatedCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Text = 'Animation (AnimationDuration 0.3 s)'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 368.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 11
+      OnChange = AnimatedCheckBoxChange
+    end
+    object NumbersCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Text = 'Numbers in the markers'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 398.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 12
+      OnChange = NumbersCheckBoxChange
+    end
+    object LabelPositionLabel: TLabel
+      Align = Top
+      Text = 'LabelPosition'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 428.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 13
+    end
+    object LabelPositionComboBox: TComboBox
+      Align = Top
+      Items.Strings = (
+        'None'
+        'Before the line'
+        'After the line')
+      ItemIndex = 2
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 448.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 14
+      OnChange = LabelPositionComboBoxChange
+    end
+    object InstallStatusLabel: TLabel
+      Align = Top
+      TextSettings.VertAlign = Leading
+      Text = 'Step 2 of 5: Download'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 16.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 492.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 15
+    end
+  end
+end
