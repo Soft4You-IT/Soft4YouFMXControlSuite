@@ -62,6 +62,11 @@ type
   );
 
   /// <summary>
+  /// A set of states of the steps of a TS4YStepProgressBar.
+  /// </summary>
+  TS4YStepStates = set of TS4YStepState;
+
+  /// <summary>
   /// What a marker of a TS4YStepProgressBar shows inside it.
   /// </summary>
   /// <remarks>

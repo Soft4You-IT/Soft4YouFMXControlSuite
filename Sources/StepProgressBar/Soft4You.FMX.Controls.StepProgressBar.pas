@@ -27,6 +27,7 @@ uses
   Soft4You.FMX.Controls.StepProgressBar.Types;
 
 type
+  TS4YStepMarkerSettings = class;
   TS4YStepProgressBar = class;
 
   /// <summary>
@@ -35,6 +36,7 @@ type
   /// <remarks>
   /// The steps are defined by the application, for example the phases of an installation. The state in which a step is drawn comes from its position compared to the current step of the control, or from Failed.
   /// The steps belong to the Steps list of the control: they are added and removed with its methods. Setting Index moves a step like Steps.Move, and freeing a step between the first and the last one removes it like Steps.Delete.
+  /// In the states listed in MarkerStates the step has a look of its own, given by Marker, MarkerStyleName and LabelStyleName; in the other states it is drawn like the other steps in the same state.
   /// </remarks>
   TS4YStepItem = class(TCollectionItem)
   public const
@@ -45,13 +47,22 @@ type
     FDescription: string;
     FFailed: Boolean;
     FImageIndex: TImageIndex;
+    FLabelStyleName: string;
+    FMarker: TS4YStepMarkerSettings;
+    FMarkerStates: TS4YStepStates;
+    FMarkerStyleName: string;
     FTag: NativeInt;
     function IsFixedStep: Boolean;
     function IsProtectedCollection(const ACollection: TCollection): Boolean;
+    procedure MarkerChanged(Sender: TObject);
     procedure SetCaption(const Value: string);
     procedure SetDescription(const Value: string);
     procedure SetFailed(const Value: Boolean);
     procedure SetImageIndex(const Value: TImageIndex);
+    procedure SetLabelStyleName(const Value: string);
+    procedure SetMarker(const Value: TS4YStepMarkerSettings);
+    procedure SetMarkerStates(const Value: TS4YStepStates);
+    procedure SetMarkerStyleName(const Value: string);
   protected
     /// <summary>Returns the caption of the step, shown by the editor of the steps in the IDE.</summary>
     function GetDisplayName: string; override;
@@ -60,8 +71,9 @@ type
     /// <summary>Moves the step like Steps.Move: the first and the last steps cannot be moved.</summary>
     procedure SetIndex(Value: Integer); override;
   public
-    /// <summary>Creates a step without caption and without image.</summary>
+    /// <summary>Creates a step without caption, without image and without a look of its own.</summary>
     constructor Create(Collection: TCollection); override;
+    destructor Destroy; override;
 
     /// <summary>Copies all the properties from another TS4YStepItem.</summary>
     procedure Assign(Source: TPersistent); override;
@@ -76,6 +88,19 @@ type
     property Failed: Boolean read FFailed write SetFailed default False;
     /// <summary>Image of the step in the Images list of the control, shown when the marker settings of its state have Content = smcImage and ImageIndex = -1. The default is -1, no image.</summary>
     property ImageIndex: TImageIndex read FImageIndex write SetImageIndex default C_DEFAULT_IMAGE_INDEX;
+    /// <summary>Name of the text of the style that gives font and color to the caption in the states of MarkerStates. When it is empty or the style has no text of that name, the caption uses the text of its state, for example completedlabel.</summary>
+    property LabelStyleName: string read FLabelStyleName write SetLabelStyleName;
+    /// <summary>How the marker of the step is drawn in the states of MarkerStates, in place of the settings of the control for the state, such as CompletedMarker.</summary>
+    property Marker: TS4YStepMarkerSettings read FMarker write SetMarker;
+    /// <summary>
+    /// The states in which the step has a look of its own, given by Marker, MarkerStyleName and LabelStyleName. The default is [], the look of the control in every state.
+    /// </summary>
+    /// <remarks>
+    /// A step with Failed = True is drawn with its own look only when sstFailed is in the set; otherwise it takes the look of the failed steps. The first and the last step of a new control have [sstCompleted, sstCurrent] and [sstCurrent].
+    /// </remarks>
+    property MarkerStates: TS4YStepStates read FMarkerStates write SetMarkerStates default [];
+    /// <summary>Name of the part of the style drawn as the marker in the states of MarkerStates. When it is empty or the style has no part of that name, the marker uses the part of its state, for example completedmarker.</summary>
+    property MarkerStyleName: string read FMarkerStyleName write SetMarkerStyleName;
     /// <summary>A value free for the application. The control does not use it.</summary>
     property Tag: NativeInt read FTag write FTag default 0;
   end;
@@ -310,6 +335,7 @@ type
   /// <remarks>
   /// The steps are defined in Steps; CurrentStep, NextStep and PreviousStep say which one is in progress. The steps before the current one are drawn as completed, the ones after it as pending, and a step with Failed = True as failed.
   /// Each step has a marker, an ellipse by default (a circle with the default square size), and optionally a caption and a description. The look comes from a style: its parts linecompleted, linepending, completedmarker, currentmarker, pendingmarker, failedmarker and focusframe can be any graphic object (a shape, a path, a layout with several objects) and are drawn as they are, resized to the stretch of line or to the marker; its texts completedtext, currenttext, pendingtext, failedtext (number in the marker), completedlabel, currentlabel, pendinglabel, failedlabel and description give fonts and colors.
+  /// A step can have a look of its own in some states (see MarkerStates of TS4YStepItem), with other parts and texts of the style: the default style has startmarker and endmarker, used by the first and the last step of a new control.
   /// OnDrawMarker and OnDrawLine draw the markers and the line in place of the style. Interactions lets the user change the current step with the mouse or the keyboard.
   /// </remarks>
   TS4YStepProgressBar = class(TStyledControl)
@@ -371,6 +397,7 @@ type
     FOrientation: TOrientation;
     FPartsContainer: TControl;
     FPendingMarker: TS4YStepMarkerSettings;
+    FStepMarkerParts: array of array[TS4YStepState] of TControl;
     FSteps: TS4YStepList;
     FStyleDescription: TText;
     FStyleLabels: array[TS4YStepState] of TText;
@@ -390,6 +417,8 @@ type
     procedure CalculateTrack(out ATrackStart, ATrackEnd, AMarkerCenter, ALineCenter: Single);
     function ChangeStep(const ANewStep: Integer): Boolean;
     function ClampStep(const AStep: Integer): Integer;
+    function CreateMarkerPart(const AStyleName: string; const AState: TS4YStepState;
+      const ASettings: TS4YStepMarkerSettings): TControl;
     function CreatePart(const AStyleName: string; out FromStyle: Boolean): TControl;
     procedure DrawFocusFrame(const AStepCount: Integer);
     procedure DrawLine(const AStepCount: Integer);
@@ -403,12 +432,15 @@ type
     procedure FreeParts;
     function GetContentRect: TRectF;
     function GetLabelHorizontalAlign: TTextAlign;
+    function GetLabelTemplate(const AStepIndex: Integer; const AState: TS4YStepState): TText;
     function GetLabelVerticalAlign: TTextAlign;
     function GetLargestMarkerAcrossLine: Single;
-    function GetMarkerAlongLine(const AState: TS4YStepState): Single;
+    function GetMarkerAlongLine(const AStepIndex: Integer): Single;
     function GetMarkerSettings(const AState: TS4YStepState): TS4YStepMarkerSettings;
-    function GetMarkerSize(const AState: TS4YStepState): TSizeF;
+    function GetMarkerSize(const ASettings: TS4YStepMarkerSettings): TSizeF;
+    function GetStepMarkerSettings(const AStepIndex: Integer): TS4YStepMarkerSettings;
     function GetStepState(const AStepIndex: Integer): TS4YStepState;
+    function HasOwnLook(const AStepIndex: Integer; const AState: TS4YStepState): Boolean;
     function IsAnimating: Boolean;
     function IsProgressHighlighted: Boolean;
     function LabelSpacingStored: Boolean;
@@ -637,6 +669,9 @@ const
   C_STYLE_MARKERS: array[TS4YStepState] of string = ('completedmarker', 'currentmarker', 'pendingmarker', 'failedmarker');
   C_STYLE_MARKER_TEXTS: array[TS4YStepState] of string = ('completedtext', 'currenttext', 'pendingtext', 'failedtext');
   C_STYLE_LABELS: array[TS4YStepState] of string = ('completedlabel', 'currentlabel', 'pendinglabel', 'failedlabel');
+  // Parts of the default style for the markers of the first and the last step of a new control.
+  C_STYLE_START_MARKER = 'startmarker';
+  C_STYLE_END_MARKER = 'endmarker';
 
   // Colors used when the style has no text part of that name.
   C_DEFAULT_MARKER_TEXT_COLORS: array[TS4YStepState] of TAlphaColor = ($FFFFFFFF, $FF1E88E5, $FF9E9E9E, $FFFFFFFF);
@@ -683,6 +718,17 @@ begin
   inherited;
 
   FImageIndex := C_DEFAULT_IMAGE_INDEX;
+  FMarker := TS4YStepMarkerSettings.Create(TS4YStepProgressBar.C_DEFAULT_COMPLETED_COLOR,
+    TS4YStepProgressBar.C_DEFAULT_COMPLETED_COLOR);
+  FMarker.OnChange := MarkerChanged;
+end;
+
+destructor TS4YStepItem.Destroy;
+begin
+  // The step leaves the list first: the control, notified of the change, may still read Marker.
+  inherited;
+
+  FMarker.Free;
 end;
 
 procedure TS4YStepItem.Assign(Source: TPersistent);
@@ -696,8 +742,13 @@ begin
     FDescription := LSource.Description;
     FFailed := LSource.Failed;
     FImageIndex := LSource.ImageIndex;
+    FLabelStyleName := LSource.LabelStyleName;
+    FMarkerStates := LSource.MarkerStates;
+    FMarkerStyleName := LSource.MarkerStyleName;
     FTag := LSource.Tag;
-    Changed(False);
+
+    // The settings notify the change themselves, through MarkerChanged.
+    FMarker.Assign(LSource.Marker);
   end
   else
     inherited;
@@ -728,6 +779,11 @@ function TS4YStepItem.IsProtectedCollection(const ACollection: TCollection): Boo
 begin
   // The steps of a list are protected, except while the list itself changes them.
   Result := (ACollection is TS4YStepCollection) and not TS4YStepCollection(ACollection).IsListChange;
+end;
+
+procedure TS4YStepItem.MarkerChanged(Sender: TObject);
+begin
+  Changed(False);
 end;
 
 procedure TS4YStepItem.SetCaption(const Value: string);
@@ -780,6 +836,38 @@ begin
   Changed(False);
 end;
 
+procedure TS4YStepItem.SetLabelStyleName(const Value: string);
+begin
+  if FLabelStyleName = Value then
+    Exit;
+
+  FLabelStyleName := Value;
+  Changed(False);
+end;
+
+procedure TS4YStepItem.SetMarker(const Value: TS4YStepMarkerSettings);
+begin
+  FMarker.Assign(Value);
+end;
+
+procedure TS4YStepItem.SetMarkerStates(const Value: TS4YStepStates);
+begin
+  if FMarkerStates = Value then
+    Exit;
+
+  FMarkerStates := Value;
+  Changed(False);
+end;
+
+procedure TS4YStepItem.SetMarkerStyleName(const Value: string);
+begin
+  if FMarkerStyleName = Value then
+    Exit;
+
+  FMarkerStyleName := Value;
+  Changed(False);
+end;
+
 procedure TS4YStepItem.SetIndex(Value: Integer);
 begin
   // Moved by the list, which checks the first and the last steps.
@@ -825,15 +913,26 @@ end;
 { TS4YStepList }
 
 constructor TS4YStepList.Create(const AProgressBar: TS4YStepProgressBar);
+var
+  LStep: TS4YStepItem;
 begin
   inherited Create;
 
   FCollection := TS4YStepCollection.Create(Self);
   BeginChange;
   try
-    TS4YStepItem(FCollection.Add).Caption := S_STEP_START_CAPTION;
+    // The first step has its own marker once the progress has started, the last one when it is reached.
+    LStep := TS4YStepItem(FCollection.Add);
+    LStep.Caption := S_STEP_START_CAPTION;
+    LStep.MarkerStates := [sstCompleted, sstCurrent];
+    LStep.MarkerStyleName := C_STYLE_START_MARKER;
+    LStep.Marker.Content := smcNone;
     TS4YStepItem(FCollection.Add).Caption := S_STEP_INTERMEDIATE_CAPTION;
-    TS4YStepItem(FCollection.Add).Caption := S_STEP_END_CAPTION;
+    LStep := TS4YStepItem(FCollection.Add);
+    LStep.Caption := S_STEP_END_CAPTION;
+    LStep.MarkerStates := [sstCurrent];
+    LStep.MarkerStyleName := C_STYLE_END_MARKER;
+    LStep.Marker.Content := smcNone;
   finally
     EndChange;
   end;
@@ -1517,7 +1616,7 @@ var
   LHalfHeight: Single;
 begin
   LCenter := CalculateMarkerCenter(AStepIndex, AStepCount);
-  LSize := GetMarkerSize(GetStepState(AStepIndex));
+  LSize := GetMarkerSize(GetStepMarkerSettings(AStepIndex));
   LHalfWidth := LSize.Width / 2;
   LHalfHeight := LSize.Height / 2;
   Result := TRectF.Create(LCenter.X - LHalfWidth, LCenter.Y - LHalfHeight, LCenter.X + LHalfWidth, LCenter.Y + LHalfHeight);
@@ -1635,6 +1734,42 @@ end;
 function TS4YStepProgressBar.ClampStep(const AStep: Integer): Integer;
 begin
   Result := Max(0, Min(AStep, FSteps.Count - 1));
+end;
+
+function TS4YStepProgressBar.CreateMarkerPart(const AStyleName: string; const AState: TS4YStepState;
+  const ASettings: TS4YStepMarkerSettings): TControl;
+var
+  LFromStyle: Boolean;
+  LShape: TShape;
+begin
+  // The part named by AStyleName, else the one of the state, else an ellipse.
+  LFromStyle := False;
+  Result := nil;
+
+  if AStyleName <> '' then
+    Result := CreatePart(AStyleName, LFromStyle);
+
+  if not LFromStyle then
+    Result := CreatePart(C_STYLE_MARKERS[AState], LFromStyle);
+
+  if not LFromStyle then
+  begin
+    Result := TEllipse.Create(nil);
+    Result.Parent := FPartsContainer;
+  end;
+
+  // The properties replace the brushes of a shape; a part made of several objects keeps the brushes
+  // of its children.
+  if Result is TShape then
+  begin
+    LShape := TShape(Result);
+
+    if not LFromStyle or not (smbFill in ASettings.StyledBrushes) then
+      LShape.Fill.Assign(ASettings.Fill);
+
+    if not LFromStyle or not (smbStroke in ASettings.StyledBrushes) then
+      LShape.Stroke.Assign(ASettings.Stroke);
+  end;
 end;
 
 function TS4YStepProgressBar.CreatePart(const AStyleName: string; out FromStyle: Boolean): TControl;
@@ -1772,8 +1907,8 @@ begin
     // line, it joins the centers of the steps, so that the line is continuous.
     if FMarkerPosition = smpCenter then
     begin
-      LFrom := LFrom + GetMarkerAlongLine(GetStepState(LFromStep)) / 2 + FLineSpacing;
-      LTo := LTo - GetMarkerAlongLine(GetStepState(LFromStep + 1)) / 2 - FLineSpacing;
+      LFrom := LFrom + GetMarkerAlongLine(LFromStep) / 2 + FLineSpacing;
+      LTo := LTo - GetMarkerAlongLine(LFromStep + 1) / 2 - FLineSpacing;
     end;
 
     if LFromStep + 1 <= LProgress then
@@ -1824,7 +1959,11 @@ begin
   if DoDrawMarker(Canvas, LMarkerRect, AStepIndex, LState) then
     Exit;
 
-  DrawPart(FMarkerParts[LState], LMarkerRect);
+  if HasOwnLook(AStepIndex, LState) and (AStepIndex < Length(FStepMarkerParts)) then
+    DrawPart(FStepMarkerParts[AStepIndex][LState], LMarkerRect)
+  else
+    DrawPart(FMarkerParts[LState], LMarkerRect);
+
   DrawMarkerContent(AStepIndex, LState, LMarkerRect);
 end;
 
@@ -1835,7 +1974,7 @@ var
   LImageIndex: Integer;
   LImageRect: TRectF;
 begin
-  LSettings := GetMarkerSettings(AState);
+  LSettings := GetStepMarkerSettings(AStepIndex);
 
   case LSettings.Content of
     smcNumber:
@@ -1879,6 +2018,7 @@ var
   LDescription: string;
   LLabelRect: TRectF;
   LState: TS4YStepState;
+  LLabelTemplate: TText;
   LCaptionHeight: Single;
   LDescriptionHeight: Single;
   LTop: Single;
@@ -1898,7 +2038,8 @@ begin
     Exit;
 
   LState := GetStepState(AStepIndex);
-  LCaptionHeight := MeasureTextHeight(FStyleLabels[LState], C_DEFAULT_LABEL_COLORS[LState], LCaption, LLabelRect.Width);
+  LLabelTemplate := GetLabelTemplate(AStepIndex, LState);
+  LCaptionHeight := MeasureTextHeight(LLabelTemplate, C_DEFAULT_LABEL_COLORS[LState], LCaption, LLabelRect.Width);
   LDescriptionHeight := MeasureTextHeight(FStyleDescription, C_DEFAULT_DESCRIPTION_COLOR, LDescription,
     LLabelRect.Width);
 
@@ -1912,7 +2053,7 @@ begin
     LTop := LLabelRect.Top + (LLabelRect.Height - LCaptionHeight - LDescriptionHeight) / 2;
   end;
 
-  RenderText(FStyleLabels[LState], C_DEFAULT_LABEL_COLORS[LState], LCaption,
+  RenderText(LLabelTemplate, C_DEFAULT_LABEL_COLORS[LState], LCaption,
     TRectF.Create(LLabelRect.Left, LTop, LLabelRect.Right, LTop + LCaptionHeight), GetLabelHorizontalAlign);
   LTop := LTop + LCaptionHeight;
   RenderText(FStyleDescription, C_DEFAULT_DESCRIPTION_COLOR, LDescription,
@@ -1922,33 +2063,28 @@ end;
 procedure TS4YStepProgressBar.EnsureParts;
 var
   LFromStyle: Boolean;
-  LSettings: TS4YStepMarkerSettings;
+  LStep: TS4YStepItem;
   LShape: TShape;
 begin
   if Assigned(FMarkerParts[sstCompleted]) then
     Exit;
 
   for var LState := Low(TS4YStepState) to High(TS4YStepState) do
+    FMarkerParts[LState] := CreateMarkerPart('', LState, GetMarkerSettings(LState));
+
+  // A copy for each step with a look of its own, so that each one can have its own brushes.
+  SetLength(FStepMarkerParts, FSteps.Count);
+
+  for var LIndex := 0 to FSteps.Count - 1 do
   begin
-    LSettings := GetMarkerSettings(LState);
-    FMarkerParts[LState] := CreatePart(C_STYLE_MARKERS[LState], LFromStyle);
+    LStep := FSteps[LIndex];
 
-    if not LFromStyle then
+    for var LState := Low(TS4YStepState) to High(TS4YStepState) do
     begin
-      FMarkerParts[LState] := TEllipse.Create(nil);
-      FMarkerParts[LState].Parent := FPartsContainer;
-    end;
-
-    // The properties replace the brushes of a shape; a part made of several objects stays as it is.
-    if FMarkerParts[LState] is TShape then
-    begin
-      LShape := TShape(FMarkerParts[LState]);
-
-      if not LFromStyle or not (smbFill in LSettings.StyledBrushes) then
-        LShape.Fill.Assign(LSettings.Fill);
-
-      if not LFromStyle or not (smbStroke in LSettings.StyledBrushes) then
-        LShape.Stroke.Assign(LSettings.Stroke);
+      if LState in LStep.MarkerStates then
+        FStepMarkerParts[LIndex][LState] := CreateMarkerPart(LStep.MarkerStyleName, LState, LStep.Marker)
+      else
+        FStepMarkerParts[LIndex][LState] := nil;
     end;
   end;
 
@@ -2013,6 +2149,14 @@ begin
   for var LState := Low(TS4YStepState) to High(TS4YStepState) do
     FreeAndNil(FMarkerParts[LState]);
 
+  for var LIndex := 0 to Length(FStepMarkerParts) - 1 do
+  begin
+    for var LState := Low(TS4YStepState) to High(TS4YStepState) do
+      FreeAndNil(FStepMarkerParts[LIndex][LState]);
+  end;
+
+  FStepMarkerParts := nil;
+
   for var LLine := Low(TS4YStepLineStyledBrush) to High(TS4YStepLineStyledBrush) do
     FreeAndNil(FLineParts[LLine]);
 
@@ -2053,6 +2197,25 @@ begin
     Result := TTextAlign.Leading;
 end;
 
+function TS4YStepProgressBar.GetLabelTemplate(const AStepIndex: Integer; const AState: TS4YStepState): TText;
+var
+  LStyleName: string;
+begin
+  Result := FStyleLabels[AState];
+
+  if not HasOwnLook(AStepIndex, AState) then
+    Exit;
+
+  LStyleName := FSteps[AStepIndex].LabelStyleName;
+
+  if LStyleName = '' then
+    Exit;
+
+  // A step whose text is missing from the style keeps the text of its state.
+  if not FindStyleResource<TText>(LStyleName, Result) then
+    Result := FStyleLabels[AState];
+end;
+
 function TS4YStepProgressBar.GetLabelVerticalAlign: TTextAlign;
 begin
   if FOrientation = TOrientation.Vertical then
@@ -2064,27 +2227,37 @@ begin
 end;
 
 function TS4YStepProgressBar.GetLargestMarkerAcrossLine: Single;
-var
-  LSize: TSizeF;
+
+  function GetAcrossLine(const ASettings: TS4YStepMarkerSettings): Single;
+  var
+    LSize: TSizeF;
+  begin
+    LSize := GetMarkerSize(ASettings);
+
+    if FOrientation = TOrientation.Horizontal then
+      Result := LSize.Height
+    else
+      Result := LSize.Width;
+  end;
+
 begin
   Result := 0;
 
   for var LState := Low(TS4YStepState) to High(TS4YStepState) do
-  begin
-    LSize := GetMarkerSize(LState);
+    Result := Max(Result, GetAcrossLine(GetMarkerSettings(LState)));
 
-    if FOrientation = TOrientation.Horizontal then
-      Result := Max(Result, LSize.Height)
-    else
-      Result := Max(Result, LSize.Width);
+  for var LIndex := 0 to FSteps.Count - 1 do
+  begin
+    if FSteps[LIndex].MarkerStates <> [] then
+      Result := Max(Result, GetAcrossLine(FSteps[LIndex].Marker));
   end;
 end;
 
-function TS4YStepProgressBar.GetMarkerAlongLine(const AState: TS4YStepState): Single;
+function TS4YStepProgressBar.GetMarkerAlongLine(const AStepIndex: Integer): Single;
 var
   LSize: TSizeF;
 begin
-  LSize := GetMarkerSize(AState);
+  LSize := GetMarkerSize(GetStepMarkerSettings(AStepIndex));
 
   if FOrientation = TOrientation.Horizontal then
     Result := LSize.Width
@@ -2106,12 +2279,12 @@ begin
   end;
 end;
 
-function TS4YStepProgressBar.GetMarkerSize(const AState: TS4YStepState): TSizeF;
+function TS4YStepProgressBar.GetMarkerSize(const ASettings: TS4YStepMarkerSettings): TSizeF;
 var
   LSize: TS4YStepMarkerSize;
 begin
-  // A width or a height of 0 in the settings of the state takes the one of MarkerSize.
-  LSize := GetMarkerSettings(AState).Size;
+  // A width or a height of 0 in the settings takes the one of MarkerSize.
+  LSize := ASettings.Size;
   Result := TSizeF.Create(FMarkerSize.Width, FMarkerSize.Height);
 
   if LSize.Width > 0 then
@@ -2119,6 +2292,18 @@ begin
 
   if LSize.Height > 0 then
     Result.Height := LSize.Height;
+end;
+
+function TS4YStepProgressBar.GetStepMarkerSettings(const AStepIndex: Integer): TS4YStepMarkerSettings;
+var
+  LState: TS4YStepState;
+begin
+  LState := GetStepState(AStepIndex);
+
+  if HasOwnLook(AStepIndex, LState) then
+    Result := FSteps[AStepIndex].Marker
+  else
+    Result := GetMarkerSettings(LState);
 end;
 
 function TS4YStepProgressBar.GetStepState(const AStepIndex: Integer): TS4YStepState;
@@ -2147,6 +2332,11 @@ begin
   // The style linked into the package is used when no other style is found.
   if not Assigned(Result) then
     Result := TStyleStreaming.LoadFromResource(HInstance, GetDefaultStyleLookupName, RT_RCDATA);
+end;
+
+function TS4YStepProgressBar.HasOwnLook(const AStepIndex: Integer; const AState: TS4YStepState): Boolean;
+begin
+  Result := AState in FSteps[AStepIndex].MarkerStates;
 end;
 
 function TS4YStepProgressBar.IsAnimating: Boolean;
@@ -2514,6 +2704,9 @@ end;
 
 procedure TS4YStepProgressBar.StepsChanged;
 begin
+  // The copies of the parts of the steps with a look of their own are prepared again.
+  FreeParts;
+
   if (csLoading in ComponentState) or (csDestroying in ComponentState) then
     Exit;
 

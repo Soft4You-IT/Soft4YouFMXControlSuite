@@ -120,7 +120,27 @@ Each step (`TS4YStepItem`) has:
 | `Description` | empty | Second line of text under the caption, with the font of the description |
 | `Failed` | `False` | Draws the step as failed, whatever its position |
 | `ImageIndex` | -1 | Image of the step in `Images`, used by the markers whose settings show the image of the step |
+| `MarkerStates` | `[]` | The states in which the step has a look of its own, given by the three properties below; in the other states it is drawn like the other steps in the same state |
+| `Marker` | as the markers of the control | Settings of the marker in the states of `MarkerStates`, in place of `CompletedMarker`, `CurrentMarker`, ...: the same properties described in [Markers](#markers) |
+| `MarkerStyleName` | empty | Part of the style drawn as the marker in the states of `MarkerStates`; empty, or a name missing from the style, takes the part of the state |
+| `LabelStyleName` | empty | Text of the style that gives font and color to the caption in the states of `MarkerStates`; empty, or a name missing from the style, takes the text of the state |
 | `Tag` | 0 | A value free for the application |
+
+A step with `Failed = True` takes its own look only when `sstFailed` is in `MarkerStates`; otherwise it is drawn as the other failed steps.
+
+The first and the last step of a new control have a look of their own: *Start* has `MarkerStates = [sstCompleted, sstCurrent]` and `MarkerStyleName = 'startmarker'`, a filled marker with a dot, shown as soon as the progress has started; *End* has `MarkerStates = [sstCurrent]` and `MarkerStyleName = 'endmarker'`, a filled marker with a check mark, shown when the last step is reached. Both have `Marker.Content = smcNone`. Setting `MarkerStates` to `[]` gives them the look of the other steps.
+
+A step with a marker larger than the others and a caption of its own, while it is the current step:
+
+```delphi
+StepBar.Steps[2].MarkerStates := [sstCurrent];
+StepBar.Steps[2].MarkerStyleName := 'reviewmarker';   // a part added to the style
+StepBar.Steps[2].LabelStyleName := 'reviewlabel';     // a TText added to the style
+StepBar.Steps[2].Marker.Size.Width := 36;
+StepBar.Steps[2].Marker.Size.Height := 36;
+```
+
+As for the markers of the control, the band of the markers and the line is as thick as the largest marker, those of the steps with a look of their own included.
 
 ### Markers
 
@@ -198,10 +218,13 @@ The look of the control comes from a style named `S4YStepProgressBarStyle`. The 
 |---|---|---|
 | `linecompleted`, `linepending` | `TRectangle` | Drawn for each stretch of the line, completed or not |
 | `completedmarker`, `currentmarker`, `pendingmarker`, `failedmarker` | `TEllipse` | Drawn as the marker of the steps in each state |
+| `startmarker`, `endmarker` | `TEllipse` with a dot, `TEllipse` with a check mark | Drawn as the marker of the first and the last step of a new control (see [Steps](#steps)) |
 | `focusframe` | `TEllipse`, dotted border | Drawn around the current marker while the control has the focus (`stiKeyboard`) |
 | `completedtext`, `currenttext`, `pendingtext`, `failedtext` | `TText` | Font and color of the number in the markers |
 | `completedlabel`, `currentlabel`, `pendinglabel`, `failedlabel` | `TText` | Font and color of the captions |
 | `description` | `TText` | Font and color of the descriptions |
+
+A style can have other parts and texts, with names of its own, for the steps that name them in `MarkerStyleName` and `LabelStyleName`.
 
 The graphic parts (line, markers and focus frame) can be **any graphic object**: a `TCircle`, a `TRectangle` with rounded corners, a `TPath` with a shape of its own, a `TLine` with a dashed border, a `TImage`, or a `TLayout` with several objects inside, for example a square with a check mark. The control draws a copy of the part as it is, resized to the area of the marker (the size of its state, see [Markers](#markers)), of the stretch of line (`LineThickness` thick, as long as described in [Layout](#layout)) or of the focus frame; the objects inside the part follow their `Align`, `Margins` and `Anchors`. The number or the image of `Content` is drawn over the marker.
 
@@ -249,7 +272,7 @@ In the designer, drop a `TS4YStepProgressBar` on the form and click the button o
 
 ## Demo
 
-`Demos\StepProgressBar\S4YStepProgressBarDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows two step bars: a horizontal one for an installation, moved by the buttons *Next* and *Previous*, where the current step can be marked as failed; and a vertical one for a wizard, with all the `Interactions`, where a click or the keyboard selects a step and `OnStepChanging` does not allow skipping a step forward. The panel on the right switches each interaction of the wizard on and off, and changes `HighlightProgress`, the animation, the numbers in the markers, `LabelPosition`, `Line.Visible`, `MarkerPosition`, `MarkerSize`, the size of the pending and current markers, `LineSpacing` and `LabelSpacing` of both bars. Install the suite packages first.
+`Demos\StepProgressBar\S4YStepProgressBarDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows two step bars: a horizontal one for an installation, moved by the buttons *Next* and *Previous*, where the current step can be marked as failed; and a vertical one for a wizard, with all the `Interactions`, where a click or the keyboard selects a step and `OnStepChanging` does not allow skipping a step forward. The panel on the left switches each interaction of the wizard on and off, and changes `HighlightProgress`, the animation, the numbers in the markers, `LabelPosition`, `Line.Visible`, `MarkerPosition`, `MarkerSize`, the size of the pending and current markers, `LineSpacing` and `LabelSpacing` of both bars. Install the suite packages first.
 
 ## Notes
 

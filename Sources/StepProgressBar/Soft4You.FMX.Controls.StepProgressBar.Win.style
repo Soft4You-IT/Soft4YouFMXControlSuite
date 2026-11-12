@@ -117,6 +117,47 @@ object TLayout
     Visible = False
   end
   object TEllipse
+    StyleName = 'startmarker'
+    Fill.Color = xFF1E88E5
+    HitTest = False
+    Stroke.Color = xFF1E88E5
+    Stroke.Thickness = 2.000000000000000000
+    Visible = False
+    object TEllipse
+      Align = Client
+      Fill.Color = claWhite
+      HitTest = False
+      Margins.Left = 9.000000000000000000
+      Margins.Top = 9.000000000000000000
+      Margins.Right = 9.000000000000000000
+      Margins.Bottom = 9.000000000000000000
+      Stroke.Kind = None
+    end
+  end
+  object TEllipse
+    StyleName = 'endmarker'
+    Fill.Color = xFF1E88E5
+    HitTest = False
+    Stroke.Color = xFF1E88E5
+    Stroke.Thickness = 2.000000000000000000
+    Visible = False
+    object TPath
+      Align = Client
+      Data.Data = 'M 0,5 L 4,9 L 12,1'
+      Fill.Kind = None
+      HitTest = False
+      Margins.Left = 8.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Margins.Bottom = 8.000000000000000000
+      Stroke.Cap = Round
+      Stroke.Color = claWhite
+      Stroke.Join = Round
+      Stroke.Thickness = 2.000000000000000000
+      WrapMode = Fit
+    end
+  end
+  object TEllipse
     StyleName = 'focusframe'
     Fill.Kind = None
     HitTest = False

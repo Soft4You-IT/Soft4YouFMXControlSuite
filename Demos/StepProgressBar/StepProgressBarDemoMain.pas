@@ -14,6 +14,7 @@ uses
   FMX.Layouts,
   FMX.EditBox,
   FMX.SpinBox,
+  FMX.Edit,
   Soft4You.FMX.Controls.StepProgressBar,
   Soft4You.FMX.Controls.StepProgressBar.Types;
 
