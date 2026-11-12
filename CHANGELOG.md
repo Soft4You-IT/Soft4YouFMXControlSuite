@@ -6,7 +6,7 @@ The changes of each release of the Soft4You FMX Control Suite, the newest first.
 
 ### Added
 
-- `TS4YStepProgressBar`: progress indicator made of steps along a horizontal or vertical line, with completed, current, pending and failed steps, an animated line, steps that the user can select with the mouse and the keyboard, and a look that comes from a style.
+- `TS4YStepProgressBar`: progress indicator made of steps along a horizontal or vertical line, with completed, current, pending and failed steps, an animated line, steps that the user can select with the mouse and the keyboard, and a look that comes from a style, where the markers and the line can have any shape.
 
 ## 1.0.0 - 2026-10-29
 

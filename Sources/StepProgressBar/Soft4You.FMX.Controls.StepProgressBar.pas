@@ -96,7 +96,7 @@ type
   /// How the markers of the steps in one state are drawn.
   /// </summary>
   /// <remarks>
-  /// The fill and the border come from the style, unless Fill or Stroke is changed (see StyledBrushes). Content says what is drawn inside the circle.
+  /// The marker is the part of the style for its state. When that part is a shape, Fill or Stroke can replace its fill and its border (see StyledBrushes); a part made of several objects is drawn as the style defines it. Content says what is drawn inside the marker.
   /// </remarks>
   TS4YStepMarkerSettings = class(TPersistent)
   public const
@@ -159,7 +159,7 @@ type
   /// How the line that joins the markers is drawn.
   /// </summary>
   /// <remarks>
-  /// With HighlightProgress of the control set to True, the part of the line up to the current step uses the completed brush and the rest the pending brush; with False, the whole line uses the pending brush.
+  /// With HighlightProgress of the control set to True, the line up to the current step is drawn with the part linecompleted of the style and the rest with linepending; with False, the whole line uses linepending. When a part is a shape, CompletedFill or PendingFill can replace its fill (see StyledBrushes).
   /// </remarks>
   TS4YStepLineSettings = class(TPersistent)
   public const
@@ -212,8 +212,8 @@ type
   /// </summary>
   /// <remarks>
   /// The steps are defined in Steps; CurrentStep, NextStep and PreviousStep say which one is in progress. The steps before the current one are drawn as completed, the ones after it as pending, and a step with Failed = True as failed.
-  /// Each step has a marker, a circle by default, and optionally a caption and a description. The look comes from a style with the parts linecompleted, linepending, completedmarker, currentmarker, pendingmarker, failedmarker (shapes: fill and border), completedtext, currenttext, pendingtext, failedtext (texts: font of the number in the marker), completedlabel, currentlabel, pendinglabel, failedlabel and description (texts: font of the caption and of the description).
-  /// OnDrawMarker draws a marker in place of the circle. Interactions lets the user change the current step with the mouse or the keyboard.
+  /// Each step has a marker, a circle by default, and optionally a caption and a description. The look comes from a style: its parts linecompleted, linepending, completedmarker, currentmarker, pendingmarker, failedmarker and focusframe can be any graphic object (a shape, a path, a layout with several objects) and are drawn as they are, resized to the stretch of line or to the marker; its texts completedtext, currenttext, pendingtext, failedtext (number in the marker), completedlabel, currentlabel, pendinglabel, failedlabel and description give fonts and colors.
+  /// OnDrawMarker and OnDrawLine draw the markers and the line in place of the style. Interactions lets the user change the current step with the mouse or the keyboard.
   /// </remarks>
   TS4YStepProgressBar = class(TStyledControl)
   public const
@@ -250,7 +250,7 @@ type
     FDefaultFont: TFont;
     FDisplayedProgress: Single;
     FFailedMarker: TS4YStepMarkerSettings;
-    FFocusFrameStroke: TStrokeBrush;
+    FFocusFramePart: TControl;
     FHandCursorShown: Boolean;
     FHighlightProgress: Boolean;
     FImages: TCustomImageList;
@@ -258,19 +258,19 @@ type
     FLabelPosition: TS4YStepLabelPosition;
     FLine: TS4YStepLineSettings;
     FLineAnimation: TAnimation;
+    FLineParts: array[TS4YStepLineStyledBrush] of TControl;
     FLineThickness: Single;
+    FMarkerParts: array[TS4YStepState] of TControl;
     FMarkerSize: Single;
     FOrientation: TOrientation;
+    FPartsContainer: TControl;
     FPendingMarker: TS4YStepMarkerSettings;
     FSteps: TS4YStepItems;
     FStyleDescription: TText;
-    FStyleFocusFrame: TShape;
     FStyleLabels: array[TS4YStepState] of TText;
-    FStyleLineCompleted: TShape;
-    FStyleLinePending: TShape;
-    FStyleMarkers: array[TS4YStepState] of TShape;
     FStyleMarkerTexts: array[TS4YStepState] of TText;
     FTextLayout: TTextLayout;
+    FOnDrawLine: TS4YStepDrawLineEvent;
     FOnDrawMarker: TS4YStepDrawMarkerEvent;
     FOnStepChanged: TNotifyEvent;
     FOnStepChanging: TS4YStepChangingEvent;
@@ -282,19 +282,21 @@ type
     function CalculateMarkerRect(const AStepIndex, AStepCount: Integer): TRectF;
     function ChangeStep(const ANewStep: Integer): Boolean;
     function ClampStep(const AStep: Integer): Integer;
+    function CreatePart(const AStyleName: string; out FromStyle: Boolean): TControl;
     procedure DrawFocusFrame(const AStepCount: Integer);
     procedure DrawLine(const AStepCount: Integer);
+    procedure DrawLineStretch(const AFromStep: Integer; const AFrom, ATo: TPointF; Completed: Boolean);
     procedure DrawMarker(const AStepIndex, AStepCount: Integer);
     procedure DrawMarkerContent(const AStepIndex: Integer; const AState: TS4YStepState; const AMarkerRect: TRectF);
+    procedure DrawPart(const APart: TControl; const ARect: TRectF);
+    procedure EnsureParts;
     procedure DrawStepLabel(const AStepIndex, AStepCount: Integer);
     function FindStepAt(const APoint: TPointF): Integer;
+    procedure FreeParts;
     function GetContentRect: TRectF;
     function GetLabelHorizontalAlign: TTextAlign;
     function GetLabelVerticalAlign: TTextAlign;
-    function GetLineBrush(const ABrush: TS4YStepLineStyledBrush): TBrush;
-    function GetMarkerFill(const AState: TS4YStepState): TBrush;
     function GetMarkerSettings(const AState: TS4YStepState): TS4YStepMarkerSettings;
-    function GetMarkerStroke(const AState: TS4YStepState): TStrokeBrush;
     function GetStepCount: Integer;
     function GetStepState(const AStepIndex: Integer): TS4YStepState;
     function IsAnimating: Boolean;
@@ -326,8 +328,11 @@ type
     procedure StepsChanged;
     procedure UpdateHandCursor(const APoint: TPointF);
   protected
-    /// <summary>Finds the parts of the style used to draw the control.</summary>
+    /// <summary>Finds the texts of the style and prepares the graphic parts again.</summary>
     procedure ApplyStyle; override;
+    /// <summary>Fires OnDrawLine; returns True when the event has drawn the stretch of line.</summary>
+    function DoDrawLine(const ACanvas: TCanvas; const ARect: TRectF; const AFromStep: Integer;
+      const Completed: Boolean): Boolean; virtual;
     /// <summary>Fires OnDrawMarker; returns True when the event has drawn the marker.</summary>
     function DoDrawMarker(const ACanvas: TCanvas; const ARect: TRectF; const AStepIndex: Integer;
       const AState: TS4YStepState): Boolean; virtual;
@@ -341,7 +346,7 @@ type
     procedure DoStepChanged; virtual;
     /// <summary>Fires OnStepChanging; returns False when the event does not allow the change.</summary>
     function DoStepChanging(const ANewStep: Integer): Boolean; virtual;
-    /// <summary>Releases the parts of the style found by ApplyStyle.</summary>
+    /// <summary>Releases the parts of the style.</summary>
     procedure FreeStyle; override;
     /// <summary>Returns the size of a new control: 400 x 64.</summary>
     function GetDefaultSize: TSizeF; override;
@@ -432,7 +437,9 @@ type
 
     property OnClick;
     property OnDblClick;
-    /// <summary>Fires before a marker is drawn: setting Handled to True replaces the circle with what the event draws.</summary>
+    /// <summary>Fires before each stretch of the line is drawn: setting Handled to True replaces the part of the style with what the event draws.</summary>
+    property OnDrawLine: TS4YStepDrawLineEvent read FOnDrawLine write FOnDrawLine;
+    /// <summary>Fires before a marker is drawn: setting Handled to True replaces the part of the style with what the event draws.</summary>
     property OnDrawMarker: TS4YStepDrawMarkerEvent read FOnDrawMarker write FOnDrawMarker;
     property OnMouseDown;
     property OnMouseEnter;
@@ -476,8 +483,6 @@ type
   end;
 
 const
-  C_STYLE_LINE_COMPLETED = 'linecompleted';
-  C_STYLE_LINE_PENDING = 'linepending';
   C_STYLE_DESCRIPTION = 'description';
   C_STYLE_FOCUS_FRAME = 'focusframe';
   C_STYLE_MARKERS: array[TS4YStepState] of string = ('completedmarker', 'currentmarker', 'pendingmarker', 'failedmarker');
@@ -491,6 +496,7 @@ const
   // Border of the focus frame used when the style has no focusframe part.
   C_DEFAULT_FOCUS_FRAME_COLOR: TAlphaColor = $FF1E88E5;
   C_DEFAULT_FOCUS_FRAME_THICKNESS = 1.5;
+  C_STYLE_LINES: array[TS4YStepLineStyledBrush] of string = ('linecompleted', 'linepending');
 
   // Space between a marker and its label, in pixels.
   C_LABEL_SPACING = 6;
@@ -890,21 +896,28 @@ begin
   FLine := TS4YStepLineSettings.Create;
   FLine.OnChange := SettingsChanged;
 
-  FFocusFrameStroke := TStrokeBrush.Create(TBrushKind.Solid, C_DEFAULT_FOCUS_FRAME_COLOR);
-  FFocusFrameStroke.Thickness := C_DEFAULT_FOCUS_FRAME_THICKNESS;
-  FFocusFrameStroke.Dash := TStrokeDash.Dot;
-
   FDefaultFont := TFont.Create;
   FTextLayout := TTextLayoutManager.DefaultTextLayout.Create;
+
+  // Holds the copies of the graphic parts of the style. It is a child of the control, so that the
+  // parts belong to its scene and their own children are painted; it is invisible, so that resizing
+  // a part does not ask for a repaint. Without owner and not stored, it is not part of the form.
+  FPartsContainer := TControl.Create(nil);
+  FPartsContainer.Stored := False;
+  FPartsContainer.Visible := False;
+  FPartsContainer.HitTest := False;
+  FPartsContainer.Locked := True;
+  FPartsContainer.Parent := Self;
 end;
 
 destructor TS4YStepProgressBar.Destroy;
 begin
   // Freed first, so that a running animation cannot touch the settings released below.
   FreeAndNil(FLineAnimation);
+  FreeParts;
+  FreeAndNil(FPartsContainer);
   FreeAndNil(FTextLayout);
   FreeAndNil(FDefaultFont);
-  FreeAndNil(FFocusFrameStroke);
   FreeAndNil(FLine);
   FreeAndNil(FCompletedMarker);
   FreeAndNil(FCurrentMarker);
@@ -948,18 +961,16 @@ procedure TS4YStepProgressBar.ApplyStyle;
 begin
   inherited;
 
-  FindStyleResource<TShape>(C_STYLE_LINE_COMPLETED, FStyleLineCompleted);
-  FindStyleResource<TShape>(C_STYLE_LINE_PENDING, FStyleLinePending);
   FindStyleResource<TText>(C_STYLE_DESCRIPTION, FStyleDescription);
-  FindStyleResource<TShape>(C_STYLE_FOCUS_FRAME, FStyleFocusFrame);
 
   for var LState := Low(TS4YStepState) to High(TS4YStepState) do
   begin
-    FindStyleResource<TShape>(C_STYLE_MARKERS[LState], FStyleMarkers[LState]);
     FindStyleResource<TText>(C_STYLE_MARKER_TEXTS[LState], FStyleMarkerTexts[LState]);
     FindStyleResource<TText>(C_STYLE_LABELS[LState], FStyleLabels[LState]);
   end;
 
+  // The graphic parts are copied from the new style the next time the control paints.
+  FreeParts;
   Repaint;
 end;
 
@@ -1105,6 +1116,45 @@ begin
   Result := Max(0, Min(AStep, FSteps.Count - 1));
 end;
 
+function TS4YStepProgressBar.CreatePart(const AStyleName: string; out FromStyle: Boolean): TControl;
+var
+  LStylePart: TControl;
+  LStylePartStored: Boolean;
+begin
+  Result := nil;
+  FromStyle := FindStyleResource<TControl>(AStyleName, LStylePart);
+
+  if not FromStyle then
+    Exit;
+
+  // A copy, so that it can be resized and recolored without touching the style. FMX marks the
+  // objects of an applied style as not stored, and Clone copies through streaming: the part has to
+  // be stored while it is copied, or the copy would lose its children.
+  LStylePartStored := LStylePart.Stored;
+  LStylePart.Stored := True;
+  try
+    Result := TControl(LStylePart.Clone(nil));
+  finally
+    LStylePart.Stored := LStylePartStored;
+  end;
+
+  // Clone reads the copy as stored, so the copy and its children with a StyleName are added to the
+  // global list of the styles of FMX: setting Stored to False removes them from it, like the parts
+  // copied by FMX itself.
+  Result.Stored := False;
+  Result.Visible := True;
+  Result.Parent := FPartsContainer;
+end;
+
+function TS4YStepProgressBar.DoDrawLine(const ACanvas: TCanvas; const ARect: TRectF; const AFromStep: Integer;
+  const Completed: Boolean): Boolean;
+begin
+  Result := False;
+
+  if Assigned(FOnDrawLine) then
+    FOnDrawLine(Self, ACanvas, ARect, AFromStep, Completed, Result);
+end;
+
 function TS4YStepProgressBar.DoDrawMarker(const ACanvas: TCanvas; const ARect: TRectF; const AStepIndex: Integer;
   const AState: TS4YStepState): Boolean;
 begin
@@ -1152,61 +1202,73 @@ end;
 procedure TS4YStepProgressBar.DrawFocusFrame(const AStepCount: Integer);
 var
   LFrameRect: TRectF;
-  LStroke: TStrokeBrush;
 begin
   if not (stiKeyboard in FInteractions) or not IsFocused or (FSteps.Count = 0) then
     Exit;
 
-  if Assigned(FStyleFocusFrame) then
-    LStroke := FStyleFocusFrame.Stroke
-  else
-    LStroke := FFocusFrameStroke;
-
   LFrameRect := CalculateMarkerRect(FCurrentStep, AStepCount);
   LFrameRect.Inflate(C_FOCUS_FRAME_SPACING, C_FOCUS_FRAME_SPACING);
-  Canvas.DrawEllipse(LFrameRect, AbsoluteOpacity, LStroke);
+  DrawPart(FFocusFramePart, LFrameRect);
 end;
 
 procedure TS4YStepProgressBar.DrawLine(const AStepCount: Integer);
 var
-  LFirstCenter: TPointF;
-  LLastCenter: TPointF;
-  LProgressPoint: TPointF;
+  LFrom: TPointF;
+  LTo: TPointF;
+  LSplitPoint: TPointF;
   LProgress: Single;
 begin
-  if AStepCount < 2 then
-    Exit;
-
-  LFirstCenter := CalculateMarkerCenter(0, AStepCount);
-  LLastCenter := CalculateMarkerCenter(AStepCount - 1, AStepCount);
-
-  if not FHighlightProgress then
-  begin
-    Canvas.FillRect(CalculateLineRect(LFirstCenter, LLastCenter), 0, 0, AllCorners, AbsoluteOpacity,
-      GetLineBrush(slbPending));
-    Exit;
-  end;
-
   if FSteps.Count = 0 then
     LProgress := C_DESIGN_PREVIEW_CURRENT_STEP
   else
     LProgress := EnsureRange(FDisplayedProgress, 0, AStepCount - 1);
 
-  LProgressPoint := LFirstCenter + (LLastCenter - LFirstCenter) * (LProgress / (AStepCount - 1));
-  Canvas.FillRect(CalculateLineRect(LProgressPoint, LLastCenter), 0, 0, AllCorners, AbsoluteOpacity,
-    GetLineBrush(slbPending));
+  if not FHighlightProgress then
+    LProgress := 0;
 
-  if LProgress > 0 then
-    Canvas.FillRect(CalculateLineRect(LFirstCenter, LProgressPoint), 0, 0, AllCorners, AbsoluteOpacity,
-      GetLineBrush(slbCompleted));
+  // One stretch between each pair of steps, so that a style part repeats along the line.
+  for var LFromStep := 0 to AStepCount - 2 do
+  begin
+    LFrom := CalculateMarkerCenter(LFromStep, AStepCount);
+    LTo := CalculateMarkerCenter(LFromStep + 1, AStepCount);
+
+    if LFromStep + 1 <= LProgress then
+      DrawLineStretch(LFromStep, LFrom, LTo, True)
+    else if LFromStep >= LProgress then
+      DrawLineStretch(LFromStep, LFrom, LTo, False)
+    else
+    begin
+      // The stretch the line is filling while it moves to the new current step
+      LSplitPoint := LFrom + (LTo - LFrom) * (LProgress - LFromStep);
+      DrawLineStretch(LFromStep, LFrom, LSplitPoint, True);
+      DrawLineStretch(LFromStep, LSplitPoint, LTo, False);
+    end;
+  end;
+end;
+
+procedure TS4YStepProgressBar.DrawLineStretch(const AFromStep: Integer; const AFrom, ATo: TPointF;
+  Completed: Boolean);
+var
+  LStretchRect: TRectF;
+begin
+  LStretchRect := CalculateLineRect(AFrom, ATo);
+
+  if (LStretchRect.Width <= 0) or (LStretchRect.Height <= 0) then
+    Exit;
+
+  if DoDrawLine(Canvas, LStretchRect, AFromStep, Completed) then
+    Exit;
+
+  if Completed then
+    DrawPart(FLineParts[slbCompleted], LStretchRect)
+  else
+    DrawPart(FLineParts[slbPending], LStretchRect);
 end;
 
 procedure TS4YStepProgressBar.DrawMarker(const AStepIndex, AStepCount: Integer);
 var
   LMarkerRect: TRectF;
-  LStrokeRect: TRectF;
   LState: TS4YStepState;
-  LStroke: TStrokeBrush;
 begin
   LMarkerRect := CalculateMarkerRect(AStepIndex, AStepCount);
   LState := GetStepState(AStepIndex);
@@ -1214,17 +1276,7 @@ begin
   if DoDrawMarker(Canvas, LMarkerRect, AStepIndex, LState) then
     Exit;
 
-  Canvas.FillEllipse(LMarkerRect, AbsoluteOpacity, GetMarkerFill(LState));
-  LStroke := GetMarkerStroke(LState);
-
-  // The border is drawn inside the marker, so that MarkerSize is its whole size.
-  if (LStroke.Kind <> TBrushKind.None) and (LStroke.Thickness > 0) then
-  begin
-    LStrokeRect := LMarkerRect;
-    LStrokeRect.Inflate(-LStroke.Thickness / 2, -LStroke.Thickness / 2);
-    Canvas.DrawEllipse(LStrokeRect, AbsoluteOpacity, LStroke);
-  end;
-
+  DrawPart(FMarkerParts[LState], LMarkerRect);
   DrawMarkerContent(AStepIndex, LState, LMarkerRect);
 end;
 
@@ -1259,6 +1311,18 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TS4YStepProgressBar.DrawPart(const APart: TControl; const ARect: TRectF);
+begin
+  if not Assigned(APart) or (ARect.Width < 1) or (ARect.Height < 1) then
+    Exit;
+
+  // The part gets the size of the area, so that its borders keep their thickness instead of
+  // being scaled; PaintTo with the control as parent draws it in the coordinates of the control.
+  APart.SetBounds(0, 0, ARect.Width, ARect.Height);
+  APart.PaintTo(Canvas, ARect, Self);
+  Canvas.SetMatrix(AbsoluteMatrix);
 end;
 
 procedure TS4YStepProgressBar.DrawStepLabel(const AStepIndex, AStepCount: Integer);
@@ -1307,6 +1371,74 @@ begin
     TRectF.Create(LLabelRect.Left, LTop, LLabelRect.Right, LTop + LDescriptionHeight), GetLabelHorizontalAlign);
 end;
 
+procedure TS4YStepProgressBar.EnsureParts;
+var
+  LFromStyle: Boolean;
+  LSettings: TS4YStepMarkerSettings;
+  LShape: TShape;
+begin
+  if Assigned(FMarkerParts[sstCompleted]) then
+    Exit;
+
+  for var LState := Low(TS4YStepState) to High(TS4YStepState) do
+  begin
+    LSettings := GetMarkerSettings(LState);
+    FMarkerParts[LState] := CreatePart(C_STYLE_MARKERS[LState], LFromStyle);
+
+    if not LFromStyle then
+    begin
+      FMarkerParts[LState] := TCircle.Create(nil);
+      FMarkerParts[LState].Parent := FPartsContainer;
+    end;
+
+    // The properties replace the brushes of a shape; a part made of several objects stays as it is.
+    if FMarkerParts[LState] is TShape then
+    begin
+      LShape := TShape(FMarkerParts[LState]);
+
+      if not LFromStyle or not (smbFill in LSettings.StyledBrushes) then
+        LShape.Fill.Assign(LSettings.Fill);
+
+      if not LFromStyle or not (smbStroke in LSettings.StyledBrushes) then
+        LShape.Stroke.Assign(LSettings.Stroke);
+    end;
+  end;
+
+  for var LLine := Low(TS4YStepLineStyledBrush) to High(TS4YStepLineStyledBrush) do
+  begin
+    FLineParts[LLine] := CreatePart(C_STYLE_LINES[LLine], LFromStyle);
+
+    if not LFromStyle then
+    begin
+      LShape := TRectangle.Create(nil);
+      LShape.Stroke.Kind := TBrushKind.None;
+      LShape.Parent := FPartsContainer;
+      FLineParts[LLine] := LShape;
+    end;
+
+    if (FLineParts[LLine] is TShape) and (not LFromStyle or not (LLine in FLine.StyledBrushes)) then
+    begin
+      if LLine = slbCompleted then
+        TShape(FLineParts[LLine]).Fill.Assign(FLine.CompletedFill)
+      else
+        TShape(FLineParts[LLine]).Fill.Assign(FLine.PendingFill);
+    end;
+  end;
+
+  FFocusFramePart := CreatePart(C_STYLE_FOCUS_FRAME, LFromStyle);
+
+  if not LFromStyle then
+  begin
+    LShape := TCircle.Create(nil);
+    LShape.Fill.Kind := TBrushKind.None;
+    LShape.Stroke.Color := C_DEFAULT_FOCUS_FRAME_COLOR;
+    LShape.Stroke.Thickness := C_DEFAULT_FOCUS_FRAME_THICKNESS;
+    LShape.Stroke.Dash := TStrokeDash.Dot;
+    LShape.Parent := FPartsContainer;
+    FFocusFramePart := LShape;
+  end;
+end;
+
 function TS4YStepProgressBar.FindStepAt(const APoint: TPointF): Integer;
 var
   LIndex: Integer;
@@ -1328,16 +1460,24 @@ begin
   end;
 end;
 
+procedure TS4YStepProgressBar.FreeParts;
+begin
+  for var LState := Low(TS4YStepState) to High(TS4YStepState) do
+    FreeAndNil(FMarkerParts[LState]);
+
+  for var LLine := Low(TS4YStepLineStyledBrush) to High(TS4YStepLineStyledBrush) do
+    FreeAndNil(FLineParts[LLine]);
+
+  FreeAndNil(FFocusFramePart);
+end;
+
 procedure TS4YStepProgressBar.FreeStyle;
 begin
-  FStyleLineCompleted := nil;
-  FStyleLinePending := nil;
+  FreeParts;
   FStyleDescription := nil;
-  FStyleFocusFrame := nil;
 
   for var LState := Low(TS4YStepState) to High(TS4YStepState) do
   begin
-    FStyleMarkers[LState] := nil;
     FStyleMarkerTexts[LState] := nil;
     FStyleLabels[LState] := nil;
   end;
@@ -1375,36 +1515,6 @@ begin
     Result := TTextAlign.Leading;
 end;
 
-function TS4YStepProgressBar.GetLineBrush(const ABrush: TS4YStepLineStyledBrush): TBrush;
-begin
-  if ABrush = slbCompleted then
-  begin
-    if (slbCompleted in FLine.StyledBrushes) and Assigned(FStyleLineCompleted) then
-      Result := FStyleLineCompleted.Fill
-    else
-      Result := FLine.CompletedFill;
-  end
-  else
-  begin
-    if (slbPending in FLine.StyledBrushes) and Assigned(FStyleLinePending) then
-      Result := FStyleLinePending.Fill
-    else
-      Result := FLine.PendingFill;
-  end;
-end;
-
-function TS4YStepProgressBar.GetMarkerFill(const AState: TS4YStepState): TBrush;
-var
-  LSettings: TS4YStepMarkerSettings;
-begin
-  LSettings := GetMarkerSettings(AState);
-
-  if (smbFill in LSettings.StyledBrushes) and Assigned(FStyleMarkers[AState]) then
-    Result := FStyleMarkers[AState].Fill
-  else
-    Result := LSettings.Fill;
-end;
-
 function TS4YStepProgressBar.GetMarkerSettings(const AState: TS4YStepState): TS4YStepMarkerSettings;
 begin
   case AState of
@@ -1417,18 +1527,6 @@ begin
   else
     Result := FPendingMarker;
   end;
-end;
-
-function TS4YStepProgressBar.GetMarkerStroke(const AState: TS4YStepState): TStrokeBrush;
-var
-  LSettings: TS4YStepMarkerSettings;
-begin
-  LSettings := GetMarkerSettings(AState);
-
-  if (smbStroke in LSettings.StyledBrushes) and Assigned(FStyleMarkers[AState]) then
-    Result := FStyleMarkers[AState].Stroke
-  else
-    Result := LSettings.Stroke;
 end;
 
 function TS4YStepProgressBar.GetStepCount: Integer;
@@ -1593,6 +1691,7 @@ begin
   if LStepCount = 0 then
     Exit;
 
+  EnsureParts;
   DrawLine(LStepCount);
 
   for var LIndex := 0 to LStepCount - 1 do
@@ -1788,6 +1887,8 @@ end;
 
 procedure TS4YStepProgressBar.SettingsChanged(Sender: TObject);
 begin
+  // The brushes of the properties are applied to the parts when they are prepared again.
+  FreeParts;
   Repaint;
 end;
 

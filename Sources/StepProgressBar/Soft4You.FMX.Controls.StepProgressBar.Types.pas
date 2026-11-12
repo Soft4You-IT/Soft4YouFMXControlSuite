@@ -134,6 +134,17 @@ type
   TS4YStepDrawMarkerEvent = procedure(Sender: TObject; const ACanvas: TCanvas; const ARect: TRectF;
     const AStepIndex: Integer; const AState: TS4YStepState; var Handled: Boolean) of object;
 
+  /// <summary>
+  /// Event fired before a stretch of the line of a TS4YStepProgressBar is drawn.
+  /// </summary>
+  /// <remarks>
+  /// The line is drawn as one stretch between each pair of consecutive steps; ARect is the area of the stretch, LineThickness thick, and AFromStep the index of the step where it starts.
+  /// Completed is True for a stretch covered by the progress. While the line fills, the stretch it is crossing is drawn in two parts, one completed and one not, with the same AFromStep.
+  /// Setting Handled to True means the stretch has been drawn by the event, and the control does not draw it.
+  /// </remarks>
+  TS4YStepDrawLineEvent = procedure(Sender: TObject; const ACanvas: TCanvas; const ARect: TRectF;
+    const AFromStep: Integer; const Completed: Boolean; var Handled: Boolean) of object;
+
 implementation
 
 end.
