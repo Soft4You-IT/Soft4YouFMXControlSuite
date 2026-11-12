@@ -23,6 +23,8 @@ Add the folder `Sources\Expander` (and `Sources\Badge`) to the Delphi library pa
 
 The style resource is linked into the package (`{$R *.win.res}` or `{$R *.mac.res}` in the unit), so the control looks the same without any other file. The packages compile it from the `.rc` file into the folder `Resources`, which your projects need in the library path. The style has the elements the control looks for by name: `header` (the clickable header), `icon` (a `TGlyph` for the icon) and `badge` (a `TS4YBadge`). With another `StyleLookup` the control uses that style instead, and the elements that it does not have are simply not shown.
 
+The expander uses the style named by `StyleLookup` or, when it is empty or no style has that name, the one named `S4YExpanderStyle`, looked for in the `TStyleBook` of the form and in the active style; it never takes the style of `TExpander`. The style linked into the package is used when none of them has it. To change the look of all the expanders of an application, add to a style book a style named `S4YExpanderStyle`: the default style, `Sources\Expander\Soft4You.FMX.Controls.Expander.Win.style`, can be used as a model.
+
 ## What it adds to TExpander
 
 | Property | Default | Meaning |

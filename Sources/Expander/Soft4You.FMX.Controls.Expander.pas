@@ -168,7 +168,7 @@ type
       ANewWidth, ANewHeight: Single; var ALastWidth, ALastHeight: Single): Boolean; override;
     /// <summary>Releases the parts of the style found by ApplyStyle.</summary>
     procedure FreeStyle; override;
-    /// <summary>Returns the style of the expander: the default style of the control when StyleLookup is empty.</summary>
+    /// <summary>Returns the style of the expander: the one named by StyleLookup or, when it is empty or not found, the one named S4YExpanderStyle in the style book or in the active style; else the default style linked into the package.</summary>
     function GetStyleObject: TFmxObject; override;
     /// <summary>Called when the image list or the image index change: it refreshes the icon. A descendant can override it.</summary>
     procedure ImagesChanged; virtual;
@@ -422,16 +422,14 @@ begin
 end;
 
 function TS4YExpander.GetStyleObject: TFmxObject;
-var
-  LStyle: String;
 begin
-  if (StyleLookup = '') then
-  begin
-    LStyle := GetDefaultStyleLookupName;
-    Result := TStyleStreaming.LoadFromResource(HInstance, LStyle, RT_RCDATA)
-  end
-  else
-    Result := inherited GetStyleObject;
+  // The style named by StyleLookup or, when it is empty, the one named after the class, in the
+  // style book or in the active style; never the style of the parent class.
+  Result := LookupStyleObject(Self, GetStyleContext, Scene, StyleLookup, GetDefaultStyleLookupName, '', True);
+
+  // The style linked into the package is used when no other style is found.
+  if not Assigned(Result) then
+    Result := TStyleStreaming.LoadFromResource(HInstance, GetDefaultStyleLookupName, RT_RCDATA);
 end;
 
 function TS4YExpander.GetImageIndex: TImageIndex;

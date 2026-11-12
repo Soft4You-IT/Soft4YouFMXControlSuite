@@ -291,7 +291,7 @@ type
     procedure FreeStyle; override;
     /// <summary>Returns the size of a new badge: 16 x 16.</summary>
     function GetDefaultSize: TSizeF; override;
-    /// <summary>Returns the style of the badge: the default style of the control when StyleLookup is empty.</summary>
+    /// <summary>Returns the style of the badge: the one named by StyleLookup or, when it is empty or not found, the one named S4YBadgeStyle in the style book or in the active style; else the default style linked into the package.</summary>
     function GetStyleObject: TFmxObject; override;
     /// <summary>Returns the class used for the text settings. A descendant can override it to change the defaults of the font and of the alignment.</summary>
     function GetTextSettingsClass: TTextSettingsInfo.TCustomTextSettingsClass; virtual;
@@ -683,16 +683,14 @@ begin
 end;
 
 function TS4YBadge.GetStyleObject: TFmxObject;
-var
-  LStyle: String;
 begin
-  if (StyleLookup = '') then
-  begin
-    LStyle := GetDefaultStyleLookupName;
-    Result := TStyleStreaming.LoadFromResource(HInstance, LStyle, RT_RCDATA)
-  end
-  else
-    Result := inherited GetStyleObject;
+  // The style named by StyleLookup or, when it is empty, the one named after the class, in the
+  // style book or in the active style; never the style of the parent class.
+  Result := LookupStyleObject(Self, GetStyleContext, Scene, StyleLookup, GetDefaultStyleLookupName, '', True);
+
+  // The style linked into the package is used when no other style is found.
+  if not Assigned(Result) then
+    Result := TStyleStreaming.LoadFromResource(HInstance, GetDefaultStyleLookupName, RT_RCDATA);
 end;
 
 function TS4YBadge.GetTextSettings: TTextSettings;
