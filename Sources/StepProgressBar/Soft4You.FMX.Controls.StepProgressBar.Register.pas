@@ -38,6 +38,7 @@ begin
   // into the .res from StepProgressBarDesign.rc.
   RegisterComponents('Soft4You FMX Controls Suite', [TS4YStepProgressBar]);
   RegisterPropertyEditor(TypeInfo(TS4YStepList), TS4YStepProgressBar, C_STEPS_PROPERTY, TS4YStepListProperty);
+  RegisterComponentEditor(TS4YStepProgressBar, TS4YStepProgressBarEditor);
 end;
 
 end.

@@ -31,6 +31,22 @@ type
     function GetAttributes: TPropertyAttributes; override;
   end;
 
+  /// <summary>
+  /// Component editor of TS4YStepProgressBar: a double click on the control opens the editor of the steps.
+  /// </summary>
+  /// <remarks>
+  /// The context menu of the control has the same command, Edit Steps.
+  /// </remarks>
+  TS4YStepProgressBarEditor = class(TComponentEditor)
+  public
+    /// <summary>Opens the editor of the steps.</summary>
+    procedure ExecuteVerb(Index: Integer); override;
+    /// <summary>Returns the text of the command in the context menu.</summary>
+    function GetVerb(Index: Integer): string; override;
+    /// <summary>Returns 1: the command Edit Steps.</summary>
+    function GetVerbCount: Integer; override;
+  end;
+
 implementation
 
 uses
@@ -93,6 +109,9 @@ const
   C_EDITOR_HEIGHT = 320;
   C_BUTTON_PANEL_WIDTH = 110;
   C_MARGIN = 6;
+  // Commands of the component editor; the first one also runs on a double click.
+  C_EDIT_STEPS_VERB = 0;
+  C_VERB_COUNT = 1;
 
 { TS4YStepListEditor }
 
@@ -349,6 +368,27 @@ end;
 function TS4YStepListProperty.GetAttributes: TPropertyAttributes;
 begin
   Result := [paDialog, paReadOnly];
+end;
+
+{ TS4YStepProgressBarEditor }
+
+procedure TS4YStepProgressBarEditor.ExecuteVerb(Index: Integer);
+begin
+  if Index = C_EDIT_STEPS_VERB then
+    TS4YStepListEditor.ShowEditor(Designer, Component as TS4YStepProgressBar);
+end;
+
+function TS4YStepProgressBarEditor.GetVerb(Index: Integer): string;
+begin
+  if Index = C_EDIT_STEPS_VERB then
+    Result := S_STEP_EDITOR_VERB
+  else
+    Result := '';
+end;
+
+function TS4YStepProgressBarEditor.GetVerbCount: Integer;
+begin
+  Result := C_VERB_COUNT;
 end;
 
 end.

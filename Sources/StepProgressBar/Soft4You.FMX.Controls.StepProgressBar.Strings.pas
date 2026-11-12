@@ -31,6 +31,8 @@ resourcestring
   S_STEP_EDITOR_DELETE = '&Delete';
   S_STEP_EDITOR_MOVE_UP = 'Move &up';
   S_STEP_EDITOR_MOVE_DOWN = 'Move dow&n';
+  // Command of the context menu of the control in the form designer.
+  S_STEP_EDITOR_VERB = 'Edit Steps...';
 
 implementation
 

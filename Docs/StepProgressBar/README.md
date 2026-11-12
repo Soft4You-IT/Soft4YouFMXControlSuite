@@ -274,7 +274,7 @@ begin
 end;
 ```
 
-In the designer, drop a `TS4YStepProgressBar` on the form and click the button of `Steps` in the Object Inspector: the editor of the steps lists them, and the selected step is shown in the Object Inspector. The buttons *Add*, *Insert*, *Delete*, *Move up* and *Move down* work on the steps between the first and the last one; *Insert* puts the new step in place of the selected one.
+In the designer, drop a `TS4YStepProgressBar` on the form and double-click it, or choose *Edit Steps...* in its context menu, or click the button of `Steps` in the Object Inspector: the editor of the steps lists them, and the selected step is shown in the Object Inspector. The buttons *Add*, *Insert*, *Delete*, *Move up* and *Move down* work on the steps between the first and the last one; *Insert* puts the new step in place of the selected one.
 
 ## Demo
 
