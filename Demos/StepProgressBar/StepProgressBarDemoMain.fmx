@@ -2,7 +2,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
   Left = 0
   Top = 0
   Caption = 'TS4YStepProgressBar demo'
-  ClientHeight = 830
+  ClientHeight = 860
   ClientWidth = 860
   Position = ScreenCenter
   FormFactor.Width = 320
@@ -71,7 +71,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       TabOrder = 2
     end
     object WizardBar: TS4YStepProgressBar
-      Interactions = [stiClickMarker, stiClickLabel, stiHandCursor, stiKeyboard]
+      Interactions = [stiClickMarker, stiClickLabel, stiHandCursor, stiKeyboard, stiHover]
       Orientation = Vertical
       Position.X = 20.000000000000000000
       Position.Y = 192.000000000000000000
@@ -251,6 +251,21 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Text = 'stiKeyboard'
       OnChange = InteractionCheckBoxChange
     end
+    object HoverCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 302.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 9
+      Text = 'stiHover'
+      OnChange = InteractionCheckBoxChange
+    end
     object AllBarsSettingsLabel: TLabel
       Align = Top
       Margins.Left = 12.000000000000000000
@@ -262,7 +277,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.Height = 20.000000000000000000
       Size.PlatformDefault = False
       Text = 'Both bars'
-      TabOrder = 9
+      TabOrder = 10
     end
     object HighlightProgressCheckBox: TCheckBox
       Align = Top
@@ -275,7 +290,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.Width = 256.000000000000000000
       Size.Height = 22.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 10
+      TabOrder = 11
       Text = 'HighlightProgress'
       OnChange = HighlightProgressCheckBoxChange
     end
@@ -290,7 +305,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.Width = 256.000000000000000000
       Size.Height = 22.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 11
+      TabOrder = 12
       Text = 'Animation (AnimationDuration 0.3 s)'
       OnChange = AnimatedCheckBoxChange
     end
@@ -305,7 +320,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.Width = 256.000000000000000000
       Size.Height = 22.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 12
+      TabOrder = 13
       Text = 'Numbers in the markers'
       OnChange = NumbersCheckBoxChange
     end
@@ -320,7 +335,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.Height = 20.000000000000000000
       Size.PlatformDefault = False
       Text = 'LabelPosition'
-      TabOrder = 13
+      TabOrder = 14
     end
     object LabelPositionComboBox: TComboBox
       Align = Top
@@ -336,7 +351,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.Width = 256.000000000000000000
       Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 14
+      TabOrder = 15
       OnChange = LabelPositionComboBoxChange
     end
     object LineVisibleCheckBox: TCheckBox
@@ -350,7 +365,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.Width = 256.000000000000000000
       Size.Height = 22.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 15
+      TabOrder = 16
       Text = 'Line.Visible'
       OnChange = LineVisibleCheckBoxChange
     end
@@ -365,7 +380,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.Height = 20.000000000000000000
       Size.PlatformDefault = False
       Text = 'MarkerPosition'
-      TabOrder = 16
+      TabOrder = 17
     end
     object MarkerPositionComboBox: TComboBox
       Align = Top
@@ -381,7 +396,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.Width = 256.000000000000000000
       Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 17
+      TabOrder = 18
       OnChange = MarkerPositionComboBoxChange
     end
     object MarkerSizeLabel: TLabel
@@ -395,7 +410,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.Height = 20.000000000000000000
       Size.PlatformDefault = False
       Text = 'MarkerSize'
-      TabOrder = 18
+      TabOrder = 19
     end
     object MarkerSizeComboBox: TComboBox
       Align = Top
@@ -412,7 +427,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.Width = 256.000000000000000000
       Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 19
+      TabOrder = 20
       OnChange = MarkerSizeComboBoxChange
     end
     object StateSizesCheckBox: TCheckBox
@@ -425,7 +440,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.Width = 256.000000000000000000
       Size.Height = 22.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 20
+      TabOrder = 21
       Text = 'Pending markers 16, current marker 36'
       OnChange = StateSizesCheckBoxChange
     end
@@ -440,12 +455,12 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.Height = 20.000000000000000000
       Size.PlatformDefault = False
       Text = 'LineSpacing'
-      TabOrder = 21
+      TabOrder = 22
     end
     object LineSpacingSpinBox: TSpinBox
       Touch.InteractiveGestures = [LongTap, DoubleTap]
       Align = Top
-      TabOrder = 22
+      TabOrder = 23
       Cursor = crIBeam
       Min = -20.000000000000000000
       Max = 30.000000000000000000
@@ -469,12 +484,12 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.Height = 20.000000000000000000
       Size.PlatformDefault = False
       Text = 'LabelSpacing'
-      TabOrder = 23
+      TabOrder = 24
     end
     object LabelSpacingSpinBox: TSpinBox
       Touch.InteractiveGestures = [LongTap, DoubleTap]
       Align = Top
-      TabOrder = 24
+      TabOrder = 25
       Cursor = crIBeam
       Min = -20.000000000000000000
       Max = 30.000000000000000000
@@ -500,7 +515,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.PlatformDefault = False
       TextSettings.VertAlign = Leading
       Text = 'Step 2 of 5: Download'
-      TabOrder = 25
+      TabOrder = 26
     end
   end
 end

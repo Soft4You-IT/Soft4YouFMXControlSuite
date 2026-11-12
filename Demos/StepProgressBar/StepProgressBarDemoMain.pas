@@ -36,6 +36,7 @@ type
     ClickLabelCheckBox: TCheckBox;
     HandCursorCheckBox: TCheckBox;
     KeyboardCheckBox: TCheckBox;
+    HoverCheckBox: TCheckBox;
     AllBarsSettingsLabel: TLabel;
     HighlightProgressCheckBox: TCheckBox;
     AnimatedCheckBox: TCheckBox;
@@ -145,6 +146,9 @@ begin
 
   if KeyboardCheckBox.IsChecked then
     Include(LInteractions, stiKeyboard);
+
+  if HoverCheckBox.IsChecked then
+    Include(LInteractions, stiHover);
 
   WizardBar.Interactions := LInteractions;
 end;
