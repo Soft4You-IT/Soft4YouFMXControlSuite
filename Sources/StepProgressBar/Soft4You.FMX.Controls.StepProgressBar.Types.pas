@@ -142,7 +142,7 @@ type
   /// Event fired before a marker of a TS4YStepProgressBar is drawn.
   /// </summary>
   /// <remarks>
-  /// ARect is the area of the marker, MarkerSize.Width x MarkerSize.Height, AStepIndex the index of the step and AState the state it is drawn in.
+  /// ARect is the area of the marker, as large as the size of the markers in AState, AStepIndex the index of the step and AState the state it is drawn in.
   /// Setting Handled to True means the marker has been drawn by the event, and the control does not draw it.
   /// </remarks>
   TS4YStepDrawMarkerEvent = procedure(Sender: TObject; const ACanvas: TCanvas; const ARect: TRectF;
@@ -153,7 +153,7 @@ type
   /// </summary>
   /// <remarks>
   /// The line is drawn as one stretch between each pair of consecutive steps; ARect is the area of the stretch, LineThickness thick, and AFromStep the index of the step where it starts.
-  /// With MarkerPosition = smpCenter a stretch goes from the edge of a marker to the edge of the next one, LineSpacing away from both; with the markers beside the line it goes from the center of a step to the center of the next one.
+  /// With MarkerPosition = smpCenter a stretch goes from the edge of a marker to the edge of the next one, each with the size of its state, LineSpacing away from both; with the markers beside the line it goes from the center of a step to the center of the next one.
   /// Completed is True for a stretch covered by the progress. While the line fills, the stretch it is crossing is drawn in two parts, one completed and one not, with the same AFromStep.
   /// Setting Handled to True means the stretch has been drawn by the event, and the control does not draw it.
   /// </remarks>

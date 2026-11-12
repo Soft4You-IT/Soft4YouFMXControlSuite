@@ -3,7 +3,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
   Top = 0
   Caption = 'TS4YStepProgressBar demo'
   Position = ScreenCenter
-  ClientHeight = 800
+  ClientHeight = 830
   ClientWidth = 860
   FormFactor.Width = 320
   FormFactor.Height = 480
@@ -12,7 +12,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
   object DemoLayout: TLayout
     Align = Client
     Size.Width = 580.000000000000000000
-    Size.Height = 800.000000000000000000
+    Size.Height = 830.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
     object InstallTitleLabel: TLabel
@@ -105,7 +105,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
     Align = Right
     Position.X = 580.000000000000000000
     Size.Width = 280.000000000000000000
-    Size.Height = 800.000000000000000000
+    Size.Height = 830.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
     object InstallSettingsLabel: TLabel
@@ -400,6 +400,20 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       TabOrder = 19
       OnChange = MarkerSizeComboBoxChange
     end
+    object StateSizesCheckBox: TCheckBox
+      Align = Top
+      Text = 'Pending markers 16, current marker 36'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 626.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 20
+      OnChange = StateSizesCheckBoxChange
+    end
     object LineSpacingLabel: TLabel
       Align = Top
       Text = 'LineSpacing'
@@ -407,23 +421,23 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Margins.Top = 8.000000000000000000
       Margins.Right = 12.000000000000000000
       Position.X = 12.000000000000000000
-      Position.Y = 626.000000000000000000
+      Position.Y = 656.000000000000000000
       Size.Width = 256.000000000000000000
       Size.Height = 20.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 20
+      TabOrder = 21
     end
     object LineSpacingSpinBox: TSpinBox
       Touch.InteractiveGestures = [LongTap, DoubleTap]
       Align = Top
-      TabOrder = 21
+      TabOrder = 22
       Cursor = crIBeam
       Min = -20.000000000000000000
       Max = 30.000000000000000000
       Margins.Left = 12.000000000000000000
       Margins.Right = 12.000000000000000000
       Position.X = 12.000000000000000000
-      Position.Y = 646.000000000000000000
+      Position.Y = 676.000000000000000000
       Size.Width = 256.000000000000000000
       Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
@@ -436,16 +450,16 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Margins.Top = 8.000000000000000000
       Margins.Right = 12.000000000000000000
       Position.X = 12.000000000000000000
-      Position.Y = 682.000000000000000000
+      Position.Y = 712.000000000000000000
       Size.Width = 256.000000000000000000
       Size.Height = 20.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 22
+      TabOrder = 23
     end
     object LabelSpacingSpinBox: TSpinBox
       Touch.InteractiveGestures = [LongTap, DoubleTap]
       Align = Top
-      TabOrder = 23
+      TabOrder = 24
       Cursor = crIBeam
       Min = -20.000000000000000000
       Max = 30.000000000000000000
@@ -453,7 +467,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Margins.Left = 12.000000000000000000
       Margins.Right = 12.000000000000000000
       Position.X = 12.000000000000000000
-      Position.Y = 702.000000000000000000
+      Position.Y = 732.000000000000000000
       Size.Width = 256.000000000000000000
       Size.Height = 28.000000000000000000
       Size.PlatformDefault = False
@@ -467,11 +481,11 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Margins.Top = 16.000000000000000000
       Margins.Right = 12.000000000000000000
       Position.X = 12.000000000000000000
-      Position.Y = 746.000000000000000000
+      Position.Y = 776.000000000000000000
       Size.Width = 256.000000000000000000
       Size.Height = 40.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 24
+      TabOrder = 25
     end
   end
 end

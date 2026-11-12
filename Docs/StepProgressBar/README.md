@@ -44,7 +44,7 @@ Add the folder `Sources\StepProgressBar` to the Delphi library path to compile y
 | `LabelPosition` | `slpAfter` | Side of the markers and the line with the captions and the descriptions: `slpBefore` (above a horizontal line, on the left of a vertical one), `slpAfter` (below, on the right) or `slpNone` (hidden) |
 | `LabelSpacing` | 6 | Space between the labels and the markers (or the line, when it is between them), in pixels |
 | `MarkerPosition` | `smpCenter` | Where the markers are compared to the line: `smpCenter` (on the line), `smpBefore` (above a horizontal line, on the left of a vertical one) or `smpAfter` (below, on the right) |
-| `MarkerSize` | 28 x 28 | `Width` and `Height` of the markers, in pixels, also when the line is vertical |
+| `MarkerSize` | 28 x 28 | `Width` and `Height` of the markers, in pixels, also when the line is vertical; the `Size` of the marker settings of a state can replace it (see [Markers](#markers)) |
 | `LineSpacing` | 0 | Space between the markers and the line, in pixels (see [Layout](#layout)); a negative value makes the line go under the markers |
 | `LineThickness` | 3 | Thickness of the line, in pixels |
 | `HighlightProgress` | `True` | Draws the line up to the current step with the completed brush; with `False` the whole line has the pending brush and only the markers show the progress |
@@ -115,10 +115,22 @@ The four properties `CompletedMarker`, `CurrentMarker`, `PendingMarker` and `Fai
 |---|---|---|
 | `Content` | `smcNumber` | What is drawn over the marker: `smcNone`, `smcNumber` (the number of the step, from 1) or `smcImage` |
 | `ImageIndex` | -1 | Image of `Images` shown when `Content = smcImage`; with -1 each step shows its own `ImageIndex` |
+| `Size` | 0 x 0 | `Width` and `Height` of the markers in this state, in pixels; a value of 0 takes the width or the height of `MarkerSize` of the control |
 | `Fill`, `Stroke` | the colors of the default style | Fill and border used in place of the ones of the part of the style, when that part is a shape (`TCircle`, `TRectangle`, `TPath`, ...); a part made of several objects is drawn as the style defines it |
 | `StyledBrushes` | `[smbFill, smbStroke]` | Which of the two brushes come from the style; changing `Fill` or `Stroke` switches the matching one off |
 
-For example a check mark on all the completed steps:
+The markers of all the states are centered on the same axis, and the band of the markers and the line is as thick as the largest of them: the line and the labels do not move when a step changes state. For example smaller markers for the steps still to reach and a larger one for the current step:
+
+```delphi
+StepBar.PendingMarker.Size.Width := 16;
+StepBar.PendingMarker.Size.Height := 16;
+StepBar.CurrentMarker.Size.Width := 36;
+StepBar.CurrentMarker.Size.Height := 36;
+```
+
+A step changes size at once when it changes state, for example when the line reaches it.
+
+A check mark on all the completed steps:
 
 ```delphi
 StepBar.Images := ImageList;
@@ -176,7 +188,7 @@ The look of the control comes from a style named `S4YStepProgressBarStyle`. The 
 | `completedlabel`, `currentlabel`, `pendinglabel`, `failedlabel` | `TText` | Font and color of the captions |
 | `description` | `TText` | Font and color of the descriptions |
 
-The graphic parts (line, markers and focus frame) can be **any graphic object**: a `TCircle`, a `TRectangle` with rounded corners, a `TPath` with a shape of its own, a `TLine` with a dashed border, a `TImage`, or a `TLayout` with several objects inside, for example a square with a check mark. The control draws a copy of the part as it is, resized to the area of the marker (`MarkerSize.Width` x `MarkerSize.Height`), of the stretch of line (`LineThickness` thick, as long as described in [Layout](#layout)) or of the focus frame; the objects inside the part follow their `Align`, `Margins` and `Anchors`. The number or the image of `Content` is drawn over the marker.
+The graphic parts (line, markers and focus frame) can be **any graphic object**: a `TCircle`, a `TRectangle` with rounded corners, a `TPath` with a shape of its own, a `TLine` with a dashed border, a `TImage`, or a `TLayout` with several objects inside, for example a square with a check mark. The control draws a copy of the part as it is, resized to the area of the marker (the size of its state, see [Markers](#markers)), of the stretch of line (`LineThickness` thick, as long as described in [Layout](#layout)) or of the focus frame; the objects inside the part follow their `Align`, `Margins` and `Anchors`. The number or the image of `Content` is drawn over the marker.
 
 The size of the parts in the style does not matter: the geometry is given by the properties of the control. A part keeps the proportions only if its class does: in markers wider than tall, a `TEllipse` (the default) becomes an oval that fills the area, while a `TCircle` stays a circle as large as the shorter side, centered in the area. With `smpCenter` the line stops at the edges of the area of the markers, so a marker with a transparent center does not show the line through it, unless `LineSpacing` is negative.
 
@@ -221,7 +233,7 @@ In the designer, drop a `TS4YStepProgressBar` on the form and add the steps with
 
 ## Demo
 
-`Demos\StepProgressBar\S4YStepProgressBarDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows two step bars: a horizontal one for an installation, moved by the buttons *Next* and *Previous*, where the current step can be marked as failed; and a vertical one for a wizard, with all the `Interactions`, where a click or the keyboard selects a step and `OnStepChanging` does not allow skipping a step forward. The panel on the right switches each interaction of the wizard on and off, and changes `HighlightProgress`, the animation, the numbers in the markers, `LabelPosition`, `Line.Visible`, `MarkerPosition`, `MarkerSize`, `LineSpacing` and `LabelSpacing` of both bars. Install the suite packages first.
+`Demos\StepProgressBar\S4YStepProgressBarDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows two step bars: a horizontal one for an installation, moved by the buttons *Next* and *Previous*, where the current step can be marked as failed; and a vertical one for a wizard, with all the `Interactions`, where a click or the keyboard selects a step and `OnStepChanging` does not allow skipping a step forward. The panel on the right switches each interaction of the wizard on and off, and changes `HighlightProgress`, the animation, the numbers in the markers, `LabelPosition`, `Line.Visible`, `MarkerPosition`, `MarkerSize`, the size of the pending and current markers, `LineSpacing` and `LabelSpacing` of both bars. Install the suite packages first.
 
 ## Notes
 

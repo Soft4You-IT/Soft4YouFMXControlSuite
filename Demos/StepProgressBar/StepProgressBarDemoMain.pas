@@ -46,6 +46,7 @@ type
     MarkerPositionComboBox: TComboBox;
     MarkerSizeLabel: TLabel;
     MarkerSizeComboBox: TComboBox;
+    StateSizesCheckBox: TCheckBox;
     LineSpacingLabel: TLabel;
     LineSpacingSpinBox: TSpinBox;
     LabelSpacingLabel: TLabel;
@@ -64,10 +65,12 @@ type
     procedure NumbersCheckBoxChange(Sender: TObject);
     procedure PreviousButtonClick(Sender: TObject);
     procedure SpacingSpinBoxChange(Sender: TObject);
+    procedure StateSizesCheckBoxChange(Sender: TObject);
     procedure WizardBarStepChanged(Sender: TObject);
     procedure WizardBarStepChanging(Sender: TObject; const ANewStep: Integer; var Allow: Boolean);
   private
     procedure SetMarkersContent(const AProgressBar: TS4YStepProgressBar; const AContent: TS4YStepMarkerContent);
+    procedure SetStateSizes(const AProgressBar: TS4YStepProgressBar; const APendingSize, ACurrentSize: Single);
   end;
 
 var
@@ -87,6 +90,9 @@ const
   // Sizes of the items of MarkerSizeComboBox, in the same order.
   C_MARKER_WIDTHS: array[0..3] of Single = (28, 20, 36, 44);
   C_MARKER_HEIGHTS: array[0..3] of Single = (28, 20, 36, 24);
+  // Sizes of the pending and current markers with StateSizesCheckBox checked; 0 takes MarkerSize.
+  C_PENDING_MARKER_SIZE = 16;
+  C_CURRENT_MARKER_SIZE = 36;
 
 procedure TStepProgressBarDemoForm.AnimatedCheckBoxChange(Sender: TObject);
 var
@@ -209,12 +215,39 @@ begin
   AProgressBar.FailedMarker.Content := AContent;
 end;
 
+procedure TStepProgressBarDemoForm.SetStateSizes(const AProgressBar: TS4YStepProgressBar;
+  const APendingSize, ACurrentSize: Single);
+begin
+  AProgressBar.PendingMarker.Size.Width := APendingSize;
+  AProgressBar.PendingMarker.Size.Height := APendingSize;
+  AProgressBar.CurrentMarker.Size.Width := ACurrentSize;
+  AProgressBar.CurrentMarker.Size.Height := ACurrentSize;
+end;
+
 procedure TStepProgressBarDemoForm.SpacingSpinBoxChange(Sender: TObject);
 begin
   InstallBar.LineSpacing := LineSpacingSpinBox.Value;
   WizardBar.LineSpacing := LineSpacingSpinBox.Value;
   InstallBar.LabelSpacing := LabelSpacingSpinBox.Value;
   WizardBar.LabelSpacing := LabelSpacingSpinBox.Value;
+end;
+
+procedure TStepProgressBarDemoForm.StateSizesCheckBoxChange(Sender: TObject);
+var
+  LPendingSize: Single;
+  LCurrentSize: Single;
+begin
+  LPendingSize := 0;
+  LCurrentSize := 0;
+
+  if StateSizesCheckBox.IsChecked then
+  begin
+    LPendingSize := C_PENDING_MARKER_SIZE;
+    LCurrentSize := C_CURRENT_MARKER_SIZE;
+  end;
+
+  SetStateSizes(InstallBar, LPendingSize, LCurrentSize);
+  SetStateSizes(WizardBar, LPendingSize, LCurrentSize);
 end;
 
 procedure TStepProgressBarDemoForm.WizardBarStepChanged(Sender: TObject);

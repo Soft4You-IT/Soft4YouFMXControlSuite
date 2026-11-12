@@ -93,10 +93,43 @@ type
   end;
 
   /// <summary>
+  /// Width and height of the markers of a TS4YStepProgressBar.
+  /// </summary>
+  /// <remarks>
+  /// Width and Height are the sizes on the screen, also when the line is vertical.
+  /// </remarks>
+  TS4YStepMarkerSize = class(TPersistent)
+  private
+    FDefaultSize: Single;
+    FHeight: Single;
+    FWidth: Single;
+    FOnChange: TNotifyEvent;
+    procedure DoChange;
+    function HeightStored: Boolean;
+    procedure SetHeight(const Value: Single);
+    procedure SetWidth(const Value: Single);
+    function WidthStored: Boolean;
+  public
+    /// <summary>Creates the size; ADefaultSize is the initial value of Width and Height.</summary>
+    constructor Create(const ADefaultSize: Single);
+
+    /// <summary>Copies the width and the height from another TS4YStepMarkerSize.</summary>
+    procedure Assign(Source: TPersistent); override;
+
+    /// <summary>Fires when the width or the height changes.</summary>
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+  published
+    /// <summary>Height of the markers, in pixels.</summary>
+    property Height: Single read FHeight write SetHeight stored HeightStored nodefault;
+    /// <summary>Width of the markers, in pixels.</summary>
+    property Width: Single read FWidth write SetWidth stored WidthStored nodefault;
+  end;
+
+  /// <summary>
   /// How the markers of the steps in one state are drawn.
   /// </summary>
   /// <remarks>
-  /// The marker is the part of the style for its state. When that part is a shape, Fill or Stroke can replace its fill and its border (see StyledBrushes); a part made of several objects is drawn as the style defines it. Content says what is drawn inside the marker.
+  /// The marker is the part of the style for its state. When that part is a shape, Fill or Stroke can replace its fill and its border (see StyledBrushes); a part made of several objects is drawn as the style defines it. Content says what is drawn inside the marker, and Size can give the markers of the state a size of their own.
   /// </remarks>
   TS4YStepMarkerSettings = class(TPersistent)
   public const
@@ -104,6 +137,8 @@ type
     C_DEFAULT_CONTENT = smcNumber;
     /// <summary>Default value of ImageIndex: the image of the step.</summary>
     C_DEFAULT_IMAGE_INDEX = -1;
+    /// <summary>Default value of the width and the height of Size: the size of MarkerSize of the control.</summary>
+    C_DEFAULT_SIZE: Single = 0;
     /// <summary>Default value of StyledBrushes: both the fill and the border come from the style.</summary>
     C_DEFAULT_STYLED_BRUSHES: TS4YStepMarkerStyledBrushes = [smbFill, smbStroke];
   private
@@ -112,6 +147,7 @@ type
     FDefaultStrokeColor: TAlphaColor;
     FFill: TBrush;
     FImageIndex: TImageIndex;
+    FSize: TS4YStepMarkerSize;
     FStroke: TStrokeBrush;
     FStyledBrushes: TS4YStepMarkerStyledBrushes;
     FUpdating: Boolean;
@@ -121,8 +157,10 @@ type
     procedure SetContent(const Value: TS4YStepMarkerContent);
     procedure SetFill(const Value: TBrush);
     procedure SetImageIndex(const Value: TImageIndex);
+    procedure SetSize(const Value: TS4YStepMarkerSize);
     procedure SetStroke(const Value: TStrokeBrush);
     procedure SetStyledBrushes(const Value: TS4YStepMarkerStyledBrushes);
+    procedure SizeChanged(Sender: TObject);
     procedure StrokeChanged(Sender: TObject);
     function StyledBrushesStored: Boolean;
   public
@@ -142,6 +180,13 @@ type
     property Fill: TBrush read FFill write SetFill;
     /// <summary>Image drawn when Content is smcImage, in the Images list of the control. With -1, the default, each step shows its own ImageIndex.</summary>
     property ImageIndex: TImageIndex read FImageIndex write SetImageIndex default C_DEFAULT_IMAGE_INDEX;
+    /// <summary>
+    /// Width and height of the markers in this state, in pixels. A value of 0, the default, takes the width or the height of MarkerSize of the control.
+    /// </summary>
+    /// <remarks>
+    /// The markers of all the states are centered on the same axis, and the band of the markers and the line is as thick as the largest of them.
+    /// </remarks>
+    property Size: TS4YStepMarkerSize read FSize write SetSize;
     /// <summary>Border of the marker. Changing it makes the markers use it instead of the border of the style (see StyledBrushes).</summary>
     property Stroke: TStrokeBrush read FStroke write SetStroke;
     /// <summary>
@@ -219,41 +264,6 @@ type
   end;
 
   /// <summary>
-  /// Width and height of the markers of a TS4YStepProgressBar.
-  /// </summary>
-  /// <remarks>
-  /// Width and Height are the sizes on the screen, also when the line is vertical.
-  /// </remarks>
-  TS4YStepMarkerSize = class(TPersistent)
-  public const
-    /// <summary>Default value of Width and Height, in pixels.</summary>
-    C_DEFAULT_SIZE: Single = 28;
-  private
-    FHeight: Single;
-    FWidth: Single;
-    FOnChange: TNotifyEvent;
-    procedure DoChange;
-    function HeightStored: Boolean;
-    procedure SetHeight(const Value: Single);
-    procedure SetWidth(const Value: Single);
-    function WidthStored: Boolean;
-  public
-    /// <summary>Creates the size with the default width and height.</summary>
-    constructor Create;
-
-    /// <summary>Copies the width and the height from another TS4YStepMarkerSize.</summary>
-    procedure Assign(Source: TPersistent); override;
-
-    /// <summary>Fires when the width or the height changes.</summary>
-    property OnChange: TNotifyEvent read FOnChange write FOnChange;
-  published
-    /// <summary>Height of the markers, in pixels. The default is 28.</summary>
-    property Height: Single read FHeight write SetHeight stored HeightStored nodefault;
-    /// <summary>Width of the markers, in pixels. The default is 28.</summary>
-    property Width: Single read FWidth write SetWidth stored WidthStored nodefault;
-  end;
-
-  /// <summary>
   /// A progress indicator made of steps along a horizontal or vertical line, for example the phases of an installation.
   /// </summary>
   /// <remarks>
@@ -277,6 +287,8 @@ type
     C_DEFAULT_LINE_THICKNESS: Single = 3;
     /// <summary>Default value of MarkerPosition.</summary>
     C_DEFAULT_MARKER_POSITION = smpCenter;
+    /// <summary>Default value of the width and the height of MarkerSize, in pixels.</summary>
+    C_DEFAULT_MARKER_SIZE: Single = 28;
     /// <summary>Default value of Orientation.</summary>
     C_DEFAULT_ORIENTATION = TOrientation.Horizontal;
     /// <summary>Default fill and border color of the completed markers.</summary>
@@ -351,9 +363,10 @@ type
     function GetContentRect: TRectF;
     function GetLabelHorizontalAlign: TTextAlign;
     function GetLabelVerticalAlign: TTextAlign;
-    function GetMarkerAcrossLine: Single;
-    function GetMarkerAlongLine: Single;
+    function GetLargestMarkerAcrossLine: Single;
+    function GetMarkerAlongLine(const AState: TS4YStepState): Single;
     function GetMarkerSettings(const AState: TS4YStepState): TS4YStepMarkerSettings;
+    function GetMarkerSize(const AState: TS4YStepState): TSizeF;
     function GetStepCount: Integer;
     function GetStepState(const AStepIndex: Integer): TS4YStepState;
     function IsAnimating: Boolean;
@@ -488,7 +501,7 @@ type
     property Margins;
     /// <summary>Where the markers are drawn compared to the line: on it (smpCenter, the default), above or on its left (smpBefore), below or on its right (smpAfter).</summary>
     property MarkerPosition: TS4YStepMarkerPosition read FMarkerPosition write SetMarkerPosition default C_DEFAULT_MARKER_POSITION;
-    /// <summary>Width and height of the markers, in pixels. The default is 28 x 28.</summary>
+    /// <summary>Width and height of the markers, in pixels, for the states whose settings do not give a Size of their own. The default is 28 x 28.</summary>
     property MarkerSize: TS4YStepMarkerSize read FMarkerSize write SetMarkerSize;
     property Opacity;
     /// <summary>Direction of the line: horizontal, with the steps from left to right, or vertical, from top to bottom. The default is horizontal.</summary>
@@ -575,7 +588,7 @@ const
 
   // Space between a marker and the focus frame around it, in pixels.
   C_FOCUS_FRAME_SPACING = 3;
-  // Space between the border of a marker and its image, as a fraction of the width and the height of MarkerSize.
+  // Space between the border of a marker and its image, as a fraction of the width and the height of the marker.
   C_MARKER_IMAGE_MARGIN = 0.2;
   // Height given to a text while it is measured: large enough for any label.
   C_MEASURE_HEIGHT = 10000;
@@ -714,6 +727,8 @@ begin
   FFill := TBrush.Create(TBrushKind.Solid, ADefaultFillColor);
   FStroke := TStrokeBrush.Create(TBrushKind.Solid, ADefaultStrokeColor);
   FStyledBrushes := C_DEFAULT_STYLED_BRUSHES;
+  FSize := TS4YStepMarkerSize.Create(C_DEFAULT_SIZE);
+  FSize.OnChange := SizeChanged;
 
   // Assigned only now: the initial values above are not a customization of the brushes.
   FFill.OnChanged := FillChanged;
@@ -723,6 +738,7 @@ end;
 destructor TS4YStepMarkerSettings.Destroy;
 begin
   FFill.Free;
+  FSize.Free;
   FStroke.Free;
 
   inherited;
@@ -740,6 +756,7 @@ begin
       FContent := LSource.Content;
       FImageIndex := LSource.ImageIndex;
       FFill.Assign(LSource.Fill);
+      FSize.Assign(LSource.Size);
       FStroke.Assign(LSource.Stroke);
       FStyledBrushes := LSource.StyledBrushes;
     finally
@@ -791,6 +808,11 @@ begin
   DoChange;
 end;
 
+procedure TS4YStepMarkerSettings.SetSize(const Value: TS4YStepMarkerSize);
+begin
+  FSize.Assign(Value);
+end;
+
 procedure TS4YStepMarkerSettings.SetStroke(const Value: TStrokeBrush);
 begin
   FStroke.Assign(Value);
@@ -802,6 +824,14 @@ begin
     Exit;
 
   FStyledBrushes := Value;
+  DoChange;
+end;
+
+procedure TS4YStepMarkerSettings.SizeChanged(Sender: TObject);
+begin
+  if FUpdating then
+    Exit;
+
   DoChange;
 end;
 
@@ -952,12 +982,13 @@ end;
 
 { TS4YStepMarkerSize }
 
-constructor TS4YStepMarkerSize.Create;
+constructor TS4YStepMarkerSize.Create(const ADefaultSize: Single);
 begin
   inherited Create;
 
-  FHeight := C_DEFAULT_SIZE;
-  FWidth := C_DEFAULT_SIZE;
+  FDefaultSize := ADefaultSize;
+  FHeight := ADefaultSize;
+  FWidth := ADefaultSize;
 end;
 
 procedure TS4YStepMarkerSize.Assign(Source: TPersistent);
@@ -980,7 +1011,7 @@ end;
 
 function TS4YStepMarkerSize.HeightStored: Boolean;
 begin
-  Result := not SameValue(FHeight, C_DEFAULT_SIZE);
+  Result := not SameValue(FHeight, FDefaultSize);
 end;
 
 procedure TS4YStepMarkerSize.SetHeight(const Value: Single);
@@ -1003,7 +1034,7 @@ end;
 
 function TS4YStepMarkerSize.WidthStored: Boolean;
 begin
-  Result := not SameValue(FWidth, C_DEFAULT_SIZE);
+  Result := not SameValue(FWidth, FDefaultSize);
 end;
 
 { TS4YStepProgressBar }
@@ -1038,7 +1069,7 @@ begin
   FLine := TS4YStepLineSettings.Create;
   FLine.OnChange := SettingsChanged;
 
-  FMarkerSize := TS4YStepMarkerSize.Create;
+  FMarkerSize := TS4YStepMarkerSize.Create(C_DEFAULT_MARKER_SIZE);
   FMarkerSize.OnChange := SizeChanged;
 
   FDefaultFont := TFont.Create;
@@ -1203,12 +1234,14 @@ end;
 function TS4YStepProgressBar.CalculateMarkerRect(const AStepIndex, AStepCount: Integer): TRectF;
 var
   LCenter: TPointF;
+  LSize: TSizeF;
   LHalfWidth: Single;
   LHalfHeight: Single;
 begin
   LCenter := CalculateMarkerCenter(AStepIndex, AStepCount);
-  LHalfWidth := FMarkerSize.Width / 2;
-  LHalfHeight := FMarkerSize.Height / 2;
+  LSize := GetMarkerSize(GetStepState(AStepIndex));
+  LHalfWidth := LSize.Width / 2;
+  LHalfHeight := LSize.Height / 2;
   Result := TRectF.Create(LCenter.X - LHalfWidth, LCenter.Y - LHalfHeight, LCenter.X + LHalfWidth, LCenter.Y + LHalfHeight);
 end;
 
@@ -1249,7 +1282,9 @@ begin
     LContentEnd := LContentRect.Right;
   end;
 
-  LMarkerSize := GetMarkerAcrossLine;
+  // The largest marker of all the states, so that the line and the labels do not move when a step
+  // changes state.
+  LMarkerSize := GetLargestMarkerAcrossLine;
   LLineSize := 0;
 
   if FLine.Visible then
@@ -1425,7 +1460,6 @@ var
   LTo: Single;
   LSplit: Single;
   LProgress: Single;
-  LMarkerGap: Single;
   LTrackStart: Single;
   LTrackEnd: Single;
   LMarkerCenter: Single;
@@ -1444,18 +1478,19 @@ begin
 
   CalculateTrack(LTrackStart, LTrackEnd, LMarkerCenter, LLineCenter);
 
-  // On the line, the stretches stop at the markers, LineSpacing away; beside the line, they join
-  // the centers of the steps, so that the line is continuous.
-  if FMarkerPosition = smpCenter then
-    LMarkerGap := GetMarkerAlongLine / 2 + FLineSpacing
-  else
-    LMarkerGap := 0;
-
   // One stretch between each pair of steps, so that a style part repeats along the line.
   for var LFromStep := 0 to AStepCount - 2 do
   begin
-    LFrom := CalculateStepCenter(LFromStep, AStepCount) + LMarkerGap;
-    LTo := CalculateStepCenter(LFromStep + 1, AStepCount) - LMarkerGap;
+    LFrom := CalculateStepCenter(LFromStep, AStepCount);
+    LTo := CalculateStepCenter(LFromStep + 1, AStepCount);
+
+    // On the line, a stretch stops at the edges of its two markers, LineSpacing away; beside the
+    // line, it joins the centers of the steps, so that the line is continuous.
+    if FMarkerPosition = smpCenter then
+    begin
+      LFrom := LFrom + GetMarkerAlongLine(GetStepState(LFromStep)) / 2 + FLineSpacing;
+      LTo := LTo - GetMarkerAlongLine(GetStepState(LFromStep + 1)) / 2 - FLineSpacing;
+    end;
 
     if LFromStep + 1 <= LProgress then
       DrawLineStretch(LFromStep, LFrom, LTo, LLineCenter, True)
@@ -1535,7 +1570,7 @@ begin
       if Assigned(FImages) and (LImageIndex >= 0) then
       begin
         LImageRect := AMarkerRect;
-        LImageRect.Inflate(-FMarkerSize.Width * C_MARKER_IMAGE_MARGIN, -FMarkerSize.Height * C_MARKER_IMAGE_MARGIN);
+        LImageRect.Inflate(-AMarkerRect.Width * C_MARKER_IMAGE_MARGIN, -AMarkerRect.Height * C_MARKER_IMAGE_MARGIN);
         FImages.Draw(Canvas, LImageRect, LImageIndex, AbsoluteOpacity);
       end;
     end;
@@ -1744,20 +1779,33 @@ begin
     Result := TTextAlign.Leading;
 end;
 
-function TS4YStepProgressBar.GetMarkerAcrossLine: Single;
+function TS4YStepProgressBar.GetLargestMarkerAcrossLine: Single;
+var
+  LSize: TSizeF;
 begin
-  if FOrientation = TOrientation.Horizontal then
-    Result := FMarkerSize.Height
-  else
-    Result := FMarkerSize.Width;
+  Result := 0;
+
+  for var LState := Low(TS4YStepState) to High(TS4YStepState) do
+  begin
+    LSize := GetMarkerSize(LState);
+
+    if FOrientation = TOrientation.Horizontal then
+      Result := Max(Result, LSize.Height)
+    else
+      Result := Max(Result, LSize.Width);
+  end;
 end;
 
-function TS4YStepProgressBar.GetMarkerAlongLine: Single;
+function TS4YStepProgressBar.GetMarkerAlongLine(const AState: TS4YStepState): Single;
+var
+  LSize: TSizeF;
 begin
+  LSize := GetMarkerSize(AState);
+
   if FOrientation = TOrientation.Horizontal then
-    Result := FMarkerSize.Width
+    Result := LSize.Width
   else
-    Result := FMarkerSize.Height;
+    Result := LSize.Height;
 end;
 
 function TS4YStepProgressBar.GetMarkerSettings(const AState: TS4YStepState): TS4YStepMarkerSettings;
@@ -1772,6 +1820,21 @@ begin
   else
     Result := FPendingMarker;
   end;
+end;
+
+function TS4YStepProgressBar.GetMarkerSize(const AState: TS4YStepState): TSizeF;
+var
+  LSize: TS4YStepMarkerSize;
+begin
+  // A width or a height of 0 in the settings of the state takes the one of MarkerSize.
+  LSize := GetMarkerSettings(AState).Size;
+  Result := TSizeF.Create(FMarkerSize.Width, FMarkerSize.Height);
+
+  if LSize.Width > 0 then
+    Result.Width := LSize.Width;
+
+  if LSize.Height > 0 then
+    Result.Height := LSize.Height;
 end;
 
 function TS4YStepProgressBar.GetStepCount: Integer;
