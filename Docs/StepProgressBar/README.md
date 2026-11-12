@@ -272,7 +272,11 @@ In the designer, drop a `TS4YStepProgressBar` on the form and click the button o
 
 ## Demo
 
-`Demos\StepProgressBar\S4YStepProgressBarDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows two step bars: a horizontal one for an installation, moved by the buttons *Next* and *Previous*, where the current step can be marked as failed; and a vertical one for a wizard, with all the `Interactions`, where a click or the keyboard selects a step and `OnStepChanging` does not allow skipping a step forward. The panel on the left switches each interaction of the wizard on and off, and changes `HighlightProgress`, the animation, the numbers in the markers, `LabelPosition`, `Line.Visible`, `MarkerPosition`, `MarkerSize`, the size of the pending and current markers, `LineSpacing` and `LabelSpacing` of both bars. Install the suite packages first.
+`Demos\StepProgressBar\S4YStepProgressBarDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows two step bars: a horizontal one for an installation, moved by the buttons *Next* and *Previous*, where the current step can be marked as failed; and a vertical one for a wizard, with all the `Interactions`, where a click or the keyboard selects a step and `OnStepChanging` does not allow skipping a step forward. The panel on the left switches each interaction of the wizard on and off, and changes `HighlightProgress`, the animation, the numbers in the markers, `LabelPosition`, `Line.Visible`, `MarkerPosition`, `MarkerSize`, the size of the pending and current markers, `LineSpacing` and `LabelSpacing` of both bars.
+
+`Demos\StepProgressBar\S4YStepProgressBarGallery.dproj` (also in the project group) shows what the control can look like, one example per tab: the default style; a failed step; a vertical timeline with the markers beside the line; images in the markers; the dots of a sequence of pages; a size for each state; rounded squares and a dashed line from a style of a `TStyleBook`; a step with a look of its own; markers and line drawn in `OnDrawMarker` and `OnDrawLine`; the animation of the line, moved by a timer; and a style for a dark background. The styles `SquareStepStyle`, `ReviewStepStyle` and `DarkStepStyle` are in the style book of the form and can be used as models.
+
+Install the suite packages first.
 
 ## Notes
 

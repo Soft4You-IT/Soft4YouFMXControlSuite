@@ -147,7 +147,7 @@ type
   /// Event fired before a marker of a TS4YStepProgressBar is drawn.
   /// </summary>
   /// <remarks>
-  /// ARect is the area of the marker, as large as the size of the markers in AState, AStepIndex the index of the step and AState the state it is drawn in.
+  /// ARect is the area of the marker, as large as the size of the marker of the step in AState, AStepIndex the index of the step and AState the state it is drawn in.
   /// Setting Handled to True means the marker has been drawn by the event, and the control does not draw it.
   /// </remarks>
   TS4YStepDrawMarkerEvent = procedure(Sender: TObject; const ACanvas: TCanvas; const ARect: TRectF;
