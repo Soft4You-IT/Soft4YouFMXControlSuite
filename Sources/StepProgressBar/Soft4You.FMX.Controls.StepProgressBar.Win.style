@@ -1,0 +1,184 @@
+object TLayout
+  StyleName = 'S4YStepProgressBarStyle'
+  Align = Contents
+  HitTest = False
+  object TRectangle
+    StyleName = 'linecompleted'
+    Fill.Color = xFF1E88E5
+    HitTest = False
+    Stroke.Kind = None
+    Visible = False
+  end
+  object TRectangle
+    StyleName = 'linepending'
+    Fill.Color = xFFE0E0E0
+    HitTest = False
+    Stroke.Kind = None
+    Visible = False
+  end
+  object TEllipse
+    StyleName = 'completedmarker'
+    Fill.Color = xFF1E88E5
+    HitTest = False
+    Stroke.Color = xFF1E88E5
+    Stroke.Thickness = 2.000000000000000000
+    Visible = False
+  end
+  object TEllipse
+    StyleName = 'currentmarker'
+    Fill.Color = claWhite
+    HitTest = False
+    Stroke.Color = xFF1E88E5
+    Stroke.Thickness = 2.000000000000000000
+    Visible = False
+  end
+  object TEllipse
+    StyleName = 'pendingmarker'
+    Fill.Color = claWhite
+    HitTest = False
+    Stroke.Color = xFFBDBDBD
+    Stroke.Thickness = 2.000000000000000000
+    Visible = False
+  end
+  object TEllipse
+    StyleName = 'failedmarker'
+    Fill.Color = xFFE53935
+    HitTest = False
+    Stroke.Color = xFFE53935
+    Stroke.Thickness = 2.000000000000000000
+    Visible = False
+  end
+  object TText
+    StyleName = 'completedtext'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.Font.Style = [fsBold]
+    TextSettings.FontColor = claWhite
+    Visible = False
+  end
+  object TText
+    StyleName = 'currenttext'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.Font.Style = [fsBold]
+    TextSettings.FontColor = xFF1E88E5
+    Visible = False
+  end
+  object TText
+    StyleName = 'pendingtext'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.Font.Style = [fsBold]
+    TextSettings.FontColor = xFF9E9E9E
+    Visible = False
+  end
+  object TText
+    StyleName = 'failedtext'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.Font.Style = [fsBold]
+    TextSettings.FontColor = claWhite
+    Visible = False
+  end
+  object TText
+    StyleName = 'completedlabel'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.FontColor = xFF424242
+    Visible = False
+  end
+  object TText
+    StyleName = 'currentlabel'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.Font.Style = [fsBold]
+    TextSettings.FontColor = xFF212121
+    Visible = False
+  end
+  object TText
+    StyleName = 'pendinglabel'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.FontColor = xFF9E9E9E
+    Visible = False
+  end
+  object TText
+    StyleName = 'failedlabel'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.FontColor = xFFE53935
+    Visible = False
+  end
+  object TText
+    StyleName = 'description'
+    HitTest = False
+    TextSettings.Font.Size = 11.000000000000000000
+    TextSettings.FontColor = xFF757575
+    Visible = False
+  end
+  object TEllipse
+    StyleName = 'startmarker'
+    Fill.Color = xFF1E88E5
+    HitTest = False
+    Stroke.Color = xFF1E88E5
+    Stroke.Thickness = 2.000000000000000000
+    Visible = False
+    object TEllipse
+      Align = Client
+      Fill.Color = claWhite
+      HitTest = False
+      Margins.Left = 9.000000000000000000
+      Margins.Top = 9.000000000000000000
+      Margins.Right = 9.000000000000000000
+      Margins.Bottom = 9.000000000000000000
+      Stroke.Kind = None
+    end
+  end
+  object TEllipse
+    StyleName = 'endmarker'
+    Fill.Color = xFF1E88E5
+    HitTest = False
+    Stroke.Color = xFF1E88E5
+    Stroke.Thickness = 2.000000000000000000
+    Visible = False
+    object TPath
+      Align = Client
+      Data.Data = 'M 0,5 L 4,9 L 12,1'
+      Fill.Kind = None
+      HitTest = False
+      Margins.Left = 8.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Margins.Bottom = 8.000000000000000000
+      Stroke.Cap = Round
+      Stroke.Color = claWhite
+      Stroke.Join = Round
+      Stroke.Thickness = 2.000000000000000000
+      WrapMode = Fit
+    end
+  end
+  object TEllipse
+    StyleName = 'hoverframe'
+    Fill.Color = x331E88E5
+    HitTest = False
+    Padding.Left = 6.000000000000000000
+    Padding.Top = 6.000000000000000000
+    Padding.Right = 6.000000000000000000
+    Padding.Bottom = 6.000000000000000000
+    Stroke.Kind = None
+    Visible = False
+  end
+  object TEllipse
+    StyleName = 'focusframe'
+    Fill.Kind = None
+    HitTest = False
+    Padding.Left = 3.000000000000000000
+    Padding.Top = 3.000000000000000000
+    Padding.Right = 3.000000000000000000
+    Padding.Bottom = 3.000000000000000000
+    Stroke.Color = xFF1E88E5
+    Stroke.Dash = Dot
+    Stroke.Thickness = 1.500000000000000000
+    Visible = False
+  end
+end

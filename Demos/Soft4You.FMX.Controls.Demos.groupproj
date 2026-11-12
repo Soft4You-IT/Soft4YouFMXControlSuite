@@ -21,6 +21,12 @@
         <Projects Include="BlockScrollBox\S4YBlockScrollBoxDemo.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="StepProgressBar\S4YStepProgressBarDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="StepProgressBar\S4YStepProgressBarGallery.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -83,14 +89,32 @@
     <Target Name="S4YBlockScrollBoxDemo:Make">
         <MSBuild Projects="BlockScrollBox\S4YBlockScrollBoxDemo.dproj" Targets="Make"/>
     </Target>
+    <Target Name="S4YStepProgressBarDemo">
+        <MSBuild Projects="StepProgressBar\S4YStepProgressBarDemo.dproj"/>
+    </Target>
+    <Target Name="S4YStepProgressBarDemo:Clean">
+        <MSBuild Projects="StepProgressBar\S4YStepProgressBarDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YStepProgressBarDemo:Make">
+        <MSBuild Projects="StepProgressBar\S4YStepProgressBarDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="S4YStepProgressBarGallery">
+        <MSBuild Projects="StepProgressBar\S4YStepProgressBarGallery.dproj"/>
+    </Target>
+    <Target Name="S4YStepProgressBarGallery:Clean">
+        <MSBuild Projects="StepProgressBar\S4YStepProgressBarGallery.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YStepProgressBarGallery:Make">
+        <MSBuild Projects="StepProgressBar\S4YStepProgressBarGallery.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="S4YHTMLEditorDemo;S4YHTMLEditorMobile;S4YFlexBoxDemo;S4YExpanderDemo;S4YBadgeDemo;S4YBlockScrollBoxDemo"/>
+        <CallTarget Targets="S4YHTMLEditorDemo;S4YHTMLEditorMobile;S4YFlexBoxDemo;S4YExpanderDemo;S4YBadgeDemo;S4YBlockScrollBoxDemo;S4YStepProgressBarDemo;S4YStepProgressBarGallery"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="S4YHTMLEditorDemo:Clean;S4YHTMLEditorMobile:Clean;S4YFlexBoxDemo:Clean;S4YExpanderDemo:Clean;S4YBadgeDemo:Clean;S4YBlockScrollBoxDemo:Clean"/>
+        <CallTarget Targets="S4YHTMLEditorDemo:Clean;S4YHTMLEditorMobile:Clean;S4YFlexBoxDemo:Clean;S4YExpanderDemo:Clean;S4YBadgeDemo:Clean;S4YBlockScrollBoxDemo:Clean;S4YStepProgressBarDemo:Clean;S4YStepProgressBarGallery:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="S4YHTMLEditorDemo:Make;S4YHTMLEditorMobile:Make;S4YFlexBoxDemo:Make;S4YExpanderDemo:Make;S4YBadgeDemo:Make;S4YBlockScrollBoxDemo:Make"/>
+        <CallTarget Targets="S4YHTMLEditorDemo:Make;S4YHTMLEditorMobile:Make;S4YFlexBoxDemo:Make;S4YExpanderDemo:Make;S4YBadgeDemo:Make;S4YBlockScrollBoxDemo:Make;S4YStepProgressBarDemo:Make;S4YStepProgressBarGallery:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

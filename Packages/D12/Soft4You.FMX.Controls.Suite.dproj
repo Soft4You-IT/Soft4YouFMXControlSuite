@@ -218,6 +218,9 @@
         <DCCReference Include="..\..\Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.pas"/>
         <DCCReference Include="..\..\Sources\ColorSelector\Soft4You.FMX.Controls.ColorSelector.Types.pas"/>
         <DCCReference Include="..\..\Sources\ColorSelector\Soft4You.FMX.Controls.ColorSelector.pas"/>
+        <DCCReference Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Types.pas"/>
+        <DCCReference Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Strings.pas"/>
+        <DCCReference Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.pas"/>
         <RcCompile Include="..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.Mac.rc">
             <Form>Soft4You.FMX.Controls.Badge.Mac.res</Form>
         </RcCompile>
@@ -229,6 +232,12 @@
         </RcCompile>
         <RcCompile Include="..\..\Sources\Expander\Soft4You.FMX.Controls.Expander.Win.rc">
             <Form>Soft4You.FMX.Controls.Expander.Win.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Mac.rc">
+            <Form>Soft4You.FMX.Controls.StepProgressBar.Mac.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Win.rc">
+            <Form>Soft4You.FMX.Controls.StepProgressBar.Win.res</Form>
         </RcCompile>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

@@ -1,0 +1,1336 @@
+object StepProgressBarGalleryForm: TStepProgressBarGalleryForm
+  Left = 0
+  Top = 0
+  Caption = 'TS4YStepProgressBar gallery'
+  ClientHeight = 520
+  ClientWidth = 1080
+  Position = ScreenCenter
+  StyleBook = GalleryStyleBook
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object GalleryTabControl: TTabControl
+    Align = Client
+    Size.Width = 1080
+    Size.Height = 520
+    Size.PlatformDefault = False
+    TabIndex = 0
+    TabOrder = 0
+    TabPosition = Top
+    object InstallTab: TTabItem
+      IsSelected = True
+      Text = 'Installation'
+      object InstallLabel: TLabel
+        Align = Top
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        Size.Height = 40
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 
+          'The default style: numbers in the markers, captions and descript' +
+          'ions, a start and an end marker. Click a step to select it.'
+      end
+      object InstallBar: TS4YStepProgressBar
+        Align = Top
+        CurrentStep = 2
+        Interactions = [stiClickMarker, stiClickLabel, stiHandCursor, stiKeyboard, stiHover]
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        Size.Height = 90
+        Size.PlatformDefault = False
+        TabOrder = 1
+        StepItems = <
+          item
+            Caption = 'Start'
+            Marker.Content = smcNone
+            MarkerStates = [sstCompleted, sstCurrent]
+            MarkerStyleName = 'startmarker'
+          end
+          item
+            Caption = 'Download'
+            Description = 'Package of 12 MB'
+          end
+          item
+            Caption = 'Verify'
+            Description = 'Checksum and signature'
+          end
+          item
+            Caption = 'Copy files'
+          end
+          item
+            Caption = 'Finish'
+            Marker.Content = smcNone
+            MarkerStates = [sstCurrent]
+            MarkerStyleName = 'endmarker'
+          end>
+      end
+    end
+    object CheckoutTab: TTabItem
+      Text = 'Failed step'
+      object CheckoutLabel: TLabel
+        Align = Top
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        Size.Height = 40
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 
+          'A checkout where the payment has failed: a step with Failed = Tr' +
+          'ue is drawn as failed, wherever it is.'
+      end
+      object CheckoutBar: TS4YStepProgressBar
+        Align = Top
+        CurrentStep = 2
+        Interactions = [stiClickMarker, stiClickLabel, stiHandCursor, stiKeyboard, stiHover]
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        Size.Height = 90
+        Size.PlatformDefault = False
+        TabOrder = 1
+        StepItems = <
+          item
+            Caption = 'Cart'
+            Description = '3 items'
+          end
+          item
+            Caption = 'Shipping'
+            Description = 'Standard, 2-4 days'
+          end
+          item
+            Caption = 'Payment'
+            Description = 'Card declined'
+            Failed = True
+          end
+          item
+            Caption = 'Confirmation'
+          end>
+      end
+    end
+    object TrackingTab: TTabItem
+      Text = 'Vertical timeline'
+      object TrackingLabel: TLabel
+        Align = Top
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        Size.Height = 40
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 
+          'The tracking of a parcel: a vertical line, small markers without' +
+          ' numbers beside the line (MarkerPosition = smpBefore).'
+      end
+      object TrackingBar: TS4YStepProgressBar
+        Align = Top
+        CompletedMarker.Content = smcNone
+        CurrentMarker.Content = smcNone
+        CurrentStep = 2
+        FailedMarker.Content = smcNone
+        Interactions = [stiClickMarker, stiClickLabel, stiHandCursor, stiKeyboard, stiHover]
+        LabelSpacing = 12
+        LineSpacing = 6
+        LineThickness = 2
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        MarkerPosition = smpBefore
+        MarkerSize.Height = 14
+        MarkerSize.Width = 14
+        Orientation = Vertical
+        PendingMarker.Content = smcNone
+        Size.Height = 340
+        Size.PlatformDefault = False
+        TabOrder = 1
+        StepItems = <
+          item
+            Caption = 'Order placed'
+            Description = 'November 10, 09:14'
+          end
+          item
+            Caption = 'Shipped'
+            Description = 'November 10, 17:40'
+          end
+          item
+            Caption = 'In transit'
+            Description = 'November 11, 06:02 - Sorting center'
+          end
+          item
+            Caption = 'Out for delivery'
+          end
+          item
+            Caption = 'Delivered'
+          end>
+      end
+    end
+    object ImagesTab: TTabItem
+      Text = 'Images'
+      object ImagesLabel: TLabel
+        Align = Top
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        Size.Height = 40
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 
+          'An order with an image in each marker: Content = smcImage, Image' +
+          's set to an image list and ImageIndex of each step.'
+      end
+      object ImagesBar: TS4YStepProgressBar
+        Align = Top
+        CompletedMarker.Content = smcImage
+        CompletedMarker.Fill.Color = xFFE3F2FD
+        CurrentMarker.Content = smcImage
+        CurrentStep = 2
+        FailedMarker.Content = smcImage
+        Images = OrderImages
+        Interactions = [stiClickMarker, stiClickLabel, stiHandCursor, stiKeyboard, stiHover]
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        MarkerSize.Height = 40
+        MarkerSize.Width = 40
+        PendingMarker.Content = smcImage
+        Size.Height = 100
+        Size.PlatformDefault = False
+        TabOrder = 1
+        StepItems = <
+          item
+            Caption = 'Cart'
+            ImageIndex = 0
+          end
+          item
+            Caption = 'Address'
+            ImageIndex = 1
+          end
+          item
+            Caption = 'Payment'
+            ImageIndex = 2
+          end
+          item
+            Caption = 'Shipping'
+            ImageIndex = 3
+          end
+          item
+            Caption = 'Delivered'
+            ImageIndex = 4
+          end>
+      end
+    end
+    object DotsTab: TTabItem
+      Text = 'Page dots'
+      object DotsLabel: TLabel
+        Align = Top
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        Size.Height = 40
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 
+          'The dots of a sequence of pages: no line, no labels, small grey ' +
+          'markers and a wider current one. Click a dot.'
+      end
+      object DotsLayout: TLayout
+        Align = Top
+        Margins.Top = 16
+        Size.Height = 40
+        Size.PlatformDefault = False
+        TabOrder = 1
+        object DotsBar: TS4YStepProgressBar
+          Align = Center
+          CompletedMarker.Content = smcNone
+          CompletedMarker.Fill.Color = xFFBDBDBD
+          CompletedMarker.Stroke.Color = xFFBDBDBD
+          CurrentMarker.Content = smcNone
+          CurrentMarker.Fill.Color = xFF1E88E5
+          CurrentMarker.Size.Width = 26
+          CurrentStep = 1
+          FailedMarker.Content = smcNone
+          Interactions = [stiClickMarker, stiHandCursor, stiKeyboard]
+          LabelPosition = slpNone
+          Line.Visible = False
+          MarkerSize.Height = 10
+          MarkerSize.Width = 10
+          PendingMarker.Content = smcNone
+          PendingMarker.Fill.Color = xFFBDBDBD
+          PendingMarker.Stroke.Color = xFFBDBDBD
+          Size.Width = 180
+          Size.Height = 24
+          Size.PlatformDefault = False
+          TabOrder = 0
+          StepItems = <
+            item
+            end
+            item
+            end
+            item
+            end
+            item
+            end
+            item
+            end
+            item
+            end>
+        end
+      end
+    end
+    object SizesTab: TTabItem
+      Text = 'Sizes by state'
+      object SizesLabel: TLabel
+        Align = Top
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        Size.Height = 40
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 
+          'Each state with a size of its own: small pending markers without' +
+          ' number, medium completed markers and a large current one.'
+      end
+      object SizesBar: TS4YStepProgressBar
+        Align = Top
+        CompletedMarker.Size.Height = 24
+        CompletedMarker.Size.Width = 24
+        CurrentMarker.Size.Height = 40
+        CurrentMarker.Size.Width = 40
+        CurrentStep = 2
+        Interactions = [stiClickMarker, stiClickLabel, stiHandCursor, stiKeyboard, stiHover]
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        PendingMarker.Content = smcNone
+        PendingMarker.Size.Height = 16
+        PendingMarker.Size.Width = 16
+        Size.Height = 90
+        Size.PlatformDefault = False
+        TabOrder = 1
+        StepItems = <
+          item
+            Caption = 'Profile'
+          end
+          item
+            Caption = 'Skills'
+          end
+          item
+            Caption = 'Experience'
+          end
+          item
+            Caption = 'Documents'
+          end
+          item
+            Caption = 'Review'
+          end
+          item
+            Caption = 'Submit'
+          end>
+      end
+    end
+    object ShapesTab: TTabItem
+      Text = 'Shapes'
+      object ShapesLabel: TLabel
+        Align = Top
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        Size.Height = 40
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 
+          'A style of the style book (StyleLookup = SquareStepStyle): round' +
+          'ed squares as markers and a dashed TLine for the pending line.'
+      end
+      object ShapesBar: TS4YStepProgressBar
+        Align = Top
+        CurrentStep = 2
+        Interactions = [stiClickMarker, stiClickLabel, stiHandCursor, stiKeyboard, stiHover]
+        LineThickness = 2
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        Size.Height = 90
+        Size.PlatformDefault = False
+        StyleLookup = 'SquareStepStyle'
+        TabOrder = 1
+        StepItems = <
+          item
+            Caption = 'Start'
+            Marker.Content = smcNone
+            MarkerStates = [sstCompleted, sstCurrent]
+            MarkerStyleName = 'startmarker'
+          end
+          item
+            Caption = 'Design'
+          end
+          item
+            Caption = 'Build'
+          end
+          item
+            Caption = 'Test'
+          end
+          item
+            Caption = 'Release'
+            Marker.Content = smcNone
+            MarkerStates = [sstCurrent]
+            MarkerStyleName = 'endmarker'
+          end>
+      end
+    end
+    object SpecialTab: TTabItem
+      Text = 'Special step'
+      object SpecialLabel: TLabel
+        Align = Top
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        Size.Height = 40
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 
+          'The step Review has a look of its own in every state: a star and' +
+          ' a caption from the style (MarkerStyleName, LabelStyleName).'
+      end
+      object SpecialBar: TS4YStepProgressBar
+        Align = Top
+        CurrentStep = 1
+        Interactions = [stiClickMarker, stiClickLabel, stiHandCursor, stiKeyboard, stiHover]
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        Size.Height = 90
+        Size.PlatformDefault = False
+        StyleLookup = 'ReviewStepStyle'
+        TabOrder = 1
+        StepItems = <
+          item
+            Caption = 'Draft'
+            Marker.Content = smcNone
+            MarkerStates = [sstCompleted, sstCurrent]
+            MarkerStyleName = 'startmarker'
+          end
+          item
+            Caption = 'Write'
+          end
+          item
+            Caption = 'Review'
+            Description = 'By the editor'
+            LabelStyleName = 'reviewlabel'
+            Marker.Content = smcNone
+            Marker.Size.Height = 34
+            Marker.Size.Width = 34
+            MarkerStates = [sstCompleted, sstCurrent, sstPending]
+            MarkerStyleName = 'reviewmarker'
+          end
+          item
+            Caption = 'Publish'
+            Marker.Content = smcNone
+            MarkerStates = [sstCurrent]
+            MarkerStyleName = 'endmarker'
+          end>
+      end
+    end
+    object CustomTab: TTabItem
+      Text = 'Custom drawing'
+      object CustomLabel: TLabel
+        Align = Top
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        Size.Height = 40
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 
+          'Markers and line drawn by the application in OnDrawMarker and On' +
+          'DrawLine, in place of the parts of the style.'
+      end
+      object CustomBar: TS4YStepProgressBar
+        Align = Top
+        CurrentStep = 2
+        Interactions = [stiClickMarker, stiClickLabel, stiHandCursor, stiKeyboard, stiHover]
+        LineSpacing = 4
+        LineThickness = 4
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        Size.Height = 90
+        Size.PlatformDefault = False
+        TabOrder = 1
+        OnDrawLine = CustomBarDrawLine
+        OnDrawMarker = CustomBarDrawMarker
+        StepItems = <
+          item
+            Caption = 'Idea'
+          end
+          item
+            Caption = 'Sketch'
+          end
+          item
+            Caption = 'Prototype'
+          end
+          item
+            Caption = 'Feedback'
+          end
+          item
+            Caption = 'Product'
+          end>
+      end
+    end
+    object AnimationTab: TTabItem
+      Text = 'Animation'
+      object AnimationLabel: TLabel
+        Align = Top
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        Size.Height = 40
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 
+          'A timer moves to the next step every 1.5 seconds: the line fills' +
+          ' in AnimationDuration = 0.8 seconds.'
+      end
+      object AnimationBar: TS4YStepProgressBar
+        Align = Top
+        AnimationDuration = 0.800000000000000000
+        Margins.Left = 16
+        Margins.Top = 16
+        Margins.Right = 16
+        Size.Height = 90
+        Size.PlatformDefault = False
+        TabOrder = 1
+        StepItems = <
+          item
+            Caption = 'Upload'
+            Marker.Content = smcNone
+            MarkerStates = [sstCompleted, sstCurrent]
+            MarkerStyleName = 'startmarker'
+          end
+          item
+            Caption = 'Scan'
+          end
+          item
+            Caption = 'Convert'
+          end
+          item
+            Caption = 'Index'
+          end
+          item
+            Caption = 'Done'
+            Marker.Content = smcNone
+            MarkerStates = [sstCurrent]
+            MarkerStyleName = 'endmarker'
+          end>
+      end
+    end
+    object ProgressTab: TTabItem
+      Text = 'Step progress'
+      object ProgressLabel: TLabel
+        Align = Top
+        Margins.Left = 16.000000000000000000
+        Margins.Top = 16.000000000000000000
+        Margins.Right = 16.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 
+          'StepProgress fills the line from the current step towards the n' +
+          'ext one, here the progress of a download: small changes are draw' +
+          'n at once, the change of step is animated.'
+      end
+      object DownloadBar: TS4YStepProgressBar
+        Align = Top
+        Margins.Left = 16.000000000000000000
+        Margins.Top = 16.000000000000000000
+        Margins.Right = 16.000000000000000000
+        Size.Height = 90.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        StepItems = <
+          item
+            Caption = 'Connect'
+            Marker.Content = smcNone
+            MarkerStates = [sstCompleted, sstCurrent]
+            MarkerStyleName = 'startmarker'
+          end
+          item
+            Caption = 'Download'
+            Description = 'Package of 48 MB'
+          end
+          item
+            Caption = 'Install'
+          end
+          item
+            Caption = 'Done'
+            Marker.Content = smcNone
+            MarkerStates = [sstCurrent]
+            MarkerStyleName = 'endmarker'
+          end>
+      end
+      object ProgressStatusLabel: TLabel
+        Align = Top
+        Margins.Left = 16.000000000000000000
+        Margins.Top = 8.000000000000000000
+        Margins.Right = 16.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Connect: 0 %'
+      end
+    end
+    object DarkTab: TTabItem
+      Text = 'Dark theme'
+      object DarkBackground: TRectangle
+        Align = Client
+        Fill.Color = xFF263238
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        object DarkLabel: TLabel
+          Align = Top
+          StyledSettings = [Family, Size, Style]
+          Margins.Left = 16
+          Margins.Top = 16
+          Margins.Right = 16
+          Size.Height = 40
+          Size.PlatformDefault = False
+          TextSettings.FontColor = xFFECEFF1
+          TextSettings.VertAlign = Leading
+          Text = 
+            'The same control with a style for a dark background (StyleLookup' +
+            ' = DarkStepStyle).'
+        end
+        object DarkBar: TS4YStepProgressBar
+          Align = Top
+          CurrentStep = 2
+          Interactions = [stiClickMarker, stiClickLabel, stiHandCursor, stiKeyboard, stiHover]
+          Margins.Left = 16
+          Margins.Top = 16
+          Margins.Right = 16
+          Size.Height = 90
+          Size.PlatformDefault = False
+          StyleLookup = 'DarkStepStyle'
+          TabOrder = 1
+          StepItems = <
+            item
+              Caption = 'Start'
+              Marker.Content = smcNone
+              MarkerStates = [sstCompleted, sstCurrent]
+              MarkerStyleName = 'startmarker'
+            end
+            item
+              Caption = 'Connect'
+              Description = 'Wi-Fi network'
+            end
+            item
+              Caption = 'Account'
+              Description = 'Sign in'
+            end
+            item
+              Caption = 'Sync'
+            end
+            item
+              Caption = 'Ready'
+              Marker.Content = smcNone
+              MarkerStates = [sstCurrent]
+              MarkerStyleName = 'endmarker'
+            end>
+        end
+      end
+    end
+  end
+  object ProgressTimer: TTimer
+    Interval = 60
+    OnTimer = ProgressTimerTimer
+    Left = 880
+    Top = 380
+  end
+  object AnimationTimer: TTimer
+    Interval = 1500
+    OnTimer = AnimationTimerTimer
+    Left = 880
+    Top = 440
+  end
+  object GalleryStyleBook: TStyleBook
+    Left = 800
+    Top = 440
+    Styles = <
+      item
+        ResourcesBin = {
+          464D585F5354594C4520322E3501060F537175617265537465705374796C6503
+          0310060F526576696577537465705374796C65038510060D4461726B53746570
+          5374796C65039E0E005450463007544C61796F757400095374796C654E616D65
+          060F537175617265537465705374796C6505416C69676E0708436F6E74656E74
+          73000A5452656374616E676C6500095374796C654E616D65060D6C696E65636F
+          6D706C657465640A46696C6C2E436F6C6F720709784646343341303437074869
+          7454657374080A53697A652E57696474680500000000000000C804400B53697A
+          652E4865696768740500000000000000C804401453697A652E506C6174666F72
+          6D44656661756C74080B5374726F6B652E4B696E6407044E6F6E650756697369
+          626C6508000005544C696E6500095374796C654E616D65060B6C696E6570656E
+          64696E67074869745465737408084C696E65547970650703546F700A53697A65
+          2E57696474680500000000000000C804400B53697A652E486569676874050000
+          0000000000C804401453697A652E506C6174666F726D44656661756C74080C53
+          74726F6B652E436F6C6F720709784646424442444244105374726F6B652E5468
+          69636B6E65737305000000000000008000400B5374726F6B652E446173680704
+          446173680756697369626C650800000A5452656374616E676C6500095374796C
+          654E616D65060F636F6D706C657465646D61726B65720A46696C6C2E436F6C6F
+          7207097846463433413034370748697454657374080A53697A652E5769647468
+          0500000000000000C804400B53697A652E4865696768740500000000000000C8
+          04401453697A652E506C6174666F726D44656661756C74080C5374726F6B652E
+          436F6C6F720709784646343341303437105374726F6B652E546869636B6E6573
+          7305000000000000008000400756697369626C65080758526164697573050000
+          0000000000C0014007595261646975730500000000000000C0014000000A5452
+          656374616E676C6500095374796C654E616D65060D63757272656E746D61726B
+          65720A46696C6C2E436F6C6F720708636C615768697465074869745465737408
+          0A53697A652E57696474680500000000000000C804400B53697A652E48656967
+          68740500000000000000C804401453697A652E506C6174666F726D4465666175
+          6C74080C5374726F6B652E436F6C6F720709784646343341303437105374726F
+          6B652E546869636B6E65737305000000000000008000400756697369626C6508
+          07585261646975730500000000000000C0014007595261646975730500000000
+          000000C0014000000A5452656374616E676C6500095374796C654E616D65060D
+          70656E64696E676D61726B65720A46696C6C2E436F6C6F720708636C61576869
+          74650748697454657374080A53697A652E57696474680500000000000000C804
+          400B53697A652E4865696768740500000000000000C804401453697A652E506C
+          6174666F726D44656661756C74080C5374726F6B652E436F6C6F720709784646
+          424442444244105374726F6B652E546869636B6E657373050000000000000080
+          00400756697369626C650807585261646975730500000000000000C001400759
+          5261646975730500000000000000C0014000000A5452656374616E676C650009
+          5374796C654E616D65060C6661696C65646D61726B65720A46696C6C2E436F6C
+          6F7207097846464535333933350748697454657374080A53697A652E57696474
+          680500000000000000C804400B53697A652E4865696768740500000000000000
+          C804401453697A652E506C6174666F726D44656661756C74080C5374726F6B65
+          2E436F6C6F720709784646453533393335105374726F6B652E546869636B6E65
+          737305000000000000008000400756697369626C650807585261646975730500
+          000000000000C0014007595261646975730500000000000000C0014000000A54
+          52656374616E676C6500095374796C654E616D65060B73746172746D61726B65
+          720A46696C6C2E436F6C6F720709784646343341303437074869745465737408
+          0A53697A652E57696474680500000000000000C804400B53697A652E48656967
+          68740500000000000000C804401453697A652E506C6174666F726D4465666175
+          6C74080C5374726F6B652E436F6C6F720709784646343341303437105374726F
+          6B652E546869636B6E65737305000000000000008000400756697369626C6508
+          07585261646975730500000000000000C0014007595261646975730500000000
+          000000C00140000854456C6C697073650005416C69676E0706436C69656E740A
+          46696C6C2E436F6C6F720708636C6157686974650748697454657374080C4D61
+          7267696E732E4C65667405000000000000009002400B4D617267696E732E546F
+          7005000000000000009002400D4D617267696E732E5269676874050000000000
+          00009002400E4D617267696E732E426F74746F6D05000000000000009002400A
+          53697A652E576964746805000000000000008004400B53697A652E4865696768
+          7405000000000000008004401453697A652E506C6174666F726D44656661756C
+          74080B5374726F6B652E4B696E6407044E6F6E650000000A5452656374616E67
+          6C6500095374796C654E616D650609656E646D61726B65720A46696C6C2E436F
+          6C6F7207097846463433413034370748697454657374080A53697A652E576964
+          74680500000000000000C804400B53697A652E48656967687405000000000000
+          00C804401453697A652E506C6174666F726D44656661756C74080C5374726F6B
+          652E436F6C6F720709784646343341303437105374726F6B652E546869636B6E
+          65737305000000000000008000400756697369626C6508075852616469757305
+          00000000000000C0014007595261646975730500000000000000C00140000554
+          506174680005416C69676E0706436C69656E7409446174612E506174680A2800
+          00000300000000000000000000000000A0400100000000008040000010410100
+          0000000040410000803F0946696C6C2E4B696E6407044E6F6E65074869745465
+          7374080C4D617267696E732E4C65667405000000000000008002400B4D617267
+          696E732E546F7005000000000000008002400D4D617267696E732E5269676874
+          05000000000000008002400E4D617267696E732E426F74746F6D050000000000
+          00008002400A53697A652E576964746805000000000000008804400B53697A65
+          2E48656967687405000000000000008804401453697A652E506C6174666F726D
+          44656661756C74080C5374726F6B652E436F6C6F720708636C61576869746510
+          5374726F6B652E546869636B6E65737305000000000000008000400A5374726F
+          6B652E4361700705526F756E640B5374726F6B652E4A6F696E0705526F756E64
+          08577261704D6F6465070346697400000005545465787400095374796C654E61
+          6D65060D636F6D706C65746564746578740748697454657374081A5465787453
+          657474696E67732E466F6E742E5374796C654578740A0D000000000700000000
+          00000004000000165465787453657474696E67732E466F6E74436F6C6F720708
+          636C6157686974650756697369626C6508000005545465787400095374796C65
+          4E616D65060B63757272656E74746578740748697454657374081A5465787453
+          657474696E67732E466F6E742E5374796C654578740A0D000000000700000000
+          00000004000000165465787453657474696E67732E466F6E74436F6C6F720709
+          7846463433413034370756697369626C6508000005545465787400095374796C
+          654E616D65060B70656E64696E67746578740748697454657374081A54657874
+          53657474696E67732E466F6E742E5374796C654578740A0D0000000007000000
+          0000000004000000165465787453657474696E67732E466F6E74436F6C6F7207
+          097846463945394539450756697369626C650800000554546578740009537479
+          6C654E616D65060A6661696C6564746578740748697454657374081A54657874
+          53657474696E67732E466F6E742E5374796C654578740A0D0000000007000000
+          0000000004000000165465787453657474696E67732E466F6E74436F6C6F7207
+          08636C6157686974650756697369626C6508000005545465787400095374796C
+          654E616D65060E636F6D706C657465646C6162656C0748697454657374081654
+          65787453657474696E67732E466F6E74436F6C6F720709784646343234323432
+          0756697369626C6508000005545465787400095374796C654E616D65060C6375
+          7272656E746C6162656C0748697454657374081A5465787453657474696E6773
+          2E466F6E742E5374796C654578740A0D00000000070000000000000004000000
+          165465787453657474696E67732E466F6E74436F6C6F72070978464632313231
+          32310756697369626C6508000005545465787400095374796C654E616D65060C
+          70656E64696E676C6162656C074869745465737408165465787453657474696E
+          67732E466F6E74436F6C6F7207097846463945394539450756697369626C6508
+          000005545465787400095374796C654E616D65060B6661696C65646C6162656C
+          074869745465737408165465787453657474696E67732E466F6E74436F6C6F72
+          07097846464535333933350756697369626C6508000005545465787400095374
+          796C654E616D65060B6465736372697074696F6E074869745465737408165465
+          787453657474696E67732E466F6E742E53697A650500000000000000B0024016
+          5465787453657474696E67732E466F6E74436F6C6F7207097846463735373537
+          350756697369626C650800000A5452656374616E676C6500095374796C654E61
+          6D65060A666F6375736672616D650946696C6C2E4B696E6407044E6F6E650748
+          697454657374080C50616464696E672E4C6566740500000000000000C000400B
+          50616464696E672E546F700500000000000000C000400D50616464696E672E52
+          696768740500000000000000C000400E50616464696E672E426F74746F6D0500
+          000000000000C000400A53697A652E57696474680500000000000000C804400B
+          53697A652E4865696768740500000000000000C804401453697A652E506C6174
+          666F726D44656661756C74080C5374726F6B652E436F6C6F7207097846463433
+          41303437105374726F6B652E546869636B6E6573730500000000000000C0FF3F
+          0B5374726F6B652E446173680703446F740756697369626C6508075852616469
+          7573050000000000000080024007595261646975730500000000000000800240
+          00000A5452656374616E676C6500095374796C654E616D65060A686F76657266
+          72616D650A46696C6C2E436F6C6F720709783333343341303437074869745465
+          7374080C50616464696E672E4C6566740500000000000000C001400B50616464
+          696E672E546F700500000000000000C001400D50616464696E672E5269676874
+          0500000000000000C001400E50616464696E672E426F74746F6D050000000000
+          0000C001400A53697A652E57696474680500000000000000C804400B53697A65
+          2E4865696768740500000000000000C804401453697A652E506C6174666F726D
+          44656661756C74080B5374726F6B652E4B696E6407044E6F6E65075669736962
+          6C650807585261646975730500000000000000C0024007595261646975730500
+          000000000000C002400000005450463007544C61796F757400095374796C654E
+          616D65060F526576696577537465705374796C6505416C69676E0708436F6E74
+          656E7473000A5452656374616E676C6500095374796C654E616D65060D6C696E
+          65636F6D706C657465640A46696C6C2E436F6C6F720709784646314538384535
+          0748697454657374080A53697A652E57696474680500000000000000C804400B
+          53697A652E4865696768740500000000000000C804401453697A652E506C6174
+          666F726D44656661756C74080B5374726F6B652E4B696E6407044E6F6E650756
+          697369626C650800000A5452656374616E676C6500095374796C654E616D6506
+          0B6C696E6570656E64696E670748697454657374080A53697A652E5769647468
+          0500000000000000C804400B53697A652E4865696768740500000000000000C8
+          04401453697A652E506C6174666F726D44656661756C74080B5374726F6B652E
+          4B696E6407044E6F6E650756697369626C650800000854456C6C697073650009
+          5374796C654E616D65060F636F6D706C657465646D61726B65720A46696C6C2E
+          436F6C6F7207097846463145383845350748697454657374080A53697A652E57
+          696474680500000000000000C804400B53697A652E4865696768740500000000
+          000000C804401453697A652E506C6174666F726D44656661756C74080C537472
+          6F6B652E436F6C6F720709784646314538384535105374726F6B652E54686963
+          6B6E65737305000000000000008000400756697369626C650800000854456C6C
+          6970736500095374796C654E616D65060D63757272656E746D61726B65720A46
+          696C6C2E436F6C6F720708636C6157686974650748697454657374080A53697A
+          652E57696474680500000000000000C804400B53697A652E4865696768740500
+          000000000000C804401453697A652E506C6174666F726D44656661756C74080C
+          5374726F6B652E436F6C6F720709784646314538384535105374726F6B652E54
+          6869636B6E65737305000000000000008000400756697369626C650800000854
+          456C6C6970736500095374796C654E616D65060D70656E64696E676D61726B65
+          720A46696C6C2E436F6C6F720708636C6157686974650748697454657374080A
+          53697A652E57696474680500000000000000C804400B53697A652E4865696768
+          740500000000000000C804401453697A652E506C6174666F726D44656661756C
+          74080C5374726F6B652E436F6C6F720709784646424442444244105374726F6B
+          652E546869636B6E65737305000000000000008000400756697369626C650800
+          000854456C6C6970736500095374796C654E616D65060C6661696C65646D6172
+          6B65720A46696C6C2E436F6C6F72070978464645353339333507486974546573
+          74080A53697A652E57696474680500000000000000C804400B53697A652E4865
+          696768740500000000000000C804401453697A652E506C6174666F726D446566
+          61756C74080C5374726F6B652E436F6C6F720709784646453533393335105374
+          726F6B652E546869636B6E65737305000000000000008000400756697369626C
+          650800000854456C6C6970736500095374796C654E616D65060B73746172746D
+          61726B65720A46696C6C2E436F6C6F7207097846463145383845350748697454
+          657374080A53697A652E57696474680500000000000000C804400B53697A652E
+          4865696768740500000000000000C804401453697A652E506C6174666F726D44
+          656661756C74080C5374726F6B652E436F6C6F72070978464631453838453510
+          5374726F6B652E546869636B6E65737305000000000000008000400756697369
+          626C6508000854456C6C697073650005416C69676E0706436C69656E740A4669
+          6C6C2E436F6C6F720708636C6157686974650748697454657374080C4D617267
+          696E732E4C65667405000000000000009002400B4D617267696E732E546F7005
+          000000000000009002400D4D617267696E732E52696768740500000000000000
+          9002400E4D617267696E732E426F74746F6D05000000000000009002400A5369
+          7A652E576964746805000000000000008004400B53697A652E48656967687405
+          000000000000008004401453697A652E506C6174666F726D44656661756C7408
+          0B5374726F6B652E4B696E6407044E6F6E650000000854456C6C697073650009
+          5374796C654E616D650609656E646D61726B65720A46696C6C2E436F6C6F7207
+          097846463145383845350748697454657374080A53697A652E57696474680500
+          000000000000C804400B53697A652E4865696768740500000000000000C80440
+          1453697A652E506C6174666F726D44656661756C74080C5374726F6B652E436F
+          6C6F720709784646314538384535105374726F6B652E546869636B6E65737305
+          000000000000008000400756697369626C6508000554506174680005416C6967
+          6E0706436C69656E7409446174612E506174680A280000000300000000000000
+          000000000000A04001000000000080400000104101000000000040410000803F
+          0946696C6C2E4B696E6407044E6F6E650748697454657374080C4D617267696E
+          732E4C65667405000000000000008002400B4D617267696E732E546F70050000
+          00000000008002400D4D617267696E732E526967687405000000000000008002
+          400E4D617267696E732E426F74746F6D05000000000000008002400A53697A65
+          2E576964746805000000000000008804400B53697A652E486569676874050000
+          00000000008804401453697A652E506C6174666F726D44656661756C74080C53
+          74726F6B652E436F6C6F720708636C615768697465105374726F6B652E546869
+          636B6E65737305000000000000008000400A5374726F6B652E4361700705526F
+          756E640B5374726F6B652E4A6F696E0705526F756E6408577261704D6F646507
+          0346697400000005545465787400095374796C654E616D65060D636F6D706C65
+          746564746578740748697454657374081A5465787453657474696E67732E466F
+          6E742E5374796C654578740A0D00000000070000000000000004000000165465
+          787453657474696E67732E466F6E74436F6C6F720708636C6157686974650756
+          697369626C6508000005545465787400095374796C654E616D65060B63757272
+          656E74746578740748697454657374081A5465787453657474696E67732E466F
+          6E742E5374796C654578740A0D00000000070000000000000004000000165465
+          787453657474696E67732E466F6E74436F6C6F72070978464631453838453507
+          56697369626C6508000005545465787400095374796C654E616D65060B70656E
+          64696E67746578740748697454657374081A5465787453657474696E67732E46
+          6F6E742E5374796C654578740A0D000000000700000000000000040000001654
+          65787453657474696E67732E466F6E74436F6C6F720709784646394539453945
+          0756697369626C6508000005545465787400095374796C654E616D65060A6661
+          696C6564746578740748697454657374081A5465787453657474696E67732E46
+          6F6E742E5374796C654578740A0D000000000700000000000000040000001654
+          65787453657474696E67732E466F6E74436F6C6F720708636C61576869746507
+          56697369626C6508000005545465787400095374796C654E616D65060E636F6D
+          706C657465646C6162656C074869745465737408165465787453657474696E67
+          732E466F6E74436F6C6F7207097846463432343234320756697369626C650800
+          0005545465787400095374796C654E616D65060C63757272656E746C6162656C
+          0748697454657374081A5465787453657474696E67732E466F6E742E5374796C
+          654578740A0D0000000007000000000000000400000016546578745365747469
+          6E67732E466F6E74436F6C6F7207097846463231323132310756697369626C65
+          08000005545465787400095374796C654E616D65060C70656E64696E676C6162
+          656C074869745465737408165465787453657474696E67732E466F6E74436F6C
+          6F7207097846463945394539450756697369626C650800000554546578740009
+          5374796C654E616D65060B6661696C65646C6162656C07486974546573740816
+          5465787453657474696E67732E466F6E74436F6C6F7207097846464535333933
+          350756697369626C6508000005545465787400095374796C654E616D65060B64
+          65736372697074696F6E074869745465737408165465787453657474696E6773
+          2E466F6E742E53697A650500000000000000B00240165465787453657474696E
+          67732E466F6E74436F6C6F7207097846463735373537350756697369626C6508
+          000005545061746800095374796C654E616D65060C7265766965776D61726B65
+          7209446174612E506174680A880000000B00000000000000000040410000803F
+          010000009A997141CDCC0441010000000000B841000010410100000000008841
+          3333634101000000666696410000B041010000000000404133338F4101000000
+          6666A6400000B041010000000000E04033336341010000000000803F00001041
+          0100000066660E41CDCC044103000000000040410000803F0A46696C6C2E436F
+          6C6F7207097846464642384330300748697454657374080A53697A652E576964
+          74680500000000000000C804400B53697A652E48656967687405000000000000
+          00C804401453697A652E506C6174666F726D44656661756C74080C5374726F6B
+          652E436F6C6F7207097846464546364330300B5374726F6B652E4A6F696E0705
+          526F756E640756697369626C650808577261704D6F6465070346697400000554
+          5465787400095374796C654E616D65060B7265766965776C6162656C07486974
+          5465737408165465787453657474696E67732E466F6E742E53697A6505000000
+          00000000D002401A5465787453657474696E67732E466F6E742E5374796C6545
+          78740A0D00000000070000000000000004000000165465787453657474696E67
+          732E466F6E74436F6C6F7207097846464546364330300756697369626C650800
+          000854456C6C6970736500095374796C654E616D65060A666F6375736672616D
+          650946696C6C2E4B696E6407044E6F6E650748697454657374080C5061646469
+          6E672E4C6566740500000000000000C000400B50616464696E672E546F700500
+          000000000000C000400D50616464696E672E52696768740500000000000000C0
+          00400E50616464696E672E426F74746F6D0500000000000000C000400A53697A
+          652E57696474680500000000000000C804400B53697A652E4865696768740500
+          000000000000C804401453697A652E506C6174666F726D44656661756C74080C
+          5374726F6B652E436F6C6F720709784646314538384535105374726F6B652E54
+          6869636B6E6573730500000000000000C0FF3F0B5374726F6B652E4461736807
+          03446F740756697369626C650800000854456C6C6970736500095374796C654E
+          616D65060A686F7665726672616D650A46696C6C2E436F6C6F72070978333331
+          45383845350748697454657374080C50616464696E672E4C6566740500000000
+          000000C001400B50616464696E672E546F700500000000000000C001400D5061
+          6464696E672E52696768740500000000000000C001400E50616464696E672E42
+          6F74746F6D0500000000000000C001400A53697A652E57696474680500000000
+          000000C804400B53697A652E4865696768740500000000000000C80440145369
+          7A652E506C6174666F726D44656661756C74080B5374726F6B652E4B696E6407
+          044E6F6E650756697369626C65080000005450463007544C61796F7574000953
+          74796C654E616D65060D4461726B537465705374796C6505416C69676E070843
+          6F6E74656E7473000A5452656374616E676C6500095374796C654E616D65060D
+          6C696E65636F6D706C657465640A46696C6C2E436F6C6F720709784646323641
+          3639410748697454657374080A53697A652E57696474680500000000000000C8
+          04400B53697A652E4865696768740500000000000000C804401453697A652E50
+          6C6174666F726D44656661756C74080B5374726F6B652E4B696E6407044E6F6E
+          650756697369626C650800000A5452656374616E676C6500095374796C654E61
+          6D65060B6C696E6570656E64696E670A46696C6C2E436F6C6F72070978464634
+          35354136340748697454657374080A53697A652E576964746805000000000000
+          00C804400B53697A652E4865696768740500000000000000C804401453697A65
+          2E506C6174666F726D44656661756C74080B5374726F6B652E4B696E6407044E
+          6F6E650756697369626C650800000854456C6C6970736500095374796C654E61
+          6D65060F636F6D706C657465646D61726B65720A46696C6C2E436F6C6F720709
+          7846463236413639410748697454657374080A53697A652E5769647468050000
+          0000000000C804400B53697A652E4865696768740500000000000000C8044014
+          53697A652E506C6174666F726D44656661756C74080C5374726F6B652E436F6C
+          6F720709784646323641363941105374726F6B652E546869636B6E6573730500
+          0000000000008000400756697369626C650800000854456C6C69707365000953
+          74796C654E616D65060D63757272656E746D61726B65720A46696C6C2E436F6C
+          6F7207097846463236333233380748697454657374080A53697A652E57696474
+          680500000000000000C804400B53697A652E4865696768740500000000000000
+          C804401453697A652E506C6174666F726D44656661756C74080C5374726F6B65
+          2E436F6C6F720709784646323641363941105374726F6B652E546869636B6E65
+          737305000000000000008000400756697369626C650800000854456C6C697073
+          6500095374796C654E616D65060D70656E64696E676D61726B65720A46696C6C
+          2E436F6C6F7207097846463337343734460748697454657374080A53697A652E
+          57696474680500000000000000C804400B53697A652E48656967687405000000
+          00000000C804401453697A652E506C6174666F726D44656661756C74080C5374
+          726F6B652E436F6C6F720709784646363037443842105374726F6B652E546869
+          636B6E65737305000000000000008000400756697369626C650800000854456C
+          6C6970736500095374796C654E616D65060C6661696C65646D61726B65720A46
+          696C6C2E436F6C6F7207097846464546353335300748697454657374080A5369
+          7A652E57696474680500000000000000C804400B53697A652E48656967687405
+          00000000000000C804401453697A652E506C6174666F726D44656661756C7408
+          0C5374726F6B652E436F6C6F720709784646454635333530105374726F6B652E
+          546869636B6E65737305000000000000008000400756697369626C6508000008
+          54456C6C6970736500095374796C654E616D65060B73746172746D61726B6572
+          0A46696C6C2E436F6C6F7207097846463236413639410748697454657374080A
+          53697A652E57696474680500000000000000C804400B53697A652E4865696768
+          740500000000000000C804401453697A652E506C6174666F726D44656661756C
+          74080C5374726F6B652E436F6C6F720709784646323641363941105374726F6B
+          652E546869636B6E65737305000000000000008000400756697369626C650800
+          0854456C6C697073650005416C69676E0706436C69656E740A46696C6C2E436F
+          6C6F7207097846463236333233380748697454657374080C4D617267696E732E
+          4C65667405000000000000009002400B4D617267696E732E546F700500000000
+          0000009002400D4D617267696E732E526967687405000000000000009002400E
+          4D617267696E732E426F74746F6D05000000000000009002400A53697A652E57
+          6964746805000000000000008004400B53697A652E4865696768740500000000
+          0000008004401453697A652E506C6174666F726D44656661756C74080B537472
+          6F6B652E4B696E6407044E6F6E650000000854456C6C6970736500095374796C
+          654E616D650609656E646D61726B65720A46696C6C2E436F6C6F720709784646
+          3236413639410748697454657374080A53697A652E5769647468050000000000
+          0000C804400B53697A652E4865696768740500000000000000C804401453697A
+          652E506C6174666F726D44656661756C74080C5374726F6B652E436F6C6F7207
+          09784646323641363941105374726F6B652E546869636B6E6573730500000000
+          0000008000400756697369626C6508000554506174680005416C69676E070643
+          6C69656E7409446174612E506174680A28000000030000000000000000000000
+          0000A04001000000000080400000104101000000000040410000803F0946696C
+          6C2E4B696E6407044E6F6E650748697454657374080C4D617267696E732E4C65
+          667405000000000000008002400B4D617267696E732E546F7005000000000000
+          008002400D4D617267696E732E526967687405000000000000008002400E4D61
+          7267696E732E426F74746F6D05000000000000008002400A53697A652E576964
+          746805000000000000008804400B53697A652E48656967687405000000000000
+          008804401453697A652E506C6174666F726D44656661756C74080C5374726F6B
+          652E436F6C6F720709784646323633323338105374726F6B652E546869636B6E
+          65737305000000000000008000400A5374726F6B652E4361700705526F756E64
+          0B5374726F6B652E4A6F696E0705526F756E6408577261704D6F646507034669
+          7400000005545465787400095374796C654E616D65060D636F6D706C65746564
+          746578740748697454657374081A5465787453657474696E67732E466F6E742E
+          5374796C654578740A0D00000000070000000000000004000000165465787453
+          657474696E67732E466F6E74436F6C6F72070978464632363332333807566973
+          69626C6508000005545465787400095374796C654E616D65060B63757272656E
+          74746578740748697454657374081A5465787453657474696E67732E466F6E74
+          2E5374796C654578740A0D000000000700000000000000040000001654657874
+          53657474696E67732E466F6E74436F6C6F720709784646323641363941075669
+          7369626C6508000005545465787400095374796C654E616D65060B70656E6469
+          6E67746578740748697454657374081A5465787453657474696E67732E466F6E
+          742E5374796C654578740A0D0000000007000000000000000400000016546578
+          7453657474696E67732E466F6E74436F6C6F7207097846463930413441450756
+          697369626C6508000005545465787400095374796C654E616D65060A6661696C
+          6564746578740748697454657374081A5465787453657474696E67732E466F6E
+          742E5374796C654578740A0D0000000007000000000000000400000016546578
+          7453657474696E67732E466F6E74436F6C6F720708636C615768697465075669
+          7369626C6508000005545465787400095374796C654E616D65060E636F6D706C
+          657465646C6162656C074869745465737408165465787453657474696E67732E
+          466F6E74436F6C6F7207097846464230424543350756697369626C6508000005
+          545465787400095374796C654E616D65060C63757272656E746C6162656C0748
+          697454657374081A5465787453657474696E67732E466F6E742E5374796C6545
+          78740A0D00000000070000000000000004000000165465787453657474696E67
+          732E466F6E74436F6C6F720708636C6157686974650756697369626C65080000
+          05545465787400095374796C654E616D65060C70656E64696E676C6162656C07
+          4869745465737408165465787453657474696E67732E466F6E74436F6C6F7207
+          097846463738393039430756697369626C650800000554546578740009537479
+          6C654E616D65060B6661696C65646C6162656C07486974546573740816546578
+          7453657474696E67732E466F6E74436F6C6F7207097846464546353335300756
+          697369626C6508000005545465787400095374796C654E616D65060B64657363
+          72697074696F6E074869745465737408165465787453657474696E67732E466F
+          6E742E53697A650500000000000000B00240165465787453657474696E67732E
+          466F6E74436F6C6F7207097846463738393039430756697369626C6508000008
+          54456C6C6970736500095374796C654E616D65060A666F6375736672616D6509
+          46696C6C2E4B696E6407044E6F6E650748697454657374080C50616464696E67
+          2E4C6566740500000000000000C000400B50616464696E672E546F7005000000
+          00000000C000400D50616464696E672E52696768740500000000000000C00040
+          0E50616464696E672E426F74746F6D0500000000000000C000400A53697A652E
+          57696474680500000000000000C804400B53697A652E48656967687405000000
+          00000000C804401453697A652E506C6174666F726D44656661756C74080C5374
+          726F6B652E436F6C6F720709784646323641363941105374726F6B652E546869
+          636B6E6573730500000000000000C0FF3F0B5374726F6B652E44617368070344
+          6F740756697369626C650800000854456C6C6970736500095374796C654E616D
+          65060A686F7665726672616D650A46696C6C2E436F6C6F720709783333323641
+          3639410748697454657374080C50616464696E672E4C65667405000000000000
+          00C001400B50616464696E672E546F700500000000000000C001400D50616464
+          696E672E52696768740500000000000000C001400E50616464696E672E426F74
+          746F6D0500000000000000C001400A53697A652E576964746805000000000000
+          00C804400B53697A652E4865696768740500000000000000C804401453697A65
+          2E506C6174666F726D44656661756C74080B5374726F6B652E4B696E6407044E
+          6F6E650756697369626C6508000000}
+      end>
+  end
+  object OrderImages: TImageList
+    Left = 720
+    Top = 440
+    Source = <
+      item
+        MultiResBitmap.Height = 24
+        MultiResBitmap.Width = 24
+        MultiResBitmap = <
+          item
+            Width = 24
+            Height = 24
+            PNG = {
+              89504E470D0A1A0A0000000D4948445200000018000000180806000000E0773D
+              F8000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              018D49444154484BED93BF4B1B611C879F4F02192DC21D38B7F8077453126ADC
+              3AD6828B208190187070D3BD9BE85E281C1D0447D1C5C1E90E7FA0837F4271AC
+              43E22E48EEEB709E5CDFBCF18C530B7DA6F79ECFDD7D8EEFBD2FFCA70401849D
+              781F692597661C0DA2E6D21F77BE918A2B0024BE04BD64D6F56F41AE08BAF181
+              D0578C563F6AEEB9F9A48C14849D781369C72CBD36D3B19B034832D7151944CD
+              6FF97AB4602D6E603A73FD44986DF5A3C55D7C052C5B357C973C20C98C6DE0DE
+              BDC5CC469FCBFEDD86A4692A9546FFC7A70BBC0540D04DCE05754C9FFBD1C289
+              9BFB087BA775D2F4DCCC6E06D1E287DC7B7711C625004AE7DD682CC3E112D917
+              1F16B5B7404AAFC8CEC3AB0B0CB27353AD9617A4C3DA25D96E9973331F61EFB4
+              2EE9BD99DDE4B3CFF116DCFD6CFC36F8054C05EDE4A39B8F30663C4FCE4FD049
+              F624565DFF2285DDF3AC8A1745641CB9EE458C63F7E57F07612B9E095BF18CEB
+              73CAF2B123223B706D6ABAA5A6DBA09BB427CD292B10ACFBD63EE7CB292B30F8
+              EE5BFB9C2F7F1565332ECBFF7D1E0184D6872BD81B89830000000049454E44AE
+              426082}
+          end
+          item
+            Scale = 2.000000000000000000
+            Width = 48
+            Height = 48
+            PNG = {
+              89504E470D0A1A0A0000000D49484452000000300000003008060000005702F9
+              87000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              02BD494441546843ED98BB6F134118C467CE801005D585471509514534144181
+              22D825A6813F21380609094143816823D15090163B50524243286D2878244874
+              91A848496257344828F6505CCEF1AE5FB777E71C48F7ABBCB3BBF28DBFC7EE19
+              C8C9C9C9C912861F66961BF7402C01BC682ED947DA12B0D2AE975ED95359E2F5
+              3E8D7B780020E7403CB1E5AC3930100182B3A76F352ED87A961C18105E02FA66
+              CC0EA153F0166C2D4B7A35300ABFDA7C4C60A527482F5AF552C5589421135348
+              9DEE674BFAA72230D1C0B123273F1902397766E9C38CA165C8C41442D0623740
+              CEDBFA6121E9A3073EDDAD175FDB7313230000A06746E1902179A54B3DB47544
+              35200DD441169CB7054435508097B9010203E983A83580A09D6E13980DC71EBC
+              859DDAE21773557AF8D5C62EC15EB310506ED78AEFCC55112380C0A911858E3A
+              97FBC769E2579BD7CC87576BD8C3C3C58024C300C9A99D07846E98E3E1E90317
+              0305168C4EA4291E68026E9A63BEE91FF713B9061084F63781E3E1D813CFEDD4
+              AFFE30572523481FAC87E3207D4AA7CC5507448E0086D501BAA947C1257DE06A
+              4082914664FA375397F481B3019A1180BAA9762297EE13E264E0E89E75A520E7
+              CFDEFE7AC2D012E09A3E7035F0F3E5620BD256BFF667EF576A51704D1FB81AD8
+              C73C0F527A438B933E706DA300E057DF2F13AAD97AFAE879AB56BA63AB36CE11
+              280CBEA14D8528E98338114070D1DA26D8BBD8A5CDA4C3AB1FE7080000844776
+              31A7C8770A776D3127674AC42AE27EFC4AB30C625E12096EB4D78ABD9B641492
+              EE4F646066B9F10CE47D4394565BF5D203431B41D2FD4862C0AF34CBF4F0D6D6
+              01405D5C9FF44B26DD1F12AF8D020031FA8FAE717321E3D68C9BB3886F600C92
+              6247168EFBE31B10366D2984E086AD0D9074FF3EB10DB4D78AEB90566D1DD26A
+              94FC4DBA3F2472A846E1579A654197480AC2A6CB972385FD393939FF397F0186
+              0504295E8ACC6C0000000049454E44AE426082}
+          end>
+        Name = 'cart'
+      end
+      item
+        MultiResBitmap.Height = 24
+        MultiResBitmap.Width = 24
+        MultiResBitmap = <
+          item
+            Width = 24
+            Height = 24
+            PNG = {
+              89504E470D0A1A0A0000000D4948445200000018000000180806000000E0773D
+              F8000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              019E49444154484BE592B14EC2601485CFED62606190F2040E3E806E26D2CD88
+              0B038B09938584C1554775C4D50D9085309130A9B890C22C0FC0E01B9426B054
+              5D7A1CB015FE5284E862F8922EE79EFF9EFEF7FEC04691327BD994D9CBAAFA32
+              3455882269F6CB14B4296827CD7E59AD4721AAA0B273FEB435798B3720C8CD15
+              885622E6E65FEF8E3FE67485A501DB456B57F3A401C11E899168CC03003D6988
+              200962E069CC3B1563A89EF5890CD08BD65154A345C176C578567B206A077AC1
+              2A81D2F96ADE4AC4DC83D9BF742AC63011730F40B4A61EE9E805AB34DF654AE8
+              0649B35F16E1050090723BAA1D5EAA9E597EF20701A165928F76CD38993547A1
+              9BD60344324078F9C188C6EFF12E0439122E0078C4E0BBC5727C2F491782DCF8
+              3DDEF56B418080134C8D755F5B1FA983180838F19520C0AE1A19BB96DE07300A
+              FC6B42D2B16BE97DBB6A4CC715F58A5474D36AEA851EE73ED36AAABE45AC1400
+              9153555AA82D20144052004044A8D6EC6A5AEC6A3AF4B497110AF86BFE7F4068
+              9EDB67D6B5A6C995AAAF82E7F1C6B937AE67B5D00D44E38BAAADCA6FCE6E309F
+              0734B5C3F2BB77CE0000000049454E44AE426082}
+          end
+          item
+            Scale = 2.000000000000000000
+            Width = 48
+            Height = 48
+            PNG = {
+              89504E470D0A1A0A0000000D49484452000000300000003008060000005702F9
+              87000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              0229494441546843ED96B16ED3501486FFE3F00675183AF2065D3A204569788B
+              0A65A8726163604474A4432706366A9421E231DA602165A4437746064C9E8034
+              3F438A141F3BCEBDF675DC48FEA40CF9CF8DCFF97DFDDF18686969D96B440BBE
+              084D3C822CDF0200187CFC13F5BFE8353EA8C540D74C3F40E47D4A242F926870
+              9ED23CE0D70029DDD7F104C04B5D7AE06BF2B93F840875A12CDE0C3C3DFBFE6C
+              D9594C44E4B9AEAD437216DC3F19FE1EF77EEA5A19BC183830F18B40380170A8
+              4A731210C181D27F2D29C379D4BF51BA3381165C094D3C0A84D77A7892335974
+              8E83FBCE31C9D97A0DC06120BC0E4D3C52BA3395762037AC2BD2CF7A51362A86
+              BB9C819203591B76C0D94051584931DBCEFBD0C42311465A2F1B6E2703056175
+              0AA5AFEBC025C45BC2DA73693A8FFA37B2E8F47C84DB6A07EA787681F2595AA7
+              D88087063654B9411B0D540DAB2B65C39D6BA020640080E4EA24F77755E9BEFA
+              B6E94E6F0C7726C4A1999EE685B5611EC23D3DD5858C0100EFB4F088C8CC9631
+              20C0DF94405EA4BEEF12D53B335B9E01422E49DE81FC418AF175D294218906E7
+              A498D52CBC23E452AFB10AA30ED7AE426CD327B303FBC65687B0BC335D337D03
+              C1192047BA9686B720C64934F8A42B367D34FE76C06A780090A3D55A3FF83360
+              35FC7F5CD616E3D14033D46620B93A91F58FAEFBA23603BBA235D034AD81A669
+              0D348DD5F9ACDF517685CDFFC7DEEF80A501DE6AA57EEC7ADA1920C6B617F4C3
+              EA955BAB2D2D2D2D8F8F7FD8B12F94EFF5365A0000000049454E44AE426082}
+          end>
+        Name = 'address'
+      end
+      item
+        MultiResBitmap.Height = 24
+        MultiResBitmap.Width = 24
+        MultiResBitmap = <
+          item
+            Width = 24
+            Height = 24
+            PNG = {
+              89504E470D0A1A0A0000000D4948445200000018000000180806000000E0773D
+              F8000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              00BB49444154484BED91B10DC2301444EF7B063C0A7DA08509A0257320E6302D
+              9920B4909E51CC0CFEA9489CEF4422C64108E54996ACEFD3D9E70366FE1E7A6D
+              F4E17E01D1AE7B1C097361CFAB3D00A86698CA1C035E3AAF58E715CBF958A44F
+              9B6022DA0E12BCDEC79A8CF08D040DF2EF62913E9327083AB026A3457EDBB0A3
+              6547A8F8F134EBAB3FEBC3F7C15002822A95A2A3BF08AA94BA77E8BDC09A8C9C
+              E393BF186E2B75A390E5C4227D820E521176C05CF8828F48E935F3FBD484A755
+              3D532C06720000000049454E44AE426082}
+          end
+          item
+            Scale = 2.000000000000000000
+            Width = 48
+            Height = 48
+            PNG = {
+              89504E470D0A1A0A0000000D49484452000000300000003008060000005702F9
+              87000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              00E7494441546843EDD7C10DC2300C05D01F7660906E00A320C191693882D451
+              60830ED221C2A1AA14EC56B12A3571C47FB7060EFEB21D2900111111D513E4C1
+              F1FABE23E002844EFE56571C10D18FAFF3233D3DA41F00E0B3780008DD54DB2F
+              1DC065F1335DDB4280B6E81DB87D62FA3D3E4FEA3F25E5EA69BE030C509B9A6F
+              3973DE7007BC693E407607E4CC9596ABA7F90E30406DCD07500BBAB634F687CE
+              F2C363ABB57A66F60E988AC7EAC3632FF6004ED90344F4401CE4B1368D903CDD
+              8B79076AC9D563EF8053CD0750E3215BE6CD3F8C90E5A6A945D7A60398AFCBD2
+              CA5ECF44444464F10506564C321CA37F830000000049454E44AE426082}
+          end>
+        Name = 'payment'
+      end
+      item
+        MultiResBitmap.Height = 24
+        MultiResBitmap.Width = 24
+        MultiResBitmap = <
+          item
+            Width = 24
+            Height = 24
+            PNG = {
+              89504E470D0A1A0A0000000D4948445200000018000000180806000000E0773D
+              F8000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              010E49444154484BED92B151C3301486BFE719E21958234AC51D2C00B4F100B0
+              00F60250A650521218801469704A0A066087282BE85118E7EC97C061E23BEEB8
+              7C772AFCF459BFF42438F2EF1180745C3E20726927BF4575BE9EBA2B5BB62400
+              9D17A7E33F69B6D2345BA9AD7F4517BF6AD1A7BCF643B1C23E6A3F462DEA9A24
+              BC07EF9E5AE2B645BF2449E4B61E823C0EB2F27AC7B1852EC4A8458C5A28BA04
+              10E4CE861C14B099B97C337379F0EE54D11BF6841C14D0247877DF0A199717F4
+              19C0368425802A27F41D00A0515F014444B1CFB44F54C9C374585427509D5BE1
+              6024BE519FA0C9207B391392E7FA5B89E7C18F166DABE2276EEF7760D909087E
+              B4506542D5C789DD51932EEE91BFE30394EA7866DBEA2C380000000049454E44
+              AE426082}
+          end
+          item
+            Scale = 2.000000000000000000
+            Width = 48
+            Height = 48
+            PNG = {
+              89504E470D0A1A0A0000000D49484452000000300000003008060000005702F9
+              87000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              017B494441546843ED983D6E833018865F471CA1B9435686EE4139407B85FE64
+              8C72988C347085E60474EFC019B24491E801B298AF434A3016314EE4840FD58F
+              8404DF6B8C1F199001F0783C1E8FC7D31FA2DA19BF670B08BC00226C36710DE5
+              20A4C547B4D2936B189DF6EE32780010E1F15A6EA805EE32F80A77D752048649
+              FD0CCCBF480D8A787ACA5C70ABFE073F038317E8ED163A0FE528B12AD651AA27
+              6D309C0111622492F15B66F5AA6528F087A5045F01D849F42650C453A16F28E9
+              556FD725D19B401BC53A4A2F956025802B24D809E042099602304A60D13C644C
+              BB447325CB5A00958401F6025D0C5EE0EC628E33EA4273F033A00850AE067C69
+              8EB31620A47AC88FE32F19B562F5D1F230CF3E05C4935E0700026D7EE2E859AF
+              DBE0A25FAB6740403CEAB50A53D685E95C53A66225C0192B01027DEBB50A53D6
+              85E95C53A6622510C87249C041AF13700864B9D4EBB6B8E8D74A609FCCB68194
+              13026D00EC00EC08B409A49CEC93D9566F6FCBADFAF5783C1ECFFFE117B055AF
+              4FD5515C460000000049454E44AE426082}
+          end>
+        Name = 'shipping'
+      end
+      item
+        MultiResBitmap.Height = 24
+        MultiResBitmap.Width = 24
+        MultiResBitmap = <
+          item
+            Width = 24
+            Height = 24
+            PNG = {
+              89504E470D0A1A0A0000000D4948445200000018000000180806000000E0773D
+              F8000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              018149444154484BED92BF4B026118C7BFCF790E051171FE18FA371C820AB46C
+              09A9C5968C28BC732AA8F61AFA036AA841F0AC201D82A69296CE1FD0D270634B
+              7F4081A74E4111D83D0D229CAF678536FAD9DEE7FB7DF8F0C00B0C19F2572652
+              F7E38A565915E79238E88B94E99559BE9580BC28F91781DF7EBB0668968127D9
+              E3359CD9C0029F563907D112182FEC91E3D5F4B4E5CC0712F8D5CA11011BCC78
+              2770BC919E79163B7D0B7C5A791F845D00007FAD587AE451ECC04DA0A8A54420
+              6904C5B913BF56DE22D02100D86CAFD5B3F37762A74D8740514B0989A41C935C
+              E82551D45202A093D68BB71BFA5C5EEC38E91078D836C0304108B9497CC9E2A2
+              44520E00187C50CB444E9DB91B240E024923C824174008816112376356365A0D
+              A8E5291B5424C22818C7353DBC27EEBAD125808B046CEF80A42B102619B8A867
+              C29BE24E2F5C051024CCFC41442360BEA9E99165B1FB135DBFA88D958D56899B
+              31304C221A01F8A1268DC5C5DE6FF4BCA04DEB12CFBAF7B379F67AB9D010F321
+              43F00D61288578F6A145D00000000049454E44AE426082}
+          end
+          item
+            Scale = 2.000000000000000000
+            Width = 48
+            Height = 48
+            PNG = {
+              89504E470D0A1A0A0000000D49484452000000300000003008060000005702F9
+              87000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              0239494441546843EDD6BD6F13311806F0E7752A2616A45C362624465059D8D2
+              9E943FA012CA0062C9A744D980AD8C2026BA148AD426ED0082E1906064BB261B
+              2B232B5BAE120B13347E199248B6691CE72EF46EF06FCB731EEE91CFCE0B789E
+              E7799EE7A54666500495567C5F123D21600CF08BA4177E34D7CC0833C85BA53B
+              DC62416F897013845B0C7A6AAE5115AA40B933DC602923359BECC27C85295069
+              0D6F00E3088435ED81E057DA6F43210A5C7930B8CA621C11285073663C4E0EC2
+              633533E55E20D88E2F97FE7004D075ED01F3F3D3DEE6AE969D23F702FC9B2222
+              DCD632E6FDA4175A0FEF4CAED768D039790FE0AE117F480E37EF19D95CB9ED40
+              B91DBF365F9E195F967979E4552068C7CF88685BCD98F1952E715DCD5C5CF827
+              546E9F3C22C24B3DE5EF676BA2F6F3CDC60F3D5FEC420B04DDB801A623356370
+              2264A936EA57BFA9B92B6B81A033B803C81D0080C45ED2B7DFC93695EE708B59
+              7ED242C61993A89D1E56075ABE84056740EE00B40ED03A041D05ADB861AE7071
+              DE88000024443DCBCB637101438A12734704E2E6E8A0FA59CB52B01790D833A3
+              654A6419115C590B24FDF018929B66EE5222EB88E0CA5A00194A641D115C596F
+              2155D08A1B10FA15080090DC346FA7558C08AE16EEC08CEB4EAC6A4470E5BC03
+              33B69D00E11A8826FF1B53D311A196EC87BFD47C55962E005B897FA41F115CA5
+              2A00871259470457CE67C034F74C60322200A5FAFF7E796429004B89558C08AE
+              527F42AAE9E7F410CC8218BBA37EF8CE5CE3799EE7799E57407F01595CFACDFA
+              D49D2E0000000049454E44AE426082}
+          end>
+        Name = 'delivered'
+      end>
+    Destination = <
+      item
+        Layers = <
+          item
+            Name = 'cart'
+            SourceRect.Right = 24.000000000000000000
+            SourceRect.Bottom = 24.000000000000000000
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'address'
+            SourceRect.Right = 24.000000000000000000
+            SourceRect.Bottom = 24.000000000000000000
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'payment'
+            SourceRect.Right = 24.000000000000000000
+            SourceRect.Bottom = 24.000000000000000000
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'shipping'
+            SourceRect.Right = 24.000000000000000000
+            SourceRect.Bottom = 24.000000000000000000
+          end>
+      end
+      item
+        Layers = <
+          item
+            Name = 'delivered'
+            SourceRect.Right = 24.000000000000000000
+            SourceRect.Bottom = 24.000000000000000000
+          end>
+      end>
+  end
+end

@@ -206,6 +206,8 @@
         <DCCReference Include="..\..\Sources\Expander\Soft4You.FMX.Controls.Expander.Register.pas"/>
         <DCCReference Include="..\..\Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.Register.pas"/>
         <DCCReference Include="..\..\Sources\ColorSelector\Soft4You.FMX.Controls.ColorSelector.Register.pas"/>
+        <DCCReference Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Design.pas"/>
+        <DCCReference Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Register.pas"/>
         <RcCompile Include="..\..\Graphics\HTMLEditor\HTMLEditorDesign.rc">
             <Form>HTMLEditorDesign.res</Form>
         </RcCompile>
@@ -223,6 +225,9 @@
         </RcCompile>
         <RcCompile Include="..\..\Graphics\ColorSelector\ColorSelectorDesign.rc">
             <Form>ColorSelectorDesign.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Graphics\StepProgressBar\StepProgressBarDesign.rc">
+            <Form>StepProgressBarDesign.res</Form>
         </RcCompile>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
