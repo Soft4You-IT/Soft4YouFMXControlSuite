@@ -24,7 +24,12 @@ implementation
 
 uses
   System.Classes,
-  Soft4You.FMX.Controls.StepProgressBar;
+  DesignIntf,
+  Soft4You.FMX.Controls.StepProgressBar,
+  Soft4You.FMX.Controls.StepProgressBar.Design;
+
+const
+  C_STEPS_PROPERTY = 'Steps';
 
 procedure Register;
 begin
@@ -32,6 +37,7 @@ begin
   // matches the class name in upper case ('TS4YSTEPPROGRESSBAR'), compiled
   // into the .res from StepProgressBarDesign.rc.
   RegisterComponents('Soft4You FMX Controls Suite', [TS4YStepProgressBar]);
+  RegisterPropertyEditor(TypeInfo(TS4YStepList), TS4YStepProgressBar, C_STEPS_PROPERTY, TS4YStepListProperty);
 end;
 
 end.

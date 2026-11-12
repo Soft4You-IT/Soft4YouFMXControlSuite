@@ -61,6 +61,7 @@ contains
   Soft4You.FMX.Controls.ColorSelector.Types in '..\..\Sources\ColorSelector\Soft4You.FMX.Controls.ColorSelector.Types.pas',
   Soft4You.FMX.Controls.ColorSelector in '..\..\Sources\ColorSelector\Soft4You.FMX.Controls.ColorSelector.pas',
   Soft4You.FMX.Controls.StepProgressBar.Types in '..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Types.pas',
+  Soft4You.FMX.Controls.StepProgressBar.Strings in '..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Strings.pas',
   Soft4You.FMX.Controls.StepProgressBar in '..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.pas';
 
 end.

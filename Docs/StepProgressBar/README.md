@@ -7,7 +7,7 @@ A progress indicator made of steps along a horizontal or vertical line, like the
 Start   Download   Verify    Copy     Finish
 ```
 
-- The **steps** are defined by the application, in the collection `Steps`: each one has a caption, an optional description, an image and a `Failed` flag.
+- The **steps** are defined by the application, in the list `Steps`: each one has a caption, an optional description, an image and a `Failed` flag. The list has always a first and a last step, which cannot be removed or moved.
 - `CurrentStep` says which step is in progress; `NextStep` and `PreviousStep` move to the next or the previous one.
 - The steps before the current one are drawn as **completed**, the current one as **current**, the ones after it as **pending**, and a step with `Failed = True` as **failed**, wherever it is.
 - The part of the line up to the current step can be highlighted, and it fills with an animation when the step changes.
@@ -28,7 +28,9 @@ Add the folder `Sources\StepProgressBar` to the Delphi library path to compile y
 |---|---|
 | `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.pas` | The control, its steps and its settings |
 | `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Types.pas` | Enumerations, sets and event types |
-| `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Register.pas` | Registration in the Tool Palette (design time) |
+| `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Strings.pas` | Texts of the control and of its editor: captions of the first steps, error messages |
+| `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Design.pas` | Editor of the steps in the IDE (design time) |
+| `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Register.pas` | Registration in the Tool Palette and of the editor of the steps (design time) |
 | `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Win.rc` / `.Mac.rc` | Resource scripts that link the style as the resource `S4YStepProgressBarStyle` |
 | `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Win.style` / `.Mac.style` | Default style of the control (the two are identical) |
 | `Graphics\StepProgressBar\TS4YStepProgressBar.svg` | Vector master of the icon of the Tool Palette |
@@ -38,7 +40,7 @@ Add the folder `Sources\StepProgressBar` to the Delphi library path to compile y
 
 | Property | Default | Meaning |
 |---|---|---|
-| `Steps` | empty | The steps, in their order along the line (see below) |
+| `Steps` | Start, Step, End | The steps, in their order along the line (see below) |
 | `CurrentStep` | 0 | Index of the step in progress, from 0. A value out of range is brought to the first or the last step |
 | `Orientation` | `Horizontal` | `Horizontal`: steps from left to right. `Vertical`: from top to bottom |
 | `LabelPosition` | `slpAfter` | Side of the markers and the line with the captions and the descriptions: `slpBefore` (above a horizontal line, on the left of a vertical one), `slpAfter` (below, on the right) or `slpNone` (hidden) |
@@ -97,7 +99,20 @@ Every change made by the user fires `OnStepChanging`, which can refuse it: a rul
 
 ### Steps
 
-Each item of `Steps` (`TS4YStepItem`) has:
+`Steps` (`TS4YStepList`) has always a first and a last step: a new control has three steps, *Start*, *Step* and *End*. The first and the last steps cannot be removed or moved, and no step can take their place; the list changes the steps between them:
+
+| Member | Meaning |
+|---|---|
+| `Add` | Adds a new step before the last one and returns it |
+| `Insert(AIndex)` | Inserts a new step at `AIndex`, from 1 (after the first step) to `Count - 1` (before the last step), and returns it |
+| `Delete(AIndex)` | Removes the step at `AIndex`, from 1 to `Count - 2` |
+| `Move(ACurrentIndex, ANewIndex)` | Moves a step; both indexes go from 1 to `Count - 2` |
+| `Clear` | Removes the steps between the first and the last one |
+| `Count`, `Items[I]` | Number of the steps and the step at an index (`Steps[I]`) |
+
+An operation on the first or the last step, or an index out of these ranges, raises `ES4YStepListError`. Setting `Index` of a step moves it like `Move`, and freeing a step between the first and the last one removes it like `Delete`.
+
+Each step (`TS4YStepItem`) has:
 
 | Property | Default | Meaning |
 |---|---|---|
@@ -211,12 +226,13 @@ uses
 
 procedure TMainForm.PrepareSteps;
 begin
+  // Clear keeps the first and the last step; Add inserts the new ones before the last.
   StepBar.Steps.Clear;
-  StepBar.Steps.Add.Caption := 'Start';
+  StepBar.Steps[0].Caption := 'Start';
   StepBar.Steps.Add.Caption := 'Download';
   StepBar.Steps.Add.Caption := 'Verify';
   StepBar.Steps.Add.Caption := 'Copy files';
-  StepBar.Steps.Add.Caption := 'Finish';
+  StepBar.Steps[StepBar.Steps.Count - 1].Caption := 'Finish';
   StepBar.CurrentStep := 0;
 end;
 
@@ -229,7 +245,7 @@ begin
 end;
 ```
 
-In the designer, drop a `TS4YStepProgressBar` on the form and add the steps with the collection editor of `Steps`. While `Steps` is empty, the designer shows three sample steps, so that the control can be seen and placed.
+In the designer, drop a `TS4YStepProgressBar` on the form and click the button of `Steps` in the Object Inspector: the editor of the steps lists them, and the selected step is shown in the Object Inspector. The buttons *Add*, *Insert*, *Delete*, *Move up* and *Move down* work on the steps between the first and the last one; *Insert* puts the new step in place of the selected one.
 
 ## Demo
 
@@ -238,6 +254,6 @@ In the designer, drop a `TS4YStepProgressBar` on the form and add the steps with
 ## Notes
 
 - The marker settings and the line stream their `StyledBrushes` after the brushes: a form saved with an explicit `StyledBrushes` keeps it when loaded.
-- `CurrentStep` is stored before `Steps` in the form: the control checks its range only when the form is loaded.
+- The form file stores the steps as `StepItems`, after `CurrentStep`: the control checks the range of `CurrentStep` only when the form is loaded.
 - The `Stroke` of the marker settings starts with the thickness 1, the default of `TStrokeBrush`; the default style draws the borders with the thickness 2. Set `Stroke.Thickness` too when you replace the border of the style.
 - The images of `Images` are drawn when the control paints: after changing the image list, call `Repaint` to show the change.

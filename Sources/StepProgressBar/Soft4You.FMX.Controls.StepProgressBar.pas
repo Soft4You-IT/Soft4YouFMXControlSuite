@@ -13,6 +13,7 @@ unit Soft4You.FMX.Controls.StepProgressBar;
 interface
 
 uses
+  System.SysUtils,
   System.Classes,
   System.Types,
   System.UITypes,
@@ -33,6 +34,7 @@ type
   /// </summary>
   /// <remarks>
   /// The steps are defined by the application, for example the phases of an installation. The state in which a step is drawn comes from its position compared to the current step of the control, or from Failed.
+  /// The steps belong to the Steps list of the control: they are added and removed with its methods. Setting Index moves a step like Steps.Move, and freeing a step between the first and the last one removes it like Steps.Delete.
   /// </remarks>
   TS4YStepItem = class(TCollectionItem)
   public const
@@ -44,19 +46,27 @@ type
     FFailed: Boolean;
     FImageIndex: TImageIndex;
     FTag: NativeInt;
+    function IsFixedStep: Boolean;
+    function IsProtectedCollection(const ACollection: TCollection): Boolean;
     procedure SetCaption(const Value: string);
     procedure SetDescription(const Value: string);
     procedure SetFailed(const Value: Boolean);
     procedure SetImageIndex(const Value: TImageIndex);
   protected
-    /// <summary>Returns the caption of the step, shown by the collection editor of the IDE.</summary>
+    /// <summary>Returns the caption of the step, shown by the editor of the steps in the IDE.</summary>
     function GetDisplayName: string; override;
+    /// <summary>Allows a step to enter the list of the steps only through Steps.Add and Steps.Insert, and to leave it only when it is not the first or the last step.</summary>
+    procedure SetCollection(Value: TCollection); override;
+    /// <summary>Moves the step like Steps.Move: the first and the last steps cannot be moved.</summary>
+    procedure SetIndex(Value: Integer); override;
   public
     /// <summary>Creates a step without caption and without image.</summary>
     constructor Create(Collection: TCollection); override;
 
     /// <summary>Copies all the properties from another TS4YStepItem.</summary>
     procedure Assign(Source: TPersistent); override;
+    /// <summary>Raises ES4YStepListError when the first or the last step is freed outside the control.</summary>
+    procedure BeforeDestruction; override;
   published
     /// <summary>Text shown next to the marker of the step, on the side given by LabelPosition of the control.</summary>
     property Caption: string read FCaption write SetCaption;
@@ -71,23 +81,54 @@ type
   end;
 
   /// <summary>
+  /// Raised by the steps of a TS4YStepProgressBar when an operation would remove or move the first or the last step.
+  /// </summary>
+  ES4YStepListError = class(Exception);
+
+  /// <summary>
   /// The steps of a TS4YStepProgressBar.
   /// </summary>
-  TS4YStepItems = class(TOwnedCollection)
+  /// <remarks>
+  /// The list has always a first and a last step, which cannot be removed or moved: the steps added, inserted, removed and moved are the ones between them. A new control has three steps, Start, Step and End.
+  /// </remarks>
+  TS4YStepList = class(TPersistent)
   private
+    FCollection: TOwnedCollection;
     [Weak] FProgressBar: TS4YStepProgressBar;
+    procedure AddMissingFixedSteps;
+    procedure BeginChange;
+    procedure CheckIndex(const AIndex, AFirstAllowed, ALastAllowed: Integer);
+    procedure EndChange;
+    function GetCount: Integer;
     function GetItem(Index: Integer): TS4YStepItem;
+    procedure ReadItems(AReader: TReader);
     procedure SetItem(Index: Integer; const Value: TS4YStepItem);
+    procedure WriteItems(AWriter: TWriter);
   protected
-    /// <summary>Tells the control that a step has been added, removed or changed.</summary>
-    procedure Update(Item: TCollectionItem); override;
+    /// <summary>Returns the control that owns the steps.</summary>
+    function GetOwner: TPersistent; override;
   public
-    /// <summary>Creates the collection of the steps of AProgressBar.</summary>
+    /// <summary>Creates the steps of AProgressBar: Start, Step and End.</summary>
     constructor Create(const AProgressBar: TS4YStepProgressBar);
+    destructor Destroy; override;
 
-    /// <summary>Adds a new step at the end and returns it.</summary>
+    /// <summary>Adds a new step before the last one and returns it.</summary>
     function Add: TS4YStepItem;
+    /// <summary>Copies the steps of another TS4YStepList.</summary>
+    procedure Assign(Source: TPersistent); override;
+    /// <summary>Removes the steps between the first and the last one.</summary>
+    procedure Clear;
+    /// <summary>Removes the step at AIndex. The first and the last steps cannot be removed.</summary>
+    procedure Delete(const AIndex: Integer);
+    /// <summary>Returns the name of the list in the IDE, for example S4YStepProgressBar1.Steps.</summary>
+    function GetNamePath: string; override;
+    /// <summary>Inserts a new step at AIndex and returns it. AIndex goes from 1, after the first step, to Count - 1, before the last step.</summary>
+    function Insert(const AIndex: Integer): TS4YStepItem;
+    /// <summary>Moves the step at ACurrentIndex to ANewIndex. The first and the last steps cannot be moved, and no step can take their place.</summary>
+    procedure Move(const ACurrentIndex, ANewIndex: Integer);
 
+    /// <summary>Number of the steps, the first and the last included.</summary>
+    property Count: Integer read GetCount;
     /// <summary>The steps, in their order along the line.</summary>
     property Items[Index: Integer]: TS4YStepItem read GetItem write SetItem; default;
   end;
@@ -330,7 +371,7 @@ type
     FOrientation: TOrientation;
     FPartsContainer: TControl;
     FPendingMarker: TS4YStepMarkerSettings;
-    FSteps: TS4YStepItems;
+    FSteps: TS4YStepList;
     FStyleDescription: TText;
     FStyleLabels: array[TS4YStepState] of TText;
     FStyleMarkerTexts: array[TS4YStepState] of TText;
@@ -367,7 +408,6 @@ type
     function GetMarkerAlongLine(const AState: TS4YStepState): Single;
     function GetMarkerSettings(const AState: TS4YStepState): TS4YStepMarkerSettings;
     function GetMarkerSize(const AState: TS4YStepState): TSizeF;
-    function GetStepCount: Integer;
     function GetStepState(const AStepIndex: Integer): TS4YStepState;
     function IsAnimating: Boolean;
     function IsProgressHighlighted: Boolean;
@@ -398,7 +438,7 @@ type
     procedure SetMarkerSize(const Value: TS4YStepMarkerSize);
     procedure SetOrientation(const Value: TOrientation);
     procedure SetPendingMarker(const Value: TS4YStepMarkerSettings);
-    procedure SetSteps(const Value: TS4YStepItems);
+    procedure SetSteps(const Value: TS4YStepList);
     procedure SettingsChanged(Sender: TObject);
     procedure SizeChanged(Sender: TObject);
     procedure StepsChanged;
@@ -406,6 +446,8 @@ type
   protected
     /// <summary>Finds the texts of the style and prepares the graphic parts again.</summary>
     procedure ApplyStyle; override;
+    /// <summary>Writes and reads the steps in the form file, as StepItems.</summary>
+    procedure DefineProperties(Filer: TFiler); override;
     /// <summary>Fires OnDrawLine; returns True when the event has drawn the stretch of line.</summary>
     function DoDrawLine(const ACanvas: TCanvas; const ARect: TRectF; const AFromStep: Integer;
       const Completed: Boolean): Boolean; virtual;
@@ -441,7 +483,7 @@ type
     /// <summary>Draws the line, the markers and the labels of the steps.</summary>
     procedure Paint; override;
   public
-    /// <summary>Creates the control without steps and with the default settings.</summary>
+    /// <summary>Creates the control with the steps Start, Step and End and with the default settings.</summary>
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -515,8 +557,8 @@ type
     property RotationCenter;
     property Scale;
     property Size;
-    /// <summary>The steps, in their order along the line.</summary>
-    property Steps: TS4YStepItems read FSteps write SetSteps;
+    /// <summary>The steps, in their order along the line. There are always a first and a last step, which cannot be removed or moved.</summary>
+    property Steps: TS4YStepList read FSteps write SetSteps;
     property StyleLookup;
     property TabOrder;
     property TabStop;
@@ -543,9 +585,9 @@ type
 implementation
 
 uses
-  System.SysUtils,
   System.Math,
-  FMX.Styles;
+  FMX.Styles,
+  Soft4You.FMX.Controls.StepProgressBar.Strings;
 
 {$IFDEF MACOS}
 {$R *.mac.res}
@@ -570,6 +612,25 @@ type
     property TargetProgress: Single read FTargetProgress write FTargetProgress;
   end;
 
+  /// <summary>Collection that holds the steps of a TS4YStepList; only the list changes it.</summary>
+  TS4YStepCollection = class(TOwnedCollection)
+  private
+    [Weak] FList: TS4YStepList;
+    FListChangeDepth: Integer;
+    function GetIsListChange: Boolean;
+  protected
+    procedure Update(Item: TCollectionItem); override;
+  public
+    constructor Create(const AList: TS4YStepList);
+
+    /// <summary>Starts a change made by the list: until EndListChange the steps can be added, removed and moved.</summary>
+    procedure BeginListChange;
+    procedure EndListChange;
+
+    property IsListChange: Boolean read GetIsListChange;
+    property List: TS4YStepList read FList;
+  end;
+
 const
   C_STYLE_DESCRIPTION = 'description';
   C_STYLE_FOCUS_FRAME = 'focusframe';
@@ -592,9 +653,13 @@ const
   C_MARKER_IMAGE_MARGIN = 0.2;
   // Height given to a text while it is measured: large enough for any label.
   C_MEASURE_HEIGHT = 10000;
-  // Steps drawn at design time while Steps is empty, so that the control can be seen and placed.
-  C_DESIGN_PREVIEW_STEP_COUNT = 3;
-  C_DESIGN_PREVIEW_CURRENT_STEP = 1;
+  // Steps that a list has always: the first and the last one.
+  C_FIXED_STEP_COUNT = 2;
+  // Names of the properties in the IDE: Steps of the control, Items of the list.
+  C_STEPS_PROPERTY = 'Steps';
+  C_STEP_LIST_ITEMS_PROPERTY = 'Items';
+  // Name of the steps in the form file. It cannot be Steps, which is read as the published property.
+  C_STEP_ITEMS_STREAM_PROPERTY = 'StepItems';
 
 { TS4YStepProgressAnimation }
 
@@ -638,12 +703,31 @@ begin
     inherited;
 end;
 
+procedure TS4YStepItem.BeforeDestruction;
+begin
+  if IsProtectedCollection(Collection) and IsFixedStep then
+    raise ES4YStepListError.Create(S_STEP_FIXED_STEP_FREED);
+
+  inherited;
+end;
+
 function TS4YStepItem.GetDisplayName: string;
 begin
   if FCaption <> '' then
     Result := FCaption
   else
     Result := inherited GetDisplayName;
+end;
+
+function TS4YStepItem.IsFixedStep: Boolean;
+begin
+  Result := (Index = 0) or (Index = Collection.Count - 1);
+end;
+
+function TS4YStepItem.IsProtectedCollection(const ACollection: TCollection): Boolean;
+begin
+  // The steps of a list are protected, except while the list itself changes them.
+  Result := (ACollection is TS4YStepCollection) and not TS4YStepCollection(ACollection).IsListChange;
 end;
 
 procedure TS4YStepItem.SetCaption(const Value: string);
@@ -653,6 +737,20 @@ begin
 
   FCaption := Value;
   Changed(False);
+end;
+
+procedure TS4YStepItem.SetCollection(Value: TCollection);
+begin
+  if Value <> Collection then
+  begin
+    if IsProtectedCollection(Value) then
+      raise ES4YStepListError.Create(S_STEP_ADDED_OUTSIDE_LIST);
+
+    if IsProtectedCollection(Collection) and IsFixedStep then
+      raise ES4YStepListError.Create(S_STEP_FIXED_STEP_FREED);
+  end;
+
+  inherited;
 end;
 
 procedure TS4YStepItem.SetDescription(const Value: string);
@@ -682,36 +780,216 @@ begin
   Changed(False);
 end;
 
-{ TS4YStepItems }
-
-constructor TS4YStepItems.Create(const AProgressBar: TS4YStepProgressBar);
+procedure TS4YStepItem.SetIndex(Value: Integer);
 begin
-  inherited Create(AProgressBar, TS4YStepItem);
-
-  FProgressBar := AProgressBar;
+  // Moved by the list, which checks the first and the last steps.
+  if IsProtectedCollection(Collection) and (Value <> Index) then
+    TS4YStepCollection(Collection).List.Move(Index, Value)
+  else
+    inherited;
 end;
 
-function TS4YStepItems.Add: TS4YStepItem;
+{ TS4YStepCollection }
+
+constructor TS4YStepCollection.Create(const AList: TS4YStepList);
 begin
-  Result := TS4YStepItem(inherited Add);
+  inherited Create(AList, TS4YStepItem);
+
+  FList := AList;
+  PropName := C_STEP_LIST_ITEMS_PROPERTY;
 end;
 
-function TS4YStepItems.GetItem(Index: Integer): TS4YStepItem;
+procedure TS4YStepCollection.BeginListChange;
 begin
-  Result := TS4YStepItem(inherited GetItem(Index));
+  Inc(FListChangeDepth);
 end;
 
-procedure TS4YStepItems.SetItem(Index: Integer; const Value: TS4YStepItem);
+procedure TS4YStepCollection.EndListChange;
 begin
-  inherited SetItem(Index, Value);
+  Dec(FListChangeDepth);
 end;
 
-procedure TS4YStepItems.Update(Item: TCollectionItem);
+function TS4YStepCollection.GetIsListChange: Boolean;
+begin
+  Result := FListChangeDepth > 0;
+end;
+
+procedure TS4YStepCollection.Update(Item: TCollectionItem);
 begin
   inherited;
 
+  if Assigned(FList) and Assigned(FList.FProgressBar) then
+    FList.FProgressBar.StepsChanged;
+end;
+
+{ TS4YStepList }
+
+constructor TS4YStepList.Create(const AProgressBar: TS4YStepProgressBar);
+begin
+  inherited Create;
+
+  FCollection := TS4YStepCollection.Create(Self);
+  BeginChange;
+  try
+    TS4YStepItem(FCollection.Add).Caption := S_STEP_START_CAPTION;
+    TS4YStepItem(FCollection.Add).Caption := S_STEP_INTERMEDIATE_CAPTION;
+    TS4YStepItem(FCollection.Add).Caption := S_STEP_END_CAPTION;
+  finally
+    EndChange;
+  end;
+
+  // Set only now, so that the first steps do not notify a control that is still being created.
+  FProgressBar := AProgressBar;
+end;
+
+destructor TS4YStepList.Destroy;
+begin
+  FProgressBar := nil;
+
+  // Allows the collection to free all the steps, the first and the last one included.
+  BeginChange;
+  FreeAndNil(FCollection);
+
+  inherited;
+end;
+
+function TS4YStepList.Add: TS4YStepItem;
+begin
+  Result := Insert(Count - 1);
+end;
+
+procedure TS4YStepList.AddMissingFixedSteps;
+begin
+  while FCollection.Count < C_FIXED_STEP_COUNT do
+    FCollection.Add;
+end;
+
+procedure TS4YStepList.Assign(Source: TPersistent);
+begin
+  if Source is TS4YStepList then
+  begin
+    BeginChange;
+    try
+      FCollection.Assign(TS4YStepList(Source).FCollection);
+      AddMissingFixedSteps;
+    finally
+      EndChange;
+    end;
+  end
+  else
+    inherited;
+end;
+
+procedure TS4YStepList.BeginChange;
+begin
+  TS4YStepCollection(FCollection).BeginListChange;
+end;
+
+procedure TS4YStepList.CheckIndex(const AIndex, AFirstAllowed, ALastAllowed: Integer);
+begin
+  if (AIndex < AFirstAllowed) or (AIndex > ALastAllowed) then
+    raise ES4YStepListError.CreateFmt(S_STEP_INDEX_NOT_ALLOWED, [AIndex, AFirstAllowed, ALastAllowed]);
+end;
+
+procedure TS4YStepList.Clear;
+begin
+  BeginChange;
+  try
+    FCollection.BeginUpdate;
+    try
+      while FCollection.Count > C_FIXED_STEP_COUNT do
+        FCollection.Delete(1);
+    finally
+      FCollection.EndUpdate;
+    end;
+  finally
+    EndChange;
+  end;
+end;
+
+procedure TS4YStepList.Delete(const AIndex: Integer);
+begin
+  CheckIndex(AIndex, 1, Count - C_FIXED_STEP_COUNT);
+  BeginChange;
+  try
+    FCollection.Delete(AIndex);
+  finally
+    EndChange;
+  end;
+end;
+
+procedure TS4YStepList.EndChange;
+begin
+  TS4YStepCollection(FCollection).EndListChange;
+end;
+
+function TS4YStepList.GetCount: Integer;
+begin
+  Result := FCollection.Count;
+end;
+
+function TS4YStepList.GetItem(Index: Integer): TS4YStepItem;
+begin
+  Result := TS4YStepItem(FCollection.Items[Index]);
+end;
+
+function TS4YStepList.GetNamePath: string;
+begin
   if Assigned(FProgressBar) then
-    FProgressBar.StepsChanged;
+    Result := FProgressBar.GetNamePath + '.' + C_STEPS_PROPERTY
+  else
+    Result := inherited GetNamePath;
+end;
+
+function TS4YStepList.GetOwner: TPersistent;
+begin
+  Result := FProgressBar;
+end;
+
+function TS4YStepList.Insert(const AIndex: Integer): TS4YStepItem;
+begin
+  CheckIndex(AIndex, 1, Count - 1);
+  BeginChange;
+  try
+    Result := TS4YStepItem(FCollection.Insert(AIndex));
+  finally
+    EndChange;
+  end;
+end;
+
+procedure TS4YStepList.Move(const ACurrentIndex, ANewIndex: Integer);
+begin
+  CheckIndex(ACurrentIndex, 1, Count - C_FIXED_STEP_COUNT);
+  CheckIndex(ANewIndex, 1, Count - C_FIXED_STEP_COUNT);
+  BeginChange;
+  try
+    FCollection.Items[ACurrentIndex].Index := ANewIndex;
+  finally
+    EndChange;
+  end;
+end;
+
+procedure TS4YStepList.ReadItems(AReader: TReader);
+begin
+  BeginChange;
+  try
+    // The value read first says that a collection follows.
+    AReader.ReadValue;
+    AReader.ReadCollection(FCollection);
+    AddMissingFixedSteps;
+  finally
+    EndChange;
+  end;
+end;
+
+procedure TS4YStepList.SetItem(Index: Integer; const Value: TS4YStepItem);
+begin
+  FCollection.Items[Index] := Value;
+end;
+
+procedure TS4YStepList.WriteItems(AWriter: TWriter);
+begin
+  AWriter.WriteCollection(FCollection);
 end;
 
 { TS4YStepMarkerSettings }
@@ -1055,7 +1333,7 @@ begin
   FCurrentStep := 0;
   FDisplayedProgress := 0;
 
-  FSteps := TS4YStepItems.Create(Self);
+  FSteps := TS4YStepList.Create(Self);
 
   FCompletedMarker := TS4YStepMarkerSettings.Create(C_DEFAULT_COMPLETED_COLOR, C_DEFAULT_COMPLETED_COLOR);
   FCurrentMarker := TS4YStepMarkerSettings.Create(C_DEFAULT_CURRENT_FILL_COLOR, C_DEFAULT_CURRENT_STROKE_COLOR);
@@ -1389,6 +1667,15 @@ begin
   Result.Parent := FPartsContainer;
 end;
 
+procedure TS4YStepProgressBar.DefineProperties(Filer: TFiler);
+begin
+  inherited;
+
+  // Defined here and not in TS4YStepList: the properties of the steps written inside Steps would
+  // get the prefix "Steps." in the form file, and could not be read back.
+  Filer.DefineProperty(C_STEP_ITEMS_STREAM_PROPERTY, FSteps.ReadItems, FSteps.WriteItems, True);
+end;
+
 function TS4YStepProgressBar.DoDrawLine(const ACanvas: TCanvas; const ARect: TRectF; const AFromStep: Integer;
   const Completed: Boolean): Boolean;
 begin
@@ -1446,7 +1733,7 @@ procedure TS4YStepProgressBar.DrawFocusFrame(const AStepCount: Integer);
 var
   LFrameRect: TRectF;
 begin
-  if not (stiKeyboard in FInteractions) or not IsFocused or (FSteps.Count = 0) then
+  if not (stiKeyboard in FInteractions) or not IsFocused then
     Exit;
 
   LFrameRect := CalculateMarkerRect(FCurrentStep, AStepCount);
@@ -1468,10 +1755,7 @@ begin
   if not FLine.Visible then
     Exit;
 
-  if FSteps.Count = 0 then
-    LProgress := C_DESIGN_PREVIEW_CURRENT_STEP
-  else
-    LProgress := EnsureRange(FDisplayedProgress, 0, AStepCount - 1);
+  LProgress := EnsureRange(FDisplayedProgress, 0, AStepCount - 1);
 
   if not FHighlightProgress then
     LProgress := 0;
@@ -1564,7 +1848,7 @@ begin
     begin
       LImageIndex := LSettings.ImageIndex;
 
-      if (LImageIndex < 0) and (AStepIndex < FSteps.Count) then
+      if LImageIndex < 0 then
         LImageIndex := FSteps[AStepIndex].ImageIndex;
 
       if Assigned(FImages) and (LImageIndex >= 0) then
@@ -1599,7 +1883,7 @@ var
   LDescriptionHeight: Single;
   LTop: Single;
 begin
-  if (FLabelPosition = slpNone) or (AStepIndex >= FSteps.Count) then
+  if FLabelPosition = slpNone then
     Exit;
 
   LCaption := FSteps[AStepIndex].Caption;
@@ -1837,31 +2121,15 @@ begin
     Result.Height := LSize.Height;
 end;
 
-function TS4YStepProgressBar.GetStepCount: Integer;
-begin
-  Result := FSteps.Count;
-
-  if (Result = 0) and (csDesigning in ComponentState) then
-    Result := C_DESIGN_PREVIEW_STEP_COUNT;
-end;
-
 function TS4YStepProgressBar.GetStepState(const AStepIndex: Integer): TS4YStepState;
-var
-  LCurrentStep: Integer;
 begin
-  if (AStepIndex < FSteps.Count) and FSteps[AStepIndex].Failed then
+  if FSteps[AStepIndex].Failed then
     Exit(sstFailed);
 
-  if FSteps.Count = 0 then
-    LCurrentStep := C_DESIGN_PREVIEW_CURRENT_STEP
-  else
-    LCurrentStep := FCurrentStep;
-
   // While the line fills, a step becomes completed only when the line reaches it.
-  if AStepIndex = LCurrentStep then
+  if AStepIndex = FCurrentStep then
     Result := sstCurrent
-  else if (AStepIndex < LCurrentStep) and ((FSteps.Count = 0) or not IsProgressHighlighted or
-    (AStepIndex <= FDisplayedProgress)) then
+  else if (AStepIndex < FCurrentStep) and (not IsProgressHighlighted or (AStepIndex <= FDisplayedProgress)) then
     Result := sstCompleted
   else
     Result := sstPending;
@@ -1896,7 +2164,7 @@ procedure TS4YStepProgressBar.KeyDown(var Key: Word; var KeyChar: WideChar; Shif
 begin
   inherited;
 
-  if not (stiKeyboard in FInteractions) or (FSteps.Count = 0) then
+  if not (stiKeyboard in FInteractions) then
     Exit;
 
   case Key of
@@ -2005,11 +2273,7 @@ var
 begin
   inherited;
 
-  LStepCount := GetStepCount;
-
-  if LStepCount = 0 then
-    Exit;
-
+  LStepCount := FSteps.Count;
   EnsureParts;
   DrawLine(LStepCount);
 
@@ -2222,7 +2486,7 @@ begin
   FPendingMarker.Assign(Value);
 end;
 
-procedure TS4YStepProgressBar.SetSteps(const Value: TS4YStepItems);
+procedure TS4YStepProgressBar.SetSteps(const Value: TS4YStepList);
 begin
   FSteps.Assign(Value);
 end;

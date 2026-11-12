@@ -219,6 +219,7 @@
         <DCCReference Include="..\..\Sources\ColorSelector\Soft4You.FMX.Controls.ColorSelector.Types.pas"/>
         <DCCReference Include="..\..\Sources\ColorSelector\Soft4You.FMX.Controls.ColorSelector.pas"/>
         <DCCReference Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Types.pas"/>
+        <DCCReference Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Strings.pas"/>
         <DCCReference Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.pas"/>
         <RcCompile Include="..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.Mac.rc">
             <Form>Soft4You.FMX.Controls.Badge.Mac.res</Form>

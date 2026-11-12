@@ -31,7 +31,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.Width = 540.000000000000000000
       Size.Height = 90.000000000000000000
       Size.PlatformDefault = False
-      Steps = <
+      StepItems = <
         item
           Caption = 'Start'
         end
@@ -69,7 +69,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Size.Height = 300.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 3
-      Steps = <
+      StepItems = <
         item
           Caption = 'Account'
           Description = 'Name and e-mail'
