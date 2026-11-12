@@ -18,17 +18,31 @@ uses
 
 type
   /// <summary>
-  /// Side of the line where a TS4YStepProgressBar shows the captions and the descriptions of the steps.
+  /// Side of the markers and the line where a TS4YStepProgressBar shows the captions and the descriptions of the steps.
   /// </summary>
   /// <remarks>
   /// slpNone: no caption and no description.
-  /// slpBefore: above the line when it is horizontal, on its left when it is vertical.
-  /// slpAfter: below the line when it is horizontal, on its right when it is vertical.
+  /// slpBefore: above the markers and the line when they are horizontal, on their left when they are vertical.
+  /// slpAfter: below the markers and the line when they are horizontal, on their right when they are vertical.
   /// </remarks>
   TS4YStepLabelPosition = (
     slpNone,
     slpBefore,
     slpAfter
+  );
+
+  /// <summary>
+  /// Where a TS4YStepProgressBar draws the markers compared to the line.
+  /// </summary>
+  /// <remarks>
+  /// smpCenter: on the line, which runs from a marker to the next one.
+  /// smpBefore: beside the line, above it when it is horizontal, on its left when it is vertical.
+  /// smpAfter: beside the line, below it when it is horizontal, on its right when it is vertical.
+  /// </remarks>
+  TS4YStepMarkerPosition = (
+    smpCenter,
+    smpBefore,
+    smpAfter
   );
 
   /// <summary>
@@ -48,7 +62,7 @@ type
   );
 
   /// <summary>
-  /// What a marker of a TS4YStepProgressBar shows inside its circle.
+  /// What a marker of a TS4YStepProgressBar shows inside it.
   /// </summary>
   /// <remarks>
   /// smcNone: nothing.
@@ -128,7 +142,7 @@ type
   /// Event fired before a marker of a TS4YStepProgressBar is drawn.
   /// </summary>
   /// <remarks>
-  /// ARect is the area of the marker, MarkerSize x MarkerSize, AStepIndex the index of the step and AState the state it is drawn in.
+  /// ARect is the area of the marker, MarkerSize.Width x MarkerSize.Height, AStepIndex the index of the step and AState the state it is drawn in.
   /// Setting Handled to True means the marker has been drawn by the event, and the control does not draw it.
   /// </remarks>
   TS4YStepDrawMarkerEvent = procedure(Sender: TObject; const ACanvas: TCanvas; const ARect: TRectF;
@@ -139,6 +153,7 @@ type
   /// </summary>
   /// <remarks>
   /// The line is drawn as one stretch between each pair of consecutive steps; ARect is the area of the stretch, LineThickness thick, and AFromStep the index of the step where it starts.
+  /// With MarkerPosition = smpCenter a stretch goes from the edge of a marker to the edge of the next one, LineSpacing away from both; with the markers beside the line it goes from the center of a step to the center of the next one.
   /// Completed is True for a stretch covered by the progress. While the line fills, the stretch it is crossing is drawn in two parts, one completed and one not, with the same AFromStep.
   /// Setting Handled to True means the stretch has been drawn by the event, and the control does not draw it.
   /// </remarks>

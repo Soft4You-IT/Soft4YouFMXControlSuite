@@ -3,7 +3,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
   Top = 0
   Caption = 'TS4YStepProgressBar demo'
   Position = ScreenCenter
-  ClientHeight = 560
+  ClientHeight = 800
   ClientWidth = 860
   FormFactor.Width = 320
   FormFactor.Height = 480
@@ -12,7 +12,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
   object DemoLayout: TLayout
     Align = Client
     Size.Width = 580.000000000000000000
-    Size.Height = 560.000000000000000000
+    Size.Height = 800.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
     object InstallTitleLabel: TLabel
@@ -105,7 +105,7 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
     Align = Right
     Position.X = 580.000000000000000000
     Size.Width = 280.000000000000000000
-    Size.Height = 560.000000000000000000
+    Size.Height = 800.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 1
     object InstallSettingsLabel: TLabel
@@ -324,6 +324,141 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       TabOrder = 14
       OnChange = LabelPositionComboBoxChange
     end
+    object LineVisibleCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Text = 'Line.Visible'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 484.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 15
+      OnChange = LineVisibleCheckBoxChange
+    end
+    object MarkerPositionLabel: TLabel
+      Align = Top
+      Text = 'MarkerPosition'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 514.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 16
+    end
+    object MarkerPositionComboBox: TComboBox
+      Align = Top
+      Items.Strings = (
+        'On the line'
+        'Before the line'
+        'After the line')
+      ItemIndex = 0
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 534.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 17
+      OnChange = MarkerPositionComboBoxChange
+    end
+    object MarkerSizeLabel: TLabel
+      Align = Top
+      Text = 'MarkerSize'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 570.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 18
+    end
+    object MarkerSizeComboBox: TComboBox
+      Align = Top
+      Items.Strings = (
+        '28 x 28'
+        '20 x 20'
+        '36 x 36'
+        '44 x 24')
+      ItemIndex = 0
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 590.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 19
+      OnChange = MarkerSizeComboBoxChange
+    end
+    object LineSpacingLabel: TLabel
+      Align = Top
+      Text = 'LineSpacing'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 626.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 20
+    end
+    object LineSpacingSpinBox: TSpinBox
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Top
+      TabOrder = 21
+      Cursor = crIBeam
+      Min = -20.000000000000000000
+      Max = 30.000000000000000000
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 646.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      OnChange = SpacingSpinBoxChange
+    end
+    object LabelSpacingLabel: TLabel
+      Align = Top
+      Text = 'LabelSpacing'
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 682.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 22
+    end
+    object LabelSpacingSpinBox: TSpinBox
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Top
+      TabOrder = 23
+      Cursor = crIBeam
+      Min = -20.000000000000000000
+      Max = 30.000000000000000000
+      Value = 6.000000000000000000
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 702.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      OnChange = SpacingSpinBoxChange
+    end
     object InstallStatusLabel: TLabel
       Align = Top
       TextSettings.VertAlign = Leading
@@ -332,11 +467,11 @@ object StepProgressBarDemoForm: TStepProgressBarDemoForm
       Margins.Top = 16.000000000000000000
       Margins.Right = 12.000000000000000000
       Position.X = 12.000000000000000000
-      Position.Y = 492.000000000000000000
+      Position.Y = 746.000000000000000000
       Size.Width = 256.000000000000000000
       Size.Height = 40.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 15
+      TabOrder = 24
     end
   end
 end

@@ -16,7 +16,7 @@ object TLayout
     Stroke.Kind = None
     Visible = False
   end
-  object TCircle
+  object TEllipse
     StyleName = 'completedmarker'
     Fill.Color = xFF1E88E5
     HitTest = False
@@ -24,7 +24,7 @@ object TLayout
     Stroke.Thickness = 2.000000000000000000
     Visible = False
   end
-  object TCircle
+  object TEllipse
     StyleName = 'currentmarker'
     Fill.Color = claWhite
     HitTest = False
@@ -32,7 +32,7 @@ object TLayout
     Stroke.Thickness = 2.000000000000000000
     Visible = False
   end
-  object TCircle
+  object TEllipse
     StyleName = 'pendingmarker'
     Fill.Color = claWhite
     HitTest = False
@@ -40,7 +40,7 @@ object TLayout
     Stroke.Thickness = 2.000000000000000000
     Visible = False
   end
-  object TCircle
+  object TEllipse
     StyleName = 'failedmarker'
     Fill.Color = xFFE53935
     HitTest = False
@@ -116,7 +116,7 @@ object TLayout
     TextSettings.FontColor = xFF757575
     Visible = False
   end
-  object TCircle
+  object TEllipse
     StyleName = 'focusframe'
     Fill.Kind = None
     HitTest = False

@@ -12,6 +12,8 @@ uses
   FMX.StdCtrls,
   FMX.ListBox,
   FMX.Layouts,
+  FMX.EditBox,
+  FMX.SpinBox,
   Soft4You.FMX.Controls.StepProgressBar,
   Soft4You.FMX.Controls.StepProgressBar.Types;
 
@@ -39,6 +41,15 @@ type
     NumbersCheckBox: TCheckBox;
     LabelPositionLabel: TLabel;
     LabelPositionComboBox: TComboBox;
+    LineVisibleCheckBox: TCheckBox;
+    MarkerPositionLabel: TLabel;
+    MarkerPositionComboBox: TComboBox;
+    MarkerSizeLabel: TLabel;
+    MarkerSizeComboBox: TComboBox;
+    LineSpacingLabel: TLabel;
+    LineSpacingSpinBox: TSpinBox;
+    LabelSpacingLabel: TLabel;
+    LabelSpacingSpinBox: TSpinBox;
     InstallStatusLabel: TLabel;
     procedure AnimatedCheckBoxChange(Sender: TObject);
     procedure FailedCheckBoxChange(Sender: TObject);
@@ -46,9 +57,13 @@ type
     procedure InstallBarStepChanged(Sender: TObject);
     procedure InteractionCheckBoxChange(Sender: TObject);
     procedure LabelPositionComboBoxChange(Sender: TObject);
+    procedure LineVisibleCheckBoxChange(Sender: TObject);
+    procedure MarkerPositionComboBoxChange(Sender: TObject);
+    procedure MarkerSizeComboBoxChange(Sender: TObject);
     procedure NextButtonClick(Sender: TObject);
     procedure NumbersCheckBoxChange(Sender: TObject);
     procedure PreviousButtonClick(Sender: TObject);
+    procedure SpacingSpinBoxChange(Sender: TObject);
     procedure WizardBarStepChanged(Sender: TObject);
     procedure WizardBarStepChanging(Sender: TObject; const ANewStep: Integer; var Allow: Boolean);
   private
@@ -69,6 +84,9 @@ resourcestring
 
 const
   C_ANIMATION_DURATION = 0.3;
+  // Sizes of the items of MarkerSizeComboBox, in the same order.
+  C_MARKER_WIDTHS: array[0..3] of Single = (28, 20, 36, 44);
+  C_MARKER_HEIGHTS: array[0..3] of Single = (28, 20, 36, 24);
 
 procedure TStepProgressBarDemoForm.AnimatedCheckBoxChange(Sender: TObject);
 var
@@ -131,6 +149,34 @@ begin
   WizardBar.LabelPosition := TS4YStepLabelPosition(LabelPositionComboBox.ItemIndex);
 end;
 
+procedure TStepProgressBarDemoForm.LineVisibleCheckBoxChange(Sender: TObject);
+begin
+  InstallBar.Line.Visible := LineVisibleCheckBox.IsChecked;
+  WizardBar.Line.Visible := LineVisibleCheckBox.IsChecked;
+end;
+
+procedure TStepProgressBarDemoForm.MarkerPositionComboBoxChange(Sender: TObject);
+begin
+  // The items follow the order of TS4YStepMarkerPosition: center, before, after
+  InstallBar.MarkerPosition := TS4YStepMarkerPosition(MarkerPositionComboBox.ItemIndex);
+  WizardBar.MarkerPosition := TS4YStepMarkerPosition(MarkerPositionComboBox.ItemIndex);
+end;
+
+procedure TStepProgressBarDemoForm.MarkerSizeComboBoxChange(Sender: TObject);
+var
+  LIndex: Integer;
+begin
+  LIndex := MarkerSizeComboBox.ItemIndex;
+
+  if LIndex < 0 then
+    Exit;
+
+  InstallBar.MarkerSize.Width := C_MARKER_WIDTHS[LIndex];
+  InstallBar.MarkerSize.Height := C_MARKER_HEIGHTS[LIndex];
+  WizardBar.MarkerSize.Width := C_MARKER_WIDTHS[LIndex];
+  WizardBar.MarkerSize.Height := C_MARKER_HEIGHTS[LIndex];
+end;
+
 procedure TStepProgressBarDemoForm.NextButtonClick(Sender: TObject);
 begin
   InstallBar.NextStep;
@@ -161,6 +207,14 @@ begin
   AProgressBar.CurrentMarker.Content := AContent;
   AProgressBar.PendingMarker.Content := AContent;
   AProgressBar.FailedMarker.Content := AContent;
+end;
+
+procedure TStepProgressBarDemoForm.SpacingSpinBoxChange(Sender: TObject);
+begin
+  InstallBar.LineSpacing := LineSpacingSpinBox.Value;
+  WizardBar.LineSpacing := LineSpacingSpinBox.Value;
+  InstallBar.LabelSpacing := LabelSpacingSpinBox.Value;
+  WizardBar.LabelSpacing := LabelSpacingSpinBox.Value;
 end;
 
 procedure TStepProgressBarDemoForm.WizardBarStepChanged(Sender: TObject);

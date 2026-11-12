@@ -169,11 +169,14 @@ type
     C_DEFAULT_PENDING_COLOR: TAlphaColor = $FFE0E0E0;
     /// <summary>Default value of StyledBrushes: both brushes come from the style.</summary>
     C_DEFAULT_STYLED_BRUSHES: TS4YStepLineStyledBrushes = [slbCompleted, slbPending];
+    /// <summary>Default value of Visible.</summary>
+    C_DEFAULT_VISIBLE = True;
   private
     FCompletedFill: TBrush;
     FPendingFill: TBrush;
     FStyledBrushes: TS4YStepLineStyledBrushes;
     FUpdating: Boolean;
+    FVisible: Boolean;
     FOnChange: TNotifyEvent;
     procedure CompletedFillChanged(Sender: TObject);
     procedure DoChange;
@@ -181,6 +184,7 @@ type
     procedure SetCompletedFill(const Value: TBrush);
     procedure SetPendingFill(const Value: TBrush);
     procedure SetStyledBrushes(const Value: TS4YStepLineStyledBrushes);
+    procedure SetVisible(const Value: Boolean);
     function StyledBrushesStored: Boolean;
   public
     /// <summary>Creates the settings with the default colors.</summary>
@@ -205,6 +209,48 @@ type
     /// </remarks>
     // Must stay after CompletedFill and PendingFill, for the same reason as in TS4YStepMarkerSettings.
     property StyledBrushes: TS4YStepLineStyledBrushes read FStyledBrushes write SetStyledBrushes stored StyledBrushesStored nodefault;
+    /// <summary>
+    /// False hides the line: only the markers and the labels are drawn. The default is True.
+    /// </summary>
+    /// <remarks>
+    /// Without the line the change of the current step is not animated, and HighlightProgress, LineSpacing and LineThickness of the control have no effect.
+    /// </remarks>
+    property Visible: Boolean read FVisible write SetVisible default C_DEFAULT_VISIBLE;
+  end;
+
+  /// <summary>
+  /// Width and height of the markers of a TS4YStepProgressBar.
+  /// </summary>
+  /// <remarks>
+  /// Width and Height are the sizes on the screen, also when the line is vertical.
+  /// </remarks>
+  TS4YStepMarkerSize = class(TPersistent)
+  public const
+    /// <summary>Default value of Width and Height, in pixels.</summary>
+    C_DEFAULT_SIZE: Single = 28;
+  private
+    FHeight: Single;
+    FWidth: Single;
+    FOnChange: TNotifyEvent;
+    procedure DoChange;
+    function HeightStored: Boolean;
+    procedure SetHeight(const Value: Single);
+    procedure SetWidth(const Value: Single);
+    function WidthStored: Boolean;
+  public
+    /// <summary>Creates the size with the default width and height.</summary>
+    constructor Create;
+
+    /// <summary>Copies the width and the height from another TS4YStepMarkerSize.</summary>
+    procedure Assign(Source: TPersistent); override;
+
+    /// <summary>Fires when the width or the height changes.</summary>
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+  published
+    /// <summary>Height of the markers, in pixels. The default is 28.</summary>
+    property Height: Single read FHeight write SetHeight stored HeightStored nodefault;
+    /// <summary>Width of the markers, in pixels. The default is 28.</summary>
+    property Width: Single read FWidth write SetWidth stored WidthStored nodefault;
   end;
 
   /// <summary>
@@ -212,7 +258,7 @@ type
   /// </summary>
   /// <remarks>
   /// The steps are defined in Steps; CurrentStep, NextStep and PreviousStep say which one is in progress. The steps before the current one are drawn as completed, the ones after it as pending, and a step with Failed = True as failed.
-  /// Each step has a marker, a circle by default, and optionally a caption and a description. The look comes from a style: its parts linecompleted, linepending, completedmarker, currentmarker, pendingmarker, failedmarker and focusframe can be any graphic object (a shape, a path, a layout with several objects) and are drawn as they are, resized to the stretch of line or to the marker; its texts completedtext, currenttext, pendingtext, failedtext (number in the marker), completedlabel, currentlabel, pendinglabel, failedlabel and description give fonts and colors.
+  /// Each step has a marker, an ellipse by default (a circle with the default square size), and optionally a caption and a description. The look comes from a style: its parts linecompleted, linepending, completedmarker, currentmarker, pendingmarker, failedmarker and focusframe can be any graphic object (a shape, a path, a layout with several objects) and are drawn as they are, resized to the stretch of line or to the marker; its texts completedtext, currenttext, pendingtext, failedtext (number in the marker), completedlabel, currentlabel, pendinglabel, failedlabel and description give fonts and colors.
   /// OnDrawMarker and OnDrawLine draw the markers and the line in place of the style. Interactions lets the user change the current step with the mouse or the keyboard.
   /// </remarks>
   TS4YStepProgressBar = class(TStyledControl)
@@ -223,10 +269,14 @@ type
     C_DEFAULT_HIGHLIGHT_PROGRESS = True;
     /// <summary>Default value of LabelPosition.</summary>
     C_DEFAULT_LABEL_POSITION = slpAfter;
+    /// <summary>Default value of LabelSpacing, in pixels.</summary>
+    C_DEFAULT_LABEL_SPACING: Single = 6;
+    /// <summary>Default value of LineSpacing, in pixels.</summary>
+    C_DEFAULT_LINE_SPACING: Single = 0;
     /// <summary>Default value of LineThickness, in pixels.</summary>
     C_DEFAULT_LINE_THICKNESS: Single = 3;
-    /// <summary>Default value of MarkerSize, in pixels.</summary>
-    C_DEFAULT_MARKER_SIZE: Single = 28;
+    /// <summary>Default value of MarkerPosition.</summary>
+    C_DEFAULT_MARKER_POSITION = smpCenter;
     /// <summary>Default value of Orientation.</summary>
     C_DEFAULT_ORIENTATION = TOrientation.Horizontal;
     /// <summary>Default fill and border color of the completed markers.</summary>
@@ -256,12 +306,15 @@ type
     FImages: TCustomImageList;
     FInteractions: TS4YStepInteractions;
     FLabelPosition: TS4YStepLabelPosition;
+    FLabelSpacing: Single;
     FLine: TS4YStepLineSettings;
     FLineAnimation: TAnimation;
     FLineParts: array[TS4YStepLineStyledBrush] of TControl;
+    FLineSpacing: Single;
     FLineThickness: Single;
     FMarkerParts: array[TS4YStepState] of TControl;
-    FMarkerSize: Single;
+    FMarkerPosition: TS4YStepMarkerPosition;
+    FMarkerSize: TS4YStepMarkerSize;
     FOrientation: TOrientation;
     FPartsContainer: TControl;
     FPendingMarker: TS4YStepMarkerSettings;
@@ -277,15 +330,17 @@ type
     procedure AnimateProgress(const ATargetProgress: Single);
     function AnimationDurationStored: Boolean;
     function CalculateLabelRect(const AStepIndex, AStepCount: Integer): TRectF;
-    function CalculateLineRect(const AFrom, ATo: TPointF): TRectF;
+    function CalculateLineRect(const AFrom, ATo, ALineCenter: Single): TRectF;
     function CalculateMarkerCenter(const AStepIndex, AStepCount: Integer): TPointF;
     function CalculateMarkerRect(const AStepIndex, AStepCount: Integer): TRectF;
+    function CalculateStepCenter(const AStepIndex, AStepCount: Integer): Single;
+    procedure CalculateTrack(out ATrackStart, ATrackEnd, AMarkerCenter, ALineCenter: Single);
     function ChangeStep(const ANewStep: Integer): Boolean;
     function ClampStep(const AStep: Integer): Integer;
     function CreatePart(const AStyleName: string; out FromStyle: Boolean): TControl;
     procedure DrawFocusFrame(const AStepCount: Integer);
     procedure DrawLine(const AStepCount: Integer);
-    procedure DrawLineStretch(const AFromStep: Integer; const AFrom, ATo: TPointF; Completed: Boolean);
+    procedure DrawLineStretch(const AFromStep: Integer; const AFrom, ATo, ALineCenter: Single; Completed: Boolean);
     procedure DrawMarker(const AStepIndex, AStepCount: Integer);
     procedure DrawMarkerContent(const AStepIndex: Integer; const AState: TS4YStepState; const AMarkerRect: TRectF);
     procedure DrawPart(const APart: TControl; const ARect: TRectF);
@@ -296,12 +351,16 @@ type
     function GetContentRect: TRectF;
     function GetLabelHorizontalAlign: TTextAlign;
     function GetLabelVerticalAlign: TTextAlign;
+    function GetMarkerAcrossLine: Single;
+    function GetMarkerAlongLine: Single;
     function GetMarkerSettings(const AState: TS4YStepState): TS4YStepMarkerSettings;
     function GetStepCount: Integer;
     function GetStepState(const AStepIndex: Integer): TS4YStepState;
     function IsAnimating: Boolean;
+    function IsProgressHighlighted: Boolean;
+    function LabelSpacingStored: Boolean;
+    function LineSpacingStored: Boolean;
     function LineThicknessStored: Boolean;
-    function MarkerSizeStored: Boolean;
     function MeasureTextHeight(const ATemplate: TText; const ADefaultColor: TAlphaColor; const AText: string;
       const AWidth: Single): Single;
     procedure PrepareTextLayout(const ATemplate: TText; const ADefaultColor: TAlphaColor; const AText: string;
@@ -318,13 +377,17 @@ type
     procedure SetImages(const Value: TCustomImageList);
     procedure SetInteractions(const Value: TS4YStepInteractions);
     procedure SetLabelPosition(const Value: TS4YStepLabelPosition);
+    procedure SetLabelSpacing(const Value: Single);
     procedure SetLine(const Value: TS4YStepLineSettings);
+    procedure SetLineSpacing(const Value: Single);
     procedure SetLineThickness(const Value: Single);
-    procedure SetMarkerSize(const Value: Single);
+    procedure SetMarkerPosition(const Value: TS4YStepMarkerPosition);
+    procedure SetMarkerSize(const Value: TS4YStepMarkerSize);
     procedure SetOrientation(const Value: TOrientation);
     procedure SetPendingMarker(const Value: TS4YStepMarkerSettings);
     procedure SetSteps(const Value: TS4YStepItems);
     procedure SettingsChanged(Sender: TObject);
+    procedure SizeChanged(Sender: TObject);
     procedure StepsChanged;
     procedure UpdateHandCursor(const APoint: TPointF);
   protected
@@ -406,15 +469,27 @@ type
     /// With stiKeyboard the control can receive the focus, and shows it with a frame around the current marker.
     /// </remarks>
     property Interactions: TS4YStepInteractions read FInteractions write SetInteractions default [];
-    /// <summary>Side of the line where the captions and the descriptions are shown, or slpNone to hide them. The default is slpAfter: below a horizontal line, on the right of a vertical one.</summary>
+    /// <summary>Side of the markers and the line where the captions and the descriptions are shown, or slpNone to hide them. The default is slpAfter: below a horizontal line, on the right of a vertical one.</summary>
     property LabelPosition: TS4YStepLabelPosition read FLabelPosition write SetLabelPosition default C_DEFAULT_LABEL_POSITION;
-    /// <summary>Brushes of the line that joins the markers.</summary>
+    /// <summary>Space between the labels and the markers, or the line when it is beside the markers on the side of the labels, in pixels. The default is 6.</summary>
+    property LabelSpacing: Single read FLabelSpacing write SetLabelSpacing stored LabelSpacingStored nodefault;
+    /// <summary>Brushes and visibility of the line that joins the markers.</summary>
     property Line: TS4YStepLineSettings read FLine write SetLine;
+    /// <summary>
+    /// Space between the markers and the line, in pixels. The default is 0.
+    /// </summary>
+    /// <remarks>
+    /// With MarkerPosition = smpCenter it is the space along the line between a marker and the stretches of line that reach it; with the markers beside the line it is the space between the markers and the line.
+    /// A negative value makes the line go under the markers or overlap them.
+    /// </remarks>
+    property LineSpacing: Single read FLineSpacing write SetLineSpacing stored LineSpacingStored nodefault;
     /// <summary>Thickness of the line, in pixels. The default is 3.</summary>
     property LineThickness: Single read FLineThickness write SetLineThickness stored LineThicknessStored nodefault;
     property Margins;
-    /// <summary>Width and height of the markers, in pixels. The default is 28.</summary>
-    property MarkerSize: Single read FMarkerSize write SetMarkerSize stored MarkerSizeStored nodefault;
+    /// <summary>Where the markers are drawn compared to the line: on it (smpCenter, the default), above or on its left (smpBefore), below or on its right (smpAfter).</summary>
+    property MarkerPosition: TS4YStepMarkerPosition read FMarkerPosition write SetMarkerPosition default C_DEFAULT_MARKER_POSITION;
+    /// <summary>Width and height of the markers, in pixels. The default is 28 x 28.</summary>
+    property MarkerSize: TS4YStepMarkerSize read FMarkerSize write SetMarkerSize;
     property Opacity;
     /// <summary>Direction of the line: horizontal, with the steps from left to right, or vertical, from top to bottom. The default is horizontal.</summary>
     property Orientation: TOrientation read FOrientation write SetOrientation default C_DEFAULT_ORIENTATION;
@@ -498,11 +573,9 @@ const
   C_DEFAULT_FOCUS_FRAME_THICKNESS = 1.5;
   C_STYLE_LINES: array[TS4YStepLineStyledBrush] of string = ('linecompleted', 'linepending');
 
-  // Space between a marker and its label, in pixels.
-  C_LABEL_SPACING = 6;
   // Space between a marker and the focus frame around it, in pixels.
   C_FOCUS_FRAME_SPACING = 3;
-  // Space between the circle of a marker and its image, as a fraction of MarkerSize.
+  // Space between the border of a marker and its image, as a fraction of the width and the height of MarkerSize.
   C_MARKER_IMAGE_MARGIN = 0.2;
   // Height given to a text while it is measured: large enough for any label.
   C_MEASURE_HEIGHT = 10000;
@@ -772,6 +845,7 @@ begin
   FCompletedFill := TBrush.Create(TBrushKind.Solid, C_DEFAULT_COMPLETED_COLOR);
   FPendingFill := TBrush.Create(TBrushKind.Solid, C_DEFAULT_PENDING_COLOR);
   FStyledBrushes := C_DEFAULT_STYLED_BRUSHES;
+  FVisible := C_DEFAULT_VISIBLE;
 
   // Assigned only now: the initial values above are not a customization of the brushes.
   FCompletedFill.OnChanged := CompletedFillChanged;
@@ -798,6 +872,7 @@ begin
       FCompletedFill.Assign(LSource.CompletedFill);
       FPendingFill.Assign(LSource.PendingFill);
       FStyledBrushes := LSource.StyledBrushes;
+      FVisible := LSource.Visible;
     finally
       FUpdating := False;
     end;
@@ -851,6 +926,15 @@ begin
   DoChange;
 end;
 
+procedure TS4YStepLineSettings.SetVisible(const Value: Boolean);
+begin
+  if FVisible = Value then
+    Exit;
+
+  FVisible := Value;
+  DoChange;
+end;
+
 function TS4YStepLineSettings.StyledBrushesStored: Boolean;
 var
   LImplied: TS4YStepLineStyledBrushes;
@@ -866,6 +950,62 @@ begin
   Result := FStyledBrushes <> LImplied;
 end;
 
+{ TS4YStepMarkerSize }
+
+constructor TS4YStepMarkerSize.Create;
+begin
+  inherited Create;
+
+  FHeight := C_DEFAULT_SIZE;
+  FWidth := C_DEFAULT_SIZE;
+end;
+
+procedure TS4YStepMarkerSize.Assign(Source: TPersistent);
+begin
+  if Source is TS4YStepMarkerSize then
+  begin
+    FHeight := TS4YStepMarkerSize(Source).Height;
+    FWidth := TS4YStepMarkerSize(Source).Width;
+    DoChange;
+  end
+  else
+    inherited;
+end;
+
+procedure TS4YStepMarkerSize.DoChange;
+begin
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+function TS4YStepMarkerSize.HeightStored: Boolean;
+begin
+  Result := not SameValue(FHeight, C_DEFAULT_SIZE);
+end;
+
+procedure TS4YStepMarkerSize.SetHeight(const Value: Single);
+begin
+  if SameValue(FHeight, Value) then
+    Exit;
+
+  FHeight := Max(0, Value);
+  DoChange;
+end;
+
+procedure TS4YStepMarkerSize.SetWidth(const Value: Single);
+begin
+  if SameValue(FWidth, Value) then
+    Exit;
+
+  FWidth := Max(0, Value);
+  DoChange;
+end;
+
+function TS4YStepMarkerSize.WidthStored: Boolean;
+begin
+  Result := not SameValue(FWidth, C_DEFAULT_SIZE);
+end;
+
 { TS4YStepProgressBar }
 
 constructor TS4YStepProgressBar.Create(AOwner: TComponent);
@@ -875,8 +1015,10 @@ begin
   FAnimationDuration := C_DEFAULT_ANIMATION_DURATION;
   FHighlightProgress := C_DEFAULT_HIGHLIGHT_PROGRESS;
   FLabelPosition := C_DEFAULT_LABEL_POSITION;
+  FLabelSpacing := C_DEFAULT_LABEL_SPACING;
+  FLineSpacing := C_DEFAULT_LINE_SPACING;
   FLineThickness := C_DEFAULT_LINE_THICKNESS;
-  FMarkerSize := C_DEFAULT_MARKER_SIZE;
+  FMarkerPosition := C_DEFAULT_MARKER_POSITION;
   FOrientation := C_DEFAULT_ORIENTATION;
   FInteractions := [];
   FCurrentStep := 0;
@@ -895,6 +1037,9 @@ begin
 
   FLine := TS4YStepLineSettings.Create;
   FLine.OnChange := SettingsChanged;
+
+  FMarkerSize := TS4YStepMarkerSize.Create;
+  FMarkerSize.OnChange := SizeChanged;
 
   FDefaultFont := TFont.Create;
   FTextLayout := TTextLayoutManager.DefaultTextLayout.Create;
@@ -918,6 +1063,7 @@ begin
   FreeAndNil(FPartsContainer);
   FreeAndNil(FTextLayout);
   FreeAndNil(FDefaultFont);
+  FreeAndNil(FMarkerSize);
   FreeAndNil(FLine);
   FreeAndNil(FCompletedMarker);
   FreeAndNil(FCurrentMarker);
@@ -977,110 +1123,172 @@ end;
 function TS4YStepProgressBar.CalculateLabelRect(const AStepIndex, AStepCount: Integer): TRectF;
 var
   LContentRect: TRectF;
-  LCenter: TPointF;
+  LStepCenter: Single;
   LHalfCell: Single;
-  LHalfMarker: Single;
+  LTrackStart: Single;
+  LTrackEnd: Single;
+  LMarkerCenter: Single;
+  LLineCenter: Single;
 begin
   LContentRect := GetContentRect;
-  LCenter := CalculateMarkerCenter(AStepIndex, AStepCount);
-  LHalfMarker := FMarkerSize / 2;
+  LStepCenter := CalculateStepCenter(AStepIndex, AStepCount);
+  CalculateTrack(LTrackStart, LTrackEnd, LMarkerCenter, LLineCenter);
 
+  // Along the line the label has the cell of its step; across it, the space beyond the track.
   if FOrientation = TOrientation.Horizontal then
   begin
     LHalfCell := LContentRect.Width / AStepCount / 2;
-    Result.Left := LCenter.X - LHalfCell;
-    Result.Right := LCenter.X + LHalfCell;
+    Result.Left := LStepCenter - LHalfCell;
+    Result.Right := LStepCenter + LHalfCell;
 
     if FLabelPosition = slpBefore then
     begin
       Result.Top := LContentRect.Top;
-      Result.Bottom := LCenter.Y - LHalfMarker - C_LABEL_SPACING;
+      Result.Bottom := LTrackStart - FLabelSpacing;
     end
     else
     begin
-      Result.Top := LCenter.Y + LHalfMarker + C_LABEL_SPACING;
+      Result.Top := LTrackEnd + FLabelSpacing;
       Result.Bottom := LContentRect.Bottom;
     end;
   end
   else
   begin
     LHalfCell := LContentRect.Height / AStepCount / 2;
-    Result.Top := LCenter.Y - LHalfCell;
-    Result.Bottom := LCenter.Y + LHalfCell;
+    Result.Top := LStepCenter - LHalfCell;
+    Result.Bottom := LStepCenter + LHalfCell;
 
     if FLabelPosition = slpBefore then
     begin
       Result.Left := LContentRect.Left;
-      Result.Right := LCenter.X - LHalfMarker - C_LABEL_SPACING;
+      Result.Right := LTrackStart - FLabelSpacing;
     end
     else
     begin
-      Result.Left := LCenter.X + LHalfMarker + C_LABEL_SPACING;
+      Result.Left := LTrackEnd + FLabelSpacing;
       Result.Right := LContentRect.Right;
     end;
   end;
 end;
 
-function TS4YStepProgressBar.CalculateLineRect(const AFrom, ATo: TPointF): TRectF;
+function TS4YStepProgressBar.CalculateLineRect(const AFrom, ATo, ALineCenter: Single): TRectF;
 var
   LHalfThickness: Single;
 begin
   LHalfThickness := FLineThickness / 2;
 
   if FOrientation = TOrientation.Horizontal then
-    Result := TRectF.Create(Min(AFrom.X, ATo.X), AFrom.Y - LHalfThickness, Max(AFrom.X, ATo.X), AFrom.Y + LHalfThickness)
+    Result := TRectF.Create(AFrom, ALineCenter - LHalfThickness, ATo, ALineCenter + LHalfThickness)
   else
-    Result := TRectF.Create(AFrom.X - LHalfThickness, Min(AFrom.Y, ATo.Y), AFrom.X + LHalfThickness, Max(AFrom.Y, ATo.Y));
+    Result := TRectF.Create(ALineCenter - LHalfThickness, AFrom, ALineCenter + LHalfThickness, ATo);
 end;
 
 function TS4YStepProgressBar.CalculateMarkerCenter(const AStepIndex, AStepCount: Integer): TPointF;
 var
-  LContentRect: TRectF;
-  LCellSize: Single;
-  LCrossPosition: Single;
+  LStepCenter: Single;
+  LTrackStart: Single;
+  LTrackEnd: Single;
+  LMarkerCenter: Single;
+  LLineCenter: Single;
 begin
-  LContentRect := GetContentRect;
+  LStepCenter := CalculateStepCenter(AStepIndex, AStepCount);
+  CalculateTrack(LTrackStart, LTrackEnd, LMarkerCenter, LLineCenter);
 
   if FOrientation = TOrientation.Horizontal then
-  begin
-    LCellSize := LContentRect.Width / AStepCount;
-
-    case FLabelPosition of
-      slpBefore:
-        LCrossPosition := LContentRect.Bottom - FMarkerSize / 2;
-      slpAfter:
-        LCrossPosition := LContentRect.Top + FMarkerSize / 2;
-    else
-      LCrossPosition := LContentRect.CenterPoint.Y;
-    end;
-
-    Result := TPointF.Create(LContentRect.Left + (AStepIndex + 0.5) * LCellSize, LCrossPosition);
-  end
+    Result := TPointF.Create(LStepCenter, LMarkerCenter)
   else
-  begin
-    LCellSize := LContentRect.Height / AStepCount;
-
-    case FLabelPosition of
-      slpBefore:
-        LCrossPosition := LContentRect.Right - FMarkerSize / 2;
-      slpAfter:
-        LCrossPosition := LContentRect.Left + FMarkerSize / 2;
-    else
-      LCrossPosition := LContentRect.CenterPoint.X;
-    end;
-
-    Result := TPointF.Create(LCrossPosition, LContentRect.Top + (AStepIndex + 0.5) * LCellSize);
-  end;
+    Result := TPointF.Create(LMarkerCenter, LStepCenter);
 end;
 
 function TS4YStepProgressBar.CalculateMarkerRect(const AStepIndex, AStepCount: Integer): TRectF;
 var
   LCenter: TPointF;
-  LHalfMarker: Single;
+  LHalfWidth: Single;
+  LHalfHeight: Single;
 begin
   LCenter := CalculateMarkerCenter(AStepIndex, AStepCount);
-  LHalfMarker := FMarkerSize / 2;
-  Result := TRectF.Create(LCenter.X - LHalfMarker, LCenter.Y - LHalfMarker, LCenter.X + LHalfMarker, LCenter.Y + LHalfMarker);
+  LHalfWidth := FMarkerSize.Width / 2;
+  LHalfHeight := FMarkerSize.Height / 2;
+  Result := TRectF.Create(LCenter.X - LHalfWidth, LCenter.Y - LHalfHeight, LCenter.X + LHalfWidth, LCenter.Y + LHalfHeight);
+end;
+
+function TS4YStepProgressBar.CalculateStepCenter(const AStepIndex, AStepCount: Integer): Single;
+var
+  LContentRect: TRectF;
+begin
+  // Position along the line: the center of the cell of the step, all the cells of the same size.
+  LContentRect := GetContentRect;
+
+  if FOrientation = TOrientation.Horizontal then
+    Result := LContentRect.Left + (AStepIndex + 0.5) * LContentRect.Width / AStepCount
+  else
+    Result := LContentRect.Top + (AStepIndex + 0.5) * LContentRect.Height / AStepCount;
+end;
+
+procedure TS4YStepProgressBar.CalculateTrack(out ATrackStart, ATrackEnd, AMarkerCenter, ALineCenter: Single);
+var
+  LContentRect: TRectF;
+  LContentStart: Single;
+  LContentEnd: Single;
+  LMarkerSize: Single;
+  LLineSize: Single;
+  LTrackSize: Single;
+begin
+  // The track is the band across the line that holds the markers and the line; the positions are
+  // across the line: Y for a horizontal line, X for a vertical one.
+  LContentRect := GetContentRect;
+
+  if FOrientation = TOrientation.Horizontal then
+  begin
+    LContentStart := LContentRect.Top;
+    LContentEnd := LContentRect.Bottom;
+  end
+  else
+  begin
+    LContentStart := LContentRect.Left;
+    LContentEnd := LContentRect.Right;
+  end;
+
+  LMarkerSize := GetMarkerAcrossLine;
+  LLineSize := 0;
+
+  if FLine.Visible then
+    LLineSize := FLineThickness;
+
+  if FMarkerPosition = smpCenter then
+    LTrackSize := Max(LMarkerSize, LLineSize)
+  else if FLine.Visible then
+    LTrackSize := LMarkerSize + FLineSpacing + LLineSize
+  else
+    LTrackSize := LMarkerSize;
+
+  // The track is on the side opposite to the labels, or in the middle without labels.
+  case FLabelPosition of
+    slpBefore:
+      ATrackStart := LContentEnd - LTrackSize;
+    slpAfter:
+      ATrackStart := LContentStart;
+  else
+    ATrackStart := (LContentStart + LContentEnd - LTrackSize) / 2;
+  end;
+
+  ATrackEnd := ATrackStart + LTrackSize;
+
+  case FMarkerPosition of
+    smpBefore:
+    begin
+      AMarkerCenter := ATrackStart + LMarkerSize / 2;
+      ALineCenter := ATrackEnd - LLineSize / 2;
+    end;
+    smpAfter:
+    begin
+      AMarkerCenter := ATrackEnd - LMarkerSize / 2;
+      ALineCenter := ATrackStart + LLineSize / 2;
+    end;
+  else
+    AMarkerCenter := ATrackStart + LTrackSize / 2;
+    ALineCenter := AMarkerCenter;
+  end;
 end;
 
 function TS4YStepProgressBar.ChangeStep(const ANewStep: Integer): Boolean;
@@ -1097,7 +1305,7 @@ begin
 
   FCurrentStep := LNewStep;
 
-  if FHighlightProgress and (FAnimationDuration > 0) and not (csDesigning in ComponentState) then
+  if IsProgressHighlighted and (FAnimationDuration > 0) and not (csDesigning in ComponentState) then
     AnimateProgress(FCurrentStep)
   else
   begin
@@ -1213,11 +1421,19 @@ end;
 
 procedure TS4YStepProgressBar.DrawLine(const AStepCount: Integer);
 var
-  LFrom: TPointF;
-  LTo: TPointF;
-  LSplitPoint: TPointF;
+  LFrom: Single;
+  LTo: Single;
+  LSplit: Single;
   LProgress: Single;
+  LMarkerGap: Single;
+  LTrackStart: Single;
+  LTrackEnd: Single;
+  LMarkerCenter: Single;
+  LLineCenter: Single;
 begin
+  if not FLine.Visible then
+    Exit;
+
   if FSteps.Count = 0 then
     LProgress := C_DESIGN_PREVIEW_CURRENT_STEP
   else
@@ -1226,32 +1442,45 @@ begin
   if not FHighlightProgress then
     LProgress := 0;
 
+  CalculateTrack(LTrackStart, LTrackEnd, LMarkerCenter, LLineCenter);
+
+  // On the line, the stretches stop at the markers, LineSpacing away; beside the line, they join
+  // the centers of the steps, so that the line is continuous.
+  if FMarkerPosition = smpCenter then
+    LMarkerGap := GetMarkerAlongLine / 2 + FLineSpacing
+  else
+    LMarkerGap := 0;
+
   // One stretch between each pair of steps, so that a style part repeats along the line.
   for var LFromStep := 0 to AStepCount - 2 do
   begin
-    LFrom := CalculateMarkerCenter(LFromStep, AStepCount);
-    LTo := CalculateMarkerCenter(LFromStep + 1, AStepCount);
+    LFrom := CalculateStepCenter(LFromStep, AStepCount) + LMarkerGap;
+    LTo := CalculateStepCenter(LFromStep + 1, AStepCount) - LMarkerGap;
 
     if LFromStep + 1 <= LProgress then
-      DrawLineStretch(LFromStep, LFrom, LTo, True)
+      DrawLineStretch(LFromStep, LFrom, LTo, LLineCenter, True)
     else if LFromStep >= LProgress then
-      DrawLineStretch(LFromStep, LFrom, LTo, False)
+      DrawLineStretch(LFromStep, LFrom, LTo, LLineCenter, False)
     else
     begin
       // The stretch the line is filling while it moves to the new current step
-      LSplitPoint := LFrom + (LTo - LFrom) * (LProgress - LFromStep);
-      DrawLineStretch(LFromStep, LFrom, LSplitPoint, True);
-      DrawLineStretch(LFromStep, LSplitPoint, LTo, False);
+      LSplit := LFrom + (LTo - LFrom) * (LProgress - LFromStep);
+      DrawLineStretch(LFromStep, LFrom, LSplit, LLineCenter, True);
+      DrawLineStretch(LFromStep, LSplit, LTo, LLineCenter, False);
     end;
   end;
 end;
 
-procedure TS4YStepProgressBar.DrawLineStretch(const AFromStep: Integer; const AFrom, ATo: TPointF;
+procedure TS4YStepProgressBar.DrawLineStretch(const AFromStep: Integer; const AFrom, ATo, ALineCenter: Single;
   Completed: Boolean);
 var
   LStretchRect: TRectF;
 begin
-  LStretchRect := CalculateLineRect(AFrom, ATo);
+  // Markers larger than the space between the steps leave no room for the stretch.
+  if ATo <= AFrom then
+    Exit;
+
+  LStretchRect := CalculateLineRect(AFrom, ATo, ALineCenter);
 
   if (LStretchRect.Width <= 0) or (LStretchRect.Height <= 0) then
     Exit;
@@ -1306,7 +1535,7 @@ begin
       if Assigned(FImages) and (LImageIndex >= 0) then
       begin
         LImageRect := AMarkerRect;
-        LImageRect.Inflate(-FMarkerSize * C_MARKER_IMAGE_MARGIN, -FMarkerSize * C_MARKER_IMAGE_MARGIN);
+        LImageRect.Inflate(-FMarkerSize.Width * C_MARKER_IMAGE_MARGIN, -FMarkerSize.Height * C_MARKER_IMAGE_MARGIN);
         FImages.Draw(Canvas, LImageRect, LImageIndex, AbsoluteOpacity);
       end;
     end;
@@ -1387,7 +1616,7 @@ begin
 
     if not LFromStyle then
     begin
-      FMarkerParts[LState] := TCircle.Create(nil);
+      FMarkerParts[LState] := TEllipse.Create(nil);
       FMarkerParts[LState].Parent := FPartsContainer;
     end;
 
@@ -1429,7 +1658,7 @@ begin
 
   if not LFromStyle then
   begin
-    LShape := TCircle.Create(nil);
+    LShape := TEllipse.Create(nil);
     LShape.Fill.Kind := TBrushKind.None;
     LShape.Stroke.Color := C_DEFAULT_FOCUS_FRAME_COLOR;
     LShape.Stroke.Thickness := C_DEFAULT_FOCUS_FRAME_THICKNESS;
@@ -1515,6 +1744,22 @@ begin
     Result := TTextAlign.Leading;
 end;
 
+function TS4YStepProgressBar.GetMarkerAcrossLine: Single;
+begin
+  if FOrientation = TOrientation.Horizontal then
+    Result := FMarkerSize.Height
+  else
+    Result := FMarkerSize.Width;
+end;
+
+function TS4YStepProgressBar.GetMarkerAlongLine: Single;
+begin
+  if FOrientation = TOrientation.Horizontal then
+    Result := FMarkerSize.Width
+  else
+    Result := FMarkerSize.Height;
+end;
+
 function TS4YStepProgressBar.GetMarkerSettings(const AState: TS4YStepState): TS4YStepMarkerSettings;
 begin
   case AState of
@@ -1552,7 +1797,7 @@ begin
   // While the line fills, a step becomes completed only when the line reaches it.
   if AStepIndex = LCurrentStep then
     Result := sstCurrent
-  else if (AStepIndex < LCurrentStep) and ((FSteps.Count = 0) or not FHighlightProgress or
+  else if (AStepIndex < LCurrentStep) and ((FSteps.Count = 0) or not IsProgressHighlighted or
     (AStepIndex <= FDisplayedProgress)) then
     Result := sstCompleted
   else
@@ -1576,6 +1821,12 @@ end;
 function TS4YStepProgressBar.IsAnimating: Boolean;
 begin
   Result := Assigned(FLineAnimation) and FLineAnimation.Running;
+end;
+
+function TS4YStepProgressBar.IsProgressHighlighted: Boolean;
+begin
+  // The progress is shown by the line: without it there is nothing to highlight or to animate.
+  Result := FHighlightProgress and FLine.Visible;
 end;
 
 procedure TS4YStepProgressBar.KeyDown(var Key: Word; var KeyChar: WideChar; Shift: TShiftState);
@@ -1609,6 +1860,16 @@ begin
   end;
 end;
 
+function TS4YStepProgressBar.LabelSpacingStored: Boolean;
+begin
+  Result := not SameValue(FLabelSpacing, C_DEFAULT_LABEL_SPACING);
+end;
+
+function TS4YStepProgressBar.LineSpacingStored: Boolean;
+begin
+  Result := not SameValue(FLineSpacing, C_DEFAULT_LINE_SPACING);
+end;
+
 function TS4YStepProgressBar.LineThicknessStored: Boolean;
 begin
   Result := not SameValue(FLineThickness, C_DEFAULT_LINE_THICKNESS);
@@ -1621,11 +1882,6 @@ begin
   // CurrentStep is read before Steps: it can be checked only now.
   FCurrentStep := ClampStep(FCurrentStep);
   FDisplayedProgress := FCurrentStep;
-end;
-
-function TS4YStepProgressBar.MarkerSizeStored: Boolean;
-begin
-  Result := not SameValue(FMarkerSize, C_DEFAULT_MARKER_SIZE);
 end;
 
 function TS4YStepProgressBar.MeasureTextHeight(const ATemplate: TText; const ADefaultColor: TAlphaColor;
@@ -1843,9 +2099,27 @@ begin
   Repaint;
 end;
 
+procedure TS4YStepProgressBar.SetLabelSpacing(const Value: Single);
+begin
+  if SameValue(FLabelSpacing, Value) then
+    Exit;
+
+  FLabelSpacing := Value;
+  Repaint;
+end;
+
 procedure TS4YStepProgressBar.SetLine(const Value: TS4YStepLineSettings);
 begin
   FLine.Assign(Value);
+end;
+
+procedure TS4YStepProgressBar.SetLineSpacing(const Value: Single);
+begin
+  if SameValue(FLineSpacing, Value) then
+    Exit;
+
+  FLineSpacing := Value;
+  Repaint;
 end;
 
 procedure TS4YStepProgressBar.SetLineThickness(const Value: Single);
@@ -1857,13 +2131,18 @@ begin
   Repaint;
 end;
 
-procedure TS4YStepProgressBar.SetMarkerSize(const Value: Single);
+procedure TS4YStepProgressBar.SetMarkerPosition(const Value: TS4YStepMarkerPosition);
 begin
-  if SameValue(FMarkerSize, Value) then
+  if FMarkerPosition = Value then
     Exit;
 
-  FMarkerSize := Max(0, Value);
+  FMarkerPosition := Value;
   Repaint;
+end;
+
+procedure TS4YStepProgressBar.SetMarkerSize(const Value: TS4YStepMarkerSize);
+begin
+  FMarkerSize.Assign(Value);
 end;
 
 procedure TS4YStepProgressBar.SetOrientation(const Value: TOrientation);
@@ -1887,8 +2166,22 @@ end;
 
 procedure TS4YStepProgressBar.SettingsChanged(Sender: TObject);
 begin
+  // Without the line there is no filling to show: the current step is drawn at once.
+  if (Sender = FLine) and not FLine.Visible then
+  begin
+    if IsAnimating then
+      FLineAnimation.StopAtCurrent;
+
+    FDisplayedProgress := FCurrentStep;
+  end;
+
   // The brushes of the properties are applied to the parts when they are prepared again.
   FreeParts;
+  Repaint;
+end;
+
+procedure TS4YStepProgressBar.SizeChanged(Sender: TObject);
+begin
   Repaint;
 end;
 
