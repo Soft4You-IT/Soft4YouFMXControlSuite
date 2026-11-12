@@ -158,9 +158,24 @@ object TLayout
     end
   end
   object TEllipse
+    StyleName = 'hoverframe'
+    Fill.Color = x331E88E5
+    HitTest = False
+    Padding.Left = 6.000000000000000000
+    Padding.Top = 6.000000000000000000
+    Padding.Right = 6.000000000000000000
+    Padding.Bottom = 6.000000000000000000
+    Stroke.Kind = None
+    Visible = False
+  end
+  object TEllipse
     StyleName = 'focusframe'
     Fill.Kind = None
     HitTest = False
+    Padding.Left = 3.000000000000000000
+    Padding.Top = 3.000000000000000000
+    Padding.Right = 3.000000000000000000
+    Padding.Bottom = 3.000000000000000000
     Stroke.Color = xFF1E88E5
     Stroke.Dash = Dot
     Stroke.Thickness = 1.500000000000000000

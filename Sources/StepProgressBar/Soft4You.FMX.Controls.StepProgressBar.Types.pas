@@ -122,12 +122,14 @@ type
   /// stiClickLabel: a click on the caption or the description of a step makes it the current one.
   /// stiHandCursor: the mouse pointer becomes a hand over the steps that a click can select.
   /// stiKeyboard: when the control has the focus, the arrow keys move to the previous or the next step, Home and End to the first or the last one.
+  /// stiHover: a halo around the marker of the step under the mouse pointer, on the steps that a click can select, except the current one.
   /// </remarks>
   TS4YStepInteraction = (
     stiClickMarker,
     stiClickLabel,
     stiHandCursor,
-    stiKeyboard
+    stiKeyboard,
+    stiHover
   );
 
   /// <summary>

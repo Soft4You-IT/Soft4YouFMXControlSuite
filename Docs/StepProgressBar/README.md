@@ -78,6 +78,8 @@ Start Copy  End          Start  Copy    End       Start  Copy    End
 
 With `Line.Visible = False` the band is made of the markers only.
 
+With `stiKeyboard`, or `stiHover` together with a click interaction, the band also keeps room around the markers for the focus frame and the halo, as large as the `Padding` of their parts in the style (see [Styles](#styles)): turning these interactions on moves the markers and the line a few pixels inwards.
+
 ### Interactions
 
 `Interactions` is a set: each interaction is switched on and off by itself.
@@ -88,11 +90,12 @@ With `Line.Visible = False` the band is made of the markers only.
 | `stiClickLabel` | A click on the caption or the description of a step makes it the current one |
 | `stiHandCursor` | The mouse pointer becomes a hand over the parts that a click can select (so it needs `stiClickMarker`, `stiClickLabel` or both); elsewhere the control keeps its own `Cursor` |
 | `stiKeyboard` | The control can receive the focus (with a click or with Tab) and shows it with a dotted frame around the current marker; the left and up arrows move to the previous step, the right and down arrows to the next one, Home and End to the first and the last one |
+| `stiHover` | A halo, the part `hoverframe` of the style, appears around the marker of the step under the mouse pointer, on the parts that a click can select (so it needs `stiClickMarker`, `stiClickLabel` or both); the current step gets no halo, since a click on it changes nothing |
 
 For example a wizard where the user can go to a step with the mouse or the keyboard:
 
 ```delphi
-WizardBar.Interactions := [stiClickMarker, stiClickLabel, stiHandCursor, stiKeyboard];
+WizardBar.Interactions := [stiClickMarker, stiClickLabel, stiHandCursor, stiKeyboard, stiHover];
 ```
 
 Every change made by the user fires `OnStepChanging`, which can refuse it: a rule like "only back to a completed step" goes there.
@@ -219,14 +222,17 @@ The look of the control comes from a style named `S4YStepProgressBarStyle`. The 
 | `linecompleted`, `linepending` | `TRectangle` | Drawn for each stretch of the line, completed or not |
 | `completedmarker`, `currentmarker`, `pendingmarker`, `failedmarker` | `TEllipse` | Drawn as the marker of the steps in each state |
 | `startmarker`, `endmarker` | `TEllipse` with a dot, `TEllipse` with a check mark | Drawn as the marker of the first and the last step of a new control (see [Steps](#steps)) |
-| `focusframe` | `TEllipse`, dotted border | Drawn around the current marker while the control has the focus (`stiKeyboard`) |
+| `focusframe` | `TEllipse`, dotted border, `Padding` 3 | Drawn around the current marker while the control has the focus (`stiKeyboard`) |
+| `hoverframe` | `TEllipse`, semi-transparent fill, `Padding` 6 | Drawn under the marker of the step under the mouse pointer (`stiHover`) |
 | `completedtext`, `currenttext`, `pendingtext`, `failedtext` | `TText` | Font and color of the number in the markers |
 | `completedlabel`, `currentlabel`, `pendinglabel`, `failedlabel` | `TText` | Font and color of the captions |
 | `description` | `TText` | Font and color of the descriptions |
 
+The `Padding` of `focusframe` and `hoverframe` is the room between the border of the part and the marker inside it, side by side: the part is as large as the marker plus its `Padding`. When `Interactions` can show one of them, the control keeps that room around the markers, across the line, so that the frame is never cut by the edges of the control and does not cover the labels; without those interactions the markers keep their place. A style without these parts uses 3 and 6 pixels.
+
 A style can have other parts and texts, with names of its own, for the steps that name them in `MarkerStyleName` and `LabelStyleName`.
 
-The graphic parts (line, markers and focus frame) can be **any graphic object**: a `TCircle`, a `TRectangle` with rounded corners, a `TPath` with a shape of its own, a `TLine` with a dashed border, a `TImage`, or a `TLayout` with several objects inside, for example a square with a check mark. The control draws a copy of the part as it is, resized to the area of the marker (the size of its state, see [Markers](#markers)), of the stretch of line (`LineThickness` thick, as long as described in [Layout](#layout)) or of the focus frame; the objects inside the part follow their `Align`, `Margins` and `Anchors`. The number or the image of `Content` is drawn over the marker.
+The graphic parts (line, markers, focus frame and halo) can be **any graphic object**: a `TCircle`, a `TRectangle` with rounded corners, a `TPath` with a shape of its own, a `TLine` with a dashed border, a `TImage`, or a `TLayout` with several objects inside, for example a square with a check mark. The control draws a copy of the part as it is, resized to the area of the marker (the size of its state, see [Markers](#markers)), of the stretch of line (`LineThickness` thick, as long as described in [Layout](#layout)) or of the focus frame and the halo; the objects inside the part follow their `Align`, `Margins` and `Anchors`. The number or the image of `Content` is drawn over the marker.
 
 The size of the parts in the style does not matter: the geometry is given by the properties of the control. A part keeps the proportions only if its class does: in markers wider than tall, a `TEllipse` (the default) becomes an oval that fills the area, while a `TCircle` stays a circle as large as the shorter side, centered in the area. With `smpCenter` the line stops at the edges of the area of the markers, so a marker with a transparent center does not show the line through it, unless `LineSpacing` is negative.
 
@@ -237,7 +243,7 @@ The style linked into the package is used when no other style defines `S4YStepPr
 1. In the style of a `TStyleBook`, add a `TLayout` with `StyleName = 'S4YStepProgressBarStyle'` and, inside it, the parts listed above. The default style, `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Win.style`, is a text file with all of them and can be used as a model.
 2. Change the parts: their colors and fonts, or replace a shape with another object.
 
-A style with another name is used by the controls whose `StyleLookup` is set to that name; when no style has that name, they use `S4YStepProgressBarStyle` as the others. The style of the parent class of the control is never used. A part missing from a style is replaced by an ellipse (markers and focus frame) or a bar (line) with the brushes of the properties, and a missing text by the default font and colors.
+A style with another name is used by the controls whose `StyleLookup` is set to that name; when no style has that name, they use `S4YStepProgressBarStyle` as the others. The style of the parent class of the control is never used. A part missing from a style is replaced by an ellipse (markers, focus frame and halo) or a bar (line) with the brushes of the properties, and a missing text by the default font and colors.
 
 ## Example
 

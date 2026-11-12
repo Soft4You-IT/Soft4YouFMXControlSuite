@@ -334,7 +334,7 @@ type
   /// </summary>
   /// <remarks>
   /// The steps are defined in Steps; CurrentStep, NextStep and PreviousStep say which one is in progress. The steps before the current one are drawn as completed, the ones after it as pending, and a step with Failed = True as failed.
-  /// Each step has a marker, an ellipse by default (a circle with the default square size), and optionally a caption and a description. The look comes from a style: its parts linecompleted, linepending, completedmarker, currentmarker, pendingmarker, failedmarker and focusframe can be any graphic object (a shape, a path, a layout with several objects) and are drawn as they are, resized to the stretch of line or to the marker; its texts completedtext, currenttext, pendingtext, failedtext (number in the marker), completedlabel, currentlabel, pendinglabel, failedlabel and description give fonts and colors.
+  /// Each step has a marker, an ellipse by default (a circle with the default square size), and optionally a caption and a description. The look comes from a style: its parts linecompleted, linepending, completedmarker, currentmarker, pendingmarker, failedmarker, focusframe and hoverframe can be any graphic object (a shape, a path, a layout with several objects) and are drawn as they are, resized to the stretch of line or to the marker; its texts completedtext, currenttext, pendingtext, failedtext (number in the marker), completedlabel, currentlabel, pendinglabel, failedlabel and description give fonts and colors.
   /// A step can have a look of its own in some states (see MarkerStates of TS4YStepItem), with other parts and texts of the style: the default style has startmarker and endmarker, used by the first and the last step of a new control.
   /// OnDrawMarker and OnDrawLine draw the markers and the line in place of the style. Interactions lets the user change the current step with the mouse or the keyboard.
   /// </remarks>
@@ -379,8 +379,12 @@ type
     FDefaultFont: TFont;
     FDisplayedProgress: Single;
     FFailedMarker: TS4YStepMarkerSettings;
+    FFocusFramePadding: TRectF;
     FFocusFramePart: TControl;
     FHandCursorShown: Boolean;
+    FHoverFramePadding: TRectF;
+    FHoverFramePart: TControl;
+    FHoverStep: Integer;
     FHighlightProgress: Boolean;
     FImages: TCustomImageList;
     FInteractions: TS4YStepInteractions;
@@ -421,6 +425,7 @@ type
       const ASettings: TS4YStepMarkerSettings): TControl;
     function CreatePart(const AStyleName: string; out FromStyle: Boolean): TControl;
     procedure DrawFocusFrame(const AStepCount: Integer);
+    procedure DrawHoverFrame(const AStepCount: Integer);
     procedure DrawLine(const AStepCount: Integer);
     procedure DrawLineStretch(const AFromStep: Integer; const AFrom, ATo, ALineCenter: Single; Completed: Boolean);
     procedure DrawMarker(const AStepIndex, AStepCount: Integer);
@@ -430,6 +435,7 @@ type
     procedure DrawStepLabel(const AStepIndex, AStepCount: Integer);
     function FindStepAt(const APoint: TPointF): Integer;
     procedure FreeParts;
+    procedure GetFramesAcrossLine(out ABefore, AAfter: Single);
     function GetContentRect: TRectF;
     function GetLabelHorizontalAlign: TTextAlign;
     function GetLabelTemplate(const AStepIndex: Integer; const AState: TS4YStepState): TText;
@@ -441,11 +447,13 @@ type
     function GetStepMarkerSettings(const AStepIndex: Integer): TS4YStepMarkerSettings;
     function GetStepState(const AStepIndex: Integer): TS4YStepState;
     function HasOwnLook(const AStepIndex: Integer; const AState: TS4YStepState): Boolean;
+    function InflateFrame(const AMarkerRect, APadding: TRectF): TRectF;
     function IsAnimating: Boolean;
     function IsProgressHighlighted: Boolean;
     function LabelSpacingStored: Boolean;
     function LineSpacingStored: Boolean;
     function LineThicknessStored: Boolean;
+    function ReadFramePadding(const AStyleName: string; const ADefaultSpacing: Single): TRectF;
     function MeasureTextHeight(const ATemplate: TText; const ADefaultColor: TAlphaColor; const AText: string;
       const AWidth: Single): Single;
     procedure PrepareTextLayout(const ATemplate: TText; const ADefaultColor: TAlphaColor; const AText: string;
@@ -475,6 +483,7 @@ type
     procedure SizeChanged(Sender: TObject);
     procedure StepsChanged;
     procedure UpdateHandCursor(const APoint: TPointF);
+    procedure UpdateHoverStep(const APoint: TPointF);
   protected
     /// <summary>Finds the texts of the style and prepares the graphic parts again.</summary>
     procedure ApplyStyle; override;
@@ -550,10 +559,12 @@ type
     /// <summary>Images shown in the markers whose settings have Content = smcImage.</summary>
     property Images: TCustomImageList read FImages write SetImages;
     /// <summary>
-    /// The ways in which the user can change the current step: a click on the markers (stiClickMarker) or on the labels (stiClickLabel), the hand pointer over them (stiHandCursor) and the keyboard (stiKeyboard). The default is [], an indicator only.
+    /// The ways in which the user can change the current step: a click on the markers (stiClickMarker) or on the labels (stiClickLabel), the hand pointer over them (stiHandCursor), the keyboard (stiKeyboard) and a halo around the marker under the mouse pointer (stiHover). The default is [], an indicator only.
     /// </summary>
     /// <remarks>
     /// With stiKeyboard the control can receive the focus, and shows it with a frame around the current marker.
+    /// stiHover shows the halo, the part hoverframe of the style, on the steps that a click can select with stiClickMarker or stiClickLabel, except the current one.
+    /// The control keeps room around the markers for the focus frame and the halo that the interactions can show, as given by the Padding of the parts focusframe and hoverframe.
     /// </remarks>
     property Interactions: TS4YStepInteractions read FInteractions write SetInteractions default [];
     /// <summary>Side of the markers and the line where the captions and the descriptions are shown, or slpNone to hide them. The default is slpAfter: below a horizontal line, on the right of a vertical one.</summary>
@@ -666,6 +677,7 @@ type
 const
   C_STYLE_DESCRIPTION = 'description';
   C_STYLE_FOCUS_FRAME = 'focusframe';
+  C_STYLE_HOVER_FRAME = 'hoverframe';
   C_STYLE_MARKERS: array[TS4YStepState] of string = ('completedmarker', 'currentmarker', 'pendingmarker', 'failedmarker');
   C_STYLE_MARKER_TEXTS: array[TS4YStepState] of string = ('completedtext', 'currenttext', 'pendingtext', 'failedtext');
   C_STYLE_LABELS: array[TS4YStepState] of string = ('completedlabel', 'currentlabel', 'pendinglabel', 'failedlabel');
@@ -680,10 +692,14 @@ const
   // Border of the focus frame used when the style has no focusframe part.
   C_DEFAULT_FOCUS_FRAME_COLOR: TAlphaColor = $FF1E88E5;
   C_DEFAULT_FOCUS_FRAME_THICKNESS = 1.5;
+  // Fill of the halo used when the style has no hoverframe part.
+  C_DEFAULT_HOVER_FRAME_COLOR: TAlphaColor = $331E88E5;
   C_STYLE_LINES: array[TS4YStepLineStyledBrush] of string = ('linecompleted', 'linepending');
 
-  // Space between a marker and the focus frame around it, in pixels.
-  C_FOCUS_FRAME_SPACING = 3;
+  // Space between a marker and the border of the focus frame and of the halo around it, in pixels,
+  // when the style has no part to read it from.
+  C_DEFAULT_FOCUS_FRAME_SPACING = 3;
+  C_DEFAULT_HOVER_FRAME_SPACING = 6;
   // Space between the border of a marker and its image, as a fraction of the width and the height of the marker.
   C_MARKER_IMAGE_MARGIN = 0.2;
   // Height given to a text while it is measured: large enough for any label.
@@ -1431,6 +1447,9 @@ begin
   FInteractions := [];
   FCurrentStep := 0;
   FDisplayedProgress := 0;
+  FHoverStep := -1;
+  FFocusFramePadding := ReadFramePadding('', C_DEFAULT_FOCUS_FRAME_SPACING);
+  FHoverFramePadding := ReadFramePadding('', C_DEFAULT_HOVER_FRAME_SPACING);
 
   FSteps := TS4YStepList.Create(Self);
 
@@ -1516,6 +1535,8 @@ begin
   inherited;
 
   FindStyleResource<TText>(C_STYLE_DESCRIPTION, FStyleDescription);
+  FFocusFramePadding := ReadFramePadding(C_STYLE_FOCUS_FRAME, C_DEFAULT_FOCUS_FRAME_SPACING);
+  FHoverFramePadding := ReadFramePadding(C_STYLE_HOVER_FRAME, C_DEFAULT_HOVER_FRAME_SPACING);
 
   for var LState := Low(TS4YStepState) to High(TS4YStepState) do
   begin
@@ -1643,9 +1664,16 @@ var
   LMarkerSize: Single;
   LLineSize: Single;
   LTrackSize: Single;
+  LMarkerOffset: Single;
+  LLineOffset: Single;
+  LFrameBefore: Single;
+  LFrameAfter: Single;
+  LExtraBefore: Single;
+  LExtraAfter: Single;
 begin
-  // The track is the band across the line that holds the markers and the line; the positions are
-  // across the line: Y for a horizontal line, X for a vertical one.
+  // The track is the band across the line that holds the markers, the line and the room for the
+  // focus frame and the halo; the positions are across the line: Y for a horizontal line, X for a
+  // vertical one.
   LContentRect := GetContentRect;
 
   if FOrientation = TOrientation.Horizontal then
@@ -1674,6 +1702,30 @@ begin
   else
     LTrackSize := LMarkerSize;
 
+  // Center of the markers and of the line from the start of the markers and the line.
+  case FMarkerPosition of
+    smpBefore:
+    begin
+      LMarkerOffset := LMarkerSize / 2;
+      LLineOffset := LTrackSize - LLineSize / 2;
+    end;
+    smpAfter:
+    begin
+      LMarkerOffset := LTrackSize - LMarkerSize / 2;
+      LLineOffset := LLineSize / 2;
+    end;
+  else
+    LMarkerOffset := LTrackSize / 2;
+    LLineOffset := LMarkerOffset;
+  end;
+
+  // The focus frame and the halo can go beyond the markers: the track keeps room for them, so that
+  // they are not cut by the edges of the control and do not cover the labels.
+  GetFramesAcrossLine(LFrameBefore, LFrameAfter);
+  LExtraBefore := Max(0, LFrameBefore - (LMarkerOffset - LMarkerSize / 2));
+  LExtraAfter := Max(0, LFrameAfter - (LTrackSize - LMarkerOffset - LMarkerSize / 2));
+  LTrackSize := LTrackSize + LExtraBefore + LExtraAfter;
+
   // The track is on the side opposite to the labels, or in the middle without labels.
   case FLabelPosition of
     slpBefore:
@@ -1685,22 +1737,8 @@ begin
   end;
 
   ATrackEnd := ATrackStart + LTrackSize;
-
-  case FMarkerPosition of
-    smpBefore:
-    begin
-      AMarkerCenter := ATrackStart + LMarkerSize / 2;
-      ALineCenter := ATrackEnd - LLineSize / 2;
-    end;
-    smpAfter:
-    begin
-      AMarkerCenter := ATrackEnd - LMarkerSize / 2;
-      ALineCenter := ATrackStart + LLineSize / 2;
-    end;
-  else
-    AMarkerCenter := ATrackStart + LTrackSize / 2;
-    ALineCenter := AMarkerCenter;
-  end;
+  AMarkerCenter := ATrackStart + LExtraBefore + LMarkerOffset;
+  ALineCenter := ATrackStart + LExtraBefore + LLineOffset;
 end;
 
 function TS4YStepProgressBar.ChangeStep(const ANewStep: Integer): Boolean;
@@ -1848,6 +1886,7 @@ begin
   inherited;
 
   UpdateHandCursor(TPointF.Create(-1, -1));
+  UpdateHoverStep(TPointF.Create(-1, -1));
 end;
 
 procedure TS4YStepProgressBar.DoStepChanged;
@@ -1871,9 +1910,21 @@ begin
   if not (stiKeyboard in FInteractions) or not IsFocused then
     Exit;
 
-  LFrameRect := CalculateMarkerRect(FCurrentStep, AStepCount);
-  LFrameRect.Inflate(C_FOCUS_FRAME_SPACING, C_FOCUS_FRAME_SPACING);
+  LFrameRect := InflateFrame(CalculateMarkerRect(FCurrentStep, AStepCount), FFocusFramePadding);
   DrawPart(FFocusFramePart, LFrameRect);
+end;
+
+procedure TS4YStepProgressBar.DrawHoverFrame(const AStepCount: Integer);
+var
+  LFrameRect: TRectF;
+begin
+  // A click on the current step changes nothing: it gets no halo.
+  if not (stiHover in FInteractions) or (FHoverStep < 0) or (FHoverStep >= AStepCount) or
+    (FHoverStep = FCurrentStep) then
+    Exit;
+
+  LFrameRect := InflateFrame(CalculateMarkerRect(FHoverStep, AStepCount), FHoverFramePadding);
+  DrawPart(FHoverFramePart, LFrameRect);
 end;
 
 procedure TS4YStepProgressBar.DrawLine(const AStepCount: Integer);
@@ -2121,6 +2172,17 @@ begin
     LShape.Parent := FPartsContainer;
     FFocusFramePart := LShape;
   end;
+
+  FHoverFramePart := CreatePart(C_STYLE_HOVER_FRAME, LFromStyle);
+
+  if not LFromStyle then
+  begin
+    LShape := TEllipse.Create(nil);
+    LShape.Fill.Color := C_DEFAULT_HOVER_FRAME_COLOR;
+    LShape.Stroke.Kind := TBrushKind.None;
+    LShape.Parent := FPartsContainer;
+    FHoverFramePart := LShape;
+  end;
 end;
 
 function TS4YStepProgressBar.FindStepAt(const APoint: TPointF): Integer;
@@ -2161,12 +2223,43 @@ begin
     FreeAndNil(FLineParts[LLine]);
 
   FreeAndNil(FFocusFramePart);
+  FreeAndNil(FHoverFramePart);
+end;
+
+procedure TS4YStepProgressBar.GetFramesAcrossLine(out ABefore, AAfter: Single);
+
+  procedure AddFrame(const APadding: TRectF);
+  begin
+    if FOrientation = TOrientation.Horizontal then
+    begin
+      ABefore := Max(ABefore, APadding.Top);
+      AAfter := Max(AAfter, APadding.Bottom);
+    end
+    else
+    begin
+      ABefore := Max(ABefore, APadding.Left);
+      AAfter := Max(AAfter, APadding.Right);
+    end;
+  end;
+
+begin
+  // How far the frames that the interactions can show go beyond the markers, across the line.
+  ABefore := 0;
+  AAfter := 0;
+
+  if stiKeyboard in FInteractions then
+    AddFrame(FFocusFramePadding);
+
+  if (stiHover in FInteractions) and ((stiClickMarker in FInteractions) or (stiClickLabel in FInteractions)) then
+    AddFrame(FHoverFramePadding);
 end;
 
 procedure TS4YStepProgressBar.FreeStyle;
 begin
   FreeParts;
   FStyleDescription := nil;
+  FFocusFramePadding := ReadFramePadding('', C_DEFAULT_FOCUS_FRAME_SPACING);
+  FHoverFramePadding := ReadFramePadding('', C_DEFAULT_HOVER_FRAME_SPACING);
 
   for var LState := Low(TS4YStepState) to High(TS4YStepState) do
   begin
@@ -2339,6 +2432,12 @@ begin
   Result := AState in FSteps[AStepIndex].MarkerStates;
 end;
 
+function TS4YStepProgressBar.InflateFrame(const AMarkerRect, APadding: TRectF): TRectF;
+begin
+  Result := TRectF.Create(AMarkerRect.Left - APadding.Left, AMarkerRect.Top - APadding.Top,
+    AMarkerRect.Right + APadding.Right, AMarkerRect.Bottom + APadding.Bottom);
+end;
+
 function TS4YStepProgressBar.IsAnimating: Boolean;
 begin
   Result := Assigned(FLineAnimation) and FLineAnimation.Running;
@@ -2436,6 +2535,7 @@ begin
   inherited;
 
   UpdateHandCursor(TPointF.Create(X, Y));
+  UpdateHoverStep(TPointF.Create(X, Y));
 end;
 
 function TS4YStepProgressBar.NextStep: Boolean;
@@ -2466,6 +2566,7 @@ begin
   LStepCount := FSteps.Count;
   EnsureParts;
   DrawLine(LStepCount);
+  DrawHoverFrame(LStepCount);
 
   for var LIndex := 0 to LStepCount - 1 do
   begin
@@ -2511,6 +2612,17 @@ begin
     Exit(False);
 
   Result := ChangeStep(FCurrentStep - 1);
+end;
+
+function TS4YStepProgressBar.ReadFramePadding(const AStyleName: string; const ADefaultSpacing: Single): TRectF;
+var
+  LPart: TControl;
+begin
+  // The Padding of the part is the room between its border and the marker inside it.
+  if (AStyleName <> '') and FindStyleResource<TControl>(AStyleName, LPart) then
+    Result := LPart.Padding.Rect
+  else
+    Result := TRectF.Create(ADefaultSpacing, ADefaultSpacing, ADefaultSpacing, ADefaultSpacing);
 end;
 
 procedure TS4YStepProgressBar.RenderText(const ATemplate: TText; const ADefaultColor: TAlphaColor;
@@ -2603,6 +2715,9 @@ begin
 
   if not (stiHandCursor in FInteractions) then
     UpdateHandCursor(TPointF.Create(-1, -1));
+
+  if not (stiHover in FInteractions) then
+    FHoverStep := -1;
 
   Repaint;
 end;
@@ -2707,6 +2822,9 @@ begin
   // The copies of the parts of the steps with a look of their own are prepared again.
   FreeParts;
 
+  // The step under the mouse pointer is found again at the next move.
+  FHoverStep := -1;
+
   if (csLoading in ComponentState) or (csDestroying in ComponentState) then
     Exit;
 
@@ -2738,6 +2856,22 @@ begin
     Cursor := FCursorBeforeHand;
 
   FHandCursorShown := LOverStep;
+end;
+
+procedure TS4YStepProgressBar.UpdateHoverStep(const APoint: TPointF);
+var
+  LHoverStep: Integer;
+begin
+  LHoverStep := -1;
+
+  if stiHover in FInteractions then
+    LHoverStep := FindStepAt(APoint);
+
+  if LHoverStep = FHoverStep then
+    Exit;
+
+  FHoverStep := LHoverStep;
+  Repaint;
 end;
 
 initialization
