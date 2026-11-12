@@ -42,6 +42,7 @@ Add the folder `Sources\StepProgressBar` to the Delphi library path to compile y
 |---|---|---|
 | `Steps` | Start, Step, End | The steps, in their order along the line (see below) |
 | `CurrentStep` | 0 | Index of the step in progress, from 0. A value out of range is brought to the first or the last step |
+| `StepProgress` | 0 | Progress of the current step, in percent: the line goes from the current step towards the next one, and reaches it at 100 (see below) |
 | `Orientation` | `Horizontal` | `Horizontal`: steps from left to right. `Vertical`: from top to bottom |
 | `LabelPosition` | `slpAfter` | Side of the markers and the line with the captions and the descriptions: `slpBefore` (above a horizontal line, on the left of a vertical one), `slpAfter` (below, on the right) or `slpNone` (hidden) |
 | `LabelSpacing` | 6 | Space between the labels and the markers (or the line, when it is between them), in pixels |
@@ -50,7 +51,7 @@ Add the folder `Sources\StepProgressBar` to the Delphi library path to compile y
 | `LineSpacing` | 0 | Space between the markers and the line, in pixels (see [Layout](#layout)); a negative value makes the line go under the markers |
 | `LineThickness` | 3 | Thickness of the line, in pixels |
 | `HighlightProgress` | `True` | Draws the line up to the current step with the completed brush; with `False` the whole line has the pending brush and only the markers show the progress |
-| `AnimationDuration` | 0.3 | Seconds the line takes to fill up to the new current step; 0 changes it at once. Used only with `HighlightProgress = True` |
+| `AnimationDuration` | 0.3 | Seconds the line takes to fill up to the new current step, or after a large change of `StepProgress`; 0 changes it at once. Used only with `HighlightProgress = True` |
 | `Interactions` | `[]` | How the user can change the current step (see below); with the empty set the control is an indicator only |
 | `CompletedMarker`, `CurrentMarker`, `PendingMarker`, `FailedMarker` | | How the markers in each state are drawn (see below) |
 | `Line` | | Brushes and visibility of the line (see below) |
@@ -79,6 +80,23 @@ Start Copy  End          Start  Copy    End       Start  Copy    End
 With `Line.Visible = False` the band is made of the markers only.
 
 With `stiKeyboard`, or `stiHover` together with a click interaction, the band also keeps room around the markers for the focus frame and the halo, as large as the `Padding` of their parts in the style (see [Styles](#styles)): turning these interactions on moves the markers and the line a few pixels inwards.
+
+### Progress inside a step
+
+`StepProgress` shows how far the current step has gone, for example the download of a file during the step *Download*: at 50 the completed line stops halfway between the current step and the next one.
+
+```delphi
+procedure TMainForm.DownloadProgress(const ADone, ATotal: Int64);
+begin
+  StepBar.StepProgress := ADone * 100 / ATotal;
+end;
+```
+
+- The value goes from 0 to 100, with decimals; values out of the range are brought to 0 or 100.
+- It goes back to 0 every time the current step changes, so a new step always starts from its own marker. On the last step it stays 0, since there is no line after it.
+- The next step stays pending also when the line reaches it at 100: it becomes the current one only with `CurrentStep` or `NextStep`.
+- A change of up to 5 percent, such as the frequent updates of a download, is drawn at once; a larger one is animated in `AnimationDuration`, and so is any change while the line is already moving.
+- The progress is shown only by the completed line: it needs `Line.Visible = True` and `HighlightProgress = True`.
 
 ### Interactions
 
@@ -278,9 +296,9 @@ In the designer, drop a `TS4YStepProgressBar` on the form and double-click it, o
 
 ## Demo
 
-`Demos\StepProgressBar\S4YStepProgressBarDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows two step bars: a horizontal one for an installation, moved by the buttons *Next* and *Previous*, where the current step can be marked as failed; and a vertical one for a wizard, with all the `Interactions`, where a click or the keyboard selects a step and `OnStepChanging` does not allow skipping a step forward. The panel on the left switches each interaction of the wizard on and off, and changes `HighlightProgress`, the animation, the numbers in the markers, `LabelPosition`, `Line.Visible`, `MarkerPosition`, `MarkerSize`, the size of the pending and current markers, `LineSpacing` and `LabelSpacing` of both bars.
+`Demos\StepProgressBar\S4YStepProgressBarDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows two step bars: a horizontal one for an installation, moved by the buttons *Next* and *Previous*, where the current step can be marked as failed; and a vertical one for a wizard, with all the `Interactions`, where a click or the keyboard selects a step and `OnStepChanging` does not allow skipping a step forward. The panel on the left switches each interaction of the wizard on and off, and changes `HighlightProgress`, the animation, the numbers in the markers, `LabelPosition`, `Line.Visible`, `MarkerPosition`, `MarkerSize`, the size of the pending and current markers, `LineSpacing` and `LabelSpacing` of both bars; a track bar changes `StepProgress` of the installation.
 
-`Demos\StepProgressBar\S4YStepProgressBarGallery.dproj` (also in the project group) shows what the control can look like, one example per tab: the default style; a failed step; a vertical timeline with the markers beside the line; images in the markers; the dots of a sequence of pages; a size for each state; rounded squares and a dashed line from a style of a `TStyleBook`; a step with a look of its own; markers and line drawn in `OnDrawMarker` and `OnDrawLine`; the animation of the line, moved by a timer; and a style for a dark background. The styles `SquareStepStyle`, `ReviewStepStyle` and `DarkStepStyle` are in the style book of the form and can be used as models.
+`Demos\StepProgressBar\S4YStepProgressBarGallery.dproj` (also in the project group) shows what the control can look like, one example per tab: the default style; a failed step; a vertical timeline with the markers beside the line; images in the markers; the dots of a sequence of pages; a size for each state; rounded squares and a dashed line from a style of a `TStyleBook`; a step with a look of its own; markers and line drawn in `OnDrawMarker` and `OnDrawLine`; the animation of the line, moved by a timer; the progress inside a step, filled by a timer like a download; and a style for a dark background. The styles `SquareStepStyle`, `ReviewStepStyle` and `DarkStepStyle` are in the style book of the form and can be used as models.
 
 Install the suite packages first.
 

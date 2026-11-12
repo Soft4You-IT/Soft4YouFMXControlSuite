@@ -358,6 +358,10 @@ type
     C_DEFAULT_MARKER_SIZE: Single = 28;
     /// <summary>Default value of Orientation.</summary>
     C_DEFAULT_ORIENTATION = TOrientation.Horizontal;
+    /// <summary>Default value of StepProgress, in percent.</summary>
+    C_DEFAULT_STEP_PROGRESS: Single = 0;
+    /// <summary>Largest value of StepProgress, in percent: the line reaches the next step.</summary>
+    C_MAX_STEP_PROGRESS: Single = 100;
     /// <summary>Default fill and border color of the completed markers.</summary>
     C_DEFAULT_COMPLETED_COLOR: TAlphaColor = $FF1E88E5;
     /// <summary>Default fill color of the current marker.</summary>
@@ -403,6 +407,7 @@ type
     FPartsContainer: TControl;
     FPendingMarker: TS4YStepMarkerSettings;
     FStepMarkerParts: array of array[TS4YStepState] of TControl;
+    FStepProgress: Single;
     FSteps: TS4YStepList;
     FStyleDescription: TText;
     FStyleLabels: array[TS4YStepState] of TText;
@@ -445,6 +450,7 @@ type
     function GetMarkerAlongLine(const AStepIndex: Integer): Single;
     function GetMarkerSettings(const AState: TS4YStepState): TS4YStepMarkerSettings;
     function GetMarkerSize(const ASettings: TS4YStepMarkerSettings): TSizeF;
+    function GetProgressTarget: Single;
     function GetStepMarkerSettings(const AStepIndex: Integer): TS4YStepMarkerSettings;
     function GetStepState(const AStepIndex: Integer): TS4YStepState;
     function HasOwnLook(const AStepIndex: Integer; const AState: TS4YStepState): Boolean;
@@ -479,9 +485,11 @@ type
     procedure SetMarkerSize(const Value: TS4YStepMarkerSize);
     procedure SetOrientation(const Value: TOrientation);
     procedure SetPendingMarker(const Value: TS4YStepMarkerSettings);
+    procedure SetStepProgress(const Value: Single);
     procedure SetSteps(const Value: TS4YStepList);
     procedure SettingsChanged(Sender: TObject);
     procedure SizeChanged(Sender: TObject);
+    function StepProgressStored: Boolean;
     procedure StepsChanged;
     procedure UpdateHandCursor(const APoint: TPointF);
     procedure UpdateHoverStep(const APoint: TPointF);
@@ -536,7 +544,7 @@ type
   published
     property Align;
     property Anchors;
-    /// <summary>Duration in seconds of the filling of the line when the current step changes. With 0 the change is immediate. The default is 0.3.</summary>
+    /// <summary>Duration in seconds of the filling of the line when the current step changes, or when StepProgress changes by more than a few percent. With 0 the change is immediate. The default is 0.3.</summary>
     property AnimationDuration: Single read FAnimationDuration write SetAnimationDuration stored AnimationDurationStored nodefault;
     /// <summary>How the markers of the steps before the current one are drawn.</summary>
     property CompletedMarker: TS4YStepMarkerSettings read FCompletedMarker write SetCompletedMarker;
@@ -601,6 +609,14 @@ type
     property RotationCenter;
     property Scale;
     property Size;
+    /// <summary>
+    /// How far the line has gone from the current step towards the next one, in percent: from 0, the default, to 100, where the line reaches the next step.
+    /// </summary>
+    /// <remarks>
+    /// It shows the progress of the current step, for example a download. It goes back to 0 when the current step changes, and stays 0 on the last step, which has no line after it.
+    /// A change of more than a few percent is animated in AnimationDuration, a smaller one is drawn at once. The progress is shown only when the line is visible and HighlightProgress is True.
+    /// </remarks>
+    property StepProgress: Single read FStepProgress write SetStepProgress stored StepProgressStored nodefault;
     /// <summary>The steps, in their order along the line. There are always a first and a last step, which cannot be removed or moved.</summary>
     property Steps: TS4YStepList read FSteps write SetSteps;
     property StyleLookup;
@@ -703,6 +719,8 @@ const
   C_DEFAULT_HOVER_FRAME_SPACING = 6;
   // Space between the border of a marker and its image, as a fraction of the width and the height of the marker.
   C_MARKER_IMAGE_MARGIN = 0.2;
+  // Largest change of StepProgress, in percent, drawn at once: a larger one is animated.
+  C_STEP_PROGRESS_ANIMATION_THRESHOLD = 5;
   // Height given to a text while it is measured: large enough for any label.
   C_MEASURE_HEIGHT = 10000;
   // Steps that a list has always: the first and the last one.
@@ -1756,15 +1774,17 @@ begin
     Exit(False);
 
   FCurrentStep := LNewStep;
+  // A new step starts from its own marker.
+  FStepProgress := 0;
 
   if IsProgressHighlighted and (FAnimationDuration > 0) and not (csDesigning in ComponentState) then
-    AnimateProgress(FCurrentStep)
+    AnimateProgress(GetProgressTarget)
   else
   begin
     if IsAnimating then
       FLineAnimation.StopAtCurrent;
 
-    SetDisplayedProgress(FCurrentStep);
+    SetDisplayedProgress(GetProgressTarget);
   end;
 
   // The step under the mouse pointer may have become the current one.
@@ -2392,6 +2412,12 @@ begin
     Result.Height := LSize.Height;
 end;
 
+function TS4YStepProgressBar.GetProgressTarget: Single;
+begin
+  // Where the completed line ends: the current step plus the part of the line towards the next one.
+  Result := FCurrentStep + FStepProgress / C_MAX_STEP_PROGRESS;
+end;
+
 function TS4YStepProgressBar.GetStepMarkerSettings(const AStepIndex: Integer): TS4YStepMarkerSettings;
 var
   LState: TS4YStepState;
@@ -2506,7 +2532,11 @@ begin
 
   // CurrentStep is read before Steps: it can be checked only now.
   FCurrentStep := ClampStep(FCurrentStep);
-  FDisplayedProgress := FCurrentStep;
+
+  if FCurrentStep >= FSteps.Count - 1 then
+    FStepProgress := 0;
+
+  FDisplayedProgress := GetProgressTarget;
 end;
 
 function TS4YStepProgressBar.MeasureTextHeight(const ATemplate: TText; const ADefaultColor: TAlphaColor;
@@ -2692,7 +2722,7 @@ begin
   if IsAnimating then
     FLineAnimation.StopAtCurrent;
 
-  SetDisplayedProgress(FCurrentStep);
+  SetDisplayedProgress(GetProgressTarget);
 end;
 
 procedure TS4YStepProgressBar.SetImages(const Value: TCustomImageList);
@@ -2797,6 +2827,40 @@ begin
   FPendingMarker.Assign(Value);
 end;
 
+procedure TS4YStepProgressBar.SetStepProgress(const Value: Single);
+var
+  LStepProgress: Single;
+  LChange: Single;
+begin
+  LStepProgress := EnsureRange(Value, 0, C_MAX_STEP_PROGRESS);
+
+  // While loading, the steps may not be read yet: Loaded checks the value.
+  if csLoading in ComponentState then
+  begin
+    FStepProgress := LStepProgress;
+    Exit;
+  end;
+
+  // The last step has no line after it.
+  if FCurrentStep >= FSteps.Count - 1 then
+    LStepProgress := 0;
+
+  if SameValue(LStepProgress, FStepProgress) then
+    Exit;
+
+  LChange := Abs(LStepProgress - FStepProgress);
+  FStepProgress := LStepProgress;
+
+  // Small changes, such as the ones of a download, are drawn at once, so that the line follows them;
+  // a larger one is animated, and so is any change while the line is already moving, so that it
+  // never jumps.
+  if IsProgressHighlighted and (FAnimationDuration > 0) and not (csDesigning in ComponentState) and
+    (IsAnimating or (LChange > C_STEP_PROGRESS_ANIMATION_THRESHOLD)) then
+    AnimateProgress(GetProgressTarget)
+  else
+    SetDisplayedProgress(GetProgressTarget);
+end;
+
 procedure TS4YStepProgressBar.SetSteps(const Value: TS4YStepList);
 begin
   FSteps.Assign(Value);
@@ -2810,7 +2874,7 @@ begin
     if IsAnimating then
       FLineAnimation.StopAtCurrent;
 
-    FDisplayedProgress := FCurrentStep;
+    FDisplayedProgress := GetProgressTarget;
   end;
 
   // The brushes of the properties are applied to the parts when they are prepared again.
@@ -2821,6 +2885,11 @@ end;
 procedure TS4YStepProgressBar.SizeChanged(Sender: TObject);
 begin
   Repaint;
+end;
+
+function TS4YStepProgressBar.StepProgressStored: Boolean;
+begin
+  Result := not SameValue(FStepProgress, C_DEFAULT_STEP_PROGRESS);
 end;
 
 procedure TS4YStepProgressBar.StepsChanged;
@@ -2837,10 +2906,14 @@ begin
   // Steps removed from the end may leave the current step out of range.
   FCurrentStep := ClampStep(FCurrentStep);
 
+  // The current step may have become the last one, which has no line after it.
+  if FCurrentStep >= FSteps.Count - 1 then
+    FStepProgress := 0;
+
   if IsAnimating then
     Repaint
   else
-    SetDisplayedProgress(FCurrentStep);
+    SetDisplayedProgress(GetProgressTarget);
 end;
 
 procedure TS4YStepProgressBar.UpdateHandCursor(const APoint: TPointF);
