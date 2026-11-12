@@ -398,6 +398,7 @@ type
     FMarkerParts: array[TS4YStepState] of TControl;
     FMarkerPosition: TS4YStepMarkerPosition;
     FMarkerSize: TS4YStepMarkerSize;
+    FMousePosition: TPointF;
     FOrientation: TOrientation;
     FPartsContainer: TControl;
     FPendingMarker: TS4YStepMarkerSettings;
@@ -559,7 +560,7 @@ type
     /// <summary>Images shown in the markers whose settings have Content = smcImage.</summary>
     property Images: TCustomImageList read FImages write SetImages;
     /// <summary>
-    /// The ways in which the user can change the current step: a click on the markers (stiClickMarker) or on the labels (stiClickLabel), the hand pointer over them (stiHandCursor), the keyboard (stiKeyboard) and a halo around the marker under the mouse pointer (stiHover). The default is [], an indicator only.
+    /// The ways in which the user can change the current step: a click on the markers (stiClickMarker) or on the labels (stiClickLabel), the hand pointer over them except the current step (stiHandCursor), the keyboard (stiKeyboard) and a halo around the marker under the mouse pointer (stiHover). The default is [], an indicator only.
     /// </summary>
     /// <remarks>
     /// With stiKeyboard the control can receive the focus, and shows it with a frame around the current marker.
@@ -1448,6 +1449,7 @@ begin
   FCurrentStep := 0;
   FDisplayedProgress := 0;
   FHoverStep := -1;
+  FMousePosition := TPointF.Create(-1, -1);
   FFocusFramePadding := ReadFramePadding('', C_DEFAULT_FOCUS_FRAME_SPACING);
   FHoverFramePadding := ReadFramePadding('', C_DEFAULT_HOVER_FRAME_SPACING);
 
@@ -1765,6 +1767,8 @@ begin
     SetDisplayedProgress(FCurrentStep);
   end;
 
+  // The step under the mouse pointer may have become the current one.
+  UpdateHandCursor(FMousePosition);
   DoStepChanged;
   Result := True;
 end;
@@ -1885,8 +1889,9 @@ procedure TS4YStepProgressBar.DoMouseLeave;
 begin
   inherited;
 
-  UpdateHandCursor(TPointF.Create(-1, -1));
-  UpdateHoverStep(TPointF.Create(-1, -1));
+  FMousePosition := TPointF.Create(-1, -1);
+  UpdateHandCursor(FMousePosition);
+  UpdateHoverStep(FMousePosition);
 end;
 
 procedure TS4YStepProgressBar.DoStepChanged;
@@ -2534,8 +2539,9 @@ procedure TS4YStepProgressBar.MouseMove(Shift: TShiftState; X, Y: Single);
 begin
   inherited;
 
-  UpdateHandCursor(TPointF.Create(X, Y));
-  UpdateHoverStep(TPointF.Create(X, Y));
+  FMousePosition := TPointF.Create(X, Y);
+  UpdateHandCursor(FMousePosition);
+  UpdateHoverStep(FMousePosition);
 end;
 
 function TS4YStepProgressBar.NextStep: Boolean;
@@ -2839,9 +2845,12 @@ end;
 
 procedure TS4YStepProgressBar.UpdateHandCursor(const APoint: TPointF);
 var
+  LStepIndex: Integer;
   LOverStep: Boolean;
 begin
-  LOverStep := (stiHandCursor in FInteractions) and (FindStepAt(APoint) >= 0);
+  // A click on the current step changes nothing: it gets no hand.
+  LStepIndex := FindStepAt(APoint);
+  LOverStep := (stiHandCursor in FInteractions) and (LStepIndex >= 0) and (LStepIndex <> FCurrentStep);
 
   if LOverStep = FHandCursorShown then
     Exit;

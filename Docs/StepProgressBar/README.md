@@ -88,7 +88,7 @@ With `stiKeyboard`, or `stiHover` together with a click interaction, the band al
 |---|---|
 | `stiClickMarker` | A click on the marker of a step makes it the current one |
 | `stiClickLabel` | A click on the caption or the description of a step makes it the current one |
-| `stiHandCursor` | The mouse pointer becomes a hand over the parts that a click can select (so it needs `stiClickMarker`, `stiClickLabel` or both); elsewhere the control keeps its own `Cursor` |
+| `stiHandCursor` | The mouse pointer becomes a hand over the parts that a click can select (so it needs `stiClickMarker`, `stiClickLabel` or both), except those of the current step; elsewhere the control keeps its own `Cursor` |
 | `stiKeyboard` | The control can receive the focus (with a click or with Tab) and shows it with a dotted frame around the current marker; the left and up arrows move to the previous step, the right and down arrows to the next one, Home and End to the first and the last one |
 | `stiHover` | A halo, the part `hoverframe` of the style, appears around the marker of the step under the mouse pointer, on the parts that a click can select (so it needs `stiClickMarker`, `stiClickLabel` or both); the current step gets no halo, since a click on it changes nothing |
 
