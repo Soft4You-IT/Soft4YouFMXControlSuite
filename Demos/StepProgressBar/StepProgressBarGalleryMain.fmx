@@ -3,7 +3,7 @@ object StepProgressBarGalleryForm: TStepProgressBarGalleryForm
   Top = 0
   Caption = 'TS4YStepProgressBar gallery'
   ClientHeight = 520
-  ClientWidth = 980
+  ClientWidth = 1080
   Position = ScreenCenter
   StyleBook = GalleryStyleBook
   FormFactor.Width = 320
@@ -12,7 +12,7 @@ object StepProgressBarGalleryForm: TStepProgressBarGalleryForm
   DesignerMasterStyle = 0
   object GalleryTabControl: TTabControl
     Align = Client
-    Size.Width = 980
+    Size.Width = 1080
     Size.Height = 520
     Size.PlatformDefault = False
     TabIndex = 0
@@ -529,6 +529,60 @@ object StepProgressBarGalleryForm: TStepProgressBarGalleryForm
           end>
       end
     end
+    object ProgressTab: TTabItem
+      Text = 'Step progress'
+      object ProgressLabel: TLabel
+        Align = Top
+        Margins.Left = 16.000000000000000000
+        Margins.Top = 16.000000000000000000
+        Margins.Right = 16.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 
+          'StepProgress fills the line from the current step towards the n' +
+          'ext one, here the progress of a download: small changes are draw' +
+          'n at once, the change of step is animated.'
+      end
+      object DownloadBar: TS4YStepProgressBar
+        Align = Top
+        Margins.Left = 16.000000000000000000
+        Margins.Top = 16.000000000000000000
+        Margins.Right = 16.000000000000000000
+        Size.Height = 90.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        StepItems = <
+          item
+            Caption = 'Connect'
+            Marker.Content = smcNone
+            MarkerStates = [sstCompleted, sstCurrent]
+            MarkerStyleName = 'startmarker'
+          end
+          item
+            Caption = 'Download'
+            Description = 'Package of 48 MB'
+          end
+          item
+            Caption = 'Install'
+          end
+          item
+            Caption = 'Done'
+            Marker.Content = smcNone
+            MarkerStates = [sstCurrent]
+            MarkerStyleName = 'endmarker'
+          end>
+      end
+      object ProgressStatusLabel: TLabel
+        Align = Top
+        Margins.Left = 16.000000000000000000
+        Margins.Top = 8.000000000000000000
+        Margins.Right = 16.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Connect: 0 %'
+      end
+    end
     object DarkTab: TTabItem
       Text = 'Dark theme'
       object DarkBackground: TRectangle
@@ -588,6 +642,12 @@ object StepProgressBarGalleryForm: TStepProgressBarGalleryForm
         end
       end
     end
+  end
+  object ProgressTimer: TTimer
+    Interval = 60
+    OnTimer = ProgressTimerTimer
+    Left = 880
+    Top = 380
   end
   object AnimationTimer: TTimer
     Interval = 1500

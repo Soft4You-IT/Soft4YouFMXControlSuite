@@ -4,6 +4,7 @@ interface
 
 uses
   System.SysUtils,
+  System.Math,
   System.Classes,
   FMX.Types,
   FMX.Controls,
@@ -31,6 +32,8 @@ type
     NextButton: TButton;
     PreviousButton: TButton;
     FailedCheckBox: TCheckBox;
+    StepProgressLabel: TLabel;
+    StepProgressTrackBar: TTrackBar;
     WizardSettingsLabel: TLabel;
     ClickMarkerCheckBox: TCheckBox;
     ClickLabelCheckBox: TCheckBox;
@@ -68,6 +71,7 @@ type
     procedure PreviousButtonClick(Sender: TObject);
     procedure SpacingSpinBoxChange(Sender: TObject);
     procedure StateSizesCheckBoxChange(Sender: TObject);
+    procedure StepProgressTrackBarChange(Sender: TObject);
     procedure WizardBarStepChanged(Sender: TObject);
     procedure WizardBarStepChanging(Sender: TObject; const ANewStep: Integer; var Allow: Boolean);
   private
@@ -84,6 +88,7 @@ implementation
 
 resourcestring
   S_INSTALL_STATUS = 'Step %d of %d: %s';
+  S_STEP_PROGRESS = 'StepProgress: %.0f %%';
   S_WIZARD_STATUS = 'Current step: %s. OnStepChanging does not allow skipping a step forward: click the next step, ' +
     'or any step before.';
 
@@ -127,6 +132,9 @@ begin
   LStep := InstallBar.Steps[InstallBar.CurrentStep];
   FailedCheckBox.IsChecked := LStep.Failed;
   InstallStatusLabel.Text := Format(S_INSTALL_STATUS, [InstallBar.CurrentStep + 1, InstallBar.Steps.Count, LStep.Caption]);
+
+  // The progress inside the step starts again from 0 at every step.
+  StepProgressTrackBar.Value := InstallBar.StepProgress;
 end;
 
 procedure TStepProgressBarDemoForm.InteractionCheckBoxChange(Sender: TObject);
@@ -253,6 +261,17 @@ begin
 
   SetStateSizes(InstallBar, LPendingSize, LCurrentSize);
   SetStateSizes(WizardBar, LPendingSize, LCurrentSize);
+end;
+
+procedure TStepProgressBarDemoForm.StepProgressTrackBarChange(Sender: TObject);
+begin
+  InstallBar.StepProgress := StepProgressTrackBar.Value;
+
+  // On the last step the bar keeps 0: the track bar follows it.
+  if not SameValue(StepProgressTrackBar.Value, InstallBar.StepProgress) then
+    StepProgressTrackBar.Value := InstallBar.StepProgress;
+
+  StepProgressLabel.Text := Format(S_STEP_PROGRESS, [InstallBar.StepProgress]);
 end;
 
 procedure TStepProgressBarDemoForm.WizardBarStepChanged(Sender: TObject);

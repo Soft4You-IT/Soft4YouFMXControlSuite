@@ -42,6 +42,7 @@ type
     DotsLabel: TLabel;
     DotsLayout: TLayout;
     DotsTab: TTabItem;
+    DownloadBar: TS4YStepProgressBar;
     GalleryStyleBook: TStyleBook;
     GalleryTabControl: TTabControl;
     ImagesBar: TS4YStepProgressBar;
@@ -51,6 +52,10 @@ type
     InstallLabel: TLabel;
     InstallTab: TTabItem;
     OrderImages: TImageList;
+    ProgressLabel: TLabel;
+    ProgressStatusLabel: TLabel;
+    ProgressTab: TTabItem;
+    ProgressTimer: TTimer;
     ShapesBar: TS4YStepProgressBar;
     ShapesLabel: TLabel;
     ShapesTab: TTabItem;
@@ -68,6 +73,9 @@ type
       const AFromStep: Integer; const Completed: Boolean; var Handled: Boolean);
     procedure CustomBarDrawMarker(Sender: TObject; const ACanvas: TCanvas; const ARect: TRectF;
       const AStepIndex: Integer; const AState: TS4YStepState; var Handled: Boolean);
+    procedure ProgressTimerTimer(Sender: TObject);
+  private
+    FProgressPause: Integer;
   end;
 
 var
@@ -77,7 +85,15 @@ implementation
 
 {$R *.fmx}
 
+resourcestring
+  S_PROGRESS_STATUS = '%s: %.0f %%';
+
 const
+  // Percent added to StepProgress at each tick of ProgressTimer: small enough to be drawn at once.
+  C_PROGRESS_INCREMENT = 2;
+  // Ticks of ProgressTimer to wait after a change of step, so that its animation is seen.
+  C_PROGRESS_STEP_PAUSE = 6;
+  C_PROGRESS_END_PAUSE = 20;
   C_CUSTOM_DONE_COLOR: TAlphaColor = $FFFB8C00;
   C_CUSTOM_TODO_COLOR: TAlphaColor = $FFCFD8DC;
   C_CUSTOM_TODO_TEXT_COLOR: TAlphaColor = $FF607D8B;
@@ -146,6 +162,39 @@ begin
   ACanvas.Font.Style := [TFontStyle.fsBold];
   ACanvas.FillText(ARect, IntToStr(AStepIndex + 1), False, 1, [], TTextAlign.Center, TTextAlign.Center);
   Handled := True;
+end;
+
+procedure TStepProgressBarGalleryForm.ProgressTimerTimer(Sender: TObject);
+var
+  LLastStep: Integer;
+begin
+  if FProgressPause > 0 then
+  begin
+    Dec(FProgressPause);
+    Exit;
+  end;
+
+  LLastStep := DownloadBar.Steps.Count - 1;
+
+  // At the end the whole progress starts again; at 100 percent the next step begins.
+  if DownloadBar.CurrentStep >= LLastStep then
+  begin
+    DownloadBar.CurrentStep := 0;
+    FProgressPause := C_PROGRESS_STEP_PAUSE;
+  end
+  else if DownloadBar.StepProgress >= TS4YStepProgressBar.C_MAX_STEP_PROGRESS then
+  begin
+    DownloadBar.NextStep;
+    FProgressPause := C_PROGRESS_STEP_PAUSE;
+
+    if DownloadBar.CurrentStep >= LLastStep then
+      FProgressPause := C_PROGRESS_END_PAUSE;
+  end
+  else
+    DownloadBar.StepProgress := DownloadBar.StepProgress + C_PROGRESS_INCREMENT;
+
+  ProgressStatusLabel.Text := Format(S_PROGRESS_STATUS, [DownloadBar.Steps[DownloadBar.CurrentStep].Caption,
+    DownloadBar.StepProgress]);
 end;
 
 end.
