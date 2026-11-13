@@ -4,11 +4,12 @@ Charts drawn with the canvas of FireMonkey, with the look given by a style and t
 
 - `TS4YPieChart` draws the values as the slices of a **pie**, or of a **ring** with a hole in the middle.
 - `TS4YBarChart` draws **bars**, vertical or horizontal: one for each category and each series, with the axes and the grid.
+- `TS4YLineChart` draws a **line** for each series through its values in the categories, with points and, if wanted, the area under the line filled.
 - A legend, the values or the percents written on the slices, and an animation when the chart appears and when its data change.
-- A click on a slice or a bar makes it the current one and fires an event.
+- A click on a slice, a bar or a point makes it the current one and fires an event.
 - The data can come from a dataset or a list of objects through a standard `TLinkGridToDataSource`: see [LiveBindings](#livebindings).
 
-Units: `Soft4You.FMX.Controls.Charts.Pie` for `TS4YPieChart` and `Soft4You.FMX.Controls.Charts.Bar` for `TS4YBarChart`, in `Sources\Charts`. The base class of the charts is in `Soft4You.FMX.Controls.Charts`, the one of the charts with categories and series in `Soft4You.FMX.Controls.Charts.Categories`, the types in `Soft4You.FMX.Controls.Charts.Types`, the support of the LiveBindings in `Soft4You.FMX.Controls.Charts.Bindings`.
+Units: `Soft4You.FMX.Controls.Charts.Pie` for `TS4YPieChart`, `Soft4You.FMX.Controls.Charts.Bar` for `TS4YBarChart` and `Soft4You.FMX.Controls.Charts.Line` for `TS4YLineChart`, in `Sources\Charts`. The base class of the charts is in `Soft4You.FMX.Controls.Charts`, the one of the charts with categories and series in `Soft4You.FMX.Controls.Charts.Categories`, the types in `Soft4You.FMX.Controls.Charts.Types`, the support of the LiveBindings in `Soft4You.FMX.Controls.Charts.Bindings`.
 
 ## Installation
 
@@ -24,6 +25,7 @@ Add the folder `Sources\Charts` to the Delphi library path to compile your own p
 | `Sources\Charts\Soft4You.FMX.Controls.Charts.Pie.pas` | `TS4YPieChart` and its slices |
 | `Sources\Charts\Soft4You.FMX.Controls.Charts.Categories.pas` | `TS4YCustomCategoryChart`, base class of the bar and line charts, with categories, series and axes |
 | `Sources\Charts\Soft4You.FMX.Controls.Charts.Bar.pas` | `TS4YBarChart` |
+| `Sources\Charts\Soft4You.FMX.Controls.Charts.Line.pas` | `TS4YLineChart` |
 | `Sources\Charts\Soft4You.FMX.Controls.Charts.Bindings.pas` | Support of `TLinkGridToDataSource`: grid editor and column manager of the charts |
 | `Sources\Charts\Soft4You.FMX.Controls.Charts.Types.pas` | Enumerations and event types |
 | `Sources\Charts\Soft4You.FMX.Controls.Charts.Register.pas` | Registration in the Tool Palette (design time) |
@@ -31,8 +33,10 @@ Add the folder `Sources\Charts` to the Delphi library path to compile your own p
 | `Sources\Charts\Soft4You.FMX.Controls.Charts.Pie.Win.style` / `.Mac.style` | Default style of `TS4YPieChart` (the two are identical) |
 | `Sources\Charts\Soft4You.FMX.Controls.Charts.Bar.Win.rc` / `.Mac.rc` | Resource scripts that link the style of `TS4YBarChart` as the resource `S4YBarChartStyle` |
 | `Sources\Charts\Soft4You.FMX.Controls.Charts.Bar.Win.style` / `.Mac.style` | Default style of `TS4YBarChart` (the two are identical) |
-| `Graphics\Charts\TS4YPieChart.svg`, `TS4YBarChart.svg` | Vector masters of the icons of the Tool Palette |
-| `Graphics\Charts\TS4YPieChart.bmp`, `TS4YBarChart.bmp`, `ChartsDesign.rc` | Icons of the Tool Palette (24x24 bitmaps) and the resource script that links them |
+| `Sources\Charts\Soft4You.FMX.Controls.Charts.Line.Win.rc` / `.Mac.rc` | Resource scripts that link the style of `TS4YLineChart` as the resource `S4YLineChartStyle` |
+| `Sources\Charts\Soft4You.FMX.Controls.Charts.Line.Win.style` / `.Mac.style` | Default style of `TS4YLineChart` (the two are identical) |
+| `Graphics\Charts\TS4YPieChart.svg`, `TS4YBarChart.svg`, `TS4YLineChart.svg` | Vector masters of the icons of the Tool Palette |
+| `Graphics\Charts\TS4YPieChart.bmp`, `TS4YBarChart.bmp`, `TS4YLineChart.bmp`, `ChartsDesign.rc` | Icons of the Tool Palette (24x24 bitmaps) and the resource script that links them |
 
 ## Properties of all the charts
 
@@ -42,7 +46,7 @@ Add the folder `Sources\Charts` to the Delphi library path to compile your own p
 | `Palette` | empty | Colors given in turn to the elements without a color of their own; empty, the colors come from the style (see [Colors](#colors)) |
 | `ValueFormat` | `%.0f` | Format of the values written, as for the `Format` function of Delphi with the value as its only argument |
 | `AnimationDuration` | 0.3 | Seconds the data take to grow when the chart appears, and to move to new values when they change; 0 changes them at once |
-| `ItemIndex` | -1 | The current element (public, not in the Object Inspector): the slice of a pie, the category of a bar chart. A click on an element makes it the current one; with the LiveBindings it follows the current record |
+| `ItemIndex` | -1 | The current element (public, not in the Object Inspector): the slice of a pie, the category of a bar or line chart. A click on an element makes it the current one; with the LiveBindings it follows the current record |
 
 | Event | Meaning |
 |---|---|
@@ -145,9 +149,22 @@ begin
 end;
 ```
 
+## TS4YLineChart
+
+The line chart has the same data and axes as the bar chart: `Categories`, `Series`, `ValueAxis`, `CategoryAxis`, `DrawnCategories`, `DrawnSeries`, `OnSeriesBound` and `OnCategoryBound` work in the same way. The categories go from left to right, and each value is a point in the middle of the space of its category; the line of a series joins its points.
+
+| Property | Default | Meaning |
+|---|---|---|
+| `LineThickness` | 2 | Thickness of the lines, in pixels; with 0 only the points are drawn |
+| `ShowPoints` | `True` | Draws a point on each value |
+| `PointSize` | 8 | Diameter of the points, in pixels |
+| `FillArea` | `False` | Fills the area under each line, down to the value 0, with the color of its series, partly transparent |
+
+A click near a point, within its radius and a few pixels more, makes its category the current one and fires `OnItemClick` with the series and the category; the points are reached also when `ShowPoints` is `False`.
+
 ## LiveBindings
 
-A chart is filled from a dataset or a list of objects with a standard **`TLinkGridToDataSource`**, as a grid: each record is a row of the chart, the first column of the link gives the captions of the rows, the next columns their values. For a pie, a row is a slice: the first column gives the captions, the second the values; further columns are not used. For a bar chart, a row is a category: the first column gives the captions of the categories, and **each next column is a series**, named after the `Header` of the column, or after its field when the header is empty.
+A chart is filled from a dataset or a list of objects with a standard **`TLinkGridToDataSource`**, as a grid: each record is a row of the chart, the first column of the link gives the captions of the rows, the next columns their values. For a pie, a row is a slice: the first column gives the captions, the second the values; further columns are not used. For a bar or line chart, a row is a category: the first column gives the captions of the categories, and **each next column is a series**, named after the `Header` of the column, or after its field when the header is empty.
 
 In the LiveBindings Designer, link the data source to the chart as to a grid; or add a `TLinkGridToDataSource` to the bindings list, with `DataSource` set to the data source and `GridControl` to the chart, and add its columns: `MemberName` names the field of each column. Without columns, the link takes all the fields of the data source, in their order.
 
@@ -172,7 +189,7 @@ SalesLink.Active := True;
   end;
   ```
 
-- **Current record.** `ItemIndex` follows the current record of the data source, and a click on a slice or a bar moves the current record to it: a grid or a form of details linked to the same data source follows the chart.
+- **Current record.** `ItemIndex` follows the current record of the data source, and a click on a slice, a bar or a point moves the current record to it: a grid or a form of details linked to the same data source follows the chart.
 - **Units.** When the link is made in the IDE, the unit `Soft4You.FMX.Controls.Charts.Bindings` is added to the form; a link made in code needs only the unit of the chart, which uses it.
 
 ## Styles
@@ -202,6 +219,15 @@ The look of `TS4YBarChart` comes from a style named `S4YBarChartStyle`, with the
 | `gridline` | `TRectangle`, light gray border | Its `Stroke` draws the grid lines |
 | `axistext` | `TText` | Font and color of the labels of the axes |
 | `labeltext` | `TText`, bold | Font and color of the values written beyond the bars |
+
+### Style of the line chart
+
+The look of `TS4YLineChart` comes from a style named `S4YLineChartStyle`, with the parts `color1` to `color8`, `axis`, `gridline`, `axistext` and `legendtext` as the bar chart, and:
+
+| Part (`StyleName`) | In the default style | Use |
+|---|---|---|
+| `point` | `TEllipse`, white border 2 pixels thick | Its `Stroke` is the border of the points, filled with the color of their series |
+| `area` | `TRectangle`, `Opacity` 0.16 | Its `Opacity` is the transparency of the areas of `FillArea` |
 
 ## Notes
 

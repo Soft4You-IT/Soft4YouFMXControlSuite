@@ -231,6 +231,7 @@
         <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Pie.pas"/>
         <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Categories.pas"/>
         <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Bar.pas"/>
+        <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Line.pas"/>
         <RcCompile Include="..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.Mac.rc">
             <Form>Soft4You.FMX.Controls.Badge.Mac.res</Form>
         </RcCompile>
@@ -272,6 +273,12 @@
         </RcCompile>
         <RcCompile Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Bar.Win.rc">
             <Form>Soft4You.FMX.Controls.Charts.Bar.Win.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Line.Mac.rc">
+            <Form>Soft4You.FMX.Controls.Charts.Line.Mac.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Line.Win.rc">
+            <Form>Soft4You.FMX.Controls.Charts.Line.Win.res</Form>
         </RcCompile>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
