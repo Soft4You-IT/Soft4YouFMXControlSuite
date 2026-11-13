@@ -134,6 +134,8 @@ type
     function GetDefaultThickness: Single; virtual; abstract;
     /// <summary>Returns the part of the range covered by the value drawn, from 0 to 1.</summary>
     function GetDisplayedFraction: Single;
+    /// <summary>Returns the part of the range at AValue, from 0 at Min to 1 at Max; values out of the range are brought to its edges.</summary>
+    function GetValueFraction(const AValue: Single): Single;
     /// <summary>Returns the style of the control: the one named by StyleLookup or, when it is empty or not found, the one named after the class in the style book or in the active style; else the default style linked into the package.</summary>
     function GetStyleObject: TFmxObject; override;
     /// <summary>Returns the text of the value drawn: ValueFormat applied to it, then OnGetValueText. Empty when ShowValue is False.</summary>
@@ -492,10 +494,7 @@ end;
 
 function TS4YCustomGauge.GetDisplayedFraction: Single;
 begin
-  if FMax - FMin <= 0 then
-    Exit(0);
-
-  Result := EnsureRange((FDisplayedValue - FMin) / (FMax - FMin), 0, 1);
+  Result := GetValueFraction(FDisplayedValue);
 end;
 
 function TS4YCustomGauge.GetStyleObject: TFmxObject;
@@ -507,6 +506,14 @@ begin
   // The style linked into the package is used when no other style is found.
   if not Assigned(Result) then
     Result := TStyleStreaming.LoadFromResource(HInstance, GetDefaultStyleLookupName, RT_RCDATA);
+end;
+
+function TS4YCustomGauge.GetValueFraction(const AValue: Single): Single;
+begin
+  if FMax - FMin <= 0 then
+    Exit(0);
+
+  Result := EnsureRange((AValue - FMin) / (FMax - FMin), 0, 1);
 end;
 
 function TS4YCustomGauge.GetValueText: string;

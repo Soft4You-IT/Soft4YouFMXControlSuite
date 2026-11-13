@@ -42,24 +42,41 @@ type
     FStartAngle: Single;
     FSweepAngle: Single;
     function CalculateUnitArcBounds: TRectF;
-    procedure DrawArc(const APart: TControl; const ABrush: TBrush; const ACenter: TPointF; const ARadius,
-      ASweepAngle: Single);
     procedure DrawTexts(const ATextArea: TRectF; const AContentWidth: Single);
     procedure SetStartAngle(const Value: Single);
     procedure SetSweepAngle(const Value: Single);
     function StartAngleStored: Boolean;
     function SweepAngleStored: Boolean;
   protected
+    /// <summary>Returns the angle of FMX, from the right side and clockwise, of the point of the arc at AFraction of the range, from 0 to 1.</summary>
+    function AngleOfFraction(const AFraction: Single): Single;
     /// <summary>Gives ABrush to the border of an arc, which draws the track and the fill.</summary>
     procedure ApplyPartBrush(const APart: TControl; const ABrush: TBrush); override;
     /// <summary>Creates the part drawn when the style has no track or no fill: an arc with round ends.</summary>
     function CreateDefaultPart: TControl; override;
+    /// <summary>Draws an arc with the look of APart, or with ABrush when APart is not a TArc, from AStartFraction to AEndFraction of the range.</summary>
+    procedure DrawArc(const APart: TControl; const ABrush: TBrush; const ACenter: TPointF; const ARadius,
+      AStartFraction, AEndFraction: Single);
+    /// <summary>Draws what a descendant adds before the texts, such as a graduation; ACenter and ARadius are the ones of the middle of the track. Nothing here.</summary>
+    procedure DrawDecorations(const ACenter: TPointF; const ARadius: Single); virtual;
+    /// <summary>Draws the filled part of the arc.</summary>
+    procedure DrawFill(const ACenter: TPointF; const ARadius: Single); virtual;
     /// <summary>Draws the track, the fill, the value and the caption.</summary>
     procedure DrawGauge; override;
+    /// <summary>Draws what a descendant adds over the texts, such as a needle. Nothing here.</summary>
+    procedure DrawOverlay(const ACenter: TPointF; const ARadius: Single); virtual;
+    /// <summary>Draws the whole track.</summary>
+    procedure DrawTrack(const ACenter: TPointF; const ARadius: Single); virtual;
     /// <summary>Returns the size of a new control: 120 x 120.</summary>
     function GetDefaultSize: TSizeF; override;
     /// <summary>Returns 12, the default thickness of the arc.</summary>
     function GetDefaultThickness: Single; override;
+    /// <summary>Returns the default value of StartAngle: 0.</summary>
+    function GetDefaultStartAngle: Single; virtual;
+    /// <summary>Returns the default value of SweepAngle: 360.</summary>
+    function GetDefaultSweepAngle: Single; virtual;
+    /// <summary>Returns the room a descendant needs outside the track, all around the arc, in pixels. 0 here.</summary>
+    function GetOuterMargin: Single; virtual;
   public
     /// <summary>Creates a ring gauge with the default settings.</summary>
     constructor Create(AOwner: TComponent); override;
@@ -146,8 +163,13 @@ constructor TS4YCircularGauge.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FStartAngle := C_DEFAULT_START_ANGLE;
-  FSweepAngle := C_DEFAULT_SWEEP_ANGLE;
+  FStartAngle := GetDefaultStartAngle;
+  FSweepAngle := GetDefaultSweepAngle;
+end;
+
+function TS4YCircularGauge.AngleOfFraction(const AFraction: Single): Single;
+begin
+  Result := FStartAngle + C_FMX_TOP_ANGLE + FSweepAngle * AFraction;
 end;
 
 procedure TS4YCircularGauge.ApplyPartBrush(const APart: TControl; const ABrush: TBrush);
@@ -207,9 +229,13 @@ begin
 end;
 
 procedure TS4YCircularGauge.DrawArc(const APart: TControl; const ABrush: TBrush; const ACenter: TPointF;
-  const ARadius, ASweepAngle: Single);
+  const ARadius, AStartFraction, AEndFraction: Single);
+var
+  LSweepAngle: Single;
 begin
-  if ASweepAngle < C_MIN_DRAWN_SWEEP_ANGLE then
+  LSweepAngle := FSweepAngle * (AEndFraction - AStartFraction);
+
+  if LSweepAngle < C_MIN_DRAWN_SWEEP_ANGLE then
     Exit;
 
   // An arc of the style gives the brush and the ends; another object leaves the brush of the property,
@@ -224,8 +250,18 @@ begin
   end;
 
   Canvas.Stroke.Thickness := Thickness;
-  Canvas.DrawArc(ACenter, TPointF.Create(ARadius, ARadius), FStartAngle + C_FMX_TOP_ANGLE, ASweepAngle,
+  Canvas.DrawArc(ACenter, TPointF.Create(ARadius, ARadius), AngleOfFraction(AStartFraction), LSweepAngle,
     AbsoluteOpacity);
+end;
+
+procedure TS4YCircularGauge.DrawDecorations(const ACenter: TPointF; const ARadius: Single);
+begin
+  // Nothing: the descendants draw a graduation or other marks here.
+end;
+
+procedure TS4YCircularGauge.DrawFill(const ACenter: TPointF; const ARadius: Single);
+begin
+  DrawArc(FillPart, FillBrush, ACenter, ARadius, 0, GetDisplayedFraction);
 end;
 
 procedure TS4YCircularGauge.DrawGauge;
@@ -233,6 +269,7 @@ var
   LCenter: TPointF;
   LContentRect: TRectF;
   LLeft: Single;
+  LOuterSize: Single;
   LRadius: Single;
   LThickness: Single;
   LTop: Single;
@@ -242,10 +279,12 @@ begin
   LThickness := Thickness;
   LUnitBounds := CalculateUnitArcBounds;
 
-  // The arc, with its thickness, is as large as the content allows, and the circle stays round.
+  // The arc, with its thickness and the room of a descendant outside it, is as large as the content
+  // allows, and the circle stays round.
+  LOuterSize := LThickness + 2 * GetOuterMargin;
   LRadius := System.Math.Min(
-    (LContentRect.Width - LThickness) / System.Math.Max(LUnitBounds.Width, C_MIN_UNIT_ARC_EXTENT),
-    (LContentRect.Height - LThickness) / System.Math.Max(LUnitBounds.Height, C_MIN_UNIT_ARC_EXTENT));
+    (LContentRect.Width - LOuterSize) / System.Math.Max(LUnitBounds.Width, C_MIN_UNIT_ARC_EXTENT),
+    (LContentRect.Height - LOuterSize) / System.Math.Max(LUnitBounds.Height, C_MIN_UNIT_ARC_EXTENT));
 
   if (LRadius <= 0) or (FSweepAngle < C_MIN_DRAWN_SWEEP_ANGLE) then
   begin
@@ -253,17 +292,24 @@ begin
     Exit;
   end;
 
-  LLeft := LContentRect.Left + (LContentRect.Width - LRadius * LUnitBounds.Width - LThickness) / 2;
-  LTop := LContentRect.Top + (LContentRect.Height - LRadius * LUnitBounds.Height - LThickness) / 2;
-  LCenter := TPointF.Create(LLeft + LThickness / 2 - LRadius * LUnitBounds.Left,
-    LTop + LThickness / 2 - LRadius * LUnitBounds.Top);
+  LLeft := LContentRect.Left + (LContentRect.Width - LRadius * LUnitBounds.Width - LOuterSize) / 2;
+  LTop := LContentRect.Top + (LContentRect.Height - LRadius * LUnitBounds.Height - LOuterSize) / 2;
+  LCenter := TPointF.Create(LLeft + LOuterSize / 2 - LRadius * LUnitBounds.Left,
+    LTop + LOuterSize / 2 - LRadius * LUnitBounds.Top);
 
-  DrawArc(TrackPart, TrackBrush, LCenter, LRadius, FSweepAngle);
-  DrawArc(FillPart, FillBrush, LCenter, LRadius, FSweepAngle * GetDisplayedFraction);
+  DrawTrack(LCenter, LRadius);
+  DrawFill(LCenter, LRadius);
+  DrawDecorations(LCenter, LRadius);
 
   // The texts are centered in the area enclosed by the arc.
   DrawTexts(TRectF.Create(LCenter.X + LRadius * LUnitBounds.Left, LCenter.Y + LRadius * LUnitBounds.Top,
     LCenter.X + LRadius * LUnitBounds.Right, LCenter.Y + LRadius * LUnitBounds.Bottom), LContentRect.Width);
+  DrawOverlay(LCenter, LRadius);
+end;
+
+procedure TS4YCircularGauge.DrawOverlay(const ACenter: TPointF; const ARadius: Single);
+begin
+  // Nothing: the descendants draw a needle or other marks over the texts here.
 end;
 
 procedure TS4YCircularGauge.DrawTexts(const ATextArea: TRectF; const AContentWidth: Single);
@@ -294,14 +340,34 @@ begin
     LTop, LCenterX + AContentWidth / 2, LTop + LCaptionHeight), TTextAlign.Center, TTextAlign.Leading);
 end;
 
+procedure TS4YCircularGauge.DrawTrack(const ACenter: TPointF; const ARadius: Single);
+begin
+  DrawArc(TrackPart, TrackBrush, ACenter, ARadius, 0, 1);
+end;
+
 function TS4YCircularGauge.GetDefaultSize: TSizeF;
 begin
   Result := TSizeF.Create(C_DEFAULT_SIZE, C_DEFAULT_SIZE);
 end;
 
+function TS4YCircularGauge.GetDefaultStartAngle: Single;
+begin
+  Result := C_DEFAULT_START_ANGLE;
+end;
+
+function TS4YCircularGauge.GetDefaultSweepAngle: Single;
+begin
+  Result := C_DEFAULT_SWEEP_ANGLE;
+end;
+
 function TS4YCircularGauge.GetDefaultThickness: Single;
 begin
   Result := C_DEFAULT_THICKNESS;
+end;
+
+function TS4YCircularGauge.GetOuterMargin: Single;
+begin
+  Result := 0;
 end;
 
 procedure TS4YCircularGauge.SetStartAngle(const Value: Single);
@@ -328,12 +394,12 @@ end;
 
 function TS4YCircularGauge.StartAngleStored: Boolean;
 begin
-  Result := not SameValue(FStartAngle, C_DEFAULT_START_ANGLE);
+  Result := not SameValue(FStartAngle, GetDefaultStartAngle);
 end;
 
 function TS4YCircularGauge.SweepAngleStored: Boolean;
 begin
-  Result := not SameValue(FSweepAngle, C_DEFAULT_SWEEP_ANGLE);
+  Result := not SameValue(FSweepAngle, GetDefaultSweepAngle);
 end;
 
 end.

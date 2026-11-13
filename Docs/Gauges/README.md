@@ -9,11 +9,12 @@ Download                    72
 
 - `TS4YLinearGauge` draws the value as a horizontal or vertical **bar**, with the caption and the value on one side of it.
 - `TS4YCircularGauge` draws it as a **ring**, an open arc or a half circle, with the value and the caption in the middle.
+- `TS4YLinearMeter` and `TS4YCircularMeter` are the same gauges with a **graduation**: ticks and numbers along the bar, like a ruler or a thermometer, or along the arc, like the dial of an instrument.
 - The value goes from `Min` to `Max`; a large change of `Value` moves the fill with an animation, a small one is drawn at once.
 - The value is written with a format of its own (`ValueFormat`), or with a text given by the application (`OnGetValueText`).
 - Every part of the gauge comes from a **style**: the track, the fill and the fonts of the texts. The track and the fill can have any shape designed in the style; properties can replace the colors of the simple shapes.
 
-Units: `Soft4You.FMX.Controls.Gauges.Linear` for `TS4YLinearGauge` and `Soft4You.FMX.Controls.Gauges.Circular` for `TS4YCircularGauge`, in `Sources\Gauges`; the base class of the gauges is in `Soft4You.FMX.Controls.Gauges`, the types in `Soft4You.FMX.Controls.Gauges.Types`.
+Units: `Soft4You.FMX.Controls.Gauges.Linear` for `TS4YLinearGauge`, `Soft4You.FMX.Controls.Gauges.Circular` for `TS4YCircularGauge`, `Soft4You.FMX.Controls.Gauges.LinearMeter` for `TS4YLinearMeter` and `Soft4You.FMX.Controls.Gauges.CircularMeter` for `TS4YCircularMeter`, in `Sources\Gauges`; the base class of the gauges is in `Soft4You.FMX.Controls.Gauges`, the graduation of the meters in `Soft4You.FMX.Controls.Gauges.Scales`, the types in `Soft4You.FMX.Controls.Gauges.Types`.
 
 ## Installation
 
@@ -28,14 +29,19 @@ Add the folder `Sources\Gauges` to the Delphi library path to compile your own p
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.pas` | `TS4YCustomGauge`, the base class of the gauges |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.pas` | `TS4YLinearGauge` |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.pas` | `TS4YCircularGauge` |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.LinearMeter.pas` | `TS4YLinearMeter` |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.CircularMeter.pas` | `TS4YCircularMeter` |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Scales.pas` | The graduation of the meters: `TS4YMeterGraduation`, `TS4YLinearMeterGraduation`, `TS4YCircularMeterGraduation` |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Types.pas` | Enumerations, sets and event types |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Register.pas` | Registration in the Tool Palette (design time) |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Win.rc` / `.Mac.rc` | Resource scripts that link the style of `TS4YLinearGauge` as the resource `S4YLinearGaugeStyle` |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Win.style` / `.Mac.style` | Default style of `TS4YLinearGauge` (the two are identical) |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.Win.rc` / `.Mac.rc` | Resource scripts that link the style of `TS4YCircularGauge` as the resource `S4YCircularGaugeStyle` |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.Win.style` / `.Mac.style` | Default style of `TS4YCircularGauge` (the two are identical) |
-| `Graphics\Gauges\TS4YLinearGauge.svg`, `TS4YCircularGauge.svg` | Vector masters of the icons of the Tool Palette |
-| `Graphics\Gauges\TS4YLinearGauge.bmp`, `TS4YCircularGauge.bmp`, `GaugesDesign.rc` | Icons of the Tool Palette (24x24 bitmaps) and the resource script that links them |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.LinearMeter.Win.rc` / `.Mac.rc`, `.Win.style` / `.Mac.style` | Resource scripts and default style of `TS4YLinearMeter`, the resource `S4YLinearMeterStyle` |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.CircularMeter.Win.rc` / `.Mac.rc`, `.Win.style` / `.Mac.style` | Resource scripts and default style of `TS4YCircularMeter`, the resource `S4YCircularMeterStyle` |
+| `Graphics\Gauges\TS4YLinearGauge.svg`, `TS4YCircularGauge.svg`, `TS4YLinearMeter.svg`, `TS4YCircularMeter.svg` | Vector masters of the icons of the Tool Palette |
+| `Graphics\Gauges\TS4YLinearGauge.bmp`, `TS4YCircularGauge.bmp`, `TS4YLinearMeter.bmp`, `TS4YCircularMeter.bmp`, `GaugesDesign.rc` | Icons of the Tool Palette (24x24 bitmaps) and the resource script that links them |
 
 ## Properties of all the gauges
 
@@ -127,9 +133,50 @@ A ring or an arc that fills clockwise with the value, with the value and, under 
 
 The arc is as large as the area inside `Padding` allows, keeping the circle round: a half circle fills a control twice as wide as tall, a ring a square one. The value and the caption are centered in the area enclosed by the arc, for example in the upper half of the circle for a half circle. A new gauge is 120 x 120 pixels, with an arc 12 pixels thick.
 
+## Meters
+
+`TS4YLinearMeter` and `TS4YCircularMeter` descend from `TS4YLinearGauge` and `TS4YCircularGauge`: they have all their properties, and add a graduation along the track, in the property `Graduation`.
+
+```
+     0    20    40    60    80   100
+━━━━━━━━━━━━━━━━━━━━━──────────────────
+|  '  |  '  |  '  |  '  |  '  |  '  |
+```
+
+A new `TS4YCircularMeter` is an arc open at the bottom (`StartAngle` -135, `SweepAngle` 270), 160 x 160 pixels; a new `TS4YLinearMeter` is horizontal, 240 x 64 pixels.
+
+### Graduation
+
+| Property | Default | Meaning |
+|---|---|---|
+| `Visible` | `True` | Draws the graduation |
+| `Position` | `gasInside` (circular), `gbsAfter` (linear) | Side of the track where the graduation is drawn: inside or outside the arc (`gasInside`, `gasOutside`); before the bar, above it or on its left, or after it, below it or on its right (`gbsBefore`, `gbsAfter`) |
+| `MajorStep` | 0 | Step between the major ticks, in the units of the value; 0 chooses it from the range: 1, 2, 2.5 or 5 times a power of 10, for about five steps |
+| `MinorCount` | 4 | Number of minor ticks between two major ticks; 0 draws only the major ticks |
+| `MajorTickLength` | 8 | Length of the major ticks, in pixels |
+| `MinorTickLength` | 4 | Length of the minor ticks, in pixels |
+| `ShowLabels` | `True` | Writes the number of each major tick |
+| `LabelFormat` | `%.0f` | Format of the numbers, as for `Format` with the value as its only argument, for example `%.0f%%` or `%.1f`; a format that does not fit a floating point value is replaced by the default |
+
+The major ticks are on the multiples of the step between `Min` and `Max`: with `Min` = 3 and `Max` = 97 and a step of 20, they are at 20, 40, 60 and 80. `Min` and `Max` have a tick only when they are multiples of the step; to have them both, choose a step that divides the range, for example `MajorStep` = 40 with `Max` = 240. A step too small for the range is made larger, so that no more than 1000 ticks are drawn.
+
+The meter keeps room for the graduation: outside the arc, the arc becomes smaller; beside the bar, the bar, the graduation and the texts stay one block in the middle of the control. Inside the arc, the graduation takes room from the value and the caption in the middle: on a small meter, a smaller font for the value in the style, or `ShowLabels` = `False`, leaves them more room. On a whole ring (`SweepAngle` = 360) the end of the range is at the same place as its start, and only the start is drawn. The numbers at the ends of a bar are moved inside the control instead of being cut.
+
+### Style of the meters
+
+The style of `TS4YLinearMeter` is `S4YLinearMeterStyle`, the style of `TS4YCircularMeter` is `S4YCircularMeterStyle`. They have the parts of the style of the gauge they descend from (`track`, `fill`, `valuetext`, `captiontext`) and three more:
+
+| Part (`StyleName`) | In the default style | Use |
+|---|---|---|
+| `majortick` | `TLine`, gray, 1.5 pixels | Gives the brush of the major ticks (`Stroke`: color, thickness, dash, ends) |
+| `minortick` | `TLine`, light gray, 1 pixel | Gives the brush of the minor ticks |
+| `scaletext` | `TText`, size 11 | Font and color of the numbers |
+
+The ticks can be any shape, a `TLine` or a `TRectangle` for example: only the brush of its border is used, the meter draws the ticks itself. A missing part is replaced by a gray line 1.5 pixels thick, a missing text by the default font. The style of the gauge the meter descends from is not used.
+
 ## Styles
 
-The look of `TS4YLinearGauge` comes from a style named `S4YLinearGaugeStyle`, the look of `TS4YCircularGauge` from a style named `S4YCircularGaugeStyle`. Each style is a container of invisible parts with the same names.
+The look of `TS4YLinearGauge` comes from a style named `S4YLinearGaugeStyle`, the look of `TS4YCircularGauge` from a style named `S4YCircularGaugeStyle`. Each style is a container of invisible parts with the same names. The styles of the meters are described in [Style of the meters](#style-of-the-meters).
 
 ### Style of the linear gauge
 

@@ -2,7 +2,7 @@ unit Soft4You.FMX.Controls.Gauges.Types;
 
 { *****************************************************************************
   Soft4You FMX Control Suite - FireMonkey (FMX) controls for Delphi
-  TS4YLinearGauge, TS4YCircularGauge - types of the gauges
+  TS4YLinearGauge, TS4YCircularGauge, TS4YLinearMeter, TS4YCircularMeter - types of the gauges
   Copyright (c) 2026 Carlo Marona (Soft4You)
 
   This Source Code Form is subject to the terms of the Mozilla Public
@@ -42,6 +42,30 @@ type
     gtpNone,
     gtpBefore,
     gtpAfter
+  );
+
+  /// <summary>
+  /// Side of the arc of a TS4YCircularMeter where a graduation or a band of ranges is drawn.
+  /// </summary>
+  /// <remarks>
+  /// gasInside: towards the center of the arc.
+  /// gasOutside: away from the center.
+  /// </remarks>
+  TS4YGaugeArcSide = (
+    gasInside,
+    gasOutside
+  );
+
+  /// <summary>
+  /// Side of the bar of a TS4YLinearMeter where a graduation or a band of ranges is drawn.
+  /// </summary>
+  /// <remarks>
+  /// gbsBefore: above a horizontal bar, on the left of a vertical one.
+  /// gbsAfter: below a horizontal bar, on the right of a vertical one.
+  /// </remarks>
+  TS4YGaugeBarSide = (
+    gbsBefore,
+    gbsAfter
   );
 
   /// <summary>
