@@ -53,6 +53,8 @@ Add the folder `Sources\Gauges` to the Delphi library path to compile your own p
 | `TrackBrush` | light gray | Brush of the track, used in place of the one of the style |
 | `StyledBrushes` | `[gsbFill, gsbTrack]` | Which brushes come from the style instead of `FillBrush` and `TrackBrush` |
 
+These properties are public in the base class `TS4YCustomGauge`, so that code can work on any gauge through it, for example in a loop or in an `OnGetValueText` shared by several gauges.
+
 The usual `TControl` properties (`Align`, `Anchors`, `Position`, `Size`, `Margins`, `Padding`, `Opacity`, `Visible`, `Enabled`, `HitTest`, `Cursor`, `RotationAngle`, `Scale`, `PopupMenu`, `StyleLookup`) are published too. `Padding` leaves room between the edges of the control and its content.
 
 ### Value and animation

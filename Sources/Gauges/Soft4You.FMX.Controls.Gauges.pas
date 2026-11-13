@@ -31,6 +31,7 @@ type
   /// <remarks>
   /// The look comes from a style: its graphic parts track and fill can be any graphic object and are drawn as they are, resized to the area they cover; its texts valuetext and captiontext give fonts and colors.
   /// The descendants, TS4YLinearGauge and TS4YCircularGauge, decide the shape of the track and where the texts go. The class is not registered in the Tool Palette.
+  /// The properties shared by the gauges are public, so that code can work on any gauge through this class.
   /// </remarks>
   TS4YCustomGauge = class(TStyledControl)
   public const
@@ -147,6 +148,19 @@ type
     procedure RenderText(const ATemplate: TText; const ADefaultColor: TAlphaColor; const AText: string;
       const ARect: TRectF; const AHorizontalAlign, AVerticalAlign: TTextAlign);
 
+    /// <summary>The copy of the fill part of the style that the control draws.</summary>
+    property FillPart: TControl read FFillPart;
+    /// <summary>The text of the style that gives font and color to the caption, or nil.</summary>
+    property StyleCaptionText: TText read FStyleCaptionText;
+    /// <summary>The text of the style that gives font and color to the value, or nil.</summary>
+    property StyleValueText: TText read FStyleValueText;
+    /// <summary>The copy of the track part of the style that the control draws.</summary>
+    property TrackPart: TControl read FTrackPart;
+  public
+    /// <summary>Creates the gauge with the default settings.</summary>
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
     /// <summary>
     /// Duration in seconds of the movement of the fill when Value changes by more than 5% of the range. With 0 the change is immediate. The default is 0.3.
     /// </summary>
@@ -158,8 +172,6 @@ type
     property Caption: string read FCaption write SetCaption;
     /// <summary>Brush of the fill. Changing it makes the fill use it instead of the one of the style (see StyledBrushes).</summary>
     property FillBrush: TBrush read FFillBrush write SetFillBrush;
-    /// <summary>The copy of the fill part of the style that the control draws.</summary>
-    property FillPart: TControl read FFillPart;
     /// <summary>
     /// The end of the range, where the fill is full. The default is 100.
     /// </summary>
@@ -176,8 +188,6 @@ type
     property Min: Single read FMin write SetMin stored MinStored nodefault;
     /// <summary>True writes the value, formatted with ValueFormat. The default is True.</summary>
     property ShowValue: Boolean read FShowValue write SetShowValue default C_DEFAULT_SHOW_VALUE;
-    /// <summary>The text of the style that gives font and color to the caption, or nil.</summary>
-    property StyleCaptionText: TText read FStyleCaptionText;
     /// <summary>
     /// Which brushes come from the style: the fill (gsbFill) and the track (gsbTrack). A brush that is not in the set is taken from FillBrush or TrackBrush.
     /// </summary>
@@ -185,14 +195,10 @@ type
     /// Changing FillBrush or TrackBrush removes the matching brush from the set. Putting a brush back in the set makes the gauge read it from the style again.
     /// </remarks>
     property StyledBrushes: TS4YGaugeStyledBrushes read FStyledBrushes write SetStyledBrushes stored StyledBrushesStored nodefault;
-    /// <summary>The text of the style that gives font and color to the value, or nil.</summary>
-    property StyleValueText: TText read FStyleValueText;
     /// <summary>Thickness of the track and of the fill, in pixels.</summary>
     property Thickness: Single read FThickness write SetThickness stored ThicknessStored nodefault;
     /// <summary>Brush of the track. Changing it makes the track use it instead of the one of the style (see StyledBrushes).</summary>
     property TrackBrush: TBrush read FTrackBrush write SetTrackBrush;
-    /// <summary>The copy of the track part of the style that the control draws.</summary>
-    property TrackPart: TControl read FTrackPart;
     /// <summary>
     /// The value shown, from Min to Max. The default is 0.
     /// </summary>
@@ -210,10 +216,6 @@ type
 
     /// <summary>Fires when the value is written, with the text formatted with ValueFormat, which the event can replace.</summary>
     property OnGetValueText: TS4YGaugeGetValueTextEvent read FOnGetValueText write FOnGetValueText;
-  public
-    /// <summary>Creates the gauge with the default settings.</summary>
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
   end;
 
 implementation
