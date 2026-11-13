@@ -63,6 +63,8 @@ type
   protected
     /// <summary>Reads the border of the points and the opacity of the areas from the style.</summary>
     procedure ApplyStyle; override;
+    /// <summary>Returns False: the grid lines of the categories go through the points.</summary>
+    function CategoryGridLinesBetween: Boolean; override;
     /// <summary>Draws the areas, the lines and the points of the series.</summary>
     procedure DrawData(const ADataRect: TRectF); override;
     /// <summary>Returns the point nearest to APoint, when it is close enough: its series and its category.</summary>
@@ -185,6 +187,11 @@ begin
     FAreaOpacity := LArea.Opacity
   else
     FAreaOpacity := C_DEFAULT_AREA_OPACITY;
+end;
+
+function TS4YLineChart.CategoryGridLinesBetween: Boolean;
+begin
+  Result := False;
 end;
 
 function TS4YLineChart.CategoryPoint(const ACategoryIndex, ASeriesIndex: Integer): TPointF;

@@ -114,7 +114,7 @@ The values are organized in **categories**, for example the months, and **series
 | `BarWidth` | 70 | Space of a category taken by its bars, in percent, from 1 to 100 |
 | `ShowValues` | `False` | Writes the value of each bar at its end, formatted with `ValueFormat` |
 | `ValueAxis` | | The axis of the values: `Visible`, `GridLines` (lines across the chart at each step), `AutoRange`, `Min`, `Max` (see below) |
-| `CategoryAxis` | | The axis of the categories: `Visible` |
+| `CategoryAxis` | | The axis of the categories: `Visible`, `GridLines` (default `False`; see below) |
 
 | Member | Meaning |
 |---|---|
@@ -126,6 +126,8 @@ The values are organized in **categories**, for example the months, and **series
 The values of a category are read and written in code with `Value[ASeriesIndex]`; a series without a value of its own in a category reads 0. In the Object Inspector they are the text `Values`, one value for each series separated by semicolons, with the point as decimal separator, for example `42;30.5`, whatever the language of the system.
 
 With `ValueAxis.AutoRange = True`, the default, the scale goes from 0, or from the lowest value when it is negative, to the highest value, in steps of 1, 2, 2.5 or 5 times a power of 10, about five of them; a value that falls on the last step gets one step more, so that the values written beyond the bars stay inside the chart. With `AutoRange = False` the scale goes from `Min` to `Max`, and values out of it are drawn up to the edge. The bars start from 0, so negative values go the other way. The labels of the value axis are formatted with `ValueFormat` and pass through `OnGetValueText`, with both indexes -1.
+
+`CategoryAxis.GridLines` draws lines across the chart for the categories, with the same look as the grid lines of the values: in a bar chart they separate the categories, in a line chart they go through the points of each category. It is off by default, while `ValueAxis.GridLines` is on.
 
 ```delphi
 uses
@@ -231,7 +233,7 @@ The look of `TS4YLineChart` comes from a style named `S4YLineChartStyle`, with t
 
 ## Demo
 
-`Demos\Charts\S4YChartsDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows a pie, a bar chart and a line chart, with the data stored in the form. The panel on the left changes the legend, the animation, `ValueFormat` and the palette of all the charts, sets random data to see the animation, and changes the properties of each chart: `InnerRadius`, `StartAngle`, `LabelContent`, `LabelPosition` and `ShowTotal` of the pie, `Orientation`, `BarWidth` and `ShowValues` of the bars, the axes of bars and lines, `LineThickness`, `ShowPoints`, `PointSize` and `FillArea` of the lines. A label shows the element of the last click.
+`Demos\Charts\S4YChartsDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows a pie, a bar chart and a line chart, with the data stored in the form. The panel on the left changes the legend, the animation, `ValueFormat` and the palette of all the charts, sets random data to see the animation, and changes the properties of each chart: `InnerRadius`, `StartAngle`, `LabelContent`, `LabelPosition` and `ShowTotal` of the pie, `Orientation`, `BarWidth` and `ShowValues` of the bars, the axes of bars and lines, with their grid lines, `LineThickness`, `ShowPoints`, `PointSize` and `FillArea` of the lines. A label shows the element of the last click.
 
 `Demos\Charts\S4YChartsGallery.dproj` (also in the project group) shows what the charts can look like, one example per tab: pies and rings; vertical, horizontal and negative bars; lines with two series and with the area filled; the styles of a `TStyleBook` (a pastel ring without borders, round bars with dashed grid lines, thick points); styles for a dark background; and the **LiveBindings**: a `TFDMemTable` linked by three `TLinkGridToDataSource` to a grid, a pie and a bar chart, with a navigator to add and delete records, `OnSliceBound`, `OnSeriesBound` and the current record that follows a click on the charts. The links and the styles are in the form and can be used as models.
 

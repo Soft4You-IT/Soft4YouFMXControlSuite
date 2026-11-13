@@ -630,6 +630,20 @@ object ChartsDemoForm: TChartsDemoForm
       Text = 'ValueAxis.GridLines'
       OnChange = AxesCheckBoxChange
     end
+    object CategoryGridLinesCheckBox: TCheckBox
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 696.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 40
+      Text = 'CategoryAxis.GridLines'
+      OnChange = AxesCheckBoxChange
+    end
     object AutoRangeCheckBox: TCheckBox
       Align = Top
       IsChecked = True

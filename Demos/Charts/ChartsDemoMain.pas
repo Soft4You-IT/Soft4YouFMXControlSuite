@@ -54,6 +54,7 @@ type
     ShowValuesCheckBox: TCheckBox;
     AxesSettingsLabel: TLabel;
     GridLinesCheckBox: TCheckBox;
+    CategoryGridLinesCheckBox: TCheckBox;
     AutoRangeCheckBox: TCheckBox;
     ValueAxisCheckBox: TCheckBox;
     CategoryAxisCheckBox: TCheckBox;
@@ -135,6 +136,7 @@ begin
   for var LChart in GetCategoryCharts do
   begin
     LChart.ValueAxis.GridLines := GridLinesCheckBox.IsChecked;
+    LChart.CategoryAxis.GridLines := CategoryGridLinesCheckBox.IsChecked;
     LChart.ValueAxis.AutoRange := AutoRangeCheckBox.IsChecked;
     LChart.ValueAxis.Max := C_FIXED_MAX;
     LChart.ValueAxis.Visible := ValueAxisCheckBox.IsChecked;

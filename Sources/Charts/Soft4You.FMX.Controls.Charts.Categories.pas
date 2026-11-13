@@ -176,6 +176,32 @@ type
   end;
 
   /// <summary>
+  /// The axis of the categories of a bar or line chart, with its grid lines.
+  /// </summary>
+  TS4YChartCategoryAxis = class(TS4YChartAxis)
+  public const
+    /// <summary>Default value of GridLines.</summary>
+    C_DEFAULT_GRID_LINES = False;
+  private
+    FGridLines: Boolean;
+    procedure SetGridLines(const Value: Boolean);
+  public
+    /// <summary>Creates a visible axis without grid lines.</summary>
+    constructor Create; override;
+
+    /// <summary>Copies the settings from another axis.</summary>
+    procedure Assign(Source: TPersistent); override;
+  published
+    /// <summary>
+    /// True draws a line across the chart for the categories. The default is False.
+    /// </summary>
+    /// <remarks>
+    /// In a bar chart the lines separate the categories; in a line chart they go through the points of each category.
+    /// </remarks>
+    property GridLines: Boolean read FGridLines write SetGridLines default C_DEFAULT_GRID_LINES;
+  end;
+
+  /// <summary>
   /// The axis of the values of a bar or line chart: its range and its grid lines.
   /// </summary>
   TS4YChartValueAxis = class(TS4YChartAxis)
@@ -259,7 +285,7 @@ type
     FBoundCategories: TObjectList<TS4YChartCategory>;
     FBoundSeries: TObjectList<TS4YChartSeries>;
     FCategories: TS4YChartCategories;
-    FCategoryAxis: TS4YChartAxis;
+    FCategoryAxis: TS4YChartCategoryAxis;
     FDataRect: TRectF;
     FGridStroke: TStrokeBrush;
     FScaleMax: Single;
@@ -280,7 +306,7 @@ type
     function GetDrawnSeriesCount: Integer;
     function IsBound: Boolean;
     procedure SetCategories(const Value: TS4YChartCategories);
-    procedure SetCategoryAxis(const Value: TS4YChartAxis);
+    procedure SetCategoryAxis(const Value: TS4YChartCategoryAxis);
     procedure SetSeries(const Value: TS4YChartSeriesList);
     procedure SetValueAxis(const Value: TS4YChartValueAxis);
   protected
@@ -303,6 +329,8 @@ type
     function CategoryRect(const AIndex: Integer): TRectF;
     /// <summary>Returns True when the categories follow one another from top to bottom, as in a chart of horizontal bars; False when they go from left to right.</summary>
     function CategoriesVertical: Boolean; virtual;
+    /// <summary>Returns True when the grid lines of the categories go between the categories, as in a bar chart; False when they go through the middle of each category, as in a line chart.</summary>
+    function CategoryGridLinesBetween: Boolean; virtual;
     /// <summary>To be called when the categories or the series change.</summary>
     procedure DataSetChanged;
     /// <summary>Fires OnCategoryBound.</summary>
@@ -337,7 +365,7 @@ type
     /// <summary>The categories stored in the form. While a TLinkGridToDataSource fills the chart, the categories of its records are drawn instead.</summary>
     property Categories: TS4YChartCategories read FCategories write SetCategories;
     /// <summary>The axis of the categories.</summary>
-    property CategoryAxis: TS4YChartAxis read FCategoryAxis write SetCategoryAxis;
+    property CategoryAxis: TS4YChartCategoryAxis read FCategoryAxis write SetCategoryAxis;
     /// <summary>The number of the categories drawn: the ones filled by the LiveBindings while a link fills the chart, else the ones of Categories.</summary>
     property DrawnCategoryCount: Integer read GetDrawnCategoryCount;
     /// <summary>The categories drawn, the ones that ItemIndex and OnItemClick refer to.</summary>
@@ -637,6 +665,32 @@ begin
   DoChange;
 end;
 
+{ TS4YChartCategoryAxis }
+
+constructor TS4YChartCategoryAxis.Create;
+begin
+  inherited;
+
+  FGridLines := C_DEFAULT_GRID_LINES;
+end;
+
+procedure TS4YChartCategoryAxis.Assign(Source: TPersistent);
+begin
+  if Source is TS4YChartCategoryAxis then
+    FGridLines := TS4YChartCategoryAxis(Source).GridLines;
+
+  inherited;
+end;
+
+procedure TS4YChartCategoryAxis.SetGridLines(const Value: Boolean);
+begin
+  if FGridLines = Value then
+    Exit;
+
+  FGridLines := Value;
+  DoChange;
+end;
+
 { TS4YChartValueAxis }
 
 constructor TS4YChartValueAxis.Create;
@@ -721,7 +775,7 @@ begin
   FSeries := TS4YChartSeriesList.Create(Self);
   FBoundCategories := TObjectList<TS4YChartCategory>.Create(True);
   FBoundSeries := TObjectList<TS4YChartSeries>.Create(True);
-  FCategoryAxis := TS4YChartAxis.Create;
+  FCategoryAxis := TS4YChartCategoryAxis.Create;
   FCategoryAxis.OnChange := AxisChanged;
   FValueAxis := TS4YChartValueAxis.Create;
   FValueAxis.OnChange := AxisChanged;
@@ -948,6 +1002,11 @@ begin
   Result := False;
 end;
 
+function TS4YCustomCategoryChart.CategoryGridLinesBetween: Boolean;
+begin
+  Result := True;
+end;
+
 function TS4YCustomCategoryChart.CategoryRect(const AIndex: Integer): TRectF;
 var
   LCount: Integer;
@@ -988,6 +1047,18 @@ begin
 end;
 
 procedure TS4YCustomCategoryChart.DrawAxes(const APlotRect: TRectF);
+
+  procedure DrawCategoryGridLine(const APoint: TPointF);
+  begin
+    // A line across the chart, at the position of APoint along the category axis.
+    if CategoriesVertical then
+      Canvas.DrawLine(TPointF.Create(FDataRect.Left, APoint.Y), TPointF.Create(FDataRect.Right, APoint.Y),
+        AbsoluteOpacity)
+    else
+      Canvas.DrawLine(TPointF.Create(APoint.X, FDataRect.Top), TPointF.Create(APoint.X, FDataRect.Bottom),
+        AbsoluteOpacity);
+  end;
+
 var
   LCaption: string;
   LCategoryLabelSize: Single;
@@ -1081,6 +1152,23 @@ begin
         RenderText(FStyleAxisText, C_DEFAULT_AXIS_TEXT_COLOR, GetValueText(C_AXIS_SERIES, C_AXIS_ITEM, LValue),
           TRectF.Create(APlotRect.Left, LPosition - FDataRect.Height, FDataRect.Left - C_AXIS_LABEL_SPACING,
           LPosition + FDataRect.Height), TTextAlign.Trailing, TTextAlign.Center);
+    end;
+  end;
+
+  // Grid lines of the categories: between them, or through their middle.
+  if FCategoryAxis.GridLines and (FGridStroke.Kind <> TBrushKind.None) then
+  begin
+    Canvas.Stroke.Assign(FGridStroke);
+
+    for var LIndex := 0 to GetDrawnCategoryCount - 1 do
+    begin
+      LSlot := CategoryRect(LIndex);
+
+      // Between the categories there is no line before the first one: it would be the edge of the chart.
+      if not CategoryGridLinesBetween then
+        DrawCategoryGridLine(LSlot.CenterPoint)
+      else if LIndex > 0 then
+        DrawCategoryGridLine(LSlot.TopLeft);
     end;
   end;
 
@@ -1233,7 +1321,7 @@ begin
   FCategories.Assign(Value);
 end;
 
-procedure TS4YCustomCategoryChart.SetCategoryAxis(const Value: TS4YChartAxis);
+procedure TS4YCustomCategoryChart.SetCategoryAxis(const Value: TS4YChartCategoryAxis);
 begin
   FCategoryAxis.Assign(Value);
 end;
