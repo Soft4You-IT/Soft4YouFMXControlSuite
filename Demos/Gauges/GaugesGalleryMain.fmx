@@ -19,13 +19,30 @@ object GaugesGalleryForm: TGaugesGalleryForm
     TabIndex = 0
     TabOrder = 0
     TabPosition = PlatformDefault
+    Sizes = (
+      900s
+      574s
+      900s
+      574s
+      900s
+      574s
+      900s
+      574s
+      900s
+      574s
+      900s
+      574s
+      900s
+      574s
+      900s
+      574s)
     object DefaultTab: TTabItem
       CustomIcon = <
         item
         end>
       TextSettings.Trimming = None
       IsSelected = True
-      Size.Width = 90.000000000000000000
+      Size.Width = 59.000000000000000000
       Size.Height = 26.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
@@ -40,62 +57,64 @@ object GaugesGalleryForm: TGaugesGalleryForm
         Size.Height = 40.000000000000000000
         Size.PlatformDefault = False
         TextSettings.VertAlign = Leading
-        TextSettings.WordWrap = True
-        Text = 'The default styles: S4YLinearGaugeStyle and S4YCircularGaugeStyle.'
+        Text = 
+          'The default styles: S4YLinearGaugeStyle and S4YCircularGaugeStyl' +
+          'e.'
+        TabOrder = 0
       end
       object StorageGauge: TS4YLinearGauge
+        Caption = 'Storage'
         Position.X = 24.000000000000000000
         Position.Y = 60.000000000000000000
         Size.Width = 420.000000000000000000
         Size.Height = 40.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Storage'
         Value = 25.000000000000000000
       end
       object MemoryGauge: TS4YLinearGauge
+        Caption = 'Memory'
         Position.X = 24.000000000000000000
         Position.Y = 120.000000000000000000
         Size.Width = 420.000000000000000000
         Size.Height = 40.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Memory'
         Value = 60.000000000000000000
       end
       object BatteryGauge: TS4YLinearGauge
+        Caption = 'Battery'
         Position.X = 24.000000000000000000
         Position.Y = 180.000000000000000000
         Size.Width = 420.000000000000000000
         Size.Height = 40.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Battery'
-        ValueFormat = '%.0f %%'
         Value = 90.000000000000000000
+        ValueFormat = '%.0f %%'
       end
       object LowRingGauge: TS4YCircularGauge
+        Caption = 'Low'
         Position.X = 24.000000000000000000
         Position.Y = 260.000000000000000000
         Size.Width = 180.000000000000000000
         Size.Height = 180.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Low'
         Value = 25.000000000000000000
       end
       object MiddleRingGauge: TS4YCircularGauge
+        Caption = 'Middle'
         Position.X = 234.000000000000000000
         Position.Y = 260.000000000000000000
         Size.Width = 180.000000000000000000
         Size.Height = 180.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Middle'
         Value = 60.000000000000000000
       end
       object HighRingGauge: TS4YCircularGauge
+        Caption = 'High'
         Position.X = 444.000000000000000000
         Position.Y = 260.000000000000000000
         Size.Width = 180.000000000000000000
         Size.Height = 180.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'High'
         Value = 90.000000000000000000
       end
     end
@@ -105,11 +124,11 @@ object GaugesGalleryForm: TGaugesGalleryForm
         end>
       TextSettings.Trimming = None
       IsSelected = False
-      Size.Width = 90.000000000000000000
+      Size.Width = 58.000000000000000000
       Size.Height = 26.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
-      TabOrder = 1
+      TabOrder = 0
       Text = 'Shapes'
       ExplicitSize.cx = 90.000000000000000000
       ExplicitSize.cy = 26.000000000000000000
@@ -120,59 +139,62 @@ object GaugesGalleryForm: TGaugesGalleryForm
         Size.Height = 40.000000000000000000
         Size.PlatformDefault = False
         TextSettings.VertAlign = Leading
-        TextSettings.WordWrap = True
-        Text = 'StartAngle and SweepAngle: a ring, an arc open at the bottom, a half circle, a quarter of circle and a ring filled from the left.'
+        Text = 
+          'StartAngle and SweepAngle: a ring, an arc open at the bottom, a ' +
+          'half circle, a quarter of circle and a ring filled from the left' +
+          '.'
+        TabOrder = 0
       end
       object RingGauge: TS4YCircularGauge
+        Caption = 'Ring'
         Position.X = 24.000000000000000000
         Position.Y = 70.000000000000000000
         Size.Width = 180.000000000000000000
         Size.Height = 180.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Ring'
         Value = 65.000000000000000000
       end
       object SpeedometerGauge: TS4YCircularGauge
+        Caption = 'km/h'
+        Max = 200.000000000000000000
         Position.X = 234.000000000000000000
         Position.Y = 70.000000000000000000
         Size.Width = 180.000000000000000000
         Size.Height = 180.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'km/h'
-        Max = 200.000000000000000000
         StartAngle = -135.000000000000000000
         SweepAngle = 270.000000000000000000
         Value = 120.000000000000000000
       end
       object HalfCircleGauge: TS4YCircularGauge
+        Caption = 'Half circle'
         Position.X = 444.000000000000000000
         Position.Y = 70.000000000000000000
         Size.Width = 260.000000000000000000
         Size.Height = 140.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Half circle'
         StartAngle = -90.000000000000000000
         SweepAngle = 180.000000000000000000
         Thickness = 20.000000000000000000
         Value = 65.000000000000000000
       end
       object QuarterGauge: TS4YCircularGauge
+        Caption = 'Quarter'
         Position.X = 24.000000000000000000
         Position.Y = 290.000000000000000000
         Size.Width = 180.000000000000000000
         Size.Height = 180.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Quarter'
         SweepAngle = 90.000000000000000000
         Value = 65.000000000000000000
       end
       object LeftRingGauge: TS4YCircularGauge
+        Caption = 'From the left'
         Position.X = 234.000000000000000000
         Position.Y = 290.000000000000000000
         Size.Width = 180.000000000000000000
         Size.Height = 180.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'From the left'
         StartAngle = -90.000000000000000000
         Value = 65.000000000000000000
       end
@@ -183,11 +205,11 @@ object GaugesGalleryForm: TGaugesGalleryForm
         end>
       TextSettings.Trimming = None
       IsSelected = False
-      Size.Width = 90.000000000000000000
+      Size.Width = 78.000000000000000000
       Size.Height = 26.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
-      TabOrder = 2
+      TabOrder = 0
       Text = 'Dashboard'
       ExplicitSize.cx = 90.000000000000000000
       ExplicitSize.cy = 26.000000000000000000
@@ -198,60 +220,61 @@ object GaugesGalleryForm: TGaugesGalleryForm
         Size.Height = 40.000000000000000000
         Size.PlatformDefault = False
         TextSettings.VertAlign = Leading
-        TextSettings.WordWrap = True
-        Text = 'Values changed by a timer: the large changes are animated, the small ones, like the ones of the disk, are drawn at once.'
+        Text = 
+          'Values changed by a timer: the large changes are animated, the s' +
+          'mall ones, like the ones of the disk, are drawn at once.'
+        TabOrder = 0
       end
       object CpuGauge: TS4YCircularGauge
+        Caption = 'CPU'
         Position.X = 24.000000000000000000
-        Position.Y = 60.000000000000000000
+        Position.Y = 70.000000000000000000
         Size.Width = 180.000000000000000000
         Size.Height = 180.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'CPU'
-        ValueFormat = '%.0f %%'
         Value = 30.000000000000000000
+        ValueFormat = '%.0f %%'
       end
       object RamGauge: TS4YCircularGauge
+        Caption = 'RAM'
         Position.X = 234.000000000000000000
-        Position.Y = 60.000000000000000000
+        Position.Y = 70.000000000000000000
         Size.Width = 180.000000000000000000
         Size.Height = 180.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'RAM'
-        ValueFormat = '%.0f %%'
         Value = 55.000000000000000000
+        ValueFormat = '%.0f %%'
       end
       object DiskGauge: TS4YCircularGauge
+        Caption = 'Disk'
         Position.X = 444.000000000000000000
-        Position.Y = 60.000000000000000000
+        Position.Y = 70.000000000000000000
         Size.Width = 180.000000000000000000
         Size.Height = 180.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Disk'
-        ValueFormat = '%.1f %%'
         Value = 70.000000000000000000
+        ValueFormat = '%.1f %%'
       end
       object UploadGauge: TS4YLinearGauge
-        Position.X = 24.000000000000000000
-        Position.Y = 280.000000000000000000
-        Size.Width = 600.000000000000000000
-        Size.Height = 40.000000000000000000
-        Size.PlatformDefault = False
         Caption = 'Upload'
         Max = 20.000000000000000000
-        ValueFormat = '%.1f Mbit/s'
-        Value = 4.000000000000000000
-      end
-      object DownloadSpeedGauge: TS4YLinearGauge
         Position.X = 24.000000000000000000
-        Position.Y = 340.000000000000000000
+        Position.Y = 290.000000000000000000
         Size.Width = 600.000000000000000000
         Size.Height = 40.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Download'
-        Max = 100.000000000000000000
+        Value = 4.000000000000000000
         ValueFormat = '%.1f Mbit/s'
+      end
+      object DownloadSpeedGauge: TS4YLinearGauge
+        Caption = 'Download'
+        Position.X = 24.000000000000000000
+        Position.Y = 350.000000000000000000
+        Size.Width = 600.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
         Value = 60.000000000000000000
+        ValueFormat = '%.1f Mbit/s'
       end
     end
     object ThresholdsTab: TTabItem
@@ -260,11 +283,11 @@ object GaugesGalleryForm: TGaugesGalleryForm
         end>
       TextSettings.Trimming = None
       IsSelected = False
-      Size.Width = 90.000000000000000000
+      Size.Width = 78.000000000000000000
       Size.Height = 26.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
-      TabOrder = 3
+      TabOrder = 0
       Text = 'Thresholds'
       ExplicitSize.cx = 90.000000000000000000
       ExplicitSize.cy = 26.000000000000000000
@@ -275,41 +298,45 @@ object GaugesGalleryForm: TGaugesGalleryForm
         Size.Height = 40.000000000000000000
         Size.PlatformDefault = False
         TextSettings.VertAlign = Leading
-        TextSettings.WordWrap = True
-        Text = 'The track bar changes the value; the color of the fill comes from FillBrush, chosen by the code for each level, and the text from OnGetValueText.'
+        Text = 
+          'The track bar changes the value; the color of the fill comes fro' +
+          'm FillBrush, chosen by the code for each level, and the text fro' +
+          'm OnGetValueText.'
+        TabOrder = 0
       end
       object LoadGauge: TS4YCircularGauge
+        Caption = 'CPU load'
         Position.X = 24.000000000000000000
         Position.Y = 60.000000000000000000
         Size.Width = 280.000000000000000000
         Size.Height = 280.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'CPU load'
         StartAngle = -135.000000000000000000
         SweepAngle = 270.000000000000000000
         Thickness = 14.000000000000000000
-        OnGetValueText = LoadGaugeGetValueText
         Value = 40.000000000000000000
+        OnGetValueText = LoadGaugeGetValueText
       end
       object LoadBarGauge: TS4YLinearGauge
+        Caption = 'CPU load'
         Position.X = 340.000000000000000000
         Position.Y = 176.000000000000000000
         Size.Width = 400.000000000000000000
         Size.Height = 48.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'CPU load'
         Thickness = 12.000000000000000000
-        OnGetValueText = LoadGaugeGetValueText
         Value = 40.000000000000000000
+        OnGetValueText = LoadGaugeGetValueText
       end
       object LoadTrackBar: TTrackBar
+        CanParentFocus = True
+        Orientation = Horizontal
         Position.X = 24.000000000000000000
         Position.Y = 370.000000000000000000
         Size.Width = 716.000000000000000000
-        Size.Height = 20.000000000000000000
+        Size.Height = 19.000000000000000000
         Size.PlatformDefault = False
-        CanParentFocus = True
-        Orientation = Horizontal
+        TabOrder = 3
         Value = 40.000000000000000000
         OnChange = LoadTrackBarChange
       end
@@ -320,11 +347,11 @@ object GaugesGalleryForm: TGaugesGalleryForm
         end>
       TextSettings.Trimming = None
       IsSelected = False
-      Size.Width = 90.000000000000000000
+      Size.Width = 75.000000000000000000
       Size.Height = 26.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
-      TabOrder = 4
+      TabOrder = 0
       Text = 'Download'
       ExplicitSize.cx = 90.000000000000000000
       ExplicitSize.cy = 26.000000000000000000
@@ -335,19 +362,20 @@ object GaugesGalleryForm: TGaugesGalleryForm
         Size.Height = 40.000000000000000000
         Size.PlatformDefault = False
         TextSettings.VertAlign = Leading
-        TextSettings.WordWrap = True
-        Text = 'A download moved by a timer, in small steps drawn at once; at the end the fill goes back to 0 with the animation.'
+        Text = 
+          'A download moved by a timer, in small steps drawn at once; at th' +
+          'e end the fill goes back to 0 with the animation.'
+        TabOrder = 0
       end
       object DownloadGauge: TS4YLinearGauge
+        Caption = 'Downloading setup.exe'
         Position.X = 24.000000000000000000
         Position.Y = 70.000000000000000000
         Size.Width = 560.000000000000000000
         Size.Height = 48.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Downloading setup.exe'
         Thickness = 10.000000000000000000
         ValueFormat = '%.0f %%'
-        Value = 0.000000000000000000
       end
       object DownloadRingGauge: TS4YCircularGauge
         Position.X = 614.000000000000000000
@@ -357,7 +385,6 @@ object GaugesGalleryForm: TGaugesGalleryForm
         Size.PlatformDefault = False
         Thickness = 6.000000000000000000
         ValueFormat = '%.0f %%'
-        Value = 0.000000000000000000
       end
     end
     object EqualizerTab: TTabItem
@@ -366,11 +393,11 @@ object GaugesGalleryForm: TGaugesGalleryForm
         end>
       TextSettings.Trimming = None
       IsSelected = False
-      Size.Width = 90.000000000000000000
+      Size.Width = 68.000000000000000000
       Size.Height = 26.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
-      TabOrder = 5
+      TabOrder = 0
       Text = 'Equalizer'
       ExplicitSize.cx = 90.000000000000000000
       ExplicitSize.cy = 26.000000000000000000
@@ -381,8 +408,11 @@ object GaugesGalleryForm: TGaugesGalleryForm
         Size.Height = 40.000000000000000000
         Size.PlatformDefault = False
         TextSettings.VertAlign = Leading
-        TextSettings.WordWrap = True
-        Text = 'Vertical gauges without texts (TextPosition = gtpNone), moved by a timer faster than the animation: each change starts from where the fill is.'
+        Text = 
+          'Vertical gauges without texts (TextPosition = gtpNone), moved by' +
+          ' a timer faster than the animation: each change starts from wher' +
+          'e the fill is.'
+        TabOrder = 0
       end
       object EqualizerLayout: TLayout
         Position.X = 24.000000000000000000
@@ -390,194 +420,177 @@ object GaugesGalleryForm: TGaugesGalleryForm
         Size.Width = 600.000000000000000000
         Size.Height = 240.000000000000000000
         Size.PlatformDefault = False
+        TabOrder = 1
         object EqualizerGauge1: TS4YLinearGauge
-          Position.X = 0.000000000000000000
-          Position.Y = 0.000000000000000000
+          Orientation = Vertical
+          ShowValue = False
           Size.Width = 24.000000000000000000
           Size.Height = 240.000000000000000000
           Size.PlatformDefault = False
-          Orientation = Vertical
-          ShowValue = False
           TextPosition = gtpNone
           Thickness = 20.000000000000000000
-          Value = 0.000000000000000000
         end
         object EqualizerGauge2: TS4YLinearGauge
+          Orientation = Vertical
           Position.X = 36.000000000000000000
-          Position.Y = 0.000000000000000000
+          ShowValue = False
           Size.Width = 24.000000000000000000
           Size.Height = 240.000000000000000000
           Size.PlatformDefault = False
-          Orientation = Vertical
-          ShowValue = False
           TextPosition = gtpNone
           Thickness = 20.000000000000000000
           Value = 37.000000000000000000
         end
         object EqualizerGauge3: TS4YLinearGauge
+          Orientation = Vertical
           Position.X = 72.000000000000000000
-          Position.Y = 0.000000000000000000
+          ShowValue = False
           Size.Width = 24.000000000000000000
           Size.Height = 240.000000000000000000
           Size.PlatformDefault = False
-          Orientation = Vertical
-          ShowValue = False
           TextPosition = gtpNone
           Thickness = 20.000000000000000000
           Value = 74.000000000000000000
         end
         object EqualizerGauge4: TS4YLinearGauge
+          Orientation = Vertical
           Position.X = 108.000000000000000000
-          Position.Y = 0.000000000000000000
+          ShowValue = False
           Size.Width = 24.000000000000000000
           Size.Height = 240.000000000000000000
           Size.PlatformDefault = False
-          Orientation = Vertical
-          ShowValue = False
           TextPosition = gtpNone
           Thickness = 20.000000000000000000
           Value = 11.000000000000000000
         end
         object EqualizerGauge5: TS4YLinearGauge
+          Orientation = Vertical
           Position.X = 144.000000000000000000
-          Position.Y = 0.000000000000000000
+          ShowValue = False
           Size.Width = 24.000000000000000000
           Size.Height = 240.000000000000000000
           Size.PlatformDefault = False
-          Orientation = Vertical
-          ShowValue = False
           TextPosition = gtpNone
           Thickness = 20.000000000000000000
           Value = 48.000000000000000000
         end
         object EqualizerGauge6: TS4YLinearGauge
+          Orientation = Vertical
           Position.X = 180.000000000000000000
-          Position.Y = 0.000000000000000000
+          ShowValue = False
           Size.Width = 24.000000000000000000
           Size.Height = 240.000000000000000000
           Size.PlatformDefault = False
-          Orientation = Vertical
-          ShowValue = False
           TextPosition = gtpNone
           Thickness = 20.000000000000000000
           Value = 85.000000000000000000
         end
         object EqualizerGauge7: TS4YLinearGauge
+          Orientation = Vertical
           Position.X = 216.000000000000000000
-          Position.Y = 0.000000000000000000
+          ShowValue = False
           Size.Width = 24.000000000000000000
           Size.Height = 240.000000000000000000
           Size.PlatformDefault = False
-          Orientation = Vertical
-          ShowValue = False
           TextPosition = gtpNone
           Thickness = 20.000000000000000000
           Value = 22.000000000000000000
         end
         object EqualizerGauge8: TS4YLinearGauge
+          Orientation = Vertical
           Position.X = 252.000000000000000000
-          Position.Y = 0.000000000000000000
+          ShowValue = False
           Size.Width = 24.000000000000000000
           Size.Height = 240.000000000000000000
           Size.PlatformDefault = False
-          Orientation = Vertical
-          ShowValue = False
           TextPosition = gtpNone
           Thickness = 20.000000000000000000
           Value = 59.000000000000000000
         end
         object EqualizerGauge9: TS4YLinearGauge
+          Orientation = Vertical
           Position.X = 288.000000000000000000
-          Position.Y = 0.000000000000000000
+          ShowValue = False
           Size.Width = 24.000000000000000000
           Size.Height = 240.000000000000000000
           Size.PlatformDefault = False
-          Orientation = Vertical
-          ShowValue = False
           TextPosition = gtpNone
           Thickness = 20.000000000000000000
           Value = 96.000000000000000000
         end
         object EqualizerGauge10: TS4YLinearGauge
+          Orientation = Vertical
           Position.X = 324.000000000000000000
-          Position.Y = 0.000000000000000000
+          ShowValue = False
           Size.Width = 24.000000000000000000
           Size.Height = 240.000000000000000000
           Size.PlatformDefault = False
-          Orientation = Vertical
-          ShowValue = False
           TextPosition = gtpNone
           Thickness = 20.000000000000000000
           Value = 33.000000000000000000
         end
         object EqualizerGauge11: TS4YLinearGauge
+          Orientation = Vertical
           Position.X = 360.000000000000000000
-          Position.Y = 0.000000000000000000
+          ShowValue = False
           Size.Width = 24.000000000000000000
           Size.Height = 240.000000000000000000
           Size.PlatformDefault = False
-          Orientation = Vertical
-          ShowValue = False
           TextPosition = gtpNone
           Thickness = 20.000000000000000000
           Value = 70.000000000000000000
         end
         object EqualizerGauge12: TS4YLinearGauge
+          Orientation = Vertical
           Position.X = 396.000000000000000000
-          Position.Y = 0.000000000000000000
+          ShowValue = False
           Size.Width = 24.000000000000000000
           Size.Height = 240.000000000000000000
           Size.PlatformDefault = False
-          Orientation = Vertical
-          ShowValue = False
           TextPosition = gtpNone
           Thickness = 20.000000000000000000
           Value = 7.000000000000000000
         end
         object EqualizerGauge13: TS4YLinearGauge
+          Orientation = Vertical
           Position.X = 432.000000000000000000
-          Position.Y = 0.000000000000000000
+          ShowValue = False
           Size.Width = 24.000000000000000000
           Size.Height = 240.000000000000000000
           Size.PlatformDefault = False
-          Orientation = Vertical
-          ShowValue = False
           TextPosition = gtpNone
           Thickness = 20.000000000000000000
           Value = 44.000000000000000000
         end
         object EqualizerGauge14: TS4YLinearGauge
+          Orientation = Vertical
           Position.X = 468.000000000000000000
-          Position.Y = 0.000000000000000000
+          ShowValue = False
           Size.Width = 24.000000000000000000
           Size.Height = 240.000000000000000000
           Size.PlatformDefault = False
-          Orientation = Vertical
-          ShowValue = False
           TextPosition = gtpNone
           Thickness = 20.000000000000000000
           Value = 81.000000000000000000
         end
         object EqualizerGauge15: TS4YLinearGauge
+          Orientation = Vertical
           Position.X = 504.000000000000000000
-          Position.Y = 0.000000000000000000
+          ShowValue = False
           Size.Width = 24.000000000000000000
           Size.Height = 240.000000000000000000
           Size.PlatformDefault = False
-          Orientation = Vertical
-          ShowValue = False
           TextPosition = gtpNone
           Thickness = 20.000000000000000000
           Value = 18.000000000000000000
         end
         object EqualizerGauge16: TS4YLinearGauge
+          Orientation = Vertical
           Position.X = 540.000000000000000000
-          Position.Y = 0.000000000000000000
+          ShowValue = False
           Size.Width = 24.000000000000000000
           Size.Height = 240.000000000000000000
           Size.PlatformDefault = False
-          Orientation = Vertical
-          ShowValue = False
           TextPosition = gtpNone
           Thickness = 20.000000000000000000
           Value = 55.000000000000000000
@@ -590,11 +603,11 @@ object GaugesGalleryForm: TGaugesGalleryForm
         end>
       TextSettings.Trimming = None
       IsSelected = False
-      Size.Width = 90.000000000000000000
+      Size.Width = 76.000000000000000000
       Size.Height = 26.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
-      TabOrder = 6
+      TabOrder = 0
       Text = 'Style book'
       ExplicitSize.cx = 90.000000000000000000
       ExplicitSize.cy = 26.000000000000000000
@@ -605,73 +618,76 @@ object GaugesGalleryForm: TGaugesGalleryForm
         Size.Height = 40.000000000000000000
         Size.PlatformDefault = False
         TextSettings.VertAlign = Leading
-        TextSettings.WordWrap = True
-        Text = 'Styles of the TStyleBook of the form, chosen with StyleLookup: a gradient, a glossy line over the fill, square corners; flat ends, a dotted track, a gradient arc.'
+        Text = 
+          'Styles of the TStyleBook of the form, chosen with StyleLookup: a' +
+          ' gradient, a glossy line over the fill, square corners; flat end' +
+          's, a dotted track, a gradient arc.'
+        TabOrder = 0
       end
       object GradientLinearGauge: TS4YLinearGauge
+        Caption = 'Gradient'
         Position.X = 24.000000000000000000
         Position.Y = 60.000000000000000000
         Size.Width = 420.000000000000000000
         Size.Height = 44.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Gradient'
         StyleLookup = 'GradientLinearGaugeStyle'
         Thickness = 10.000000000000000000
         Value = 70.000000000000000000
       end
       object GlossyLinearGauge: TS4YLinearGauge
+        Caption = 'Glossy'
         Position.X = 24.000000000000000000
         Position.Y = 124.000000000000000000
         Size.Width = 420.000000000000000000
         Size.Height = 44.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Glossy'
         StyleLookup = 'GlossyLinearGaugeStyle'
         Thickness = 16.000000000000000000
         Value = 55.000000000000000000
       end
       object SquareLinearGauge: TS4YLinearGauge
+        Caption = 'Square'
         Position.X = 24.000000000000000000
         Position.Y = 194.000000000000000000
         Size.Width = 420.000000000000000000
         Size.Height = 44.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Square'
         StyleLookup = 'SquareLinearGaugeStyle'
         Thickness = 14.000000000000000000
         Value = 40.000000000000000000
       end
       object FlatCircularGauge: TS4YCircularGauge
+        Caption = 'Flat ends'
         Position.X = 24.000000000000000000
         Position.Y = 270.000000000000000000
         Size.Width = 180.000000000000000000
         Size.Height = 180.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Flat ends'
         StyleLookup = 'FlatCircularGaugeStyle'
         Thickness = 18.000000000000000000
         Value = 65.000000000000000000
       end
       object DashedCircularGauge: TS4YCircularGauge
+        Caption = 'Dotted track'
         Position.X = 234.000000000000000000
         Position.Y = 270.000000000000000000
         Size.Width = 180.000000000000000000
         Size.Height = 180.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Dotted track'
         StyleLookup = 'DashedCircularGaugeStyle'
         Thickness = 8.000000000000000000
         Value = 65.000000000000000000
       end
       object GradientCircularGauge: TS4YCircularGauge
+        Caption = 'Gradient'
         Position.X = 444.000000000000000000
         Position.Y = 270.000000000000000000
         Size.Width = 180.000000000000000000
         Size.Height = 180.000000000000000000
         Size.PlatformDefault = False
-        Caption = 'Gradient'
-        StyleLookup = 'GradientCircularGaugeStyle'
         StartAngle = -135.000000000000000000
+        StyleLookup = 'GradientCircularGaugeStyle'
         SweepAngle = 270.000000000000000000
         Thickness = 14.000000000000000000
         Value = 80.000000000000000000
@@ -683,11 +699,11 @@ object GaugesGalleryForm: TGaugesGalleryForm
         end>
       TextSettings.Trimming = None
       IsSelected = False
-      Size.Width = 90.000000000000000000
+      Size.Width = 45.000000000000000000
       Size.Height = 26.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
-      TabOrder = 7
+      TabOrder = 0
       Text = 'Dark'
       ExplicitSize.cx = 90.000000000000000000
       ExplicitSize.cy = 26.000000000000000000
@@ -699,61 +715,62 @@ object GaugesGalleryForm: TGaugesGalleryForm
         Size.PlatformDefault = False
         Stroke.Kind = None
         object DarkLabel: TLabel
+          StyledSettings = [Family, Size, Style]
           Position.X = 24.000000000000000000
           Position.Y = 12.000000000000000000
           Size.Width = 840.000000000000000000
           Size.Height = 40.000000000000000000
           Size.PlatformDefault = False
-          StyledSettings = [Family, Size, Style]
           TextSettings.FontColor = claWhite
           TextSettings.VertAlign = Leading
-          TextSettings.WordWrap = True
-          Text = 'Styles for a dark background: DarkLinearGaugeStyle and DarkCircularGaugeStyle.'
+          Text = 
+            'Styles for a dark background: DarkLinearGaugeStyle and DarkCircu' +
+            'larGaugeStyle.'
         end
         object DarkLinearGauge: TS4YLinearGauge
+          Caption = 'Brightness'
           Position.X = 24.000000000000000000
           Position.Y = 60.000000000000000000
           Size.Width = 420.000000000000000000
           Size.Height = 40.000000000000000000
           Size.PlatformDefault = False
-          Caption = 'Brightness'
           StyleLookup = 'DarkLinearGaugeStyle'
           Value = 75.000000000000000000
         end
         object DarkSecondLinearGauge: TS4YLinearGauge
+          Caption = 'Volume'
           Position.X = 24.000000000000000000
           Position.Y = 120.000000000000000000
           Size.Width = 420.000000000000000000
           Size.Height = 40.000000000000000000
           Size.PlatformDefault = False
-          Caption = 'Volume'
           StyleLookup = 'DarkLinearGaugeStyle'
           Value = 35.000000000000000000
         end
         object DarkCircularGauge: TS4YCircularGauge
+          Caption = 'Battery'
           Position.X = 24.000000000000000000
           Position.Y = 190.000000000000000000
           Size.Width = 180.000000000000000000
           Size.Height = 180.000000000000000000
           Size.PlatformDefault = False
-          Caption = 'Battery'
           StyleLookup = 'DarkCircularGaugeStyle'
-          ValueFormat = '%.0f %%'
           Value = 82.000000000000000000
+          ValueFormat = '%.0f %%'
         end
         object DarkSpeedometerGauge: TS4YCircularGauge
+          Caption = 'rpm x 1000'
+          Max = 8.000000000000000000
           Position.X = 234.000000000000000000
           Position.Y = 190.000000000000000000
           Size.Width = 180.000000000000000000
           Size.Height = 180.000000000000000000
           Size.PlatformDefault = False
-          Caption = 'rpm x 1000'
-          StyleLookup = 'DarkCircularGaugeStyle'
-          Max = 8.000000000000000000
           StartAngle = -135.000000000000000000
+          StyleLookup = 'DarkCircularGaugeStyle'
           SweepAngle = 270.000000000000000000
+          Value = 4.199999809265137000
           ValueFormat = '%.1f'
-          Value = 4.200000000000000178
         end
       end
     end
@@ -777,8 +794,6 @@ object GaugesGalleryForm: TGaugesGalleryForm
     Top = 440
   end
   object GalleryStyleBook: TStyleBook
-    Left = 800
-    Top = 500
     Styles = <
       item
         ResourcesBin = {
@@ -973,5 +988,7 @@ object GaugesGalleryForm: TGaugesGalleryForm
           7408165465787453657474696E67732E466F6E74436F6C6F7207097846464230
           424543350756697369626C6508000000}
       end>
+    Left = 800
+    Top = 500
   end
 end

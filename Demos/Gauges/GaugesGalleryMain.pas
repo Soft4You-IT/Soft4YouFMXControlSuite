@@ -154,6 +154,8 @@ end;
 
 procedure TGaugesGalleryForm.FormCreate(Sender: TObject);
 begin
+  // The gallery always opens on the first tab, whichever tab was selected when the form was saved.
+  GalleryTabControl.TabIndex := 0;
   Randomize;
   LoadTrackBarChange(LoadTrackBar);
 end;
