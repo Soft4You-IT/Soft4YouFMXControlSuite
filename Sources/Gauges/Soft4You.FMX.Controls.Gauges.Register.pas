@@ -1,4 +1,4 @@
-unit Soft4You.FMX.Controls.Gauge.Register;
+unit Soft4You.FMX.Controls.Gauges.Register;
 
 { *****************************************************************************
   Soft4You FMX Control Suite - FireMonkey (FMX) controls for Delphi
@@ -20,17 +20,17 @@ procedure Register;
 
 implementation
 
-{$R GaugeDesign.res}
+{$R GaugesDesign.res}
 
 uses
   System.Classes,
-  Soft4You.FMX.Controls.Gauge;
+  Soft4You.FMX.Controls.Gauges.Linear;
 
 procedure Register;
 begin
   // The icons are read automatically from the bitmap resources whose names
   // match the class names in upper case ('TS4YLINEARGAUGE'), compiled into
-  // the .res from GaugeDesign.rc.
+  // the .res from GaugesDesign.rc.
   RegisterComponents('Soft4You FMX Controls Suite', [TS4YLinearGauge]);
 end;
 

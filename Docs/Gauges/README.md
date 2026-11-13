@@ -12,25 +12,26 @@ Download                    72
 - The value is written with a format of its own (`ValueFormat`), or with a text given by the application (`OnGetValueText`).
 - Every part of the gauge comes from a **style**: the track, the fill and the fonts of the texts. The track and the fill can have any shape designed in the style; properties can replace the colors of the simple shapes.
 
-Unit: `Soft4You.FMX.Controls.Gauge` (in `Sources\Gauge`); the types are in `Soft4You.FMX.Controls.Gauge.Types`.
+Units: `Soft4You.FMX.Controls.Gauges.Linear` for `TS4YLinearGauge`, in `Sources\Gauges`; the base class of the gauges is in `Soft4You.FMX.Controls.Gauges`, the types in `Soft4You.FMX.Controls.Gauges.Types`.
 
 ## Installation
 
 The gauges are part of the Soft4You FMX Control Suite. They are built into the runtime package `Soft4You.FMX.Controls.Suite`, and their registration into the design-time package `SuiteD`: see the README in the root of the repository. They appear in the Tool Palette page **Soft4You FMX Controls Suite**.
 
-Add the folder `Sources\Gauge` to the Delphi library path to compile your own projects with the units, and the folder `Resources`, where the packages compile the default styles.
+Add the folder `Sources\Gauges` to the Delphi library path to compile your own projects with the units, and the folder `Resources`, where the packages compile the default styles.
 
 ## Files
 
 | File | Content |
 |---|---|
-| `Sources\Gauge\Soft4You.FMX.Controls.Gauge.pas` | The gauges and their common base class, `TS4YCustomGauge` |
-| `Sources\Gauge\Soft4You.FMX.Controls.Gauge.Types.pas` | Enumerations, sets and event types |
-| `Sources\Gauge\Soft4You.FMX.Controls.Gauge.Register.pas` | Registration in the Tool Palette (design time) |
-| `Sources\Gauge\Soft4You.FMX.Controls.Gauge.Win.rc` / `.Mac.rc` | Resource scripts that link the styles, as the resource `S4YLinearGaugeStyle` |
-| `Sources\Gauge\Soft4You.FMX.Controls.Gauge.Linear.Win.style` / `.Mac.style` | Default style of `TS4YLinearGauge` (the two are identical) |
-| `Graphics\Gauge\TS4YLinearGauge.svg` | Vector master of the icon of the Tool Palette |
-| `Graphics\Gauge\TS4YLinearGauge.bmp`, `GaugeDesign.rc` | Icon of the Tool Palette (24x24 bitmap) and the resource script that links it |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.pas` | `TS4YCustomGauge`, the base class of the gauges |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.pas` | `TS4YLinearGauge` |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Types.pas` | Enumerations, sets and event types |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Register.pas` | Registration in the Tool Palette (design time) |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Win.rc` / `.Mac.rc` | Resource scripts that link the style of `TS4YLinearGauge` as the resource `S4YLinearGaugeStyle` |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Win.style` / `.Mac.style` | Default style of `TS4YLinearGauge` (the two are identical) |
+| `Graphics\Gauges\TS4YLinearGauge.svg` | Vector master of the icon of the Tool Palette |
+| `Graphics\Gauges\TS4YLinearGauge.bmp`, `GaugesDesign.rc` | Icon of the Tool Palette (24x24 bitmap) and the resource script that links it |
 
 ## Properties of all the gauges
 
@@ -120,7 +121,7 @@ When a part is a shape, `FillBrush` and `TrackBrush` can replace its fill: chang
 
 The style linked into the package is used when no other style defines `S4YLinearGaugeStyle`. To change the look of all the linear gauges of an application:
 
-1. In the style of a `TStyleBook`, add a `TLayout` with `StyleName = 'S4YLinearGaugeStyle'` and, inside it, the parts listed above. The default style, `Sources\Gauge\Soft4You.FMX.Controls.Gauge.Linear.Win.style`, is a text file with all of them and can be used as a model.
+1. In the style of a `TStyleBook`, add a `TLayout` with `StyleName = 'S4YLinearGaugeStyle'` and, inside it, the parts listed above. The default style, `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Win.style`, is a text file with all of them and can be used as a model.
 2. Change the parts: their colors and fonts, or replace a shape with another object.
 
 A style with another name is used by the gauges whose `StyleLookup` is set to that name; when no style has that name, they use `S4YLinearGaugeStyle` as the others. A part missing from a style is replaced by a rectangle with the brush of the property, and a missing text by the default font and colors.
@@ -131,8 +132,8 @@ The space used on a disk:
 
 ```delphi
 uses
-  Soft4You.FMX.Controls.Gauge.Types,
-  Soft4You.FMX.Controls.Gauge;
+  Soft4You.FMX.Controls.Gauges.Types,
+  Soft4You.FMX.Controls.Gauges.Linear;
 
 procedure TMainForm.ShowDiskSpace(const AUsedGigabytes, ASizeGigabytes: Single);
 begin

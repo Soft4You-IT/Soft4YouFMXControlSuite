@@ -50,6 +50,6 @@ contains
   Soft4You.FMX.Controls.ColorSelector.Register in '..\..\Sources\ColorSelector\Soft4You.FMX.Controls.ColorSelector.Register.pas',
   Soft4You.FMX.Controls.StepProgressBar.Design in '..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Design.pas',
   Soft4You.FMX.Controls.StepProgressBar.Register in '..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Register.pas',
-  Soft4You.FMX.Controls.Gauge.Register in '..\..\Sources\Gauge\Soft4You.FMX.Controls.Gauge.Register.pas';
+  Soft4You.FMX.Controls.Gauges.Register in '..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.Register.pas';
 
 end.

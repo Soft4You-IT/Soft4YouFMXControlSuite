@@ -1,4 +1,4 @@
-unit Soft4You.FMX.Controls.Gauge.Types;
+unit Soft4You.FMX.Controls.Gauges.Types;
 
 { *****************************************************************************
   Soft4You FMX Control Suite - FireMonkey (FMX) controls for Delphi

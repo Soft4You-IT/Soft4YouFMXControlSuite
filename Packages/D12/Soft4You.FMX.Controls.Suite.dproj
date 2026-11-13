@@ -221,8 +221,9 @@
         <DCCReference Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Types.pas"/>
         <DCCReference Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Strings.pas"/>
         <DCCReference Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.pas"/>
-        <DCCReference Include="..\..\Sources\Gauge\Soft4You.FMX.Controls.Gauge.Types.pas"/>
-        <DCCReference Include="..\..\Sources\Gauge\Soft4You.FMX.Controls.Gauge.pas"/>
+        <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.Types.pas"/>
+        <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.pas"/>
+        <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.pas"/>
         <RcCompile Include="..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.Mac.rc">
             <Form>Soft4You.FMX.Controls.Badge.Mac.res</Form>
         </RcCompile>
@@ -241,11 +242,11 @@
         <RcCompile Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Win.rc">
             <Form>Soft4You.FMX.Controls.StepProgressBar.Win.res</Form>
         </RcCompile>
-        <RcCompile Include="..\..\Sources\Gauge\Soft4You.FMX.Controls.Gauge.Mac.rc">
-            <Form>Soft4You.FMX.Controls.Gauge.Mac.res</Form>
+        <RcCompile Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Mac.rc">
+            <Form>Soft4You.FMX.Controls.Gauges.Linear.Mac.res</Form>
         </RcCompile>
-        <RcCompile Include="..\..\Sources\Gauge\Soft4You.FMX.Controls.Gauge.Win.rc">
-            <Form>Soft4You.FMX.Controls.Gauge.Win.res</Form>
+        <RcCompile Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Win.rc">
+            <Form>Soft4You.FMX.Controls.Gauges.Linear.Win.res</Form>
         </RcCompile>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
