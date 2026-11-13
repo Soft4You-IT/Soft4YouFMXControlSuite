@@ -23,6 +23,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 | `TS4YColorSelector` | Foreground and background color swatches, like in the drawing programs: a click asks the application to change one of the two colors | [Docs\ColorSelector](Docs/ColorSelector/README.md) |
 | `TS4YStepProgressBar` | Progress indicator made of steps along a horizontal or vertical line, like the phases of an installation or the pages of a wizard; the look comes from a style | [Docs\StepProgressBar](Docs/StepProgressBar/README.md) |
 | `TS4YLinearGauge`, `TS4YCircularGauge` | Gauges that show a value in a range as a horizontal or vertical bar, or as a ring or an arc, that fills with the value, with a caption and the value written; the look comes from a style | [Docs\Gauges](Docs/Gauges/README.md) |
+| `TS4YPieChart` | Pie and ring chart, with legend, labels, animation and click on a slice; filled in the Object Inspector, in code or by the LiveBindings through a `TLinkGridToDataSource`; the look comes from a style | [Docs\Charts](Docs/Charts/README.md) |
 
 All the controls are built into the same two packages and appear in the Tool Palette page **Soft4You FMX Controls Suite**. `TS4YExpander` uses `TS4YBadge`, so the two are always installed together.
 
@@ -39,10 +40,11 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Sources\Expander` | Units of the Expander control (`TS4YExpander`), with its styles and resource scripts |
 | `Sources\ColorSelector` | Units of the ColorSelector control (`TS4YColorSelector`) and the types of its event |
 | `Sources\StepProgressBar` | Units of the StepProgressBar control (`TS4YStepProgressBar`) and its types, with its styles and resource scripts |
+| `Sources\Charts` | Units of the charts (`TS4YPieChart`), their types and their support of the LiveBindings, with their styles and resource scripts |
 | `Sources\Gauges` | Units of the gauges (`TS4YLinearGauge`, `TS4YCircularGauge`) and their types, with their styles and resource scripts |
 | `Sources\Design` | Design-time unit shared by all the controls of the suite (IDE splash screen and About box) |
 | `Packages\D11`, `D12`, `D13` | Runtime and design-time packages and their project group, one folder for each Delphi version (11, 12, 13) |
-| `Resources` | Resources compiled by the packages from the `.rc` files (styles of the Badge, the Expander, the StepProgressBar and the gauges, Tool Palette icons, version information); created when the packages are built, not in the repository |
+| `Resources` | Resources compiled by the packages from the `.rc` files (styles of the Badge, the Expander, the StepProgressBar, the gauges and the charts, Tool Palette icons, version information); created when the packages are built, not in the repository |
 | `Graphics` | Source artwork: one folder for each control with its Tool Palette icon (24x24 bitmap, its SVG master and the resource script `XxxDesign.rc` compiled into the design-time package); `Soft4YouFMXControlSuite.svg` is the master of the icon of the suite, shown in the IDE splash screen and About box (`S4YSplash.bmp` and `S4YAbout.bmp`, 24x24), compiled with `Soft4You.FMX.Controls.SuiteD.rc` into `Soft4You.FMX.Controls.SuiteD.dcr` of each `Packages` folder |
 | `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files), `Icons` (toolbar icons of the desktop demo) |
 | `Demos\FlexBox` | Sample FMX dashboard built with `TS4YFlexBox` |
@@ -59,6 +61,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Docs\Expander` | Documentation of the Expander control: [`README.md`](Docs/Expander/README.md) |
 | `Docs\StepProgressBar` | Documentation of the StepProgressBar control: [`README.md`](Docs/StepProgressBar/README.md) |
 | `Docs\Gauges` | Documentation of the gauges: [`README.md`](Docs/Gauges/README.md) |
+| `Docs\Charts` | Documentation of the charts: [`README.md`](Docs/Charts/README.md) |
 | `Tests\FlexBox` | DUnitX tests of the FlexBox layout engine |
 | `Tests\BlockScrollBox` | DUnitX tests of the block flow of `TS4YBlockScrollBox` |
 
@@ -85,7 +88,7 @@ The suite has two packages, in a folder for each version of Delphi (`Packages\D1
 2. Build the runtime package `Soft4You.FMX.Controls.Suite`.
 3. Build and install the design-time package `Soft4You.FMX.Controls.SuiteD`. It registers the controls, their property editors and the splash screen and About box of the suite.
    The 64-bit IDE (Delphi 12.3 and newer) loads only packages built for Windows 64-bit: select the **Windows 64-bit** platform for both packages, build them, and install `Soft4You.FMX.Controls.SuiteD` from the 64-bit IDE. The 32-bit IDE needs the **Windows 32-bit** build, as before.
-4. Add the folders of the controls you use (`Sources\HTMLEditor`, `Sources\FlexBox`, `Sources\BlockScrollBox`, `Sources\Badge`, `Sources\Expander`, `Sources\ColorSelector`, `Sources\StepProgressBar`, `Sources\Gauges`) to the Delphi library path; the FlexBox also needs `Sources\BlockScrollBox`, to compile your own projects with their units. Add also the folder `Resources`: the packages compile into it the resources with the styles of the Badge, the Expander, the StepProgressBar and the gauges, so build the packages before your projects. The demos find the units of the repository through the search path of their project.
+4. Add the folders of the controls you use (`Sources\HTMLEditor`, `Sources\FlexBox`, `Sources\BlockScrollBox`, `Sources\Badge`, `Sources\Expander`, `Sources\ColorSelector`, `Sources\StepProgressBar`, `Sources\Gauges`, `Sources\Charts`) to the Delphi library path; the FlexBox also needs `Sources\BlockScrollBox`, to compile your own projects with their units. Add also the folder `Resources`: the packages compile into it the resources with the styles of the Badge, the Expander, the StepProgressBar, the gauges and the charts, so build the packages before your projects. The demos find the units of the repository through the search path of their project.
 
 The compiled units and the demo executables are written in `Bin`; the `.bpl` and `.dcp` files of the packages go to the shared folders of the IDE.
 
@@ -143,7 +146,7 @@ The public API of every control is documented with DocXML comments (`/// <summar
 
 The suite is the work of Carlo Marona (Soft4You), who designs and directs it. Artificial intelligence was used for part of the controls, through [Claude](https://www.anthropic.com/claude) (Anthropic) and Claude Code:
 
-- `TS4YHTMLEditor`, `TS4YFlexBox`, `TS4YStepProgressBar`, `TS4YLinearGauge` and `TS4YCircularGauge` were developed with the assistance of Claude from the start.
+- `TS4YHTMLEditor`, `TS4YFlexBox`, `TS4YStepProgressBar`, `TS4YLinearGauge`, `TS4YCircularGauge` and `TS4YPieChart` were developed with the assistance of Claude from the start.
 - `TS4YBadge`, `TS4YExpander` and `TS4YColorSelector` were first written by Carlo Marona and later refined with the assistance of Claude, mainly `TS4YExpander`.
 
 ---
