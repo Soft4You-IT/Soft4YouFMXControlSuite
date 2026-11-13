@@ -1,0 +1,38 @@
+object TLayout
+  StyleName = 'S4YLinearGaugeStyle'
+  Align = Contents
+  HitTest = False
+  object TRectangle
+    StyleName = 'track'
+    Fill.Color = xFFE0E0E0
+    HitTest = False
+    Stroke.Kind = None
+    Visible = False
+    XRadius = 4.000000000000000000
+    YRadius = 4.000000000000000000
+  end
+  object TRectangle
+    StyleName = 'fill'
+    Fill.Color = xFF1E88E5
+    HitTest = False
+    Stroke.Kind = None
+    Visible = False
+    XRadius = 4.000000000000000000
+    YRadius = 4.000000000000000000
+  end
+  object TText
+    StyleName = 'valuetext'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.Font.Style = [fsBold]
+    TextSettings.FontColor = xFF212121
+    Visible = False
+  end
+  object TText
+    StyleName = 'captiontext'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.FontColor = xFF616161
+    Visible = False
+  end
+end

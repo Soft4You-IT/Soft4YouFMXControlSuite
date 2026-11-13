@@ -49,6 +49,7 @@ contains
   Soft4You.FMX.Controls.BlockScrollBox.Register in '..\..\Sources\BlockScrollBox\Soft4You.FMX.Controls.BlockScrollBox.Register.pas',
   Soft4You.FMX.Controls.ColorSelector.Register in '..\..\Sources\ColorSelector\Soft4You.FMX.Controls.ColorSelector.Register.pas',
   Soft4You.FMX.Controls.StepProgressBar.Design in '..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Design.pas',
-  Soft4You.FMX.Controls.StepProgressBar.Register in '..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Register.pas';
+  Soft4You.FMX.Controls.StepProgressBar.Register in '..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Register.pas',
+  Soft4You.FMX.Controls.Gauge.Register in '..\..\Sources\Gauge\Soft4You.FMX.Controls.Gauge.Register.pas';
 
 end.
