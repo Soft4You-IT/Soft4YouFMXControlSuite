@@ -24,14 +24,15 @@ implementation
 
 uses
   System.Classes,
-  Soft4You.FMX.Controls.Charts.Pie;
+  Soft4You.FMX.Controls.Charts.Pie,
+  Soft4You.FMX.Controls.Charts.Bar;
 
 procedure Register;
 begin
   // The icons are read automatically from the bitmap resources whose names
   // match the class names in upper case ('TS4YPIECHART'), compiled into
   // the .res from ChartsDesign.rc.
-  RegisterComponents('Soft4You FMX Controls Suite', [TS4YPieChart]);
+  RegisterComponents('Soft4You FMX Controls Suite', [TS4YPieChart, TS4YBarChart]);
 end;
 
 end.

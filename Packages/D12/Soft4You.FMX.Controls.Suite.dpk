@@ -70,6 +70,8 @@ contains
   Soft4You.FMX.Controls.Charts.Types in '..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Types.pas',
   Soft4You.FMX.Controls.Charts in '..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.pas',
   Soft4You.FMX.Controls.Charts.Bindings in '..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Bindings.pas',
-  Soft4You.FMX.Controls.Charts.Pie in '..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Pie.pas';
+  Soft4You.FMX.Controls.Charts.Pie in '..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Pie.pas',
+  Soft4You.FMX.Controls.Charts.Categories in '..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Categories.pas',
+  Soft4You.FMX.Controls.Charts.Bar in '..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Bar.pas';
 
 end.
