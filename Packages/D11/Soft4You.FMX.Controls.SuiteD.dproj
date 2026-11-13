@@ -208,6 +208,7 @@
         <DCCReference Include="..\..\Sources\ColorSelector\Soft4You.FMX.Controls.ColorSelector.Register.pas"/>
         <DCCReference Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Design.pas"/>
         <DCCReference Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Register.pas"/>
+        <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.Register.pas"/>
         <RcCompile Include="..\..\Graphics\HTMLEditor\HTMLEditorDesign.rc">
             <Form>HTMLEditorDesign.res</Form>
         </RcCompile>
@@ -228,6 +229,9 @@
         </RcCompile>
         <RcCompile Include="..\..\Graphics\StepProgressBar\StepProgressBarDesign.rc">
             <Form>StepProgressBarDesign.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Graphics\Gauges\GaugesDesign.rc">
+            <Form>GaugesDesign.res</Form>
         </RcCompile>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

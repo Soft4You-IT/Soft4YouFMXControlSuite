@@ -62,6 +62,10 @@ contains
   Soft4You.FMX.Controls.ColorSelector in '..\..\Sources\ColorSelector\Soft4You.FMX.Controls.ColorSelector.pas',
   Soft4You.FMX.Controls.StepProgressBar.Types in '..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Types.pas',
   Soft4You.FMX.Controls.StepProgressBar.Strings in '..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Strings.pas',
-  Soft4You.FMX.Controls.StepProgressBar in '..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.pas';
+  Soft4You.FMX.Controls.StepProgressBar in '..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.pas',
+  Soft4You.FMX.Controls.Gauges.Types in '..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.Types.pas',
+  Soft4You.FMX.Controls.Gauges in '..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.pas',
+  Soft4You.FMX.Controls.Gauges.Linear in '..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.pas',
+  Soft4You.FMX.Controls.Gauges.Circular in '..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.pas';
 
 end.

@@ -1,0 +1,38 @@
+object TLayout
+  StyleName = 'S4YCircularGaugeStyle'
+  Align = Contents
+  HitTest = False
+  object TArc
+    StyleName = 'track'
+    Fill.Kind = None
+    HitTest = False
+    Stroke.Cap = Round
+    Stroke.Color = xFFE0E0E0
+    Stroke.Thickness = 12.000000000000000000
+    Visible = False
+  end
+  object TArc
+    StyleName = 'fill'
+    Fill.Kind = None
+    HitTest = False
+    Stroke.Cap = Round
+    Stroke.Color = xFF1E88E5
+    Stroke.Thickness = 12.000000000000000000
+    Visible = False
+  end
+  object TText
+    StyleName = 'valuetext'
+    HitTest = False
+    TextSettings.Font.Size = 24.000000000000000000
+    TextSettings.Font.Style = [fsBold]
+    TextSettings.FontColor = xFF212121
+    Visible = False
+  end
+  object TText
+    StyleName = 'captiontext'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.FontColor = xFF616161
+    Visible = False
+  end
+end
