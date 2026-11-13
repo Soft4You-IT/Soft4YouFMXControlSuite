@@ -53,6 +53,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Demos\Expander` | Sample FMX application with three `TS4YExpander`: a badge on the header, the animation and the header click |
 | `Demos\StepProgressBar` | Sample FMX application with two `TS4YStepProgressBar`: the steps of an installation, moved by buttons, and the steps of a wizard, chosen with a click |
 | `Demos\Gauges` | Sample FMX applications with `TS4YLinearGauge` and `TS4YCircularGauge`: the settings of the gauges, and a gallery of examples |
+| `Demos\Charts` | Sample FMX applications with `TS4YPieChart`, `TS4YBarChart` and `TS4YLineChart`: the settings of the charts, and a gallery of examples with a tab for the LiveBindings |
 | `Docs\HTMLEditor` | Documentation of the HTML editor: [`README.md`](Docs/HTMLEditor/README.md) (installation, properties, methods, events), [`DeveloperGuide.md`](Docs/HTMLEditor/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals) |
 | `Docs\FlexBox` | Documentation of the FlexBox control: [`README.md`](Docs/FlexBox/README.md) (installation, properties, examples) |
 | `Docs\BlockScrollBox` | Documentation of the BlockScrollBox control: [`README.md`](Docs/BlockScrollBox/README.md) |

@@ -1,0 +1,1193 @@
+object ChartsGalleryForm: TChartsGalleryForm
+  Left = 0
+  Top = 0
+  Caption = 'TS4YPieChart, TS4YBarChart and TS4YLineChart gallery'
+  ClientHeight = 600
+  ClientWidth = 1000
+  Position = ScreenCenter
+  StyleBook = GalleryStyleBook
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object GalleryTabControl: TTabControl
+    Align = Client
+    Size.Width = 1000.000000000000000000
+    Size.Height = 600.000000000000000000
+    Size.PlatformDefault = False
+    TabIndex = 0
+    TabOrder = 0
+    TabPosition = PlatformDefault
+    object PieTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = True
+      Size.Width = 96.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Pie'
+      ExplicitSize.cx = 96.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object PieLabel: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 12.000000000000000000
+        Size.Width = 940.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 'TS4YPieChart: a pie with the percents, a ring with the total in the middle, and the captions outside the slices, with the legend below.'
+      end
+      object PercentPie: TS4YPieChart
+        Position.X = 24.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 300.000000000000000000
+        Size.Height = 260.000000000000000000
+        Size.PlatformDefault = False
+        Slices = <
+          item
+            Caption = 'Online'
+            Value = 120.000000000000000000
+          end
+          item
+            Caption = 'Shops'
+            Value = 80.000000000000000000
+          end
+          item
+            Caption = 'Phone'
+            Value = 45.000000000000000000
+          end
+          item
+            Caption = 'Partners'
+            Value = 30.000000000000000000
+          end>
+      end
+      object RingPie: TS4YPieChart
+        Position.X = 344.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 300.000000000000000000
+        Size.Height = 260.000000000000000000
+        Size.PlatformDefault = False
+        InnerRadius = 60.000000000000000000
+        ShowTotal = True
+        CenterCaption = 'orders'
+        LabelContent = plcValue
+        Slices = <
+          item
+            Caption = 'Online'
+            Value = 120.000000000000000000
+          end
+          item
+            Caption = 'Shops'
+            Value = 80.000000000000000000
+          end
+          item
+            Caption = 'Phone'
+            Value = 45.000000000000000000
+          end
+          item
+            Caption = 'Partners'
+            Value = 30.000000000000000000
+          end>
+      end
+      object OutsidePie: TS4YPieChart
+        Position.X = 664.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 300.000000000000000000
+        Size.Height = 260.000000000000000000
+        Size.PlatformDefault = False
+        LabelContent = plcCaption
+        LabelPosition = plpOutside
+        Legend.Position = clpBottom
+        StartAngle = -45.000000000000000000
+        Slices = <
+          item
+            Caption = 'Online'
+            Value = 120.000000000000000000
+          end
+          item
+            Caption = 'Shops'
+            Value = 80.000000000000000000
+          end
+          item
+            Caption = 'Phone'
+            Value = 45.000000000000000000
+          end
+          item
+            Caption = 'Partners'
+            Value = 30.000000000000000000
+          end>
+      end
+    end
+    object BarTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = False
+      Size.Width = 96.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 1
+      Text = 'Bars'
+      ExplicitSize.cx = 96.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object BarLabel: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 12.000000000000000000
+        Size.Width = 940.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 'TS4YBarChart: two series with the values over the bars, horizontal bars, and negative values below 0.'
+      end
+      object ValuesBar: TS4YBarChart
+        Position.X = 24.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 300.000000000000000000
+        Size.Height = 280.000000000000000000
+        Size.PlatformDefault = False
+        Legend.Position = clpTop
+        ShowValues = True
+        Series = <
+          item
+            Caption = '2026'
+          end
+          item
+            Caption = '2025'
+          end>
+        Categories = <
+          item
+            Caption = 'Jan'
+            Values = '42;30'
+          end
+          item
+            Caption = 'Feb'
+            Values = '55;41'
+          end
+          item
+            Caption = 'Mar'
+            Values = '48;52'
+          end
+          item
+            Caption = 'Apr'
+            Values = '70;49'
+          end>
+      end
+      object HorizontalBar: TS4YBarChart
+        Position.X = 344.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 300.000000000000000000
+        Size.Height = 280.000000000000000000
+        Size.PlatformDefault = False
+        Legend.Position = clpNone
+        Orientation = Horizontal
+        ShowValues = True
+        BarWidth = 60.000000000000000000
+        Series = <
+          item
+            Caption = 'Visits'
+          end>
+        Categories = <
+          item
+            Caption = 'Home'
+            Values = '1250'
+          end
+          item
+            Caption = 'Products'
+            Values = '980'
+          end
+          item
+            Caption = 'Blog'
+            Values = '640'
+          end
+          item
+            Caption = 'Contacts'
+            Values = '310'
+          end>
+      end
+      object ProfitBar: TS4YBarChart
+        Position.X = 664.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 300.000000000000000000
+        Size.Height = 280.000000000000000000
+        Size.PlatformDefault = False
+        Legend.Position = clpNone
+        ShowValues = True
+        ValueFormat = '%.0f k'
+        Series = <
+          item
+            Caption = 'Profit'
+          end>
+        Categories = <
+          item
+            Caption = 'Q1'
+            Values = '12'
+          end
+          item
+            Caption = 'Q2'
+            Values = '-8'
+          end
+          item
+            Caption = 'Q3'
+            Values = '20'
+          end
+          item
+            Caption = 'Q4'
+            Values = '15'
+          end>
+      end
+    end
+    object LineTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = False
+      Size.Width = 96.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 2
+      Text = 'Lines'
+      ExplicitSize.cx = 96.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object LineLabel: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 12.000000000000000000
+        Size.Width = 940.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 'TS4YLineChart: two years compared, and a single series with the area filled and without points.'
+      end
+      object TwoSeriesLine: TS4YLineChart
+        Position.X = 24.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 460.000000000000000000
+        Size.Height = 300.000000000000000000
+        Size.PlatformDefault = False
+        Legend.Position = clpTop
+        Series = <
+          item
+            Caption = '2026'
+          end
+          item
+            Caption = '2025'
+          end>
+        Categories = <
+          item
+            Caption = 'Jan'
+            Values = '42;30'
+          end
+          item
+            Caption = 'Feb'
+            Values = '55;41'
+          end
+          item
+            Caption = 'Mar'
+            Values = '48;52'
+          end
+          item
+            Caption = 'Apr'
+            Values = '70;49'
+          end
+          item
+            Caption = 'May'
+            Values = '64;58'
+          end
+          item
+            Caption = 'Jun'
+            Values = '78;61'
+          end>
+      end
+      object AreaLine: TS4YLineChart
+        Position.X = 504.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 460.000000000000000000
+        Size.Height = 300.000000000000000000
+        Size.PlatformDefault = False
+        Legend.Position = clpNone
+        FillArea = True
+        ShowPoints = False
+        LineThickness = 3.000000000000000000
+        Series = <
+          item
+            Caption = 'Visits'
+          end>
+        Categories = <
+          item
+            Caption = 'Mon'
+            Values = '120'
+          end
+          item
+            Caption = 'Tue'
+            Values = '180'
+          end
+          item
+            Caption = 'Wed'
+            Values = '150'
+          end
+          item
+            Caption = 'Thu'
+            Values = '210'
+          end
+          item
+            Caption = 'Fri'
+            Values = '170'
+          end
+          item
+            Caption = 'Sat'
+            Values = '90'
+          end
+          item
+            Caption = 'Sun'
+            Values = '70'
+          end>
+      end
+    end
+    object StyleBookTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = False
+      Size.Width = 96.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 3
+      Text = 'Style book'
+      ExplicitSize.cx = 96.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object StyleBookLabel: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 12.000000000000000000
+        Size.Width = 940.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 'Styles of the TStyleBook of the form, chosen with StyleLookup: a ring without borders and pastel colors, round bars with dashed grid lines, thick points and area.'
+      end
+      object PastelPie: TS4YPieChart
+        Position.X = 24.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 300.000000000000000000
+        Size.Height = 280.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'PastelPieChartStyle'
+        InnerRadius = 70.000000000000000000
+        ShowTotal = True
+        CenterCaption = 'orders'
+        LabelContent = plcNone
+        Legend.Position = clpBottom
+        Slices = <
+          item
+            Caption = 'Online'
+            Value = 120.000000000000000000
+          end
+          item
+            Caption = 'Shops'
+            Value = 80.000000000000000000
+          end
+          item
+            Caption = 'Phone'
+            Value = 45.000000000000000000
+          end
+          item
+            Caption = 'Partners'
+            Value = 30.000000000000000000
+          end>
+      end
+      object RoundBar: TS4YBarChart
+        Position.X = 344.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 300.000000000000000000
+        Size.Height = 280.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'RoundBarChartStyle'
+        Legend.Position = clpTop
+        BarWidth = 80.000000000000000000
+        Series = <
+          item
+            Caption = '2026'
+          end
+          item
+            Caption = '2025'
+          end>
+        Categories = <
+          item
+            Caption = 'Jan'
+            Values = '42;30'
+          end
+          item
+            Caption = 'Feb'
+            Values = '55;41'
+          end
+          item
+            Caption = 'Mar'
+            Values = '48;52'
+          end
+          item
+            Caption = 'Apr'
+            Values = '70;49'
+          end>
+      end
+      object SoftLine: TS4YLineChart
+        Position.X = 664.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 300.000000000000000000
+        Size.Height = 280.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = 'SoftLineChartStyle'
+        Legend.Position = clpTop
+        FillArea = True
+        PointSize = 12.000000000000000000
+        LineThickness = 3.000000000000000000
+        Series = <
+          item
+            Caption = '2026'
+          end
+          item
+            Caption = '2025'
+          end>
+        Categories = <
+          item
+            Caption = 'Jan'
+            Values = '42;30'
+          end
+          item
+            Caption = 'Feb'
+            Values = '55;41'
+          end
+          item
+            Caption = 'Mar'
+            Values = '48;52'
+          end
+          item
+            Caption = 'Apr'
+            Values = '70;49'
+          end
+          item
+            Caption = 'May'
+            Values = '64;58'
+          end>
+      end
+    end
+    object DarkTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = False
+      Size.Width = 96.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 4
+      Text = 'Dark'
+      ExplicitSize.cx = 96.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object DarkBackground: TRectangle
+        Align = Client
+        Fill.Color = xFF263238
+        Size.Width = 1000.000000000000000000
+        Size.Height = 574.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        object DarkLabel: TLabel
+          Position.X = 24.000000000000000000
+          Position.Y = 12.000000000000000000
+          Size.Width = 940.000000000000000000
+          Size.Height = 40.000000000000000000
+          Size.PlatformDefault = False
+          StyledSettings = [Family, Size, Style]
+          TextSettings.FontColor = claWhite
+          TextSettings.VertAlign = Leading
+          Text = 'Styles for a dark background: DarkPieChartStyle, DarkBarChartStyle and DarkLineChartStyle.'
+        end
+        object DarkPie: TS4YPieChart
+          Position.X = 24.000000000000000000
+          Position.Y = 60.000000000000000000
+          Size.Width = 300.000000000000000000
+          Size.Height = 280.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'DarkPieChartStyle'
+          InnerRadius = 55.000000000000000000
+          ShowTotal = True
+          CenterCaption = 'orders'
+          Legend.Position = clpBottom
+          Slices = <
+            item
+              Caption = 'Online'
+              Value = 120.000000000000000000
+            end
+            item
+              Caption = 'Shops'
+              Value = 80.000000000000000000
+            end
+            item
+              Caption = 'Phone'
+              Value = 45.000000000000000000
+            end
+            item
+              Caption = 'Partners'
+              Value = 30.000000000000000000
+            end>
+        end
+        object DarkBar: TS4YBarChart
+          Position.X = 344.000000000000000000
+          Position.Y = 60.000000000000000000
+          Size.Width = 300.000000000000000000
+          Size.Height = 280.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'DarkBarChartStyle'
+          Legend.Position = clpTop
+          ShowValues = True
+          Series = <
+            item
+              Caption = '2026'
+            end
+            item
+              Caption = '2025'
+            end>
+          Categories = <
+            item
+              Caption = 'Jan'
+              Values = '42;30'
+            end
+            item
+              Caption = 'Feb'
+              Values = '55;41'
+            end
+            item
+              Caption = 'Mar'
+              Values = '48;52'
+            end
+            item
+              Caption = 'Apr'
+              Values = '70;49'
+            end>
+        end
+        object DarkLine: TS4YLineChart
+          Position.X = 664.000000000000000000
+          Position.Y = 60.000000000000000000
+          Size.Width = 300.000000000000000000
+          Size.Height = 280.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'DarkLineChartStyle'
+          Legend.Position = clpTop
+          FillArea = True
+          Series = <
+            item
+              Caption = '2026'
+            end
+            item
+              Caption = '2025'
+            end>
+          Categories = <
+            item
+              Caption = 'Jan'
+              Values = '42;30'
+            end
+            item
+              Caption = 'Feb'
+              Values = '55;41'
+            end
+            item
+              Caption = 'Mar'
+              Values = '48;52'
+            end
+            item
+              Caption = 'Apr'
+              Values = '70;49'
+            end
+            item
+              Caption = 'May'
+              Values = '64;58'
+            end
+            item
+              Caption = 'Jun'
+              Values = '78;61'
+            end>
+        end
+      end
+    end
+    object BindingsTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = False
+      Size.Width = 96.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 5
+      Text = 'LiveBindings'
+      ExplicitSize.cx = 96.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object BindingsLabel: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 12.000000000000000000
+        Size.Width = 940.000000000000000000
+        Size.Height = 56.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 'LiveBindings: a TFDMemTable linked by three TLinkGridToDataSource to the grid, the pie (Region, Sales; with a Palette of its own) and the bars (Region, Sales, Target). Edit the grid or use the navigator: the charts follow. Sales under 20000 are red (OnSliceBound), the targets gray (OnSeriesBound); a click on a chart moves the current record.'
+      end
+      object SalesNavigator: TBindNavigator
+        Position.X = 24.000000000000000000
+        Position.Y = 76.000000000000000000
+        Size.Width = 300.000000000000000000
+        Size.Height = 26.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        DataSource = SalesBindSource
+        xRadius = 4.000000000000000000
+        yRadius = 4.000000000000000000
+      end
+      object SalesGrid: TStringGrid
+        Position.X = 24.000000000000000000
+        Position.Y = 108.000000000000000000
+        Size.Width = 300.000000000000000000
+        Size.Height = 300.000000000000000000
+        Size.PlatformDefault = False
+        CanFocus = True
+        ClipChildren = True
+        TabOrder = 1
+      end
+      object SalesPie: TS4YPieChart
+        Position.X = 344.000000000000000000
+        Position.Y = 76.000000000000000000
+        Size.Width = 300.000000000000000000
+        Size.Height = 332.000000000000000000
+        Size.PlatformDefault = False
+        Legend.Position = clpBottom
+        LabelContent = plcValue
+        OnItemClick = SalesChartItemClick
+        OnSliceBound = SalesPieSliceBound
+        Palette = <
+          item
+            Color = xFF1E88E5
+          end
+          item
+            Color = xFFFB8C00
+          end
+          item
+            Color = xFF43A047
+          end
+          item
+            Color = xFF8E24AA
+          end>
+      end
+      object SalesBar: TS4YBarChart
+        Position.X = 664.000000000000000000
+        Position.Y = 76.000000000000000000
+        Size.Width = 300.000000000000000000
+        Size.Height = 332.000000000000000000
+        Size.PlatformDefault = False
+        Legend.Position = clpTop
+        OnItemClick = SalesChartItemClick
+        OnSeriesBound = SalesBarSeriesBound
+      end
+      object SalesStatusLabel: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 420.000000000000000000
+        Size.Width = 940.000000000000000000
+        Size.Height = 24.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text = 'Click a slice or a bar.'
+      end
+    end
+  end
+  object SalesTable: TFDMemTable
+    FetchOptions.AssignedValues = [evMode]
+    FetchOptions.Mode = fmAll
+    ResourceOptions.AssignedValues = [rvSilentMode]
+    ResourceOptions.SilentMode = True
+    UpdateOptions.AssignedValues = [uvCheckRequired, uvAutoCommitUpdates]
+    UpdateOptions.CheckRequired = False
+    UpdateOptions.AutoCommitUpdates = True
+    Left = 840
+    Top = 440
+    object SalesTableRegion: TStringField
+      FieldName = 'Region'
+      Size = 20
+    end
+    object SalesTableSales: TCurrencyField
+      FieldName = 'Sales'
+    end
+    object SalesTableTarget: TCurrencyField
+      FieldName = 'Target'
+    end
+  end
+  object SalesBindSource: TBindSourceDB
+    DataSet = SalesTable
+    ScopeMappings = <>
+    Left = 840
+    Top = 496
+  end
+  object GalleryBindingsList: TBindingsList
+    Methods = <>
+    OutputConverters = <>
+    Left = 920
+    Top = 440
+    object LinkGridToDataSourceGrid: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = SalesBindSource
+      GridControl = SalesGrid
+      Columns = <>
+    end
+    object LinkGridToDataSourcePie: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = SalesBindSource
+      GridControl = SalesPie
+      Columns = <
+        item
+          MemberName = 'Region'
+        end
+        item
+          MemberName = 'Sales'
+        end>
+    end
+    object LinkGridToDataSourceBar: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = SalesBindSource
+      GridControl = SalesBar
+      Columns = <
+        item
+          MemberName = 'Region'
+        end
+        item
+          MemberName = 'Sales'
+          Header = 'Sales'
+        end
+        item
+          MemberName = 'Target'
+          Header = 'Target'
+        end>
+    end
+  end
+  object GalleryStyleBook: TStyleBook
+    Left = 920
+    Top = 496
+    Styles = <
+      item
+        ResourcesBin = {
+          464D585F5354594C4520322E3501061350617374656C50696543686172745374
+          796C650347080612526F756E6442617243686172745374796C65037C08061253
+          6F66744C696E6543686172745374796C65035C0806114461726B506965436861
+          72745374796C6503440806114461726B42617243686172745374796C65036F08
+          06124461726B4C696E6543686172745374796C65036308005450463007544C61
+          796F757400095374796C654E616D65061350617374656C506965436861727453
+          74796C6505416C69676E0708436F6E74656E7473000A5452656374616E676C65
+          00095374796C654E616D650606636F6C6F72310A46696C6C2E436F6C6F720709
+          7846463745423645390748697454657374080A53697A652E5769647468050000
+          0000000000C804400B53697A652E4865696768740500000000000000C8044014
+          53697A652E506C6174666F726D44656661756C74080B5374726F6B652E4B696E
+          6407044E6F6E650756697369626C650800000A5452656374616E676C65000953
+          74796C654E616D650606636F6C6F72320A46696C6C2E436F6C6F720709784646
+          4636423236420748697454657374080A53697A652E5769647468050000000000
+          0000C804400B53697A652E4865696768740500000000000000C804401453697A
+          652E506C6174666F726D44656661756C74080B5374726F6B652E4B696E640704
+          4E6F6E650756697369626C650800000A5452656374616E676C6500095374796C
+          654E616D650606636F6C6F72330A46696C6C2E436F6C6F720709784646393343
+          3437440748697454657374080A53697A652E57696474680500000000000000C8
+          04400B53697A652E4865696768740500000000000000C804401453697A652E50
+          6C6174666F726D44656661756C74080B5374726F6B652E4B696E6407044E6F6E
+          650756697369626C650800000A5452656374616E676C6500095374796C654E61
+          6D650606636F6C6F72340A46696C6C2E436F6C6F720709784646433941304443
+          0748697454657374080A53697A652E57696474680500000000000000C804400B
+          53697A652E4865696768740500000000000000C804401453697A652E506C6174
+          666F726D44656661756C74080B5374726F6B652E4B696E6407044E6F6E650756
+          697369626C650800000A5452656374616E676C6500095374796C654E616D6506
+          06636F6C6F72350A46696C6C2E436F6C6F720709784646454139393939074869
+          7454657374080A53697A652E57696474680500000000000000C804400B53697A
+          652E4865696768740500000000000000C804401453697A652E506C6174666F72
+          6D44656661756C74080B5374726F6B652E4B696E6407044E6F6E650756697369
+          626C650800000A5452656374616E676C6500095374796C654E616D650606636F
+          6C6F72360A46696C6C2E436F6C6F720709784646373644374334074869745465
+          7374080A53697A652E57696474680500000000000000C804400B53697A652E48
+          65696768740500000000000000C804401453697A652E506C6174666F726D4465
+          6661756C74080B5374726F6B652E4B696E6407044E6F6E650756697369626C65
+          0800000A5452656374616E676C6500095374796C654E616D650606636F6C6F72
+          370A46696C6C2E436F6C6F720709784646464645353939074869745465737408
+          0A53697A652E57696474680500000000000000C804400B53697A652E48656967
+          68740500000000000000C804401453697A652E506C6174666F726D4465666175
+          6C74080B5374726F6B652E4B696E6407044E6F6E650756697369626C65080000
+          0A5452656374616E676C6500095374796C654E616D650606636F6C6F72380A46
+          696C6C2E436F6C6F7207097846464234413744360748697454657374080A5369
+          7A652E57696474680500000000000000C804400B53697A652E48656967687405
+          00000000000000C804401453697A652E506C6174666F726D44656661756C7408
+          0B5374726F6B652E4B696E6407044E6F6E650756697369626C650800000A5452
+          656374616E676C6500095374796C654E616D650605736C6963650946696C6C2E
+          4B696E6407044E6F6E650748697454657374080A53697A652E57696474680500
+          000000000000C804400B53697A652E4865696768740500000000000000C80440
+          1453697A652E506C6174666F726D44656661756C74080B5374726F6B652E4B69
+          6E6407044E6F6E650756697369626C6508000005545465787400095374796C65
+          4E616D6506096C6162656C746578740748697454657374081654657874536574
+          74696E67732E466F6E742E53697A650500000000000000B002401A5465787453
+          657474696E67732E466F6E742E5374796C654578740A0D000000000700000000
+          00000004000000165465787453657474696E67732E466F6E74436F6C6F720709
+          7846463337343734460756697369626C6508000005545465787400095374796C
+          654E616D65060E6F757465726C6162656C746578740748697454657374081654
+          65787453657474696E67732E466F6E742E53697A650500000000000000B00240
+          165465787453657474696E67732E466F6E74436F6C6F72070978464635343645
+          37410756697369626C6508000005545465787400095374796C654E616D65060A
+          6C6567656E6474657874074869745465737408165465787453657474696E6773
+          2E466F6E74436F6C6F7207097846463534364537410756697369626C65080000
+          05545465787400095374796C654E616D65060A63656E74657274657874074869
+          745465737408165465787453657474696E67732E466F6E742E53697A65050000
+          0000000000D003401A5465787453657474696E67732E466F6E742E5374796C65
+          4578740A0D00000000070000000000000004000000165465787453657474696E
+          67732E466F6E74436F6C6F7207097846463337343734460756697369626C6508
+          000005545465787400095374796C654E616D65061163656E7465726361707469
+          6F6E74657874074869745465737408165465787453657474696E67732E466F6E
+          742E53697A650500000000000000B00240165465787453657474696E67732E46
+          6F6E74436F6C6F7207097846463930413441450756697369626C650800000054
+          50463007544C61796F757400095374796C654E616D650612526F756E64426172
+          43686172745374796C6505416C69676E0708436F6E74656E7473000A54526563
+          74616E676C6500095374796C654E616D650606636F6C6F72310A46696C6C2E43
+          6F6C6F7207097846463543364243300748697454657374080A53697A652E5769
+          6474680500000000000000C804400B53697A652E486569676874050000000000
+          0000C804401453697A652E506C6174666F726D44656661756C74080B5374726F
+          6B652E4B696E6407044E6F6E650756697369626C650800000A5452656374616E
+          676C6500095374796C654E616D650606636F6C6F72320A46696C6C2E436F6C6F
+          7207097846463236413639410748697454657374080A53697A652E5769647468
+          0500000000000000C804400B53697A652E4865696768740500000000000000C8
+          04401453697A652E506C6174666F726D44656661756C74080B5374726F6B652E
+          4B696E6407044E6F6E650756697369626C650800000A5452656374616E676C65
+          00095374796C654E616D650606636F6C6F72330A46696C6C2E436F6C6F720709
+          7846464646413732360748697454657374080A53697A652E5769647468050000
+          0000000000C804400B53697A652E4865696768740500000000000000C8044014
+          53697A652E506C6174666F726D44656661756C74080B5374726F6B652E4B696E
+          6407044E6F6E650756697369626C650800000A5452656374616E676C65000953
+          74796C654E616D650606636F6C6F72340A46696C6C2E436F6C6F720709784646
+          4546353335300748697454657374080A53697A652E5769647468050000000000
+          0000C804400B53697A652E4865696768740500000000000000C804401453697A
+          652E506C6174666F726D44656661756C74080B5374726F6B652E4B696E640704
+          4E6F6E650756697369626C650800000A5452656374616E676C6500095374796C
+          654E616D650606636F6C6F72350A46696C6C2E436F6C6F720709784646384436
+          4536330748697454657374080A53697A652E57696474680500000000000000C8
+          04400B53697A652E4865696768740500000000000000C804401453697A652E50
+          6C6174666F726D44656661756C74080B5374726F6B652E4B696E6407044E6F6E
+          650756697369626C650800000A5452656374616E676C6500095374796C654E61
+          6D650606636F6C6F72360A46696C6C2E436F6C6F720709784646373839303943
+          0748697454657374080A53697A652E57696474680500000000000000C804400B
+          53697A652E4865696768740500000000000000C804401453697A652E506C6174
+          666F726D44656661756C74080B5374726F6B652E4B696E6407044E6F6E650756
+          697369626C650800000A5452656374616E676C6500095374796C654E616D6506
+          06636F6C6F72370A46696C6C2E436F6C6F720709784646414234374243074869
+          7454657374080A53697A652E57696474680500000000000000C804400B53697A
+          652E4865696768740500000000000000C804401453697A652E506C6174666F72
+          6D44656661756C74080B5374726F6B652E4B696E6407044E6F6E650756697369
+          626C650800000A5452656374616E676C6500095374796C654E616D650606636F
+          6C6F72380A46696C6C2E436F6C6F720709784646394343433635074869745465
+          7374080A53697A652E57696474680500000000000000C804400B53697A652E48
+          65696768740500000000000000C804401453697A652E506C6174666F726D4465
+          6661756C74080B5374726F6B652E4B696E6407044E6F6E650756697369626C65
+          0800000A5452656374616E676C6500095374796C654E616D6506036261720748
+          697454657374080A53697A652E57696474680500000000000000C804400B5369
+          7A652E4865696768740500000000000000C804401453697A652E506C6174666F
+          726D44656661756C74080B5374726F6B652E4B696E6407044E6F6E6507566973
+          69626C650807585261646975730500000000000000A002400759526164697573
+          0500000000000000A0024000000A5452656374616E676C6500095374796C654E
+          616D650604617869730946696C6C2E4B696E6407044E6F6E6507486974546573
+          74080A53697A652E57696474680500000000000000C804400B53697A652E4865
+          696768740500000000000000C804401453697A652E506C6174666F726D446566
+          61756C74080B5374726F6B652E4B696E6407044E6F6E650756697369626C6508
+          00000A5452656374616E676C6500095374796C654E616D650608677269646C69
+          6E650946696C6C2E4B696E6407044E6F6E650748697454657374080A53697A65
+          2E57696474680500000000000000C804400B53697A652E486569676874050000
+          0000000000C804401453697A652E506C6174666F726D44656661756C74080C53
+          74726F6B652E436F6C6F7207097846464543454646310B5374726F6B652E4461
+          73680704446173680756697369626C6508000005545465787400095374796C65
+          4E616D6506086178697374657874074869745465737408165465787453657474
+          696E67732E466F6E742E53697A650500000000000000B0024016546578745365
+          7474696E67732E466F6E74436F6C6F7207097846463930413441450756697369
+          626C6508000005545465787400095374796C654E616D6506096C6162656C7465
+          7874074869745465737408165465787453657474696E67732E466F6E742E5369
+          7A650500000000000000B002401A5465787453657474696E67732E466F6E742E
+          5374796C654578740A0D00000000070000000000000004000000165465787453
+          657474696E67732E466F6E74436F6C6F72070978464633373437344607566973
+          69626C6508000005545465787400095374796C654E616D65060A6C6567656E64
+          74657874074869745465737408165465787453657474696E67732E466F6E7443
+          6F6C6F7207097846463534364537410756697369626C65080000005450463007
+          544C61796F757400095374796C654E616D650612536F66744C696E6543686172
+          745374796C6505416C69676E0708436F6E74656E7473000A5452656374616E67
+          6C6500095374796C654E616D650606636F6C6F72310A46696C6C2E436F6C6F72
+          07097846463845323441410748697454657374080A53697A652E576964746805
+          00000000000000C804400B53697A652E4865696768740500000000000000C804
+          401453697A652E506C6174666F726D44656661756C74080B5374726F6B652E4B
+          696E6407044E6F6E650756697369626C650800000A5452656374616E676C6500
+          095374796C654E616D650606636F6C6F72320A46696C6C2E436F6C6F72070978
+          46463030383937420748697454657374080A53697A652E576964746805000000
+          00000000C804400B53697A652E4865696768740500000000000000C804401453
+          697A652E506C6174666F726D44656661756C74080B5374726F6B652E4B696E64
+          07044E6F6E650756697369626C650800000A5452656374616E676C6500095374
+          796C654E616D650606636F6C6F72330A46696C6C2E436F6C6F72070978464646
+          42384330300748697454657374080A53697A652E576964746805000000000000
+          00C804400B53697A652E4865696768740500000000000000C804401453697A65
+          2E506C6174666F726D44656661756C74080B5374726F6B652E4B696E6407044E
+          6F6E650756697369626C650800000A5452656374616E676C6500095374796C65
+          4E616D650606636F6C6F72340A46696C6C2E436F6C6F72070978464631453838
+          45350748697454657374080A53697A652E57696474680500000000000000C804
+          400B53697A652E4865696768740500000000000000C804401453697A652E506C
+          6174666F726D44656661756C74080B5374726F6B652E4B696E6407044E6F6E65
+          0756697369626C650800000A5452656374616E676C6500095374796C654E616D
+          650606636F6C6F72350A46696C6C2E436F6C6F72070978464645353339333507
+          48697454657374080A53697A652E57696474680500000000000000C804400B53
+          697A652E4865696768740500000000000000C804401453697A652E506C617466
+          6F726D44656661756C74080B5374726F6B652E4B696E6407044E6F6E65075669
+          7369626C650800000A5452656374616E676C6500095374796C654E616D650606
+          636F6C6F72360A46696C6C2E436F6C6F72070978464634334130343707486974
+          54657374080A53697A652E57696474680500000000000000C804400B53697A65
+          2E4865696768740500000000000000C804401453697A652E506C6174666F726D
+          44656661756C74080B5374726F6B652E4B696E6407044E6F6E65075669736962
+          6C650800000A5452656374616E676C6500095374796C654E616D650606636F6C
+          6F72370A46696C6C2E436F6C6F72070978464636443443343107486974546573
+          74080A53697A652E57696474680500000000000000C804400B53697A652E4865
+          696768740500000000000000C804401453697A652E506C6174666F726D446566
+          61756C74080B5374726F6B652E4B696E6407044E6F6E650756697369626C6508
+          00000A5452656374616E676C6500095374796C654E616D650606636F6C6F7238
+          0A46696C6C2E436F6C6F7207097846463339343941420748697454657374080A
+          53697A652E57696474680500000000000000C804400B53697A652E4865696768
+          740500000000000000C804401453697A652E506C6174666F726D44656661756C
+          74080B5374726F6B652E4B696E6407044E6F6E650756697369626C6508000008
+          54456C6C6970736500095374796C654E616D650605706F696E74074869745465
+          7374080A53697A652E57696474680500000000000000C804400B53697A652E48
+          65696768740500000000000000C804401453697A652E506C6174666F726D4465
+          6661756C74080C5374726F6B652E436F6C6F720708636C615768697465105374
+          726F6B652E546869636B6E6573730500000000000000C000400756697369626C
+          650800000A5452656374616E676C6500095374796C654E616D65060461726561
+          074869745465737408074F706163697479050000000000000080FD3F0A53697A
+          652E57696474680500000000000000C804400B53697A652E4865696768740500
+          000000000000C804401453697A652E506C6174666F726D44656661756C74080B
+          5374726F6B652E4B696E6407044E6F6E650756697369626C650800000A545265
+          6374616E676C6500095374796C654E616D650604617869730946696C6C2E4B69
+          6E6407044E6F6E650748697454657374080A53697A652E576964746805000000
+          00000000C804400B53697A652E4865696768740500000000000000C804401453
+          697A652E506C6174666F726D44656661756C74080C5374726F6B652E436F6C6F
+          7207097846464230424543350756697369626C650800000A5452656374616E67
+          6C6500095374796C654E616D650608677269646C696E650946696C6C2E4B696E
+          6407044E6F6E650748697454657374080A53697A652E57696474680500000000
+          000000C804400B53697A652E4865696768740500000000000000C80440145369
+          7A652E506C6174666F726D44656661756C74080B5374726F6B652E4B696E6407
+          044E6F6E650756697369626C6508000005545465787400095374796C654E616D
+          6506086178697374657874074869745465737408165465787453657474696E67
+          732E466F6E742E53697A650500000000000000B0024016546578745365747469
+          6E67732E466F6E74436F6C6F7207097846463738393039430756697369626C65
+          08000005545465787400095374796C654E616D65060A6C6567656E6474657874
+          074869745465737408165465787453657474696E67732E466F6E74436F6C6F72
+          07097846463534364537410756697369626C65080000005450463007544C6179
+          6F757400095374796C654E616D6506114461726B50696543686172745374796C
+          6505416C69676E0708436F6E74656E7473000A5452656374616E676C65000953
+          74796C654E616D650606636F6C6F72310A46696C6C2E436F6C6F720709784646
+          3446433346370748697454657374080A53697A652E5769647468050000000000
+          0000C804400B53697A652E4865696768740500000000000000C804401453697A
+          652E506C6174666F726D44656661756C74080B5374726F6B652E4B696E640704
+          4E6F6E650756697369626C650800000A5452656374616E676C6500095374796C
+          654E616D650606636F6C6F72320A46696C6C2E436F6C6F720709784646464642
+          3734440748697454657374080A53697A652E57696474680500000000000000C8
+          04400B53697A652E4865696768740500000000000000C804401453697A652E50
+          6C6174666F726D44656661756C74080B5374726F6B652E4B696E6407044E6F6E
+          650756697369626C650800000A5452656374616E676C6500095374796C654E61
+          6D650606636F6C6F72330A46696C6C2E436F6C6F720709784646383143373834
+          0748697454657374080A53697A652E57696474680500000000000000C804400B
+          53697A652E4865696768740500000000000000C804401453697A652E506C6174
+          666F726D44656661756C74080B5374726F6B652E4B696E6407044E6F6E650756
+          697369626C650800000A5452656374616E676C6500095374796C654E616D6506
+          06636F6C6F72340A46696C6C2E436F6C6F720709784646424136384338074869
+          7454657374080A53697A652E57696474680500000000000000C804400B53697A
+          652E4865696768740500000000000000C804401453697A652E506C6174666F72
+          6D44656661756C74080B5374726F6B652E4B696E6407044E6F6E650756697369
+          626C650800000A5452656374616E676C6500095374796C654E616D650606636F
+          6C6F72350A46696C6C2E436F6C6F720709784646453537333733074869745465
+          7374080A53697A652E57696474680500000000000000C804400B53697A652E48
+          65696768740500000000000000C804401453697A652E506C6174666F726D4465
+          6661756C74080B5374726F6B652E4B696E6407044E6F6E650756697369626C65
+          0800000A5452656374616E676C6500095374796C654E616D650606636F6C6F72
+          360A46696C6C2E436F6C6F720709784646344442364143074869745465737408
+          0A53697A652E57696474680500000000000000C804400B53697A652E48656967
+          68740500000000000000C804401453697A652E506C6174666F726D4465666175
+          6C74080B5374726F6B652E4B696E6407044E6F6E650756697369626C65080000
+          0A5452656374616E676C6500095374796C654E616D650606636F6C6F72370A46
+          696C6C2E436F6C6F7207097846464646463137360748697454657374080A5369
+          7A652E57696474680500000000000000C804400B53697A652E48656967687405
+          00000000000000C804401453697A652E506C6174666F726D44656661756C7408
+          0B5374726F6B652E4B696E6407044E6F6E650756697369626C650800000A5452
+          656374616E676C6500095374796C654E616D650606636F6C6F72380A46696C6C
+          2E436F6C6F7207097846464131383837460748697454657374080A53697A652E
+          57696474680500000000000000C804400B53697A652E48656967687405000000
+          00000000C804401453697A652E506C6174666F726D44656661756C74080B5374
+          726F6B652E4B696E6407044E6F6E650756697369626C650800000A5452656374
+          616E676C6500095374796C654E616D650605736C6963650946696C6C2E4B696E
+          6407044E6F6E650748697454657374080A53697A652E57696474680500000000
+          000000C804400B53697A652E4865696768740500000000000000C80440145369
+          7A652E506C6174666F726D44656661756C74080C5374726F6B652E436F6C6F72
+          0709784646323633323338105374726F6B652E546869636B6E65737305000000
+          000000008000400756697369626C6508000005545465787400095374796C654E
+          616D6506096C6162656C74657874074869745465737408165465787453657474
+          696E67732E466F6E742E53697A650500000000000000B002401A546578745365
+          7474696E67732E466F6E742E5374796C654578740A0D00000000070000000000
+          000004000000165465787453657474696E67732E466F6E74436F6C6F72070978
+          46463236333233380756697369626C6508000005545465787400095374796C65
+          4E616D65060E6F757465726C6162656C74657874074869745465737408165465
+          787453657474696E67732E466F6E742E53697A650500000000000000B0024016
+          5465787453657474696E67732E466F6E74436F6C6F7207097846464230424543
+          350756697369626C6508000005545465787400095374796C654E616D65060A6C
+          6567656E6474657874074869745465737408165465787453657474696E67732E
+          466F6E74436F6C6F7207097846464346443844430756697369626C6508000005
+          545465787400095374796C654E616D65060A63656E7465727465787407486974
+          5465737408165465787453657474696E67732E466F6E742E53697A6505000000
+          00000000B003401A5465787453657474696E67732E466F6E742E5374796C6545
+          78740A0D00000000070000000000000004000000165465787453657474696E67
+          732E466F6E74436F6C6F720708636C6157686974650756697369626C65080000
+          05545465787400095374796C654E616D65061163656E74657263617074696F6E
+          74657874074869745465737408165465787453657474696E67732E466F6E7443
+          6F6C6F7207097846463930413441450756697369626C65080000005450463007
+          544C61796F757400095374796C654E616D6506114461726B4261724368617274
+          5374796C6505416C69676E0708436F6E74656E7473000A5452656374616E676C
+          6500095374796C654E616D650606636F6C6F72310A46696C6C2E436F6C6F7207
+          097846463446433346370748697454657374080A53697A652E57696474680500
+          000000000000C804400B53697A652E4865696768740500000000000000C80440
+          1453697A652E506C6174666F726D44656661756C74080B5374726F6B652E4B69
+          6E6407044E6F6E650756697369626C650800000A5452656374616E676C650009
+          5374796C654E616D650606636F6C6F72320A46696C6C2E436F6C6F7207097846
+          464646423734440748697454657374080A53697A652E57696474680500000000
+          000000C804400B53697A652E4865696768740500000000000000C80440145369
+          7A652E506C6174666F726D44656661756C74080B5374726F6B652E4B696E6407
+          044E6F6E650756697369626C650800000A5452656374616E676C650009537479
+          6C654E616D650606636F6C6F72330A46696C6C2E436F6C6F7207097846463831
+          433738340748697454657374080A53697A652E57696474680500000000000000
+          C804400B53697A652E4865696768740500000000000000C804401453697A652E
+          506C6174666F726D44656661756C74080B5374726F6B652E4B696E6407044E6F
+          6E650756697369626C650800000A5452656374616E676C6500095374796C654E
+          616D650606636F6C6F72340A46696C6C2E436F6C6F7207097846464241363843
+          380748697454657374080A53697A652E57696474680500000000000000C80440
+          0B53697A652E4865696768740500000000000000C804401453697A652E506C61
+          74666F726D44656661756C74080B5374726F6B652E4B696E6407044E6F6E6507
+          56697369626C650800000A5452656374616E676C6500095374796C654E616D65
+          0606636F6C6F72350A46696C6C2E436F6C6F7207097846464535373337330748
+          697454657374080A53697A652E57696474680500000000000000C804400B5369
+          7A652E4865696768740500000000000000C804401453697A652E506C6174666F
+          726D44656661756C74080B5374726F6B652E4B696E6407044E6F6E6507566973
+          69626C650800000A5452656374616E676C6500095374796C654E616D65060663
+          6F6C6F72360A46696C6C2E436F6C6F7207097846463444423641430748697454
+          657374080A53697A652E57696474680500000000000000C804400B53697A652E
+          4865696768740500000000000000C804401453697A652E506C6174666F726D44
+          656661756C74080B5374726F6B652E4B696E6407044E6F6E650756697369626C
+          650800000A5452656374616E676C6500095374796C654E616D650606636F6C6F
+          72370A46696C6C2E436F6C6F7207097846464646463137360748697454657374
+          080A53697A652E57696474680500000000000000C804400B53697A652E486569
+          6768740500000000000000C804401453697A652E506C6174666F726D44656661
+          756C74080B5374726F6B652E4B696E6407044E6F6E650756697369626C650800
+          000A5452656374616E676C6500095374796C654E616D650606636F6C6F72380A
+          46696C6C2E436F6C6F7207097846464131383837460748697454657374080A53
+          697A652E57696474680500000000000000C804400B53697A652E486569676874
+          0500000000000000C804401453697A652E506C6174666F726D44656661756C74
+          080B5374726F6B652E4B696E6407044E6F6E650756697369626C650800000A54
+          52656374616E676C6500095374796C654E616D65060362617207486974546573
+          74080A53697A652E57696474680500000000000000C804400B53697A652E4865
+          696768740500000000000000C804401453697A652E506C6174666F726D446566
+          61756C74080B5374726F6B652E4B696E6407044E6F6E650756697369626C6508
+          07585261646975730500000000000000C0004007595261646975730500000000
+          000000C0004000000A5452656374616E676C6500095374796C654E616D650604
+          617869730946696C6C2E4B696E6407044E6F6E650748697454657374080A5369
+          7A652E57696474680500000000000000C804400B53697A652E48656967687405
+          00000000000000C804401453697A652E506C6174666F726D44656661756C7408
+          0C5374726F6B652E436F6C6F7207097846463630374438420756697369626C65
+          0800000A5452656374616E676C6500095374796C654E616D650608677269646C
+          696E650946696C6C2E4B696E6407044E6F6E650748697454657374080A53697A
+          652E57696474680500000000000000C804400B53697A652E4865696768740500
+          000000000000C804401453697A652E506C6174666F726D44656661756C74080C
+          5374726F6B652E436F6C6F7207097846463337343734460756697369626C6508
+          000005545465787400095374796C654E616D6506086178697374657874074869
+          745465737408165465787453657474696E67732E466F6E742E53697A65050000
+          0000000000B00240165465787453657474696E67732E466F6E74436F6C6F7207
+          097846463930413441450756697369626C650800000554546578740009537479
+          6C654E616D6506096C6162656C74657874074869745465737408165465787453
+          657474696E67732E466F6E742E53697A650500000000000000B002401A546578
+          7453657474696E67732E466F6E742E5374796C654578740A0D00000000070000
+          000000000004000000165465787453657474696E67732E466F6E74436F6C6F72
+          07097846464543454646310756697369626C6508000005545465787400095374
+          796C654E616D65060A6C6567656E647465787407486974546573740816546578
+          7453657474696E67732E466F6E74436F6C6F7207097846464346443844430756
+          697369626C65080000005450463007544C61796F757400095374796C654E616D
+          6506124461726B4C696E6543686172745374796C6505416C69676E0708436F6E
+          74656E7473000A5452656374616E676C6500095374796C654E616D650606636F
+          6C6F72310A46696C6C2E436F6C6F720709784646344643334637074869745465
+          7374080A53697A652E57696474680500000000000000C804400B53697A652E48
+          65696768740500000000000000C804401453697A652E506C6174666F726D4465
+          6661756C74080B5374726F6B652E4B696E6407044E6F6E650756697369626C65
+          0800000A5452656374616E676C6500095374796C654E616D650606636F6C6F72
+          320A46696C6C2E436F6C6F720709784646464642373444074869745465737408
+          0A53697A652E57696474680500000000000000C804400B53697A652E48656967
+          68740500000000000000C804401453697A652E506C6174666F726D4465666175
+          6C74080B5374726F6B652E4B696E6407044E6F6E650756697369626C65080000
+          0A5452656374616E676C6500095374796C654E616D650606636F6C6F72330A46
+          696C6C2E436F6C6F7207097846463831433738340748697454657374080A5369
+          7A652E57696474680500000000000000C804400B53697A652E48656967687405
+          00000000000000C804401453697A652E506C6174666F726D44656661756C7408
+          0B5374726F6B652E4B696E6407044E6F6E650756697369626C650800000A5452
+          656374616E676C6500095374796C654E616D650606636F6C6F72340A46696C6C
+          2E436F6C6F7207097846464241363843380748697454657374080A53697A652E
+          57696474680500000000000000C804400B53697A652E48656967687405000000
+          00000000C804401453697A652E506C6174666F726D44656661756C74080B5374
+          726F6B652E4B696E6407044E6F6E650756697369626C650800000A5452656374
+          616E676C6500095374796C654E616D650606636F6C6F72350A46696C6C2E436F
+          6C6F7207097846464535373337330748697454657374080A53697A652E576964
+          74680500000000000000C804400B53697A652E48656967687405000000000000
+          00C804401453697A652E506C6174666F726D44656661756C74080B5374726F6B
+          652E4B696E6407044E6F6E650756697369626C650800000A5452656374616E67
+          6C6500095374796C654E616D650606636F6C6F72360A46696C6C2E436F6C6F72
+          07097846463444423641430748697454657374080A53697A652E576964746805
+          00000000000000C804400B53697A652E4865696768740500000000000000C804
+          401453697A652E506C6174666F726D44656661756C74080B5374726F6B652E4B
+          696E6407044E6F6E650756697369626C650800000A5452656374616E676C6500
+          095374796C654E616D650606636F6C6F72370A46696C6C2E436F6C6F72070978
+          46464646463137360748697454657374080A53697A652E576964746805000000
+          00000000C804400B53697A652E4865696768740500000000000000C804401453
+          697A652E506C6174666F726D44656661756C74080B5374726F6B652E4B696E64
+          07044E6F6E650756697369626C650800000A5452656374616E676C6500095374
+          796C654E616D650606636F6C6F72380A46696C6C2E436F6C6F72070978464641
+          31383837460748697454657374080A53697A652E576964746805000000000000
+          00C804400B53697A652E4865696768740500000000000000C804401453697A65
+          2E506C6174666F726D44656661756C74080B5374726F6B652E4B696E6407044E
+          6F6E650756697369626C650800000854456C6C6970736500095374796C654E61
+          6D650605706F696E740748697454657374080A53697A652E5769647468050000
+          0000000000C804400B53697A652E4865696768740500000000000000C8044014
+          53697A652E506C6174666F726D44656661756C74080C5374726F6B652E436F6C
+          6F720709784646323633323338105374726F6B652E546869636B6E6573730500
+          0000000000008000400756697369626C650800000A5452656374616E676C6500
+          095374796C654E616D65060461726561074869745465737408074F7061636974
+          79050000000000CDCCCCFC3F0A53697A652E57696474680500000000000000C8
+          04400B53697A652E4865696768740500000000000000C804401453697A652E50
+          6C6174666F726D44656661756C74080B5374726F6B652E4B696E6407044E6F6E
+          650756697369626C650800000A5452656374616E676C6500095374796C654E61
+          6D650604617869730946696C6C2E4B696E6407044E6F6E650748697454657374
+          080A53697A652E57696474680500000000000000C804400B53697A652E486569
+          6768740500000000000000C804401453697A652E506C6174666F726D44656661
+          756C74080C5374726F6B652E436F6C6F72070978464636303744384207566973
+          69626C650800000A5452656374616E676C6500095374796C654E616D65060867
+          7269646C696E650946696C6C2E4B696E6407044E6F6E65074869745465737408
+          0A53697A652E57696474680500000000000000C804400B53697A652E48656967
+          68740500000000000000C804401453697A652E506C6174666F726D4465666175
+          6C74080C5374726F6B652E436F6C6F7207097846463337343734460756697369
+          626C6508000005545465787400095374796C654E616D65060861786973746578
+          74074869745465737408165465787453657474696E67732E466F6E742E53697A
+          650500000000000000B00240165465787453657474696E67732E466F6E74436F
+          6C6F7207097846463930413441450756697369626C6508000005545465787400
+          095374796C654E616D65060A6C6567656E647465787407486974546573740816
+          5465787453657474696E67732E466F6E74436F6C6F7207097846464346443844
+          430756697369626C6508000000}
+      end>
+  end
+end

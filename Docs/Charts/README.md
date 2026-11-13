@@ -229,6 +229,14 @@ The look of `TS4YLineChart` comes from a style named `S4YLineChartStyle`, with t
 | `point` | `TEllipse`, white border 2 pixels thick | Its `Stroke` is the border of the points, filled with the color of their series |
 | `area` | `TRectangle`, `Opacity` 0.16 | Its `Opacity` is the transparency of the areas of `FillArea` |
 
+## Demo
+
+`Demos\Charts\S4YChartsDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows a pie, a bar chart and a line chart, with the data stored in the form. The panel on the left changes the legend, the animation, `ValueFormat` and the palette of all the charts, sets random data to see the animation, and changes the properties of each chart: `InnerRadius`, `StartAngle`, `LabelContent`, `LabelPosition` and `ShowTotal` of the pie, `Orientation`, `BarWidth` and `ShowValues` of the bars, the axes of bars and lines, `LineThickness`, `ShowPoints`, `PointSize` and `FillArea` of the lines. A label shows the element of the last click.
+
+`Demos\Charts\S4YChartsGallery.dproj` (also in the project group) shows what the charts can look like, one example per tab: pies and rings; vertical, horizontal and negative bars; lines with two series and with the area filled; the styles of a `TStyleBook` (a pastel ring without borders, round bars with dashed grid lines, thick points); styles for a dark background; and the **LiveBindings**: a `TFDMemTable` linked by three `TLinkGridToDataSource` to a grid, a pie and a bar chart, with a navigator to add and delete records, `OnSliceBound`, `OnSeriesBound` and the current record that follows a click on the charts. The links and the styles are in the form and can be used as models.
+
+Install the suite packages first.
+
 ## Notes
 
 - The charts are indicators: they do not take the focus, and the user selects an element only with the mouse.
