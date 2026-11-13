@@ -1,0 +1,798 @@
+object ChartsDemoForm: TChartsDemoForm
+  Left = 0
+  Top = 0
+  Caption = 'TS4YPieChart, TS4YBarChart and TS4YLineChart demo'
+  ClientHeight = 710
+  ClientWidth = 1020
+  Position = ScreenCenter
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object DemoLayout: TLayout
+    Align = Client
+    Size.Width = 720.000000000000000000
+    Size.Height = 710.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object OrdersPie: TS4YPieChart
+      CenterCaption = 'orders'
+      Palette = <>
+      Position.X = 10.000000000000000000
+      Position.Y = 10.000000000000000000
+      Size.Width = 345.000000000000000000
+      Size.Height = 300.000000000000000000
+      Size.PlatformDefault = False
+      Slices = <
+        item
+          Caption = 'Online'
+          Value = 120.000000000000000000
+        end
+        item
+          Caption = 'Shops'
+          Value = 80.000000000000000000
+        end
+        item
+          Caption = 'Phone'
+          Value = 45.000000000000000000
+        end
+        item
+          Caption = 'Partners'
+          Value = 30.000000000000000000
+        end>
+      OnItemClick = ChartItemClick
+    end
+    object SalesBar: TS4YBarChart
+      Categories = <
+        item
+          Caption = 'Jan'
+          Values = '42;30'
+        end
+        item
+          Caption = 'Feb'
+          Values = '55;41'
+        end
+        item
+          Caption = 'Mar'
+          Values = '48;52'
+        end
+        item
+          Caption = 'Apr'
+          Values = '70;49'
+        end
+        item
+          Caption = 'May'
+          Values = '64;58'
+        end
+        item
+          Caption = 'Jun'
+          Values = '78;61'
+        end>
+      Palette = <>
+      Position.X = 365.000000000000000000
+      Position.Y = 10.000000000000000000
+      Series = <
+        item
+          Caption = 'This year'
+        end
+        item
+          Caption = 'Last year'
+        end>
+      Size.Width = 345.000000000000000000
+      Size.Height = 300.000000000000000000
+      Size.PlatformDefault = False
+      OnItemClick = ChartItemClick
+    end
+    object SalesLine: TS4YLineChart
+      Categories = <
+        item
+          Caption = 'Jan'
+          Values = '42;30'
+        end
+        item
+          Caption = 'Feb'
+          Values = '55;41'
+        end
+        item
+          Caption = 'Mar'
+          Values = '48;52'
+        end
+        item
+          Caption = 'Apr'
+          Values = '70;49'
+        end
+        item
+          Caption = 'May'
+          Values = '64;58'
+        end
+        item
+          Caption = 'Jun'
+          Values = '78;61'
+        end>
+      Palette = <>
+      Position.X = 10.000000000000000000
+      Position.Y = 320.000000000000000000
+      Series = <
+        item
+          Caption = 'This year'
+        end
+        item
+          Caption = 'Last year'
+        end>
+      Size.Width = 700.000000000000000000
+      Size.Height = 300.000000000000000000
+      Size.PlatformDefault = False
+      OnItemClick = ChartItemClick
+    end
+    object StatusLabel: TLabel
+      Position.X = 10.000000000000000000
+      Position.Y = 632.000000000000000000
+      Size.Width = 700.000000000000000000
+      Size.Height = 24.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Click a slice, a bar or a point.'
+    end
+  end
+  object SettingsScrollBox: TVertScrollBox
+    Align = Left
+    Padding.Bottom = 20.000000000000000000
+    Size.Width = 300.000000000000000000
+    Size.Height = 710.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Viewport.Width = 284.000000000000000000
+    Viewport.Height = 710.000000000000000000
+    object GeneralSettingsLabel: TLabel
+      Align = Top
+      StyledSettings = [Family, Size, FontColor]
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 16.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 16.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      Text = 'All the charts'
+      TabOrder = 0
+    end
+    object LegendLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 40.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Legend.Position'
+      TabOrder = 1
+    end
+    object LegendComboBox: TComboBox
+      Align = Top
+      ItemIndex = 4
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 64.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 24.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      OnChange = LegendComboBoxChange
+      object LegendComboBoxItem1: TListBoxItem
+        Size.Width = 19.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Text = 'clpNone'
+      end
+      object LegendComboBoxItem2: TListBoxItem
+        Size.Width = 19.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        Text = 'clpTop'
+      end
+      object LegendComboBoxItem3: TListBoxItem
+        Size.Width = 19.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 2
+        Text = 'clpBottom'
+      end
+      object LegendComboBoxItem4: TListBoxItem
+        Size.Width = 19.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 3
+        Text = 'clpLeft'
+      end
+      object LegendComboBoxItem5: TListBoxItem
+        IsSelected = True
+        Size.Width = 19.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 4
+        Text = 'clpRight'
+      end
+    end
+    object AnimatedCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 92.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 3
+      Text = 'Animate the changes'
+      OnChange = AnimatedCheckBoxChange
+    end
+    object ValueFormatLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 116.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'ValueFormat'
+      TabOrder = 4
+    end
+    object ValueFormatComboBox: TComboBox
+      Align = Top
+      ItemIndex = 0
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 140.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 24.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 5
+      OnChange = ValueFormatComboBoxChange
+      object ValueFormatComboBoxItem1: TListBoxItem
+        IsSelected = True
+        Size.Width = 19.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Text = '%.0f'
+      end
+      object ValueFormatComboBoxItem2: TListBoxItem
+        Size.Width = 19.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        Text = '%.1f'
+      end
+      object ValueFormatComboBoxItem3: TListBoxItem
+        Size.Width = 19.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 2
+        Text = '%.0f k'
+      end
+    end
+    object PaletteCheckBox: TCheckBox
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 168.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 6
+      Text = 'Palette of the chart, not of the style'
+      OnChange = PaletteCheckBoxChange
+    end
+    object RandomButton: TButton
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 192.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 7
+      Text = 'Random data'
+      OnClick = RandomButtonClick
+    end
+    object PieSettingsLabel: TLabel
+      Align = Top
+      StyledSettings = [Family, Size, FontColor]
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 16.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 234.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      Text = 'TS4YPieChart'
+      TabOrder = 8
+    end
+    object InnerRadiusLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 258.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'InnerRadius: 0 %'
+      TabOrder = 9
+    end
+    object InnerRadiusTrackBar: TTrackBar
+      Align = Top
+      CanParentFocus = True
+      Max = 90.000000000000000000
+      Orientation = Horizontal
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 282.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 19.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 10
+      OnChange = InnerRadiusTrackBarChange
+    end
+    object StartAngleLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 305.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'StartAngle: 0'
+      TabOrder = 11
+    end
+    object StartAngleTrackBar: TTrackBar
+      Align = Top
+      CanParentFocus = True
+      Max = 180.000000000000000000
+      Min = -180.000000000000000000
+      Orientation = Horizontal
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 329.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 19.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 12
+      OnChange = StartAngleTrackBarChange
+    end
+    object LabelContentLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 352.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'LabelContent'
+      TabOrder = 13
+    end
+    object LabelContentComboBox: TComboBox
+      Align = Top
+      ItemIndex = 2
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 376.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 24.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 14
+      OnChange = LabelContentComboBoxChange
+      object LabelContentComboBoxItem1: TListBoxItem
+        Size.Width = 19.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Text = 'plcNone'
+      end
+      object LabelContentComboBoxItem2: TListBoxItem
+        Size.Width = 19.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        Text = 'plcValue'
+      end
+      object LabelContentComboBoxItem3: TListBoxItem
+        IsSelected = True
+        Size.Width = 19.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 2
+        Text = 'plcPercent'
+      end
+      object LabelContentComboBoxItem4: TListBoxItem
+        Size.Width = 19.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 3
+        Text = 'plcCaption'
+      end
+    end
+    object LabelPositionLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 404.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'LabelPosition'
+      TabOrder = 15
+    end
+    object LabelPositionComboBox: TComboBox
+      Align = Top
+      ItemIndex = 0
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 428.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 24.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 16
+      OnChange = LabelPositionComboBoxChange
+      object LabelPositionComboBoxItem1: TListBoxItem
+        IsSelected = True
+        Size.Width = 19.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Text = 'plpInside'
+      end
+      object LabelPositionComboBoxItem2: TListBoxItem
+        Size.Width = 19.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        Text = 'plpOutside'
+      end
+    end
+    object ShowTotalCheckBox: TCheckBox
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 456.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 17
+      Text = 'ShowTotal (only on a ring: InnerRadius > 0)'
+      OnChange = ShowTotalCheckBoxChange
+    end
+    object BarSettingsLabel: TLabel
+      Align = Top
+      StyledSettings = [Family, Size, FontColor]
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 16.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 492.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      Text = 'TS4YBarChart'
+      TabOrder = 18
+    end
+    object OrientationLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 516.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Orientation'
+      TabOrder = 19
+    end
+    object OrientationComboBox: TComboBox
+      Align = Top
+      ItemIndex = 1
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 540.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 24.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 20
+      OnChange = OrientationComboBoxChange
+      object OrientationComboBoxItem1: TListBoxItem
+        Size.Width = 19.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        Text = 'Horizontal'
+      end
+      object OrientationComboBoxItem2: TListBoxItem
+        IsSelected = True
+        Size.Width = 19.000000000000000000
+        Size.Height = 19.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        Text = 'Vertical'
+      end
+    end
+    object BarWidthLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 568.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'BarWidth: 70 %'
+      TabOrder = 21
+    end
+    object BarWidthTrackBar: TTrackBar
+      Align = Top
+      CanParentFocus = True
+      Min = 10.000000000000000000
+      Orientation = Horizontal
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 592.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 19.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 22
+      Value = 70.000000000000000000
+      OnChange = BarWidthTrackBarChange
+    end
+    object ShowValuesCheckBox: TCheckBox
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 615.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 23
+      Text = 'ShowValues'
+      OnChange = ShowValuesCheckBoxChange
+    end
+    object AxesSettingsLabel: TLabel
+      Align = Top
+      StyledSettings = [Family, Size, FontColor]
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 16.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 651.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      Text = 'Axes of bars and lines'
+      TabOrder = 24
+    end
+    object GridLinesCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 675.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 25
+      Text = 'ValueAxis.GridLines'
+      OnChange = AxesCheckBoxChange
+    end
+    object CategoryGridLinesCheckBox: TCheckBox
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 696.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 40
+      Text = 'CategoryAxis.GridLines'
+      OnChange = AxesCheckBoxChange
+    end
+    object AutoRangeCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 699.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 26
+      Text = 'ValueAxis.AutoRange (else 0 to 200)'
+      OnChange = AxesCheckBoxChange
+    end
+    object ValueAxisCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 723.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 27
+      Text = 'ValueAxis.Visible'
+      OnChange = AxesCheckBoxChange
+    end
+    object CategoryAxisCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 747.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 28
+      Text = 'CategoryAxis.Visible'
+      OnChange = AxesCheckBoxChange
+    end
+    object LineSettingsLabel: TLabel
+      Align = Top
+      StyledSettings = [Family, Size, FontColor]
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 16.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 783.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.StyleExt = {00070000000000000004000000}
+      Text = 'TS4YLineChart'
+      TabOrder = 29
+    end
+    object LineThicknessLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 807.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'LineThickness: 2'
+      TabOrder = 30
+    end
+    object LineThicknessTrackBar: TTrackBar
+      Align = Top
+      CanParentFocus = True
+      Max = 8.000000000000000000
+      Orientation = Horizontal
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 831.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 19.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 31
+      Value = 2.000000000000000000
+      OnChange = LineThicknessTrackBarChange
+    end
+    object ShowPointsCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 854.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 32
+      Text = 'ShowPoints'
+      OnChange = ShowPointsCheckBoxChange
+    end
+    object PointSizeLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 878.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'PointSize: 8'
+      TabOrder = 33
+    end
+    object PointSizeTrackBar: TTrackBar
+      Align = Top
+      CanParentFocus = True
+      Max = 20.000000000000000000
+      Min = 2.000000000000000000
+      Orientation = Horizontal
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 902.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 19.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 34
+      Value = 8.000000000000000000
+      OnChange = PointSizeTrackBarChange
+    end
+    object FillAreaCheckBox: TCheckBox
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 925.000000000000000000
+      Size.Width = 260.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 35
+      Text = 'FillArea'
+      OnChange = FillAreaCheckBoxChange
+    end
+  end
+end
