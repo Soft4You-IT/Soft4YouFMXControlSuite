@@ -150,7 +150,7 @@ The style linked into the package is used when no other style defines `S4YLinear
 1. In the style of a `TStyleBook`, add a `TLayout` with `StyleName = 'S4YLinearGaugeStyle'` and, inside it, the parts listed above. The default style, `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Win.style`, is a text file with all of them and can be used as a model.
 2. Change the parts: their colors and fonts, or replace a shape with another object.
 
-A style with another name is used by the gauges whose `StyleLookup` is set to that name; when no style has that name, they use `S4YLinearGaugeStyle` as the others. A part missing from a style is replaced by a rectangle with the brush of the property, and a missing text by the default font and colors.
+A style with another name is used by the gauges whose `StyleLookup` is set to that name; when no style has that name, they use `S4YLinearGaugeStyle` as the others. The style of the parent class of the gauges is never used. A part missing from a style is replaced by a rectangle with the brush of the property, and a missing text by the default font and colors.
 
 ### Style of the circular gauge
 

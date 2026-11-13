@@ -518,7 +518,7 @@ type
     procedure FreeStyle; override;
     /// <summary>Returns the size of a new control: 400 x 64.</summary>
     function GetDefaultSize: TSizeF; override;
-    /// <summary>Returns the style of the control: the one named by StyleLookup or, when it is empty, the one named S4YStepProgressBarStyle in the style book or in the active style; else the default style linked into the package.</summary>
+    /// <summary>Returns the style of the control: the one named by StyleLookup or, when it is empty or not found, the one named S4YStepProgressBarStyle in the style book or in the active style; else the default style linked into the package.</summary>
     function GetStyleObject: TFmxObject; override;
     /// <summary>Moves the current step with the arrow keys, Home and End when Interactions has stiKeyboard.</summary>
     procedure KeyDown(var Key: Word; var KeyChar: WideChar; Shift: TShiftState); override;
@@ -2446,12 +2446,9 @@ end;
 
 function TS4YStepProgressBar.GetStyleObject: TFmxObject;
 begin
-  // Without StyleLookup only the style named after the class is searched, in the style book and
-  // in the active style: the search of FMX would also take the style of the parent class.
-  if StyleLookup <> '' then
-    Result := inherited GetStyleObject
-  else
-    Result := LookupStyleObject(Self, GetStyleContext, Scene, '', GetDefaultStyleLookupName, '', True);
+  // The style named by StyleLookup or, when it is empty, the one named after the class, in the
+  // style book or in the active style; never the style of the parent class.
+  Result := LookupStyleObject(Self, GetStyleContext, Scene, StyleLookup, GetDefaultStyleLookupName, '', True);
 
   // The style linked into the package is used when no other style is found.
   if not Assigned(Result) then
