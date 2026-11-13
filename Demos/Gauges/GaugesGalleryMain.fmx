@@ -1,0 +1,977 @@
+object GaugesGalleryForm: TGaugesGalleryForm
+  Left = 0
+  Top = 0
+  Caption = 'TS4YLinearGauge and TS4YCircularGauge gallery'
+  ClientHeight = 600
+  ClientWidth = 900
+  Position = ScreenCenter
+  StyleBook = GalleryStyleBook
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object GalleryTabControl: TTabControl
+    Align = Client
+    Size.Width = 900.000000000000000000
+    Size.Height = 600.000000000000000000
+    Size.PlatformDefault = False
+    TabIndex = 0
+    TabOrder = 0
+    TabPosition = PlatformDefault
+    object DefaultTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = True
+      Size.Width = 90.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Default'
+      ExplicitSize.cx = 90.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object DefaultLabel: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 12.000000000000000000
+        Size.Width = 840.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        TextSettings.WordWrap = True
+        Text = 'The default styles: S4YLinearGaugeStyle and S4YCircularGaugeStyle.'
+      end
+      object StorageGauge: TS4YLinearGauge
+        Position.X = 24.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 420.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Storage'
+        Value = 25.000000000000000000
+      end
+      object MemoryGauge: TS4YLinearGauge
+        Position.X = 24.000000000000000000
+        Position.Y = 120.000000000000000000
+        Size.Width = 420.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Memory'
+        Value = 60.000000000000000000
+      end
+      object BatteryGauge: TS4YLinearGauge
+        Position.X = 24.000000000000000000
+        Position.Y = 180.000000000000000000
+        Size.Width = 420.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Battery'
+        ValueFormat = '%.0f %%'
+        Value = 90.000000000000000000
+      end
+      object LowRingGauge: TS4YCircularGauge
+        Position.X = 24.000000000000000000
+        Position.Y = 260.000000000000000000
+        Size.Width = 180.000000000000000000
+        Size.Height = 180.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Low'
+        Value = 25.000000000000000000
+      end
+      object MiddleRingGauge: TS4YCircularGauge
+        Position.X = 234.000000000000000000
+        Position.Y = 260.000000000000000000
+        Size.Width = 180.000000000000000000
+        Size.Height = 180.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Middle'
+        Value = 60.000000000000000000
+      end
+      object HighRingGauge: TS4YCircularGauge
+        Position.X = 444.000000000000000000
+        Position.Y = 260.000000000000000000
+        Size.Width = 180.000000000000000000
+        Size.Height = 180.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'High'
+        Value = 90.000000000000000000
+      end
+    end
+    object ShapesTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = False
+      Size.Width = 90.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 1
+      Text = 'Shapes'
+      ExplicitSize.cx = 90.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object ShapesLabel: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 12.000000000000000000
+        Size.Width = 840.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        TextSettings.WordWrap = True
+        Text = 'StartAngle and SweepAngle: a ring, an arc open at the bottom, a half circle, a quarter of circle and a ring filled from the left.'
+      end
+      object RingGauge: TS4YCircularGauge
+        Position.X = 24.000000000000000000
+        Position.Y = 70.000000000000000000
+        Size.Width = 180.000000000000000000
+        Size.Height = 180.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Ring'
+        Value = 65.000000000000000000
+      end
+      object SpeedometerGauge: TS4YCircularGauge
+        Position.X = 234.000000000000000000
+        Position.Y = 70.000000000000000000
+        Size.Width = 180.000000000000000000
+        Size.Height = 180.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'km/h'
+        Max = 200.000000000000000000
+        StartAngle = -135.000000000000000000
+        SweepAngle = 270.000000000000000000
+        Value = 120.000000000000000000
+      end
+      object HalfCircleGauge: TS4YCircularGauge
+        Position.X = 444.000000000000000000
+        Position.Y = 70.000000000000000000
+        Size.Width = 260.000000000000000000
+        Size.Height = 140.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Half circle'
+        StartAngle = -90.000000000000000000
+        SweepAngle = 180.000000000000000000
+        Thickness = 20.000000000000000000
+        Value = 65.000000000000000000
+      end
+      object QuarterGauge: TS4YCircularGauge
+        Position.X = 24.000000000000000000
+        Position.Y = 290.000000000000000000
+        Size.Width = 180.000000000000000000
+        Size.Height = 180.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Quarter'
+        SweepAngle = 90.000000000000000000
+        Value = 65.000000000000000000
+      end
+      object LeftRingGauge: TS4YCircularGauge
+        Position.X = 234.000000000000000000
+        Position.Y = 290.000000000000000000
+        Size.Width = 180.000000000000000000
+        Size.Height = 180.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'From the left'
+        StartAngle = -90.000000000000000000
+        Value = 65.000000000000000000
+      end
+    end
+    object DashboardTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = False
+      Size.Width = 90.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 2
+      Text = 'Dashboard'
+      ExplicitSize.cx = 90.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object DashboardLabel: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 12.000000000000000000
+        Size.Width = 840.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        TextSettings.WordWrap = True
+        Text = 'Values changed by a timer: the large changes are animated, the small ones, like the ones of the disk, are drawn at once.'
+      end
+      object CpuGauge: TS4YCircularGauge
+        Position.X = 24.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 180.000000000000000000
+        Size.Height = 180.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'CPU'
+        ValueFormat = '%.0f %%'
+        Value = 30.000000000000000000
+      end
+      object RamGauge: TS4YCircularGauge
+        Position.X = 234.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 180.000000000000000000
+        Size.Height = 180.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'RAM'
+        ValueFormat = '%.0f %%'
+        Value = 55.000000000000000000
+      end
+      object DiskGauge: TS4YCircularGauge
+        Position.X = 444.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 180.000000000000000000
+        Size.Height = 180.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Disk'
+        ValueFormat = '%.1f %%'
+        Value = 70.000000000000000000
+      end
+      object UploadGauge: TS4YLinearGauge
+        Position.X = 24.000000000000000000
+        Position.Y = 280.000000000000000000
+        Size.Width = 600.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Upload'
+        Max = 20.000000000000000000
+        ValueFormat = '%.1f Mbit/s'
+        Value = 4.000000000000000000
+      end
+      object DownloadSpeedGauge: TS4YLinearGauge
+        Position.X = 24.000000000000000000
+        Position.Y = 340.000000000000000000
+        Size.Width = 600.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Download'
+        Max = 100.000000000000000000
+        ValueFormat = '%.1f Mbit/s'
+        Value = 60.000000000000000000
+      end
+    end
+    object ThresholdsTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = False
+      Size.Width = 90.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 3
+      Text = 'Thresholds'
+      ExplicitSize.cx = 90.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object ThresholdsLabel: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 12.000000000000000000
+        Size.Width = 840.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        TextSettings.WordWrap = True
+        Text = 'The track bar changes the value; the color of the fill comes from FillBrush, chosen by the code for each level, and the text from OnGetValueText.'
+      end
+      object LoadGauge: TS4YCircularGauge
+        Position.X = 24.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 280.000000000000000000
+        Size.Height = 280.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'CPU load'
+        StartAngle = -135.000000000000000000
+        SweepAngle = 270.000000000000000000
+        Thickness = 14.000000000000000000
+        OnGetValueText = LoadGaugeGetValueText
+        Value = 40.000000000000000000
+      end
+      object LoadBarGauge: TS4YLinearGauge
+        Position.X = 340.000000000000000000
+        Position.Y = 176.000000000000000000
+        Size.Width = 400.000000000000000000
+        Size.Height = 48.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'CPU load'
+        Thickness = 12.000000000000000000
+        OnGetValueText = LoadGaugeGetValueText
+        Value = 40.000000000000000000
+      end
+      object LoadTrackBar: TTrackBar
+        Position.X = 24.000000000000000000
+        Position.Y = 370.000000000000000000
+        Size.Width = 716.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        CanParentFocus = True
+        Orientation = Horizontal
+        Value = 40.000000000000000000
+        OnChange = LoadTrackBarChange
+      end
+    end
+    object DownloadTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = False
+      Size.Width = 90.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 4
+      Text = 'Download'
+      ExplicitSize.cx = 90.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object DownloadLabel: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 12.000000000000000000
+        Size.Width = 840.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        TextSettings.WordWrap = True
+        Text = 'A download moved by a timer, in small steps drawn at once; at the end the fill goes back to 0 with the animation.'
+      end
+      object DownloadGauge: TS4YLinearGauge
+        Position.X = 24.000000000000000000
+        Position.Y = 70.000000000000000000
+        Size.Width = 560.000000000000000000
+        Size.Height = 48.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Downloading setup.exe'
+        Thickness = 10.000000000000000000
+        ValueFormat = '%.0f %%'
+        Value = 0.000000000000000000
+      end
+      object DownloadRingGauge: TS4YCircularGauge
+        Position.X = 614.000000000000000000
+        Position.Y = 50.000000000000000000
+        Size.Width = 90.000000000000000000
+        Size.Height = 90.000000000000000000
+        Size.PlatformDefault = False
+        Thickness = 6.000000000000000000
+        ValueFormat = '%.0f %%'
+        Value = 0.000000000000000000
+      end
+    end
+    object EqualizerTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = False
+      Size.Width = 90.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 5
+      Text = 'Equalizer'
+      ExplicitSize.cx = 90.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object EqualizerLabel: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 12.000000000000000000
+        Size.Width = 840.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        TextSettings.WordWrap = True
+        Text = 'Vertical gauges without texts (TextPosition = gtpNone), moved by a timer faster than the animation: each change starts from where the fill is.'
+      end
+      object EqualizerLayout: TLayout
+        Position.X = 24.000000000000000000
+        Position.Y = 70.000000000000000000
+        Size.Width = 600.000000000000000000
+        Size.Height = 240.000000000000000000
+        Size.PlatformDefault = False
+        object EqualizerGauge1: TS4YLinearGauge
+          Position.X = 0.000000000000000000
+          Position.Y = 0.000000000000000000
+          Size.Width = 24.000000000000000000
+          Size.Height = 240.000000000000000000
+          Size.PlatformDefault = False
+          Orientation = Vertical
+          ShowValue = False
+          TextPosition = gtpNone
+          Thickness = 20.000000000000000000
+          Value = 0.000000000000000000
+        end
+        object EqualizerGauge2: TS4YLinearGauge
+          Position.X = 36.000000000000000000
+          Position.Y = 0.000000000000000000
+          Size.Width = 24.000000000000000000
+          Size.Height = 240.000000000000000000
+          Size.PlatformDefault = False
+          Orientation = Vertical
+          ShowValue = False
+          TextPosition = gtpNone
+          Thickness = 20.000000000000000000
+          Value = 37.000000000000000000
+        end
+        object EqualizerGauge3: TS4YLinearGauge
+          Position.X = 72.000000000000000000
+          Position.Y = 0.000000000000000000
+          Size.Width = 24.000000000000000000
+          Size.Height = 240.000000000000000000
+          Size.PlatformDefault = False
+          Orientation = Vertical
+          ShowValue = False
+          TextPosition = gtpNone
+          Thickness = 20.000000000000000000
+          Value = 74.000000000000000000
+        end
+        object EqualizerGauge4: TS4YLinearGauge
+          Position.X = 108.000000000000000000
+          Position.Y = 0.000000000000000000
+          Size.Width = 24.000000000000000000
+          Size.Height = 240.000000000000000000
+          Size.PlatformDefault = False
+          Orientation = Vertical
+          ShowValue = False
+          TextPosition = gtpNone
+          Thickness = 20.000000000000000000
+          Value = 11.000000000000000000
+        end
+        object EqualizerGauge5: TS4YLinearGauge
+          Position.X = 144.000000000000000000
+          Position.Y = 0.000000000000000000
+          Size.Width = 24.000000000000000000
+          Size.Height = 240.000000000000000000
+          Size.PlatformDefault = False
+          Orientation = Vertical
+          ShowValue = False
+          TextPosition = gtpNone
+          Thickness = 20.000000000000000000
+          Value = 48.000000000000000000
+        end
+        object EqualizerGauge6: TS4YLinearGauge
+          Position.X = 180.000000000000000000
+          Position.Y = 0.000000000000000000
+          Size.Width = 24.000000000000000000
+          Size.Height = 240.000000000000000000
+          Size.PlatformDefault = False
+          Orientation = Vertical
+          ShowValue = False
+          TextPosition = gtpNone
+          Thickness = 20.000000000000000000
+          Value = 85.000000000000000000
+        end
+        object EqualizerGauge7: TS4YLinearGauge
+          Position.X = 216.000000000000000000
+          Position.Y = 0.000000000000000000
+          Size.Width = 24.000000000000000000
+          Size.Height = 240.000000000000000000
+          Size.PlatformDefault = False
+          Orientation = Vertical
+          ShowValue = False
+          TextPosition = gtpNone
+          Thickness = 20.000000000000000000
+          Value = 22.000000000000000000
+        end
+        object EqualizerGauge8: TS4YLinearGauge
+          Position.X = 252.000000000000000000
+          Position.Y = 0.000000000000000000
+          Size.Width = 24.000000000000000000
+          Size.Height = 240.000000000000000000
+          Size.PlatformDefault = False
+          Orientation = Vertical
+          ShowValue = False
+          TextPosition = gtpNone
+          Thickness = 20.000000000000000000
+          Value = 59.000000000000000000
+        end
+        object EqualizerGauge9: TS4YLinearGauge
+          Position.X = 288.000000000000000000
+          Position.Y = 0.000000000000000000
+          Size.Width = 24.000000000000000000
+          Size.Height = 240.000000000000000000
+          Size.PlatformDefault = False
+          Orientation = Vertical
+          ShowValue = False
+          TextPosition = gtpNone
+          Thickness = 20.000000000000000000
+          Value = 96.000000000000000000
+        end
+        object EqualizerGauge10: TS4YLinearGauge
+          Position.X = 324.000000000000000000
+          Position.Y = 0.000000000000000000
+          Size.Width = 24.000000000000000000
+          Size.Height = 240.000000000000000000
+          Size.PlatformDefault = False
+          Orientation = Vertical
+          ShowValue = False
+          TextPosition = gtpNone
+          Thickness = 20.000000000000000000
+          Value = 33.000000000000000000
+        end
+        object EqualizerGauge11: TS4YLinearGauge
+          Position.X = 360.000000000000000000
+          Position.Y = 0.000000000000000000
+          Size.Width = 24.000000000000000000
+          Size.Height = 240.000000000000000000
+          Size.PlatformDefault = False
+          Orientation = Vertical
+          ShowValue = False
+          TextPosition = gtpNone
+          Thickness = 20.000000000000000000
+          Value = 70.000000000000000000
+        end
+        object EqualizerGauge12: TS4YLinearGauge
+          Position.X = 396.000000000000000000
+          Position.Y = 0.000000000000000000
+          Size.Width = 24.000000000000000000
+          Size.Height = 240.000000000000000000
+          Size.PlatformDefault = False
+          Orientation = Vertical
+          ShowValue = False
+          TextPosition = gtpNone
+          Thickness = 20.000000000000000000
+          Value = 7.000000000000000000
+        end
+        object EqualizerGauge13: TS4YLinearGauge
+          Position.X = 432.000000000000000000
+          Position.Y = 0.000000000000000000
+          Size.Width = 24.000000000000000000
+          Size.Height = 240.000000000000000000
+          Size.PlatformDefault = False
+          Orientation = Vertical
+          ShowValue = False
+          TextPosition = gtpNone
+          Thickness = 20.000000000000000000
+          Value = 44.000000000000000000
+        end
+        object EqualizerGauge14: TS4YLinearGauge
+          Position.X = 468.000000000000000000
+          Position.Y = 0.000000000000000000
+          Size.Width = 24.000000000000000000
+          Size.Height = 240.000000000000000000
+          Size.PlatformDefault = False
+          Orientation = Vertical
+          ShowValue = False
+          TextPosition = gtpNone
+          Thickness = 20.000000000000000000
+          Value = 81.000000000000000000
+        end
+        object EqualizerGauge15: TS4YLinearGauge
+          Position.X = 504.000000000000000000
+          Position.Y = 0.000000000000000000
+          Size.Width = 24.000000000000000000
+          Size.Height = 240.000000000000000000
+          Size.PlatformDefault = False
+          Orientation = Vertical
+          ShowValue = False
+          TextPosition = gtpNone
+          Thickness = 20.000000000000000000
+          Value = 18.000000000000000000
+        end
+        object EqualizerGauge16: TS4YLinearGauge
+          Position.X = 540.000000000000000000
+          Position.Y = 0.000000000000000000
+          Size.Width = 24.000000000000000000
+          Size.Height = 240.000000000000000000
+          Size.PlatformDefault = False
+          Orientation = Vertical
+          ShowValue = False
+          TextPosition = gtpNone
+          Thickness = 20.000000000000000000
+          Value = 55.000000000000000000
+        end
+      end
+    end
+    object StyleBookTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = False
+      Size.Width = 90.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 6
+      Text = 'Style book'
+      ExplicitSize.cx = 90.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object StyleBookLabel: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 12.000000000000000000
+        Size.Width = 840.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        TextSettings.WordWrap = True
+        Text = 'Styles of the TStyleBook of the form, chosen with StyleLookup: a gradient, a glossy line over the fill, square corners; flat ends, a dotted track, a gradient arc.'
+      end
+      object GradientLinearGauge: TS4YLinearGauge
+        Position.X = 24.000000000000000000
+        Position.Y = 60.000000000000000000
+        Size.Width = 420.000000000000000000
+        Size.Height = 44.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Gradient'
+        StyleLookup = 'GradientLinearGaugeStyle'
+        Thickness = 10.000000000000000000
+        Value = 70.000000000000000000
+      end
+      object GlossyLinearGauge: TS4YLinearGauge
+        Position.X = 24.000000000000000000
+        Position.Y = 124.000000000000000000
+        Size.Width = 420.000000000000000000
+        Size.Height = 44.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Glossy'
+        StyleLookup = 'GlossyLinearGaugeStyle'
+        Thickness = 16.000000000000000000
+        Value = 55.000000000000000000
+      end
+      object SquareLinearGauge: TS4YLinearGauge
+        Position.X = 24.000000000000000000
+        Position.Y = 194.000000000000000000
+        Size.Width = 420.000000000000000000
+        Size.Height = 44.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Square'
+        StyleLookup = 'SquareLinearGaugeStyle'
+        Thickness = 14.000000000000000000
+        Value = 40.000000000000000000
+      end
+      object FlatCircularGauge: TS4YCircularGauge
+        Position.X = 24.000000000000000000
+        Position.Y = 270.000000000000000000
+        Size.Width = 180.000000000000000000
+        Size.Height = 180.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Flat ends'
+        StyleLookup = 'FlatCircularGaugeStyle'
+        Thickness = 18.000000000000000000
+        Value = 65.000000000000000000
+      end
+      object DashedCircularGauge: TS4YCircularGauge
+        Position.X = 234.000000000000000000
+        Position.Y = 270.000000000000000000
+        Size.Width = 180.000000000000000000
+        Size.Height = 180.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Dotted track'
+        StyleLookup = 'DashedCircularGaugeStyle'
+        Thickness = 8.000000000000000000
+        Value = 65.000000000000000000
+      end
+      object GradientCircularGauge: TS4YCircularGauge
+        Position.X = 444.000000000000000000
+        Position.Y = 270.000000000000000000
+        Size.Width = 180.000000000000000000
+        Size.Height = 180.000000000000000000
+        Size.PlatformDefault = False
+        Caption = 'Gradient'
+        StyleLookup = 'GradientCircularGaugeStyle'
+        StartAngle = -135.000000000000000000
+        SweepAngle = 270.000000000000000000
+        Thickness = 14.000000000000000000
+        Value = 80.000000000000000000
+      end
+    end
+    object DarkTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = False
+      Size.Width = 90.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 7
+      Text = 'Dark'
+      ExplicitSize.cx = 90.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object DarkBackground: TRectangle
+        Align = Client
+        Fill.Color = xFF263238
+        Size.Width = 900.000000000000000000
+        Size.Height = 574.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        object DarkLabel: TLabel
+          Position.X = 24.000000000000000000
+          Position.Y = 12.000000000000000000
+          Size.Width = 840.000000000000000000
+          Size.Height = 40.000000000000000000
+          Size.PlatformDefault = False
+          StyledSettings = [Family, Size, Style]
+          TextSettings.FontColor = claWhite
+          TextSettings.VertAlign = Leading
+          TextSettings.WordWrap = True
+          Text = 'Styles for a dark background: DarkLinearGaugeStyle and DarkCircularGaugeStyle.'
+        end
+        object DarkLinearGauge: TS4YLinearGauge
+          Position.X = 24.000000000000000000
+          Position.Y = 60.000000000000000000
+          Size.Width = 420.000000000000000000
+          Size.Height = 40.000000000000000000
+          Size.PlatformDefault = False
+          Caption = 'Brightness'
+          StyleLookup = 'DarkLinearGaugeStyle'
+          Value = 75.000000000000000000
+        end
+        object DarkSecondLinearGauge: TS4YLinearGauge
+          Position.X = 24.000000000000000000
+          Position.Y = 120.000000000000000000
+          Size.Width = 420.000000000000000000
+          Size.Height = 40.000000000000000000
+          Size.PlatformDefault = False
+          Caption = 'Volume'
+          StyleLookup = 'DarkLinearGaugeStyle'
+          Value = 35.000000000000000000
+        end
+        object DarkCircularGauge: TS4YCircularGauge
+          Position.X = 24.000000000000000000
+          Position.Y = 190.000000000000000000
+          Size.Width = 180.000000000000000000
+          Size.Height = 180.000000000000000000
+          Size.PlatformDefault = False
+          Caption = 'Battery'
+          StyleLookup = 'DarkCircularGaugeStyle'
+          ValueFormat = '%.0f %%'
+          Value = 82.000000000000000000
+        end
+        object DarkSpeedometerGauge: TS4YCircularGauge
+          Position.X = 234.000000000000000000
+          Position.Y = 190.000000000000000000
+          Size.Width = 180.000000000000000000
+          Size.Height = 180.000000000000000000
+          Size.PlatformDefault = False
+          Caption = 'rpm x 1000'
+          StyleLookup = 'DarkCircularGaugeStyle'
+          Max = 8.000000000000000000
+          StartAngle = -135.000000000000000000
+          SweepAngle = 270.000000000000000000
+          ValueFormat = '%.1f'
+          Value = 4.200000000000000178
+        end
+      end
+    end
+  end
+  object DashboardTimer: TTimer
+    Interval = 1500
+    OnTimer = DashboardTimerTimer
+    Left = 800
+    Top = 440
+  end
+  object DownloadTimer: TTimer
+    Interval = 50
+    OnTimer = DownloadTimerTimer
+    Left = 800
+    Top = 440
+  end
+  object EqualizerTimer: TTimer
+    Interval = 150
+    OnTimer = EqualizerTimerTimer
+    Left = 800
+    Top = 440
+  end
+  object GalleryStyleBook: TStyleBook
+    Left = 800
+    Top = 500
+    Styles = <
+      item
+        ResourcesBin = {
+          464D585F5354594C4520322E350106184772616469656E744C696E6561724761
+          7567655374796C65035B030616476C6F7373794C696E65617247617567655374
+          796C6503AE0306165371756172654C696E65617247617567655374796C6503DA
+          020616466C617443697263756C617247617567655374796C6503140206184461
+          7368656443697263756C617247617567655374796C65036602061A4772616469
+          656E7443697263756C617247617567655374796C65036E0306144461726B4C69
+          6E65617247617567655374796C6503940206164461726B43697263756C617247
+          617567655374796C65036402005450463007544C61796F757400095374796C65
+          4E616D6506184772616469656E744C696E65617247617567655374796C650541
+          6C69676E0708436F6E74656E7473000A5452656374616E676C6500095374796C
+          654E616D650605747261636B0748697454657374080A53697A652E5769647468
+          0500000000000000C804400B53697A652E4865696768740500000000000000C8
+          04401453697A652E506C6174666F726D44656661756C74080B5374726F6B652E
+          4B696E6407044E6F6E650756697369626C650807585261646975730500000000
+          000000A0014007595261646975730500000000000000A0014000000A54526563
+          74616E676C6500095374796C654E616D65060466696C6C0946696C6C2E4B696E
+          6407084772616469656E741446696C6C2E4772616469656E742E506F696E7473
+          0E0105436F6C6F720709784646314538384535064F6666736574050000000000
+          0000000000000105436F6C6F720709784646384532344141064F666673657405
+          0000000000000080FF3F00001D46696C6C2E4772616469656E742E5374617274
+          506F736974696F6E2E59050000000000000080FE3F1C46696C6C2E4772616469
+          656E742E53746F70506F736974696F6E2E58050000000000000080FF3F1C4669
+          6C6C2E4772616469656E742E53746F70506F736974696F6E2E59050000000000
+          000080FE3F0748697454657374080A53697A652E576964746805000000000000
+          00C804400B53697A652E4865696768740500000000000000C804401453697A65
+          2E506C6174666F726D44656661756C74080B5374726F6B652E4B696E6407044E
+          6F6E650756697369626C650807585261646975730500000000000000A0014007
+          595261646975730500000000000000A00140000005545465787400095374796C
+          654E616D65060976616C7565746578740748697454657374081A546578745365
+          7474696E67732E466F6E742E5374796C654578740A0D00000000070000000000
+          000004000000165465787453657474696E67732E466F6E74436F6C6F72070978
+          46463845323441410756697369626C6508000005545465787400095374796C65
+          4E616D65060B63617074696F6E74657874074869745465737408165465787453
+          657474696E67732E466F6E74436F6C6F72070978464636313631363107566973
+          69626C65080000005450463007544C61796F757400095374796C654E616D6506
+          16476C6F7373794C696E65617247617567655374796C6505416C69676E070843
+          6F6E74656E7473000A5452656374616E676C6500095374796C654E616D650605
+          747261636B0748697454657374080A53697A652E576964746805000000000000
+          00C804400B53697A652E4865696768740500000000000000C804401453697A65
+          2E506C6174666F726D44656661756C74080C5374726F6B652E436F6C6F720709
+          7846464244424442440756697369626C65080758526164697573050000000000
+          00008002400759526164697573050000000000000080024000000A5452656374
+          616E676C6500095374796C654E616D65060466696C6C0A46696C6C2E436F6C6F
+          7207097846463433413034370748697454657374080A53697A652E5769647468
+          0500000000000000C804400B53697A652E4865696768740500000000000000C8
+          04401453697A652E506C6174666F726D44656661756C74080B5374726F6B652E
+          4B696E6407044E6F6E650756697369626C650807585261646975730500000000
+          00000080024007595261646975730500000000000000800240000A5452656374
+          616E676C650005416C69676E0703546F700A46696C6C2E436F6C6F7207097836
+          364646464646460748697454657374080C4D617267696E732E4C656674050000
+          0000000000C001400B4D617267696E732E546F700500000000000000C000400D
+          4D617267696E732E52696768740500000000000000C001400A506F736974696F
+          6E2E580500000000000000C001400A506F736974696F6E2E5905000000000000
+          00C000400A53697A652E576964746805000000000000009804400B53697A652E
+          48656967687405000000000000008001401453697A652E506C6174666F726D44
+          656661756C74080B5374726F6B652E4B696E6407044E6F6E6507585261646975
+          7305000000000000008000400759526164697573050000000000000080004000
+          000005545465787400095374796C654E616D65060976616C7565746578740748
+          697454657374081A5465787453657474696E67732E466F6E742E5374796C6545
+          78740A0D00000000070000000000000004000000165465787453657474696E67
+          732E466F6E74436F6C6F7207097846463245374433320756697369626C650800
+          0005545465787400095374796C654E616D65060B63617074696F6E7465787407
+          4869745465737408165465787453657474696E67732E466F6E74436F6C6F7207
+          097846463631363136310756697369626C65080000005450463007544C61796F
+          757400095374796C654E616D6506165371756172654C696E6561724761756765
+          5374796C6505416C69676E0708436F6E74656E7473000A5452656374616E676C
+          6500095374796C654E616D650605747261636B0A46696C6C2E436F6C6F720708
+          636C6157686974650748697454657374080A53697A652E576964746805000000
+          00000000C804400B53697A652E4865696768740500000000000000C804401453
+          697A652E506C6174666F726D44656661756C74080C5374726F6B652E436F6C6F
+          7207097846463945394539450756697369626C650800000A5452656374616E67
+          6C6500095374796C654E616D65060466696C6C0A46696C6C2E436F6C6F720709
+          7846464642384330300748697454657374080A53697A652E5769647468050000
+          0000000000C804400B53697A652E4865696768740500000000000000C8044014
+          53697A652E506C6174666F726D44656661756C74080B5374726F6B652E4B696E
+          6407044E6F6E650756697369626C6508000005545465787400095374796C654E
+          616D65060976616C756574657874074869745465737408185465787453657474
+          696E67732E466F6E742E46616D696C790608436F6E736F6C6173165465787453
+          657474696E67732E466F6E742E53697A650500000000000000D002401A546578
+          7453657474696E67732E466F6E742E5374796C654578740A0D00000000070000
+          000000000004000000165465787453657474696E67732E466F6E74436F6C6F72
+          07097846464536353130300756697369626C6508000005545465787400095374
+          796C654E616D65060B63617074696F6E74657874074869745465737408185465
+          787453657474696E67732E466F6E742E46616D696C790608436F6E736F6C6173
+          165465787453657474696E67732E466F6E742E53697A650500000000000000D0
+          0240165465787453657474696E67732E466F6E74436F6C6F7207097846463432
+          343234320756697369626C65080000005450463007544C61796F757400095374
+          796C654E616D650616466C617443697263756C617247617567655374796C6505
+          416C69676E0708436F6E74656E747300045441726300095374796C654E616D65
+          0605747261636B0748697454657374080A53697A652E57696474680500000000
+          000000C804400B53697A652E4865696768740500000000000000C80440145369
+          7A652E506C6174666F726D44656661756C74080C5374726F6B652E436F6C6F72
+          07097846464530463246310756697369626C6508000004544172630009537479
+          6C654E616D65060466696C6C0748697454657374080A53697A652E5769647468
+          0500000000000000C804400B53697A652E4865696768740500000000000000C8
+          04401453697A652E506C6174666F726D44656661756C74080C5374726F6B652E
+          436F6C6F7207097846463030383937420756697369626C650800000554546578
+          7400095374796C654E616D65060976616C756574657874074869745465737408
+          165465787453657474696E67732E466F6E742E53697A650500000000000000D0
+          0340165465787453657474696E67732E466F6E74436F6C6F7207097846463030
+          363935430756697369626C6508000005545465787400095374796C654E616D65
+          060B63617074696F6E7465787407486974546573740816546578745365747469
+          6E67732E466F6E74436F6C6F7207097846463030383937420756697369626C65
+          080000005450463007544C61796F757400095374796C654E616D650618446173
+          68656443697263756C617247617567655374796C6505416C69676E0708436F6E
+          74656E747300045441726300095374796C654E616D650605747261636B074869
+          7454657374080A53697A652E57696474680500000000000000C804400B53697A
+          652E4865696768740500000000000000C804401453697A652E506C6174666F72
+          6D44656661756C74080C5374726F6B652E436F6C6F7207097846464244424442
+          440B5374726F6B652E446173680703446F740756697369626C65080000045441
+          726300095374796C654E616D65060466696C6C0748697454657374080A53697A
+          652E57696474680500000000000000C804400B53697A652E4865696768740500
+          000000000000C804401453697A652E506C6174666F726D44656661756C74080C
+          5374726F6B652E436F6C6F7207097846463845323441410A5374726F6B652E43
+          61700705526F756E640756697369626C6508000005545465787400095374796C
+          654E616D65060976616C75657465787407486974546573740816546578745365
+          7474696E67732E466F6E742E53697A650500000000000000C003401A54657874
+          53657474696E67732E466F6E742E5374796C654578740A0D0000000007000000
+          0000000004000000165465787453657474696E67732E466F6E74436F6C6F7207
+          097846463641314239410756697369626C650800000554546578740009537479
+          6C654E616D65060B63617074696F6E7465787407486974546573740816546578
+          7453657474696E67732E466F6E74436F6C6F7207097846463735373537350756
+          697369626C65080000005450463007544C61796F757400095374796C654E616D
+          65061A4772616469656E7443697263756C617247617567655374796C6505416C
+          69676E0708436F6E74656E747300045441726300095374796C654E616D650605
+          747261636B0748697454657374080A53697A652E576964746805000000000000
+          00C804400B53697A652E4865696768740500000000000000C804401453697A65
+          2E506C6174666F726D44656661756C74080C5374726F6B652E436F6C6F720709
+          7846464543454646310A5374726F6B652E4361700705526F756E640756697369
+          626C65080000045441726300095374796C654E616D65060466696C6C07486974
+          54657374080A53697A652E57696474680500000000000000C804400B53697A65
+          2E4865696768740500000000000000C804401453697A652E506C6174666F726D
+          44656661756C74080B5374726F6B652E4B696E6407084772616469656E741653
+          74726F6B652E4772616469656E742E506F696E74730E0105436F6C6F72070978
+          4646343341303437064F66667365740500000000000000000000000105436F6C
+          6F720709784646464444383335064F6666736574050000000000000080FE3F00
+          0105436F6C6F720709784646453533393335064F666673657405000000000000
+          0080FF3F00001F5374726F6B652E4772616469656E742E5374617274506F7369
+          74696F6E2E59050000000000000080FE3F1E5374726F6B652E4772616469656E
+          742E53746F70506F736974696F6E2E58050000000000000080FF3F1E5374726F
+          6B652E4772616469656E742E53746F70506F736974696F6E2E59050000000000
+          000080FE3F0A5374726F6B652E4361700705526F756E640756697369626C6508
+          000005545465787400095374796C654E616D65060976616C7565746578740748
+          69745465737408165465787453657474696E67732E466F6E742E53697A650500
+          000000000000C003401A5465787453657474696E67732E466F6E742E5374796C
+          654578740A0D0000000007000000000000000400000016546578745365747469
+          6E67732E466F6E74436F6C6F7207097846463337343734460756697369626C65
+          08000005545465787400095374796C654E616D65060B63617074696F6E746578
+          74074869745465737408165465787453657474696E67732E466F6E74436F6C6F
+          7207097846463738393039430756697369626C65080000005450463007544C61
+          796F757400095374796C654E616D6506144461726B4C696E6561724761756765
+          5374796C6505416C69676E0708436F6E74656E7473000A5452656374616E676C
+          6500095374796C654E616D650605747261636B0A46696C6C2E436F6C6F720709
+          7833334646464646460748697454657374080A53697A652E5769647468050000
+          0000000000C804400B53697A652E4865696768740500000000000000C8044014
+          53697A652E506C6174666F726D44656661756C74080B5374726F6B652E4B696E
+          6407044E6F6E650756697369626C650807585261646975730500000000000000
+          8001400759526164697573050000000000000080014000000A5452656374616E
+          676C6500095374796C654E616D65060466696C6C0A46696C6C2E436F6C6F7207
+          097846463236433644410748697454657374080A53697A652E57696474680500
+          000000000000C804400B53697A652E4865696768740500000000000000C80440
+          1453697A652E506C6174666F726D44656661756C74080B5374726F6B652E4B69
+          6E6407044E6F6E650756697369626C6508075852616469757305000000000000
+          0080014007595261646975730500000000000000800140000005545465787400
+          095374796C654E616D65060976616C7565746578740748697454657374081A54
+          65787453657474696E67732E466F6E742E5374796C654578740A0D0000000007
+          0000000000000004000000165465787453657474696E67732E466F6E74436F6C
+          6F720708636C6157686974650756697369626C65080000055454657874000953
+          74796C654E616D65060B63617074696F6E746578740748697454657374081654
+          65787453657474696E67732E466F6E74436F6C6F720709784646423042454335
+          0756697369626C65080000005450463007544C61796F757400095374796C654E
+          616D6506164461726B43697263756C617247617567655374796C6505416C6967
+          6E0708436F6E74656E747300045441726300095374796C654E616D6506057472
+          61636B0748697454657374080A53697A652E57696474680500000000000000C8
+          04400B53697A652E4865696768740500000000000000C804401453697A652E50
+          6C6174666F726D44656661756C74080C5374726F6B652E436F6C6F7207097833
+          334646464646460A5374726F6B652E4361700705526F756E640756697369626C
+          65080000045441726300095374796C654E616D65060466696C6C074869745465
+          7374080A53697A652E57696474680500000000000000C804400B53697A652E48
+          65696768740500000000000000C804401453697A652E506C6174666F726D4465
+          6661756C74080C5374726F6B652E436F6C6F7207097846464646434132380A53
+          74726F6B652E4361700705526F756E640756697369626C650800000554546578
+          7400095374796C654E616D65060976616C756574657874074869745465737408
+          165465787453657474696E67732E466F6E742E53697A650500000000000000C0
+          03401A5465787453657474696E67732E466F6E742E5374796C654578740A0D00
+          000000070000000000000004000000165465787453657474696E67732E466F6E
+          74436F6C6F720708636C6157686974650756697369626C650800000554546578
+          7400095374796C654E616D65060B63617074696F6E7465787407486974546573
+          7408165465787453657474696E67732E466F6E74436F6C6F7207097846464230
+          424543350756697369626C6508000000}
+      end>
+  end
+end

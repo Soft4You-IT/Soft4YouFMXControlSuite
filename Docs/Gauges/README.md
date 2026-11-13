@@ -191,6 +191,14 @@ begin
 end;
 ```
 
+## Demo
+
+`Demos\Gauges\S4YGaugesDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows a horizontal and a vertical linear gauge and a circular gauge with the same settings. The panel on the left changes `Value` with a track bar, `Min` and `Max`, the animation (a button sets a random value, to see it), `Caption`, `ShowValue`, `ValueFormat`, a text given by `OnGetValueText`, the fill from the style or from `FillBrush`, `Orientation` of the first gauge, `TextPosition` and `Thickness` of the linear gauges, and the shape, `StartAngle`, `SweepAngle` and `Thickness` of the circular one.
+
+`Demos\Gauges\S4YGaugesGallery.dproj` (also in the project group) shows what the gauges can look like, one example per tab: the default styles; the shapes of the circular gauge; a dashboard whose values are changed by a timer; a fill whose color changes with the level of the value, with the text from `OnGetValueText`; a download in small steps; a row of vertical bars without texts, like an equalizer; the styles of a `TStyleBook` (a gradient, a glossy line over the fill, square corners, flat ends, a dotted track, a gradient arc); and styles for a dark background. The styles are in the style book of the form and can be used as models.
+
+Install the suite packages first.
+
 ## Notes
 
 - The gauges stream their `StyledBrushes` after the brushes: a form saved with an explicit `StyledBrushes` keeps it when loaded.

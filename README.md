@@ -50,6 +50,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Demos\Badge` | Sample FMX application with `TS4YBadge`: a counter and a text badge, and the settings to change them |
 | `Demos\Expander` | Sample FMX application with three `TS4YExpander`: a badge on the header, the animation and the header click |
 | `Demos\StepProgressBar` | Sample FMX application with two `TS4YStepProgressBar`: the steps of an installation, moved by buttons, and the steps of a wizard, chosen with a click |
+| `Demos\Gauges` | Sample FMX applications with `TS4YLinearGauge` and `TS4YCircularGauge`: the settings of the gauges, and a gallery of examples |
 | `Docs\HTMLEditor` | Documentation of the HTML editor: [`README.md`](Docs/HTMLEditor/README.md) (installation, properties, methods, events), [`DeveloperGuide.md`](Docs/HTMLEditor/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals) |
 | `Docs\FlexBox` | Documentation of the FlexBox control: [`README.md`](Docs/FlexBox/README.md) (installation, properties, examples) |
 | `Docs\BlockScrollBox` | Documentation of the BlockScrollBox control: [`README.md`](Docs/BlockScrollBox/README.md) |
@@ -142,7 +143,7 @@ The public API of every control is documented with DocXML comments (`/// <summar
 
 The suite is the work of Carlo Marona (Soft4You), who designs and directs it. Artificial intelligence was used for part of the controls, through [Claude](https://www.anthropic.com/claude) (Anthropic) and Claude Code:
 
-- `TS4YHTMLEditor`, `TS4YFlexBox` and `TS4YStepProgressBar` were developed with the assistance of Claude from the start.
+- `TS4YHTMLEditor`, `TS4YFlexBox`, `TS4YStepProgressBar`, `TS4YLinearGauge` and `TS4YCircularGauge` were developed with the assistance of Claude from the start.
 - `TS4YBadge`, `TS4YExpander` and `TS4YColorSelector` were first written by Carlo Marona and later refined with the assistance of Claude, mainly `TS4YExpander`.
 
 ---
