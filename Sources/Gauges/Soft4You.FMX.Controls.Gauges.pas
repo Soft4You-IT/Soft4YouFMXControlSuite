@@ -30,7 +30,7 @@ type
   /// </summary>
   /// <remarks>
   /// The look comes from a style: its graphic parts track and fill can be any graphic object and are drawn as they are, resized to the area they cover; its texts valuetext and captiontext give fonts and colors.
-  /// The descendants, such as TS4YLinearGauge, decide the shape of the track and where the texts go. The class is not registered in the Tool Palette.
+  /// The descendants, TS4YLinearGauge and TS4YCircularGauge, decide the shape of the track and where the texts go. The class is not registered in the Tool Palette.
   /// </remarks>
   TS4YCustomGauge = class(TStyledControl)
   public const

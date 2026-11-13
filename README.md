@@ -22,7 +22,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 | `TS4YExpander` | Collapsible panel with an icon in the header, a height animation, a click on the whole header and a badge counter | [Docs\Expander](Docs/Expander/README.md) |
 | `TS4YColorSelector` | Foreground and background color swatches, like in the drawing programs: a click asks the application to change one of the two colors | [Docs\ColorSelector](Docs/ColorSelector/README.md) |
 | `TS4YStepProgressBar` | Progress indicator made of steps along a horizontal or vertical line, like the phases of an installation or the pages of a wizard; the look comes from a style | [Docs\StepProgressBar](Docs/StepProgressBar/README.md) |
-| `TS4YLinearGauge` | Gauge drawn as a horizontal or vertical bar that fills with a value in a range, with a caption and the value written; the look comes from a style | [Docs\Gauges](Docs/Gauges/README.md) |
+| `TS4YLinearGauge`, `TS4YCircularGauge` | Gauges that show a value in a range as a horizontal or vertical bar, or as a ring or an arc, that fills with the value, with a caption and the value written; the look comes from a style | [Docs\Gauges](Docs/Gauges/README.md) |
 
 All the controls are built into the same two packages and appear in the Tool Palette page **Soft4You FMX Controls Suite**. `TS4YExpander` uses `TS4YBadge`, so the two are always installed together.
 
@@ -39,7 +39,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Sources\Expander` | Units of the Expander control (`TS4YExpander`), with its styles and resource scripts |
 | `Sources\ColorSelector` | Units of the ColorSelector control (`TS4YColorSelector`) and the types of its event |
 | `Sources\StepProgressBar` | Units of the StepProgressBar control (`TS4YStepProgressBar`) and its types, with its styles and resource scripts |
-| `Sources\Gauges` | Units of the gauges (`TS4YLinearGauge`) and their types, with their styles and resource scripts |
+| `Sources\Gauges` | Units of the gauges (`TS4YLinearGauge`, `TS4YCircularGauge`) and their types, with their styles and resource scripts |
 | `Sources\Design` | Design-time unit shared by all the controls of the suite (IDE splash screen and About box) |
 | `Packages\D11`, `D12`, `D13` | Runtime and design-time packages and their project group, one folder for each Delphi version (11, 12, 13) |
 | `Resources` | Resources compiled by the packages from the `.rc` files (styles of the Badge, the Expander, the StepProgressBar and the gauges, Tool Palette icons, version information); created when the packages are built, not in the repository |

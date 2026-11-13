@@ -24,14 +24,15 @@ implementation
 
 uses
   System.Classes,
-  Soft4You.FMX.Controls.Gauges.Linear;
+  Soft4You.FMX.Controls.Gauges.Linear,
+  Soft4You.FMX.Controls.Gauges.Circular;
 
 procedure Register;
 begin
   // The icons are read automatically from the bitmap resources whose names
   // match the class names in upper case ('TS4YLINEARGAUGE'), compiled into
   // the .res from GaugesDesign.rc.
-  RegisterComponents('Soft4You FMX Controls Suite', [TS4YLinearGauge]);
+  RegisterComponents('Soft4You FMX Controls Suite', [TS4YLinearGauge, TS4YCircularGauge]);
 end;
 
 end.

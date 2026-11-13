@@ -8,11 +8,12 @@ Download                    72
 ```
 
 - `TS4YLinearGauge` draws the value as a horizontal or vertical **bar**, with the caption and the value on one side of it.
+- `TS4YCircularGauge` draws it as a **ring**, an open arc or a half circle, with the value and the caption in the middle.
 - The value goes from `Min` to `Max`; a large change of `Value` moves the fill with an animation, a small one is drawn at once.
 - The value is written with a format of its own (`ValueFormat`), or with a text given by the application (`OnGetValueText`).
 - Every part of the gauge comes from a **style**: the track, the fill and the fonts of the texts. The track and the fill can have any shape designed in the style; properties can replace the colors of the simple shapes.
 
-Units: `Soft4You.FMX.Controls.Gauges.Linear` for `TS4YLinearGauge`, in `Sources\Gauges`; the base class of the gauges is in `Soft4You.FMX.Controls.Gauges`, the types in `Soft4You.FMX.Controls.Gauges.Types`.
+Units: `Soft4You.FMX.Controls.Gauges.Linear` for `TS4YLinearGauge` and `Soft4You.FMX.Controls.Gauges.Circular` for `TS4YCircularGauge`, in `Sources\Gauges`; the base class of the gauges is in `Soft4You.FMX.Controls.Gauges`, the types in `Soft4You.FMX.Controls.Gauges.Types`.
 
 ## Installation
 
@@ -26,12 +27,15 @@ Add the folder `Sources\Gauges` to the Delphi library path to compile your own p
 |---|---|
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.pas` | `TS4YCustomGauge`, the base class of the gauges |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.pas` | `TS4YLinearGauge` |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.pas` | `TS4YCircularGauge` |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Types.pas` | Enumerations, sets and event types |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Register.pas` | Registration in the Tool Palette (design time) |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Win.rc` / `.Mac.rc` | Resource scripts that link the style of `TS4YLinearGauge` as the resource `S4YLinearGaugeStyle` |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Win.style` / `.Mac.style` | Default style of `TS4YLinearGauge` (the two are identical) |
-| `Graphics\Gauges\TS4YLinearGauge.svg` | Vector master of the icon of the Tool Palette |
-| `Graphics\Gauges\TS4YLinearGauge.bmp`, `GaugesDesign.rc` | Icon of the Tool Palette (24x24 bitmap) and the resource script that links it |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.Win.rc` / `.Mac.rc` | Resource scripts that link the style of `TS4YCircularGauge` as the resource `S4YCircularGaugeStyle` |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.Win.style` / `.Mac.style` | Default style of `TS4YCircularGauge` (the two are identical) |
+| `Graphics\Gauges\TS4YLinearGauge.svg`, `TS4YCircularGauge.svg` | Vector masters of the icons of the Tool Palette |
+| `Graphics\Gauges\TS4YLinearGauge.bmp`, `TS4YCircularGauge.bmp`, `GaugesDesign.rc` | Icons of the Tool Palette (24x24 bitmaps) and the resource script that links them |
 
 ## Properties of all the gauges
 
@@ -44,7 +48,7 @@ Add the folder `Sources\Gauges` to the Delphi library path to compile your own p
 | `Caption` | empty | Text that describes the value, for example *Download* or *CPU* |
 | `ShowValue` | `True` | Writes the value |
 | `ValueFormat` | `%.0f` | Format of the value, as for the `Format` function of Delphi with the value as its only argument (see below) |
-| `Thickness` | 8 (linear) | Thickness of the track and of the fill, in pixels |
+| `Thickness` | 8 (linear), 12 (circular) | Thickness of the track and of the fill, in pixels |
 | `FillBrush` | blue | Brush of the fill, used in place of the one of the style (see [Styles](#styles)) |
 | `TrackBrush` | light gray | Brush of the track, used in place of the one of the style |
 | `StyledBrushes` | `[gsbFill, gsbTrack]` | Which brushes come from the style instead of `FillBrush` and `TrackBrush` |
@@ -104,9 +108,29 @@ Download                72           ━━━━━━━━━━━━━━�
 
 The bar takes the whole length of the control inside `Padding`; across it, the bar and the texts are one block in the middle of the control, 4 pixels apart. Texts of different sizes are aligned towards the bar. A new gauge is 200 x 40 pixels, with a bar 8 pixels thick.
 
+## TS4YCircularGauge
+
+A ring or an arc that fills clockwise with the value, with the value and, under it, the caption in the middle.
+
+| Property | Default | Meaning |
+|---|---|---|
+| `StartAngle` | 0 | Angle where the arc starts and the fill begins, in degrees: 0 is the top of the circle, 90 its right side, -90 its left side |
+| `SweepAngle` | 360 | Length of the arc in degrees, clockwise from `StartAngle`, from 0 to 360 |
+
+| Shape | `StartAngle` | `SweepAngle` |
+|---|---|---|
+| Ring, filled from the top | 0 | 360 |
+| Arc open at the bottom, like a speedometer | -135 | 270 |
+| Half circle, filled from the left | -90 | 180 |
+
+The arc is as large as the area inside `Padding` allows, keeping the circle round: a half circle fills a control twice as wide as tall, a ring a square one. The value and the caption are centered in the area enclosed by the arc, for example in the upper half of the circle for a half circle. A new gauge is 120 x 120 pixels, with an arc 12 pixels thick.
+
 ## Styles
 
-The look of `TS4YLinearGauge` comes from a style named `S4YLinearGaugeStyle`. The style is a container of invisible parts:
+The look of `TS4YLinearGauge` comes from a style named `S4YLinearGaugeStyle`, the look of `TS4YCircularGauge` from a style named `S4YCircularGaugeStyle`. Each style is a container of invisible parts with the same names.
+
+### Style of the linear gauge
+
 
 | Part (`StyleName`) | In the default style | Use |
 |---|---|---|
@@ -125,6 +149,21 @@ The style linked into the package is used when no other style defines `S4YLinear
 2. Change the parts: their colors and fonts, or replace a shape with another object.
 
 A style with another name is used by the gauges whose `StyleLookup` is set to that name; when no style has that name, they use `S4YLinearGaugeStyle` as the others. A part missing from a style is replaced by a rectangle with the brush of the property, and a missing text by the default font and colors.
+
+### Style of the circular gauge
+
+| Part (`StyleName`) | In the default style | Use |
+|---|---|---|
+| `track` | `TArc`, light gray border, round ends | Gives the brush and the ends of the whole arc |
+| `fill` | `TArc`, blue border, round ends | Gives the brush and the ends of the filled part of the arc |
+| `valuetext` | `TText`, bold, size 24 | Font and color of the value |
+| `captiontext` | `TText` | Font and color of the caption |
+
+The gauge does not draw a copy of the parts: it draws the arc itself, with `StartAngle`, `SweepAngle` and `Thickness`, and takes from the `TArc` of the style the brush of its border (`Stroke`: color, gradient, dash) and its ends (`Stroke.Cap`: `Round` or `Flat`). The thickness and the angles of the `TArc` in the style do not matter. `FillBrush` and `TrackBrush` replace the color of the border, as for the linear gauge, and keep the ends of the style.
+
+A part that is not a `TArc` gives nothing: the arc is drawn with the brush of the property and flat ends. A missing part is replaced by an arc with the brush of the property and round ends.
+
+To change the look of all the circular gauges, add to a `TStyleBook` a `TLayout` with `StyleName = 'S4YCircularGaugeStyle'`; the default style, `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.Win.style`, can be used as a model.
 
 ## Example
 
