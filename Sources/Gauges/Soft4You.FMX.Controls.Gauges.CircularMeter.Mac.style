@@ -50,6 +50,14 @@ object TLayout
     Stroke.Color = xFFBDBDBD
     Visible = False
   end
+  object TLine
+    StyleName = 'target'
+    HitTest = False
+    LineType = Top
+    Stroke.Color = xFF212121
+    Stroke.Thickness = 3.000000000000000000
+    Visible = False
+  end
   object TText
     StyleName = 'scaletext'
     HitTest = False

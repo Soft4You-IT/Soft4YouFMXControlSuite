@@ -2,7 +2,7 @@ unit Soft4You.FMX.Controls.Gauges.Scales;
 
 { *****************************************************************************
   Soft4You FMX Control Suite - FireMonkey (FMX) controls for Delphi
-  TS4YLinearMeter, TS4YCircularMeter - graduation of the meters
+  TS4YLinearMeter, TS4YCircularMeter - graduation and ranges of the meters
   Copyright (c) 2026 Carlo Marona (Soft4You)
 
   This Source Code Form is subject to the terms of the Mozilla Public
@@ -14,6 +14,7 @@ interface
 
 uses
   System.Classes,
+  System.UITypes,
   Soft4You.FMX.Controls.Gauges.Types;
 
 type
@@ -136,6 +137,71 @@ type
   published
     /// <summary>Side of the bar where the graduation is drawn: gbsBefore, above a horizontal bar or on the left of a vertical one, or gbsAfter (the default), below or on the right.</summary>
     property Position: TS4YGaugeBarSide read FPosition write SetPosition default C_DEFAULT_POSITION;
+  end;
+
+  /// <summary>
+  /// A range of values of a meter with a color of its own, for example the red zone of a speedometer.
+  /// </summary>
+  TS4YMeterRange = class(TCollectionItem)
+  public const
+    /// <summary>Default value of Color.</summary>
+    C_DEFAULT_COLOR: TAlphaColor = $FF9E9E9E;
+  private
+    FColor: TAlphaColor;
+    FEndValue: Single;
+    FStartValue: Single;
+    procedure SetColor(const Value: TAlphaColor);
+    procedure SetEndValue(const Value: Single);
+    procedure SetStartValue(const Value: Single);
+  protected
+    /// <summary>Returns the values of the range, for the editor of the collection.</summary>
+    function GetDisplayName: string; override;
+  public
+    /// <summary>Creates a gray range from 0 to 0.</summary>
+    constructor Create(Collection: TCollection); override;
+
+    /// <summary>Copies the settings from another range.</summary>
+    procedure Assign(Source: TPersistent); override;
+    /// <summary>Returns True when AValue is in the range, ends included; StartValue and EndValue can be in any order.</summary>
+    function Contains(const AValue: Single): Boolean;
+    /// <summary>Returns the higher of StartValue and EndValue.</summary>
+    function HighValue: Single;
+    /// <summary>Returns the lower of StartValue and EndValue.</summary>
+    function LowValue: Single;
+  published
+    /// <summary>Color of the range.</summary>
+    property Color: TAlphaColor read FColor write SetColor nodefault;
+    /// <summary>Value where the range ends.</summary>
+    property EndValue: Single read FEndValue write SetEndValue;
+    /// <summary>Value where the range starts.</summary>
+    property StartValue: Single read FStartValue write SetStartValue;
+  end;
+
+  /// <summary>
+  /// The ranges of a meter. A range drawn later covers the ones before it where they overlap.
+  /// </summary>
+  TS4YMeterRanges = class(TOwnedCollection)
+  private
+    FOnChange: TNotifyEvent;
+    function GetItem(const AIndex: Integer): TS4YMeterRange;
+    procedure SetItem(const AIndex: Integer; const Value: TS4YMeterRange);
+  protected
+    /// <summary>Fires OnChange.</summary>
+    procedure Update(Item: TCollectionItem); override;
+  public
+    /// <summary>Creates the collection of the ranges of AOwner.</summary>
+    constructor Create(const AOwner: TPersistent);
+
+    /// <summary>Adds a range from AStartValue to AEndValue with AColor.</summary>
+    function Add(const AStartValue, AEndValue: Single; const AColor: TAlphaColor): TS4YMeterRange; overload;
+    /// <summary>Returns the range that contains AValue, the last one when they overlap, or nil.</summary>
+    function FindRange(const AValue: Single): TS4YMeterRange;
+
+    /// <summary>The ranges, by position.</summary>
+    property Items[const AIndex: Integer]: TS4YMeterRange read GetItem write SetItem; default;
+
+    /// <summary>Fires when a range is added, removed or changed.</summary>
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
 implementation
@@ -412,6 +478,133 @@ begin
 
   FPosition := Value;
   DoChange;
+end;
+
+{ TS4YMeterRange }
+
+constructor TS4YMeterRange.Create(Collection: TCollection);
+begin
+  inherited;
+
+  FColor := C_DEFAULT_COLOR;
+end;
+
+procedure TS4YMeterRange.Assign(Source: TPersistent);
+var
+  LSource: TS4YMeterRange;
+begin
+  if Source is TS4YMeterRange then
+  begin
+    LSource := TS4YMeterRange(Source);
+    FColor := LSource.Color;
+    FEndValue := LSource.EndValue;
+    FStartValue := LSource.StartValue;
+    Changed(False);
+  end
+  else
+    inherited;
+end;
+
+function TS4YMeterRange.Contains(const AValue: Single): Boolean;
+begin
+  Result := (AValue >= LowValue) and (AValue <= HighValue);
+end;
+
+function TS4YMeterRange.GetDisplayName: string;
+begin
+  Result := FormatFloat('0.##', FStartValue) + ' - ' + FormatFloat('0.##', FEndValue);
+end;
+
+function TS4YMeterRange.HighValue: Single;
+begin
+  Result := Max(FStartValue, FEndValue);
+end;
+
+function TS4YMeterRange.LowValue: Single;
+begin
+  Result := Min(FStartValue, FEndValue);
+end;
+
+procedure TS4YMeterRange.SetColor(const Value: TAlphaColor);
+begin
+  if FColor = Value then
+    Exit;
+
+  FColor := Value;
+  Changed(False);
+end;
+
+procedure TS4YMeterRange.SetEndValue(const Value: Single);
+begin
+  if FEndValue = Value then
+    Exit;
+
+  FEndValue := Value;
+  Changed(False);
+end;
+
+procedure TS4YMeterRange.SetStartValue(const Value: Single);
+begin
+  if FStartValue = Value then
+    Exit;
+
+  FStartValue := Value;
+  Changed(False);
+end;
+
+{ TS4YMeterRanges }
+
+constructor TS4YMeterRanges.Create(const AOwner: TPersistent);
+begin
+  inherited Create(AOwner, TS4YMeterRange);
+end;
+
+function TS4YMeterRanges.Add(const AStartValue, AEndValue: Single; const AColor: TAlphaColor): TS4YMeterRange;
+begin
+  BeginUpdate;
+  try
+    Result := TS4YMeterRange(inherited Add);
+    Result.StartValue := AStartValue;
+    Result.EndValue := AEndValue;
+    Result.Color := AColor;
+  finally
+    EndUpdate;
+  end;
+end;
+
+function TS4YMeterRanges.FindRange(const AValue: Single): TS4YMeterRange;
+var
+  LIndex: Integer;
+begin
+  // From the last one: where the ranges overlap, the last one is the one drawn on top.
+  Result := nil;
+  LIndex := Count - 1;
+
+  while not Assigned(Result) and (LIndex >= 0) do
+  begin
+    if Items[LIndex].Contains(AValue) then
+      Result := Items[LIndex];
+
+    Dec(LIndex);
+  end;
+end;
+
+function TS4YMeterRanges.GetItem(const AIndex: Integer): TS4YMeterRange;
+begin
+  Result := TS4YMeterRange(inherited Items[AIndex]);
+end;
+
+procedure TS4YMeterRanges.SetItem(const AIndex: Integer; const Value: TS4YMeterRange);
+begin
+  inherited Items[AIndex] := Value;
+end;
+
+procedure TS4YMeterRanges.Update(Item: TCollectionItem);
+begin
+  inherited;
+
+  if Assigned(FOnChange) then
+    FOnChange(Self);
 end;
 
 end.

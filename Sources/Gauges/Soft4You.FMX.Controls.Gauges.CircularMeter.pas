@@ -16,17 +16,20 @@ uses
   System.Classes,
   System.Types,
   System.UITypes,
+  FMX.Graphics,
   FMX.Objects,
+  Soft4You.FMX.Controls.Gauges.Types,
   Soft4You.FMX.Controls.Gauges.Scales,
   Soft4You.FMX.Controls.Gauges.Circular;
 
 type
   /// <summary>
-  /// A circular gauge with a graduation along the arc, like the dial of an instrument.
+  /// A circular gauge with a graduation along the arc, like the dial of an instrument, with colored ranges and a target value.
   /// </summary>
   /// <remarks>
   /// The arc is open at the bottom by default (StartAngle -135, SweepAngle 270). Graduation gives the ticks and their numbers, inside or outside the arc; outside, the arc becomes smaller to leave room for them.
-  /// The style is S4YCircularMeterStyle: besides the parts of S4YCircularGaugeStyle, the shapes majortick and minortick give the stroke of the ticks and the text scaletext the font and the color of the numbers.
+  /// Ranges color parts of the scale, on the track or in thin bands beside it (RangePlacement); FillFromRange gives the fill the color of the range of the value. ShowTarget marks the value of Target across the track.
+  /// The style is S4YCircularMeterStyle: besides the parts of S4YCircularGaugeStyle, the shapes majortick, minortick and target give the stroke of the ticks and of the mark of the target, and the text scaletext the font and the color of the numbers.
   /// </remarks>
   TS4YCircularMeter = class(TS4YCircularGauge)
   public const
@@ -34,30 +37,65 @@ type
     C_DEFAULT_MAJOR_TICK_COLOR: TAlphaColor = $FF757575;
     /// <summary>Color of the minor ticks when the style has no minortick.</summary>
     C_DEFAULT_MINOR_TICK_COLOR: TAlphaColor = $FFBDBDBD;
+    /// <summary>Default value of RangeBandThickness, in pixels.</summary>
+    C_DEFAULT_RANGE_BAND_THICKNESS: Single = 4;
+    /// <summary>Default value of RangePlacement: the ranges are drawn on the track.</summary>
+    C_DEFAULT_RANGE_PLACEMENT: TS4YGaugeArcRangePlacement = [garTrack];
     /// <summary>Color of the numbers of the graduation when the style has no scaletext.</summary>
     C_DEFAULT_SCALE_TEXT_COLOR: TAlphaColor = $FF616161;
     /// <summary>Default value of StartAngle, in degrees.</summary>
     C_DEFAULT_START_ANGLE: Single = -135;
     /// <summary>Default value of SweepAngle, in degrees: an arc open at the bottom.</summary>
     C_DEFAULT_SWEEP_ANGLE: Single = 270;
+    /// <summary>Color of the mark of the target when the style has no target.</summary>
+    C_DEFAULT_TARGET_COLOR: TAlphaColor = $FF212121;
   private
+    FFillFromRange: Boolean;
     FGraduation: TS4YCircularMeterGraduation;
+    FRangeBandThickness: Single;
+    FRangePlacement: TS4YGaugeArcRangePlacement;
+    FRanges: TS4YMeterRanges;
+    FShowTarget: Boolean;
     FStyleMajorTick: TShape;
     FStyleMinorTick: TShape;
     FStyleScaleText: TText;
+    FStyleTarget: TShape;
+    FTarget: Single;
+    function BandRoom(const APlace: TS4YGaugeArcRangePlace): Single;
+    procedure DrawColoredArc(const ACenter: TPointF; const ARadius, AThickness, AStartFraction, AEndFraction: Single;
+      const AColor: TAlphaColor; const ACap: TStrokeCap);
+    procedure DrawGraduation(const ACenter: TPointF; const ARadius: Single);
+    procedure DrawRanges(const ACenter: TPointF; const ARadius, AThickness: Single; const ACap: TStrokeCap);
+    procedure DrawTarget(const ACenter: TPointF; const ARadius: Single);
     procedure DrawTicks(const ACenter: TPointF; const AFromRadius: Single; const AValues: TArray<Single>;
       const AStyleTick: TShape; const ADefaultColor: TAlphaColor; const ALength: Single; Outside: Boolean);
+    function GetPartCap(const APart: TObject): TStrokeCap;
     procedure GraduationChanged(Sender: TObject);
-    function IsWholeCircle: Boolean;
     function IsValueDrawn(const AValue: Single): Boolean;
+    function IsWholeCircle: Boolean;
     function MaxLabelExtent: Single;
-    procedure PrepareTickStroke(const AStyleTick: TShape; const ADefaultColor: TAlphaColor);
+    procedure PrepareStroke(const AStyleShape: TShape; const ADefaultColor: TAlphaColor; const ADefaultThickness: Single);
+    function RangeBandThicknessStored: Boolean;
+    function RangePlacementStored: Boolean;
+    procedure RangesChanged(Sender: TObject);
+    function RangesStored: Boolean;
+    procedure SetFillFromRange(const Value: Boolean);
     procedure SetGraduation(const Value: TS4YCircularMeterGraduation);
+    procedure SetRangeBandThickness(const Value: Single);
+    procedure SetRangePlacement(const Value: TS4YGaugeArcRangePlacement);
+    procedure SetRanges(const Value: TS4YMeterRanges);
+    procedure SetShowTarget(const Value: Boolean);
+    procedure SetTarget(const Value: Single);
+    function TargetStored: Boolean;
   protected
-    /// <summary>Finds the ticks and the text of the graduation in the style.</summary>
+    /// <summary>Finds the ticks, the mark of the target and the text of the graduation in the style.</summary>
     procedure ApplyStyle; override;
-    /// <summary>Draws the graduation.</summary>
+    /// <summary>Draws the bands of the ranges, the graduation and the mark of the target.</summary>
     procedure DrawDecorations(const ACenter: TPointF; const ARadius: Single); override;
+    /// <summary>Draws the filled part of the arc, with the color of the range of the value when FillFromRange is True.</summary>
+    procedure DrawFill(const ACenter: TPointF; const ARadius: Single); override;
+    /// <summary>Draws the whole track and the ranges on it.</summary>
+    procedure DrawTrack(const ACenter: TPointF; const ARadius: Single); override;
     /// <summary>Releases the parts of the style.</summary>
     procedure FreeStyle; override;
     /// <summary>Returns the size of a new control: 160 x 160.</summary>
@@ -66,15 +104,32 @@ type
     function GetDefaultStartAngle: Single; override;
     /// <summary>Returns 270, the default value of SweepAngle.</summary>
     function GetDefaultSweepAngle: Single; override;
-    /// <summary>Returns the room of the graduation outside the arc, or 0 when it is inside.</summary>
+    /// <summary>Returns the room of what is drawn outside the arc: the graduation, the band of the ranges and the mark of the target.</summary>
     function GetOuterMargin: Single; override;
   public
     /// <summary>Creates a meter with an arc open at the bottom and a graduation inside it.</summary>
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
+    /// <summary>True gives the fill the color of the range that contains the value; out of the ranges, the fill keeps its brush. The default is False.</summary>
+    property FillFromRange: Boolean read FFillFromRange write SetFillFromRange default False;
     /// <summary>The ticks and the numbers drawn along the arc, inside or outside it.</summary>
     property Graduation: TS4YCircularMeterGraduation read FGraduation write SetGraduation;
+    /// <summary>Thickness of the bands of the ranges inside and outside the arc, in pixels. The default is 4.</summary>
+    property RangeBandThickness: Single read FRangeBandThickness write SetRangeBandThickness stored RangeBandThicknessStored nodefault;
+    /// <summary>
+    /// Where the ranges are drawn: on the track (garTrack, the default), in a thin band inside the arc (garInside), in a thin band outside it (garOutside), or in more than one of these places.
+    /// </summary>
+    /// <remarks>
+    /// On the track the ranges are under the fill: they are seen where the fill does not cover them.
+    /// </remarks>
+    property RangePlacement: TS4YGaugeArcRangePlacement read FRangePlacement write SetRangePlacement stored RangePlacementStored nodefault;
+    /// <summary>The ranges of values with a color of their own, for example a green, a yellow and a red zone.</summary>
+    property Ranges: TS4YMeterRanges read FRanges write SetRanges stored RangesStored;
+    /// <summary>True marks the value of Target across the track. The default is False.</summary>
+    property ShowTarget: Boolean read FShowTarget write SetShowTarget default False;
+    /// <summary>The value to reach, marked across the track when ShowTarget is True. A value out of the range is marked at its nearest end.</summary>
+    property Target: Single read FTarget write SetTarget stored TargetStored nodefault;
   end;
 
 implementation
@@ -83,9 +138,7 @@ uses
   System.SysUtils,
   System.Math,
   FMX.Types,
-  FMX.Controls,
-  FMX.Graphics,
-  Soft4You.FMX.Controls.Gauges.Types;
+  FMX.Controls;
 
 {$IFDEF MACOS}
 {$R *.mac.res}
@@ -98,15 +151,26 @@ const
   C_STYLE_MAJOR_TICK = 'majortick';
   C_STYLE_MINOR_TICK = 'minortick';
   C_STYLE_SCALE_TEXT = 'scaletext';
+  C_STYLE_TARGET = 'target';
 
+  // Space between the track and the bands of the ranges, in pixels.
+  C_BAND_SPACING = 3;
   // Size of a new meter.
   C_DEFAULT_SIZE = 160;
+  // Thickness of the mark of the target when the style has no shape for it, in pixels.
+  C_DEFAULT_TARGET_THICKNESS = 3;
   // Thickness of a tick when the style has no shape for it, in pixels.
   C_DEFAULT_TICK_THICKNESS = 1.5;
+  // Tolerance on the ends of the range, as a fraction of the range.
+  C_FRACTION_EPSILON = 1E-4;
+  // Smallest arc drawn, in degrees.
+  C_MIN_DRAWN_SWEEP_ANGLE = 0.01;
+  // Arc drawn with round ends to put a round end on a range, in degrees: a dot.
+  C_ROUND_END_SWEEP_ANGLE = 0.1;
   // Space between the arc, the ticks and the numbers, in pixels.
   C_SCALE_SPACING = 3;
-  // Tolerance on the end of a whole circle, as a fraction of the range.
-  C_WHOLE_CIRCLE_EPSILON = 1E-4;
+  // Length of the mark of the target beyond each side of the track, in pixels.
+  C_TARGET_OVERHANG = 4;
 
 { TS4YCircularMeter }
 
@@ -114,12 +178,17 @@ constructor TS4YCircularMeter.Create(AOwner: TComponent);
 begin
   inherited;
 
+  FRangeBandThickness := C_DEFAULT_RANGE_BAND_THICKNESS;
+  FRangePlacement := C_DEFAULT_RANGE_PLACEMENT;
   FGraduation := TS4YCircularMeterGraduation.Create;
   FGraduation.OnChange := GraduationChanged;
+  FRanges := TS4YMeterRanges.Create(Self);
+  FRanges.OnChange := RangesChanged;
 end;
 
 destructor TS4YCircularMeter.Destroy;
 begin
+  FreeAndNil(FRanges);
   FreeAndNil(FGraduation);
 
   inherited;
@@ -131,10 +200,73 @@ begin
 
   FindStyleResource<TShape>(C_STYLE_MAJOR_TICK, FStyleMajorTick);
   FindStyleResource<TShape>(C_STYLE_MINOR_TICK, FStyleMinorTick);
+  FindStyleResource<TShape>(C_STYLE_TARGET, FStyleTarget);
   FindStyleResource<TText>(C_STYLE_SCALE_TEXT, FStyleScaleText);
 end;
 
+function TS4YCircularMeter.BandRoom(const APlace: TS4YGaugeArcRangePlace): Single;
+begin
+  // A band takes room only when there are ranges to draw in it.
+  if (FRanges.Count > 0) and (APlace in FRangePlacement) then
+    Result := C_BAND_SPACING + FRangeBandThickness
+  else
+    Result := 0;
+end;
+
+procedure TS4YCircularMeter.DrawColoredArc(const ACenter: TPointF; const ARadius, AThickness, AStartFraction,
+  AEndFraction: Single; const AColor: TAlphaColor; const ACap: TStrokeCap);
+var
+  LSweepAngle: Single;
+begin
+  LSweepAngle := SweepAngle * (AEndFraction - AStartFraction);
+
+  if (LSweepAngle < C_MIN_DRAWN_SWEEP_ANGLE) or (AThickness <= 0) then
+    Exit;
+
+  Canvas.Stroke.Kind := TBrushKind.Solid;
+  Canvas.Stroke.Color := AColor;
+  Canvas.Stroke.Thickness := AThickness;
+  Canvas.Stroke.Cap := ACap;
+  Canvas.Stroke.Dash := TStrokeDash.Solid;
+  Canvas.DrawArc(ACenter, TPointF.Create(ARadius, ARadius), AngleOfFraction(AStartFraction), LSweepAngle,
+    AbsoluteOpacity);
+end;
+
 procedure TS4YCircularMeter.DrawDecorations(const ACenter: TPointF; const ARadius: Single);
+begin
+  if BandRoom(garInside) > 0 then
+    DrawRanges(ACenter, ARadius - Thickness / 2 - C_BAND_SPACING - FRangeBandThickness / 2, FRangeBandThickness,
+      TStrokeCap.Flat);
+
+  if BandRoom(garOutside) > 0 then
+    DrawRanges(ACenter, ARadius + Thickness / 2 + C_BAND_SPACING + FRangeBandThickness / 2, FRangeBandThickness,
+      TStrokeCap.Flat);
+
+  DrawGraduation(ACenter, ARadius);
+
+  if FShowTarget then
+    DrawTarget(ACenter, ARadius);
+end;
+
+procedure TS4YCircularMeter.DrawFill(const ACenter: TPointF; const ARadius: Single);
+var
+  LFraction: Single;
+  LRange: TS4YMeterRange;
+begin
+  LRange := nil;
+  LFraction := GetDisplayedFraction;
+
+  if FFillFromRange then
+    LRange := FRanges.FindRange(Min + LFraction * (Max - Min));
+
+  // The fill keeps the ends of its part of the style, with the color of the range.
+  if Assigned(LRange) then
+    DrawColoredArc(ACenter, ARadius, Thickness, 0, LFraction, LRange.Color, GetPartCap(FillPart))
+  else
+    inherited;
+end;
+
+procedure TS4YCircularMeter.DrawGraduation(const ACenter: TPointF; const ARadius: Single);
 var
   LAngle: Single;
   LCos: Single;
@@ -151,13 +283,14 @@ begin
   if not FGraduation.Visible then
     Exit;
 
-  // The ticks start a little away from the edge of the track, on the side of the graduation.
+  // The ticks start a little away from the edge of the track, beyond the band of the ranges on the
+  // same side.
   LOutside := FGraduation.Position = gasOutside;
 
   if LOutside then
-    LFromRadius := ARadius + Thickness / 2 + C_SCALE_SPACING
+    LFromRadius := ARadius + Thickness / 2 + BandRoom(garOutside) + C_SCALE_SPACING
   else
-    LFromRadius := ARadius - Thickness / 2 - C_SCALE_SPACING;
+    LFromRadius := ARadius - Thickness / 2 - BandRoom(garInside) - C_SCALE_SPACING;
 
   LMajorValues := FGraduation.GetMajorValues(Min, Max);
   DrawTicks(ACenter, LFromRadius, FGraduation.GetMinorValues(Min, Max), FStyleMinorTick, C_DEFAULT_MINOR_TICK_COLOR,
@@ -195,6 +328,50 @@ begin
   end;
 end;
 
+procedure TS4YCircularMeter.DrawRanges(const ACenter: TPointF; const ARadius, AThickness: Single;
+  const ACap: TStrokeCap);
+var
+  LEndFraction: Single;
+  LRange: TS4YMeterRange;
+  LStartFraction: Single;
+begin
+  for var I := 0 to FRanges.Count - 1 do
+  begin
+    LRange := FRanges[I];
+    LStartFraction := GetValueFraction(LRange.LowValue);
+    LEndFraction := GetValueFraction(LRange.HighValue);
+    DrawColoredArc(ACenter, ARadius, AThickness, LStartFraction, LEndFraction, LRange.Color, TStrokeCap.Flat);
+
+    // A range at an end of an arc with round ends gets a round end too, drawn as a very short arc
+    // with round ends: a dot as large as the thickness, centered on the end.
+    if (ACap = TStrokeCap.Round) and not IsWholeCircle and (LEndFraction > LStartFraction) then
+    begin
+      if LStartFraction < C_FRACTION_EPSILON then
+        DrawColoredArc(ACenter, ARadius, AThickness, 0, C_ROUND_END_SWEEP_ANGLE / SweepAngle, LRange.Color,
+          TStrokeCap.Round);
+
+      if LEndFraction > 1 - C_FRACTION_EPSILON then
+        DrawColoredArc(ACenter, ARadius, AThickness, 1 - C_ROUND_END_SWEEP_ANGLE / SweepAngle, 1, LRange.Color,
+          TStrokeCap.Round);
+    end;
+  end;
+end;
+
+procedure TS4YCircularMeter.DrawTarget(const ACenter: TPointF; const ARadius: Single);
+var
+  LAngle: Single;
+  LInnerRadius: Single;
+  LOuterRadius: Single;
+begin
+  // A line across the track, a little longer than its thickness.
+  LAngle := DegToRad(AngleOfFraction(GetValueFraction(FTarget)));
+  LInnerRadius := ARadius - Thickness / 2 - C_TARGET_OVERHANG;
+  LOuterRadius := ARadius + Thickness / 2 + C_TARGET_OVERHANG;
+  PrepareStroke(FStyleTarget, C_DEFAULT_TARGET_COLOR, C_DEFAULT_TARGET_THICKNESS);
+  Canvas.DrawLine(TPointF.Create(ACenter.X + LInnerRadius * Cos(LAngle), ACenter.Y + LInnerRadius * Sin(LAngle)),
+    TPointF.Create(ACenter.X + LOuterRadius * Cos(LAngle), ACenter.Y + LOuterRadius * Sin(LAngle)), AbsoluteOpacity);
+end;
+
 procedure TS4YCircularMeter.DrawTicks(const ACenter: TPointF; const AFromRadius: Single;
   const AValues: TArray<Single>; const AStyleTick: TShape; const ADefaultColor: TAlphaColor; const ALength: Single;
   Outside: Boolean);
@@ -210,7 +387,7 @@ begin
   else
     LToRadius := AFromRadius - ALength;
 
-  PrepareTickStroke(AStyleTick, ADefaultColor);
+  PrepareStroke(AStyleTick, ADefaultColor, C_DEFAULT_TICK_THICKNESS);
 
   for var I := 0 to High(AValues) do
   begin
@@ -223,11 +400,20 @@ begin
   end;
 end;
 
+procedure TS4YCircularMeter.DrawTrack(const ACenter: TPointF; const ARadius: Single);
+begin
+  inherited;
+
+  if garTrack in FRangePlacement then
+    DrawRanges(ACenter, ARadius, Thickness, GetPartCap(TrackPart));
+end;
+
 procedure TS4YCircularMeter.FreeStyle;
 begin
   FStyleMajorTick := nil;
   FStyleMinorTick := nil;
   FStyleScaleText := nil;
+  FStyleTarget := nil;
 
   inherited;
 end;
@@ -251,18 +437,32 @@ function TS4YCircularMeter.GetOuterMargin: Single;
 var
   LTickLength: Single;
 begin
-  if not FGraduation.Visible or (FGraduation.Position <> gasOutside) then
-    Exit(0);
+  Result := BandRoom(garOutside);
 
-  LTickLength := FGraduation.MajorTickLength;
+  if FGraduation.Visible and (FGraduation.Position = gasOutside) then
+  begin
+    LTickLength := FGraduation.MajorTickLength;
 
-  if FGraduation.MinorCount > 0 then
-    LTickLength := System.Math.Max(LTickLength, FGraduation.MinorTickLength);
+    if FGraduation.MinorCount > 0 then
+      LTickLength := System.Math.Max(LTickLength, FGraduation.MinorTickLength);
 
-  Result := C_SCALE_SPACING + LTickLength;
+    Result := Result + C_SCALE_SPACING + LTickLength;
 
-  if FGraduation.ShowLabels then
-    Result := Result + C_SCALE_SPACING + MaxLabelExtent;
+    if FGraduation.ShowLabels then
+      Result := Result + C_SCALE_SPACING + MaxLabelExtent;
+  end;
+
+  if FShowTarget then
+    Result := System.Math.Max(Result, C_TARGET_OVERHANG);
+end;
+
+function TS4YCircularMeter.GetPartCap(const APart: TObject): TStrokeCap;
+begin
+  // The arcs of the style give their ends; another part is drawn with flat ends.
+  if APart is TArc then
+    Result := TArc(APart).Stroke.Cap
+  else
+    Result := TStrokeCap.Flat;
 end;
 
 procedure TS4YCircularMeter.GraduationChanged(Sender: TObject);
@@ -273,12 +473,12 @@ end;
 function TS4YCircularMeter.IsValueDrawn(const AValue: Single): Boolean;
 begin
   // On a whole circle the end of the range is at the same place as its start, which is drawn instead.
-  Result := not IsWholeCircle or (GetValueFraction(AValue) < 1 - C_WHOLE_CIRCLE_EPSILON);
+  Result := not IsWholeCircle or (GetValueFraction(AValue) < 1 - C_FRACTION_EPSILON);
 end;
 
 function TS4YCircularMeter.IsWholeCircle: Boolean;
 begin
-  Result := SweepAngle >= C_MAX_SWEEP_ANGLE - C_WHOLE_CIRCLE_EPSILON;
+  Result := SweepAngle >= C_MAX_SWEEP_ANGLE - C_FRACTION_EPSILON;
 end;
 
 function TS4YCircularMeter.MaxLabelExtent: Single;
@@ -297,23 +497,101 @@ begin
   end;
 end;
 
-procedure TS4YCircularMeter.PrepareTickStroke(const AStyleTick: TShape; const ADefaultColor: TAlphaColor);
+procedure TS4YCircularMeter.PrepareStroke(const AStyleShape: TShape; const ADefaultColor: TAlphaColor;
+  const ADefaultThickness: Single);
 begin
-  if Assigned(AStyleTick) then
-    Canvas.Stroke.Assign(AStyleTick.Stroke)
+  if Assigned(AStyleShape) then
+    Canvas.Stroke.Assign(AStyleShape.Stroke)
   else
   begin
     Canvas.Stroke.Kind := TBrushKind.Solid;
     Canvas.Stroke.Color := ADefaultColor;
-    Canvas.Stroke.Thickness := C_DEFAULT_TICK_THICKNESS;
+    Canvas.Stroke.Thickness := ADefaultThickness;
     Canvas.Stroke.Cap := TStrokeCap.Flat;
     Canvas.Stroke.Dash := TStrokeDash.Solid;
   end;
 end;
 
+function TS4YCircularMeter.RangeBandThicknessStored: Boolean;
+begin
+  Result := not SameValue(FRangeBandThickness, C_DEFAULT_RANGE_BAND_THICKNESS);
+end;
+
+function TS4YCircularMeter.RangePlacementStored: Boolean;
+begin
+  Result := FRangePlacement <> C_DEFAULT_RANGE_PLACEMENT;
+end;
+
+procedure TS4YCircularMeter.RangesChanged(Sender: TObject);
+begin
+  Repaint;
+end;
+
+function TS4YCircularMeter.RangesStored: Boolean;
+begin
+  // An empty collection is not written to the form.
+  Result := FRanges.Count > 0;
+end;
+
+procedure TS4YCircularMeter.SetFillFromRange(const Value: Boolean);
+begin
+  if FFillFromRange = Value then
+    Exit;
+
+  FFillFromRange := Value;
+  Repaint;
+end;
+
 procedure TS4YCircularMeter.SetGraduation(const Value: TS4YCircularMeterGraduation);
 begin
   FGraduation.Assign(Value);
+end;
+
+procedure TS4YCircularMeter.SetRangeBandThickness(const Value: Single);
+begin
+  if SameValue(FRangeBandThickness, Value) then
+    Exit;
+
+  FRangeBandThickness := System.Math.Max(0, Value);
+  Repaint;
+end;
+
+procedure TS4YCircularMeter.SetRangePlacement(const Value: TS4YGaugeArcRangePlacement);
+begin
+  if FRangePlacement = Value then
+    Exit;
+
+  FRangePlacement := Value;
+  Repaint;
+end;
+
+procedure TS4YCircularMeter.SetRanges(const Value: TS4YMeterRanges);
+begin
+  FRanges.Assign(Value);
+end;
+
+procedure TS4YCircularMeter.SetShowTarget(const Value: Boolean);
+begin
+  if FShowTarget = Value then
+    Exit;
+
+  FShowTarget := Value;
+  Repaint;
+end;
+
+procedure TS4YCircularMeter.SetTarget(const Value: Single);
+begin
+  // Compared exactly: SameValue would take a value very near 0 for 0.
+  if FTarget = Value then
+    Exit;
+
+  FTarget := Value;
+  Repaint;
+end;
+
+function TS4YCircularMeter.TargetStored: Boolean;
+begin
+  Result := FTarget <> 0;
 end;
 
 end.
