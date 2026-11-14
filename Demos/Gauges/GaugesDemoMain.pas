@@ -71,6 +71,7 @@ type
     StartAngleTrackBar: TTrackBar;
     SweepAngleLabel: TLabel;
     SweepAngleTrackBar: TTrackBar;
+    ReversedCheckBox: TCheckBox;
     CircularThicknessLabel: TLabel;
     CircularThicknessTrackBar: TTrackBar;
     MetersTab: TTabItem;
@@ -87,6 +88,9 @@ type
     MeterValueLabel: TLabel;
     MeterValueTrackBar: TTrackBar;
     MeterRandomButton: TButton;
+    MeterShapeSettingsLabel: TLabel;
+    MeterShapeComboBox: TComboBox;
+    MeterReversedCheckBox: TCheckBox;
     GraduationSettingsLabel: TLabel;
     GraduationVisibleCheckBox: TCheckBox;
     ShowLabelsCheckBox: TCheckBox;
@@ -128,6 +132,8 @@ type
     procedure LinearThicknessTrackBarChange(Sender: TObject);
     procedure MajorStepComboBoxChange(Sender: TObject);
     procedure MeterRandomButtonClick(Sender: TObject);
+    procedure MeterReversedCheckBoxChange(Sender: TObject);
+    procedure MeterShapeComboBoxChange(Sender: TObject);
     procedure MeterValueTrackBarChange(Sender: TObject);
     procedure NeedleChange(Sender: TObject);
     procedure OrientationComboBoxChange(Sender: TObject);
@@ -136,6 +142,7 @@ type
     procedure RangePlacementCheckBoxChange(Sender: TObject);
     procedure RangesCheckBoxChange(Sender: TObject);
     procedure RangeSpinBoxChange(Sender: TObject);
+    procedure ReversedCheckBoxChange(Sender: TObject);
     procedure ShapeComboBoxChange(Sender: TObject);
     procedure ShowFillCheckBoxChange(Sender: TObject);
     procedure ShowValueCheckBoxChange(Sender: TObject);
@@ -180,9 +187,16 @@ const
   C_RED_RANGE_COLOR: TAlphaColor = $FFE53935;
   // Formats of the items of ValueFormatComboBox, in the same order.
   C_VALUE_FORMATS: array[0..3] of string = ('%.0f', '%.1f %%', '%.0f GB', '');
-  // Angles of the items of ShapeComboBox, in the same order: ring, open arc, half circle.
-  C_SHAPE_START_ANGLES: array[0..2] of Single = (0, -135, -90);
-  C_SHAPE_SWEEP_ANGLES: array[0..2] of Single = (360, 270, 180);
+  // Angles and directions of the items of ShapeComboBox, in the same order: ring, open arc, half circle,
+  // upside-down half circle, half circle on the right.
+  C_SHAPE_START_ANGLES: array[0..4] of Single = (0, -135, -90, -90, 180);
+  C_SHAPE_SWEEP_ANGLES: array[0..4] of Single = (360, 270, 180, 180, 180);
+  C_SHAPE_REVERSED: array[0..4] of Boolean = (False, False, False, True, True);
+  // The same for the items of MeterShapeComboBox: open arc, half circle, upside-down half circle, half
+  // circle on the right, ring.
+  C_METER_SHAPE_START_ANGLES: array[0..4] of Single = (-135, -90, -90, 180, 0);
+  C_METER_SHAPE_SWEEP_ANGLES: array[0..4] of Single = (270, 180, 180, 180, 360);
+  C_METER_SHAPE_REVERSED: array[0..4] of Boolean = (False, False, True, True, False);
 
 procedure TGaugesDemoForm.AddRanges(const ARanges: TS4YMeterRanges);
 begin
@@ -334,6 +348,26 @@ begin
   MeterValueTrackBar.Value := MeterValueTrackBar.Min + Random * (MeterValueTrackBar.Max - MeterValueTrackBar.Min);
 end;
 
+procedure TGaugesDemoForm.MeterReversedCheckBoxChange(Sender: TObject);
+begin
+  CircularMeter.Reversed := MeterReversedCheckBox.IsChecked;
+end;
+
+procedure TGaugesDemoForm.MeterShapeComboBoxChange(Sender: TObject);
+var
+  LIndex: Integer;
+begin
+  LIndex := MeterShapeComboBox.ItemIndex;
+
+  if LIndex < 0 then
+    Exit;
+
+  CircularMeter.StartAngle := C_METER_SHAPE_START_ANGLES[LIndex];
+  CircularMeter.SweepAngle := C_METER_SHAPE_SWEEP_ANGLES[LIndex];
+  // The check box applies the direction to the meter.
+  MeterReversedCheckBox.IsChecked := C_METER_SHAPE_REVERSED[LIndex];
+end;
+
 procedure TGaugesDemoForm.MeterValueTrackBarChange(Sender: TObject);
 begin
   CircularMeter.Value := MeterValueTrackBar.Value;
@@ -442,6 +476,11 @@ begin
   ValueLabel.Text := Format(S_VALUE, [CircularGauge.Value]);
 end;
 
+procedure TGaugesDemoForm.ReversedCheckBoxChange(Sender: TObject);
+begin
+  CircularGauge.Reversed := ReversedCheckBox.IsChecked;
+end;
+
 procedure TGaugesDemoForm.ShapeComboBoxChange(Sender: TObject);
 var
   LIndex: Integer;
@@ -451,9 +490,10 @@ begin
   if LIndex < 0 then
     Exit;
 
-  // The track bars apply the angles to the gauge.
+  // The track bars and the check box apply the angles and the direction to the gauge.
   StartAngleTrackBar.Value := C_SHAPE_START_ANGLES[LIndex];
   SweepAngleTrackBar.Value := C_SHAPE_SWEEP_ANGLES[LIndex];
+  ReversedCheckBox.IsChecked := C_SHAPE_REVERSED[LIndex];
 end;
 
 procedure TGaugesDemoForm.ShowFillCheckBoxChange(Sender: TObject);

@@ -37,6 +37,8 @@ object GaugesGalleryForm: TGaugesGalleryForm
       900s
       574s
       900s
+      574s
+      900s
       574s)
     object DefaultTab: TTabItem
       CustomIcon = <
@@ -333,6 +335,153 @@ object GaugesGalleryForm: TGaugesGalleryForm
         Size.PlatformDefault = False
         Value = 12.000000000000000000
         ValueFormat = '%.0f cents'
+      end
+    end
+    object DirectionsTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = False
+      Size.Width = 73.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Directions'
+      ExplicitSize.cx = 90.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object DirectionsLabel: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 12.000000000000000000
+        Size.Width = 840.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text =
+          'Reversed draws the mirror image of an arc: a half circle upside ' +
+          'down, half circles on the sides growing from the bottom, a quart' +
+          'er of circle, and meters like the fuel and the temperature of a ' +
+          'car, with the texts on the side opposite to the arc.'
+        TabOrder = 0
+      end
+      object UpsideDownGauge: TS4YCircularGauge
+        Caption = 'Upside down'
+        Position.X = 24.000000000000000000
+        Position.Y = 90.000000000000000000
+        Size.Width = 220.000000000000000000
+        Size.Height = 120.000000000000000000
+        Size.PlatformDefault = False
+        Reversed = True
+        StartAngle = -90.000000000000000000
+        SweepAngle = 180.000000000000000000
+        Value = 60.000000000000000000
+      end
+      object LeftHalfGauge: TS4YCircularGauge
+        Caption = 'Left'
+        Position.X = 290.000000000000000000
+        Position.Y = 70.000000000000000000
+        Size.Width = 120.000000000000000000
+        Size.Height = 200.000000000000000000
+        Size.PlatformDefault = False
+        StartAngle = 180.000000000000000000
+        SweepAngle = 180.000000000000000000
+        Value = 70.000000000000000000
+      end
+      object RightHalfGauge: TS4YCircularGauge
+        Caption = 'Right'
+        Position.X = 450.000000000000000000
+        Position.Y = 70.000000000000000000
+        Size.Width = 120.000000000000000000
+        Size.Height = 200.000000000000000000
+        Size.PlatformDefault = False
+        Reversed = True
+        StartAngle = 180.000000000000000000
+        SweepAngle = 180.000000000000000000
+        Value = 40.000000000000000000
+      end
+      object QuarterReversedGauge: TS4YCircularGauge
+        Caption = 'Quarter'
+        Position.X = 620.000000000000000000
+        Position.Y = 80.000000000000000000
+        Size.Width = 180.000000000000000000
+        Size.Height = 180.000000000000000000
+        Size.PlatformDefault = False
+        Reversed = True
+        StartAngle = 90.000000000000000000
+        SweepAngle = 90.000000000000000000
+        Value = 75.000000000000000000
+      end
+      object TemperatureMeter: TS4YCircularMeter
+        Caption = 'Water'
+        Graduation.MajorStep = 20.000000000000000000
+        Max = 130.000000000000000000
+        Min = 50.000000000000000000
+        Position.X = 24.000000000000000000
+        Position.Y = 300.000000000000000000
+        Size.Width = 160.000000000000000000
+        Size.Height = 250.000000000000000000
+        Size.PlatformDefault = False
+        Ranges = <
+          item
+            Color = xFFE53935
+            EndValue = 130.000000000000000000
+            StartValue = 110.000000000000000000
+          end>
+        StartAngle = 180.000000000000000000
+        SweepAngle = 180.000000000000000000
+        Value = 90.000000000000000000
+        ValueFormat = '%.0f C'
+      end
+      object FuelMeter: TS4YCircularMeter
+        Caption = 'Fuel'
+        Graduation.MajorStep = 25.000000000000000000
+        Position.X = 214.000000000000000000
+        Position.Y = 300.000000000000000000
+        Size.Width = 160.000000000000000000
+        Size.Height = 250.000000000000000000
+        Size.PlatformDefault = False
+        Ranges = <
+          item
+            Color = xFFE53935
+            EndValue = 15.000000000000000000
+          end>
+        Reversed = True
+        StartAngle = 180.000000000000000000
+        SweepAngle = 180.000000000000000000
+        Value = 35.000000000000000000
+        ValueFormat = '%.0f %%'
+      end
+      object MirroredMeter: TS4YCircularMeter
+        Caption = 'Mirrored'
+        FillFromRange = True
+        Graduation.Position = gasOutside
+        Position.X = 420.000000000000000000
+        Position.Y = 320.000000000000000000
+        Size.Width = 320.000000000000000000
+        Size.Height = 220.000000000000000000
+        Size.PlatformDefault = False
+        RangePlacement = [garOutside]
+        Ranges = <
+          item
+            Color = xFF43A047
+            EndValue = 60.000000000000000000
+          end
+          item
+            Color = xFFFDD835
+            EndValue = 80.000000000000000000
+            StartValue = 60.000000000000000000
+          end
+          item
+            Color = xFFE53935
+            EndValue = 100.000000000000000000
+            StartValue = 80.000000000000000000
+          end>
+        Reversed = True
+        ShowFill = True
+        StartAngle = -90.000000000000000000
+        SweepAngle = 180.000000000000000000
+        Value = 65.000000000000000000
       end
     end
     object DashboardTab: TTabItem

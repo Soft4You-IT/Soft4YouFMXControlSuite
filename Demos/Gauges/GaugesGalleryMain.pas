@@ -47,6 +47,15 @@ type
     ThermometerMeter: TS4YLinearMeter;
     TunerMeter: TS4YLinearMeter;
     MetersTimer: TTimer;
+    DirectionsTab: TTabItem;
+    DirectionsLabel: TLabel;
+    UpsideDownGauge: TS4YCircularGauge;
+    LeftHalfGauge: TS4YCircularGauge;
+    RightHalfGauge: TS4YCircularGauge;
+    QuarterReversedGauge: TS4YCircularGauge;
+    TemperatureMeter: TS4YCircularMeter;
+    FuelMeter: TS4YCircularMeter;
+    MirroredMeter: TS4YCircularMeter;
     DashboardTab: TTabItem;
     DashboardLabel: TLabel;
     CpuGauge: TS4YCircularGauge;
