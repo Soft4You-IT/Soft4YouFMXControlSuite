@@ -118,18 +118,24 @@ The bar takes the whole length of the control inside `Padding`; across it, the b
 
 ## TS4YCircularGauge
 
-A ring or an arc that fills clockwise with the value, with the value and, under it, the caption in the middle.
+A ring or an arc that fills clockwise, or counterclockwise, with the value, with the value and, under it, the caption in the middle.
 
 | Property | Default | Meaning |
 |---|---|---|
 | `StartAngle` | 0 | Angle where the arc starts and the fill begins, in degrees: 0 is the top of the circle, 90 its right side, -90 its left side |
-| `SweepAngle` | 360 | Length of the arc in degrees, clockwise from `StartAngle`, from 0 to 360 |
+| `SweepAngle` | 360 | Length of the arc in degrees from `StartAngle`, from 0 to 360 |
+| `Reversed` | `False` | The arc goes counterclockwise from `StartAngle` instead of clockwise, and the value grows in that direction |
 
 | Shape | `StartAngle` | `SweepAngle` |
 |---|---|---|
 | Ring, filled from the top | 0 | 360 |
 | Arc open at the bottom, like a speedometer | -135 | 270 |
 | Half circle, filled from the left | -90 | 180 |
+| Half circle upside down, filled from the left through the bottom | -90 | 180, `Reversed` |
+| Half circle on the right, filled from the bottom | 180 | 180, `Reversed` |
+| Half circle on the left, filled from the bottom | 180 | 180 |
+
+With the same angles, `Reversed` draws the mirror image of the arc: the half circle from the left over the top becomes the half circle from the left under the bottom. Each arc can so be drawn in both directions, also the half circles on the sides and any part of a circle.
 
 The arc is as large as the area inside `Padding` allows, keeping the circle round: a half circle fills a control twice as wide as tall, a ring a square one. The value and the caption are centered in the area enclosed by the arc, for example in the upper half of the circle for a half circle. A new gauge is 120 x 120 pixels, with an arc 12 pixels thick.
 
@@ -200,7 +206,7 @@ The needle of `TS4YCircularMeter` is a line from the center of the arc towards t
 | `Pointer.Position` | `gbsBefore` | Side of the bar where the pointer is drawn: before it, above it or on its left (`gbsBefore`), or after it, below it or on its right (`gbsAfter`) |
 | `ShowFill` | `False` (circular), `True` (linear) | Draws the filled part of the track. Without it the needle or the pointer shows the value, and the ranges on the track are seen whole |
 
-With the needle visible, the value and the caption are written below the center of the arc, under the circle of the needle, instead of in the middle of the area enclosed by the arc; when the arc has not enough room below its center, as in a half circle, it becomes smaller to make it. The tip of the pointer touches the bar, or the band of the ranges on the same side; a graduation on the same side is drawn beyond the pointer.
+With the needle visible, the value and the caption are written beside the center of the arc, beyond the circle of the needle, instead of in the middle of the area enclosed by the arc: on the side opposite to the middle of the arc, so below the center for an arc at the top, above it for an arc at the bottom, on the left of it for a half circle on the right. When there is not enough room on that side, as in a half circle, the arc becomes smaller to make it. The tip of the pointer touches the bar, or the band of the ranges on the same side; a graduation on the same side is drawn beyond the pointer.
 
 ### Style of the meters
 

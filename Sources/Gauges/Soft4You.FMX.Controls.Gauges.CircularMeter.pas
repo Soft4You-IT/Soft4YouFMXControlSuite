@@ -28,7 +28,7 @@ type
   /// </summary>
   /// <remarks>
   /// The arc is open at the bottom by default (StartAngle -135, SweepAngle 270). Graduation gives the ticks and their numbers, inside or outside the arc; outside, the arc becomes smaller to leave room for them.
-  /// Needle points at the value from the center of the arc, and the value and the caption are written below the center; the fill of the arc is hidden by default (ShowFill).
+  /// Needle points at the value from the center of the arc, and the value and the caption are written beside the center, on the side opposite to the middle of the arc; the fill of the arc is hidden by default (ShowFill).
   /// Ranges color parts of the scale, on the track or in thin bands beside it (RangePlacement); FillFromRange gives the fill the color of the range of the value. ShowTarget marks the value of Target across the track.
   /// The style is S4YCircularMeterStyle: besides the parts of S4YCircularGaugeStyle, the shapes majortick, minortick, target and needle give the stroke of the ticks, of the mark of the target and of the needle, the shape needlecap the brushes and the size of the circle at the center, and the text scaletext the font and the color of the numbers.
   /// </remarks>
@@ -124,8 +124,8 @@ type
     function GetDefaultSweepAngle: Single; override;
     /// <summary>Returns the room of what is drawn outside the arc: the graduation, the band of the ranges and the mark of the target.</summary>
     function GetOuterMargin: Single; override;
-    /// <summary>Returns the distance from the center where the texts start when the needle is visible, below the circle at the center of the needle; 0 without the needle.</summary>
-    function GetTextGapBelowCenter: Single; override;
+    /// <summary>Returns the distance from the center where the texts start when the needle is visible, beyond the circle at the center of the needle; 0 without the needle.</summary>
+    function GetTextGapFromCenter: Single; override;
   public
     /// <summary>Creates a meter with an arc open at the bottom, a graduation inside it and a needle.</summary>
     constructor Create(AOwner: TComponent); override;
@@ -266,8 +266,8 @@ begin
   Canvas.Stroke.Thickness := AThickness;
   Canvas.Stroke.Cap := ACap;
   Canvas.Stroke.Dash := TStrokeDash.Solid;
-  Canvas.DrawArc(ACenter, TPointF.Create(ARadius, ARadius), AngleOfFraction(AStartFraction), LSweepAngle,
-    AbsoluteOpacity);
+  Canvas.DrawArc(ACenter, TPointF.Create(ARadius, ARadius), AngleOfFraction(AStartFraction),
+    GetDirectedSweepAngle * (AEndFraction - AStartFraction), AbsoluteOpacity);
 end;
 
 procedure TS4YCircularMeter.DrawDecorations(const ACenter: TPointF; const ARadius: Single);
@@ -550,7 +550,7 @@ begin
     Result := System.Math.Max(Result, C_TARGET_OVERHANG);
 end;
 
-function TS4YCircularMeter.GetTextGapBelowCenter: Single;
+function TS4YCircularMeter.GetTextGapFromCenter: Single;
 begin
   if FNeedle.Visible then
     Result := NeedleCapSize / 2 + C_NEEDLE_TEXT_SPACING
