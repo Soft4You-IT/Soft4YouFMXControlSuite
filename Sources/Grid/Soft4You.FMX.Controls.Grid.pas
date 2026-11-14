@@ -16,6 +16,7 @@ uses
   System.Classes,
   System.Rtti,
   System.Generics.Collections,
+  FMX.Types,
   FMX.Controls,
   FMX.Controls.Model,
   FMX.Grid,
@@ -28,6 +29,8 @@ const
   MM_S4Y_GRID_FILTER_VALUE_CHANGED = MM_GRID_USER + 2;
   /// <summary>Message of the model to the presentation: the settings of the columns changed.</summary>
   MM_S4Y_GRID_COLUMN_SETTINGS_CHANGED = MM_GRID_USER + 3;
+  /// <summary>Message of the model to the presentation: the footer must be calculated and drawn again.</summary>
+  MM_S4Y_GRID_FOOTER_CHANGED = MM_GRID_USER + 4;
 
 type
   TS4YGridModel = class;
@@ -93,21 +96,59 @@ type
   end;
 
   /// <summary>
+  /// The settings of the footer of TS4YGrid, the row under the cells with a total, an average or a text for each
+  /// column.
+  /// </summary>
+  TS4YGridFooterRow = class(TPersistent)
+  public const
+    /// <summary>Default value of Height: the height of the rows of the grid.</summary>
+    C_DEFAULT_HEIGHT = 0;
+  private
+    FHeight: Integer;
+    FVisible: Boolean;
+    FOnChange: TNotifyEvent;
+    procedure Changed;
+    procedure SetHeight(const Value: Integer);
+    procedure SetVisible(const Value: Boolean);
+  public
+    /// <summary>Copies the settings from another footer.</summary>
+    procedure Assign(Source: TPersistent); override;
+
+    /// <summary>Fires when a setting changes.</summary>
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+  published
+    /// <summary>Height of the footer, in pixels; 0, the default, is the height of the rows of the grid.</summary>
+    property Height: Integer read FHeight write SetHeight default C_DEFAULT_HEIGHT;
+    /// <summary>True shows the footer under the cells. The default is False.</summary>
+    property Visible: Boolean read FVisible write SetVisible default False;
+  end;
+
+  /// <summary>
   /// The settings of TS4YGrid for one of its columns.
   /// </summary>
   TS4YGridColumnSetting = class(TCollectionItem)
   public const
     /// <summary>Default value of Filterable.</summary>
     C_DEFAULT_FILTERABLE = True;
+    /// <summary>Default value of FooterAlignment.</summary>
+    C_DEFAULT_FOOTER_ALIGNMENT = TTextAlign.Trailing;
   private
     FColumn: TColumn;
     FFilterable: Boolean;
     FFilterItems: TStrings;
+    FFooterAlignment: TTextAlign;
+    FFooterFormat: string;
+    FFooterKind: TS4YGridFooterKind;
+    FFooterText: string;
     procedure FilterItemsChange(Sender: TObject);
     function FilterItemsStored: Boolean;
     procedure SetColumn(const Value: TColumn);
     procedure SetFilterable(const Value: Boolean);
     procedure SetFilterItems(const Value: TStrings);
+    procedure SetFooterAlignment(const Value: TTextAlign);
+    procedure SetFooterFormat(const Value: string);
+    procedure SetFooterKind(const Value: TS4YGridFooterKind);
+    procedure SetFooterText(const Value: string);
   protected
     /// <summary>Returns the name of the column, for the editor of the collection.</summary>
     function GetDisplayName: string; override;
@@ -129,6 +170,18 @@ type
     /// drop-down list with them, whatever the type of the column. Empty by default.
     /// </summary>
     property FilterItems: TStrings read FFilterItems write SetFilterItems stored FilterItemsStored;
+    /// <summary>Alignment of the text of the footer in the cell of the column. The default is Trailing.</summary>
+    property FooterAlignment: TTextAlign read FFooterAlignment write SetFooterAlignment
+      default C_DEFAULT_FOOTER_ALIGNMENT;
+    /// <summary>
+    /// Format of the value of the footer, as for the Format function of Delphi with the value as its only argument,
+    /// for example '%.2f'. Empty by default: the value is written as the column writes its cells.
+    /// </summary>
+    property FooterFormat: string read FFooterFormat write SetFooterFormat;
+    /// <summary>What the footer shows under the column. The default is gfkNone, nothing.</summary>
+    property FooterKind: TS4YGridFooterKind read FFooterKind write SetFooterKind default gfkNone;
+    /// <summary>The text of the footer under the column when FooterKind is gfkText, for example Total.</summary>
+    property FooterText: string read FFooterText write SetFooterText;
   end;
 
   /// <summary>
@@ -170,18 +223,28 @@ type
     FColumnSettings: TS4YGridColumnSettings;
     FFilterRow: TS4YGridFilterRow;
     FFilterValues: TDictionary<TColumn, TValue>;
+    FFooterRow: TS4YGridFooterRow;
     FOnCreateFilterEditor: TS4YGridCreateFilterEditorEvent;
     FOnFilter: TNotifyEvent;
     FOnFilterChanged: TS4YGridColumnEvent;
+    FOnGetFooterText: TS4YGridFooterTextEvent;
     procedure ColumnSettingsChange(Sender: TObject);
+    function FormatFooterValue(const AColumn: TColumn; const ASetting: TS4YGridColumnSetting; const AValue: Double;
+      const AIsAverage: Boolean): string;
     procedure FilterRowChange(Sender: TObject);
+    procedure FooterRowChange(Sender: TObject);
     procedure SetColumnSettings(const Value: TS4YGridColumnSettings);
     procedure SetFilterRow(const Value: TS4YGridFilterRow);
+    procedure SetFooterRow(const Value: TS4YGridFooterRow);
   protected
     /// <summary>Forgets the filter of a column removed from the grid.</summary>
     procedure DoColumnRemoved(const Column: TColumn); override;
     /// <summary>Fires OnFilterChanged.</summary>
     procedure DoFilterChanged(const AColumn: TColumn); virtual;
+    /// <summary>Calculates the footer again when the number of rows changes.</summary>
+    procedure DoRowCountChanged(const OldValue, NewValue: Integer); override;
+    /// <summary>Calculates the footer again when a cell is edited in the grid.</summary>
+    procedure DoSetValue(Col, Row: Integer; const Value: TValue); override;
   public
     /// <summary>Creates the model of the grid AOwner.</summary>
     constructor Create(const AOwner: TComponent); override;
@@ -198,11 +261,20 @@ type
     function IsFiltered: Boolean;
     /// <summary>Sets the filter value of AColumn and shows it in its editor; an empty value removes the filter.</summary>
     procedure SetFilterValue(const AColumn: TColumn; const AValue: TValue);
+    /// <summary>
+    /// Returns the text of the footer under AColumn: the value calculated from the rows of the grid and the
+    /// settings of the column, changed by OnGetFooterText.
+    /// </summary>
+    function GetFooterText(const AColumn: TColumn): string;
+    /// <summary>Calculates and draws the footer again, after a change of the data of the application.</summary>
+    procedure UpdateFooter;
 
     /// <summary>The settings of the columns.</summary>
     property ColumnSettings: TS4YGridColumnSettings read FColumnSettings write SetColumnSettings;
     /// <summary>The settings of the filter row.</summary>
     property FilterRow: TS4YGridFilterRow read FFilterRow write SetFilterRow;
+    /// <summary>The settings of the footer.</summary>
+    property FooterRow: TS4YGridFooterRow read FFooterRow write SetFooterRow;
 
     /// <summary>Lets the application give the editor of the filter of a column.</summary>
     property OnCreateFilterEditor: TS4YGridCreateFilterEditorEvent read FOnCreateFilterEditor write FOnCreateFilterEditor;
@@ -210,6 +282,8 @@ type
     property OnFilter: TNotifyEvent read FOnFilter write FOnFilter;
     /// <summary>Fires when the filter value of a column changes, in its editor or by code.</summary>
     property OnFilterChanged: TS4YGridColumnEvent read FOnFilterChanged write FOnFilterChanged;
+    /// <summary>Lets the application change the text of the footer under a column.</summary>
+    property OnGetFooterText: TS4YGridFooterTextEvent read FOnGetFooterText write FOnGetFooterText;
   end;
 
   /// <summary>
@@ -227,16 +301,20 @@ type
     function GetColumnSettings: TS4YGridColumnSettings;
     function GetFilterRow: TS4YGridFilterRow;
     function GetFilterValue(const AColumn: TColumn): TValue;
+    function GetFooterRow: TS4YGridFooterRow;
     function GetModel: TS4YGridModel; overload;
     function GetOnCreateFilterEditor: TS4YGridCreateFilterEditorEvent;
     function GetOnFilter: TNotifyEvent;
     function GetOnFilterChanged: TS4YGridColumnEvent;
+    function GetOnGetFooterText: TS4YGridFooterTextEvent;
     procedure SetColumnSettings(const Value: TS4YGridColumnSettings);
     procedure SetFilterRow(const Value: TS4YGridFilterRow);
     procedure SetFilterValue(const AColumn: TColumn; const Value: TValue);
+    procedure SetFooterRow(const Value: TS4YGridFooterRow);
     procedure SetOnCreateFilterEditor(const Value: TS4YGridCreateFilterEditorEvent);
     procedure SetOnFilter(const Value: TNotifyEvent);
     procedure SetOnFilterChanged(const Value: TS4YGridColumnEvent);
+    procedure SetOnGetFooterText(const Value: TS4YGridFooterTextEvent);
   protected
     /// <summary>Returns the class of the model of the grid, TS4YGridModel.</summary>
     function DefineModelClass: TDataModelClass; override;
@@ -249,6 +327,11 @@ type
     procedure Filter;
     /// <summary>Returns True when at least one column has a filter.</summary>
     function IsFiltered: Boolean;
+    /// <summary>
+    /// Calculates and draws the footer again. Call it after a change of the data of the application that the grid
+    /// cannot see, such as a value changed in the list shown by OnGetValue.
+    /// </summary>
+    procedure UpdateFooter;
 
     /// <summary>
     /// The filter value of AColumn: an empty value when the column has no filter.
@@ -266,6 +349,13 @@ type
     property ColumnSettings: TS4YGridColumnSettings read GetColumnSettings write SetColumnSettings;
     /// <summary>The settings of the filter row, the row of editors under the header.</summary>
     property FilterRow: TS4YGridFilterRow read GetFilterRow write SetFilterRow;
+    /// <summary>
+    /// The settings of the footer, the row under the cells; what each column shows is in ColumnSettings.
+    /// </summary>
+    /// <remarks>
+    /// The values are calculated from the rows of the grid, the ones of RowCount: after a filter, the rows shown.
+    /// </remarks>
+    property FooterRow: TS4YGridFooterRow read GetFooterRow write SetFooterRow;
 
     /// <summary>
     /// Lets the application give the editor of the filter of a column, instead of the one the grid creates from the
@@ -280,13 +370,81 @@ type
     property OnFilter: TNotifyEvent read GetOnFilter write SetOnFilter;
     /// <summary>Fires when the filter value of a column changes, in its editor or by code.</summary>
     property OnFilterChanged: TS4YGridColumnEvent read GetOnFilterChanged write SetOnFilterChanged;
+    /// <summary>
+    /// Lets the application change the text of the footer under a column, for example to show the total of all its
+    /// data and not only of the rows shown.
+    /// </summary>
+    property OnGetFooterText: TS4YGridFooterTextEvent read GetOnGetFooterText write SetOnGetFooterText;
   end;
 
 implementation
 
 uses
   System.SysUtils,
+  System.Math,
   Soft4You.FMX.Controls.Grid.Style;
+
+// Returns in ANumber the number in AValue: an integer, a float or a text that is a number.
+function TryValueToNumber(const AValue: TValue; out ANumber: Double): Boolean;
+begin
+  Result := True;
+
+  case AValue.Kind of
+    tkInteger, tkInt64:
+      ANumber := AValue.AsInt64;
+    tkFloat:
+      ANumber := AValue.AsExtended;
+    tkString, tkLString, tkWString, tkUString:
+      Result := TryStrToFloat(AValue.AsString, ANumber);
+  else
+    Result := False;
+  end;
+end;
+
+{ TS4YGridFooterRow }
+
+procedure TS4YGridFooterRow.Assign(Source: TPersistent);
+var
+  LSource: TS4YGridFooterRow;
+begin
+  if Source is TS4YGridFooterRow then
+  begin
+    LSource := TS4YGridFooterRow(Source);
+    FHeight := LSource.Height;
+    FVisible := LSource.Visible;
+    Changed;
+  end
+  else
+    inherited;
+end;
+
+procedure TS4YGridFooterRow.Changed;
+begin
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+procedure TS4YGridFooterRow.SetHeight(const Value: Integer);
+begin
+  if FHeight = Value then
+    Exit;
+
+  if Value < 0 then
+    FHeight := 0
+  else
+    FHeight := Value;
+
+  Changed;
+end;
+
+procedure TS4YGridFooterRow.SetVisible(const Value: Boolean);
+begin
+  if FVisible = Value then
+    Exit;
+
+  FVisible := Value;
+  Changed;
+end;
 
 { TS4YGridFilterRow }
 
@@ -381,6 +539,7 @@ begin
   inherited;
 
   FFilterable := C_DEFAULT_FILTERABLE;
+  FFooterAlignment := C_DEFAULT_FOOTER_ALIGNMENT;
   FFilterItems := TStringList.Create;
   TStringList(FFilterItems).OnChange := FilterItemsChange;
 end;
@@ -402,6 +561,10 @@ begin
     Column := LSource.Column;
     FFilterable := LSource.Filterable;
     FFilterItems.Assign(LSource.FilterItems);
+    FFooterAlignment := LSource.FooterAlignment;
+    FFooterFormat := LSource.FooterFormat;
+    FFooterKind := LSource.FooterKind;
+    FFooterText := LSource.FooterText;
     Changed(False);
   end
   else
@@ -455,6 +618,42 @@ begin
     Exit;
 
   FFilterable := Value;
+  Changed(False);
+end;
+
+procedure TS4YGridColumnSetting.SetFooterAlignment(const Value: TTextAlign);
+begin
+  if FFooterAlignment = Value then
+    Exit;
+
+  FFooterAlignment := Value;
+  Changed(False);
+end;
+
+procedure TS4YGridColumnSetting.SetFooterFormat(const Value: string);
+begin
+  if FFooterFormat = Value then
+    Exit;
+
+  FFooterFormat := Value;
+  Changed(False);
+end;
+
+procedure TS4YGridColumnSetting.SetFooterKind(const Value: TS4YGridFooterKind);
+begin
+  if FFooterKind = Value then
+    Exit;
+
+  FFooterKind := Value;
+  Changed(False);
+end;
+
+procedure TS4YGridColumnSetting.SetFooterText(const Value: string);
+begin
+  if FFooterText = Value then
+    Exit;
+
+  FFooterText := Value;
   Changed(False);
 end;
 
@@ -538,6 +737,8 @@ begin
   FFilterValues := TDictionary<TColumn, TValue>.Create;
   FFilterRow := TS4YGridFilterRow.Create;
   FFilterRow.OnChange := FilterRowChange;
+  FFooterRow := TS4YGridFooterRow.Create;
+  FFooterRow.OnChange := FooterRowChange;
   // The collection is owned by the grid, so that the Object Inspector and the form find it.
   FColumnSettings := TS4YGridColumnSettings.Create(AOwner);
   FColumnSettings.OnChange := ColumnSettingsChange;
@@ -547,8 +748,10 @@ destructor TS4YGridModel.Destroy;
 begin
   FColumnSettings.OnChange := nil;
   FFilterRow.OnChange := nil;
+  FFooterRow.OnChange := nil;
   FColumnSettings.Free;
   FFilterRow.Free;
+  FFooterRow.Free;
   FFilterValues.Free;
 
   inherited;
@@ -585,6 +788,20 @@ begin
     FOnFilterChanged(Owner, AColumn);
 end;
 
+procedure TS4YGridModel.DoRowCountChanged(const OldValue, NewValue: Integer);
+begin
+  inherited;
+
+  SendMessage(MM_S4Y_GRID_FOOTER_CHANGED);
+end;
+
+procedure TS4YGridModel.DoSetValue(Col, Row: Integer; const Value: TValue);
+begin
+  inherited;
+
+  SendMessage(MM_S4Y_GRID_FOOTER_CHANGED);
+end;
+
 procedure TS4YGridModel.Filter;
 begin
   if Assigned(FOnFilter) then
@@ -603,10 +820,110 @@ begin
   SendMessage(MM_S4Y_GRID_FILTER_ROW_CHANGED);
 end;
 
+procedure TS4YGridModel.FooterRowChange(Sender: TObject);
+begin
+  SendMessage(MM_S4Y_GRID_FOOTER_CHANGED);
+end;
+
+function TS4YGridModel.FormatFooterValue(const AColumn: TColumn; const ASetting: TS4YGridColumnSetting;
+  const AValue: Double; const AIsAverage: Boolean): string;
+begin
+  if ASetting.FooterFormat <> '' then
+  begin
+    // A format that does not fit the value, such as '%d' for an average, writes the value as the column would.
+    try
+      Exit(Format(ASetting.FooterFormat, [AValue]));
+    except
+      on EConvertError do
+        Result := '';
+    end;
+  end;
+
+  // The value as the column writes its cells; an average of whole numbers keeps its decimals.
+  if AColumn is TDateColumn then
+    Result := AColumn.ValueToString(TValue.From<TDate>(AValue))
+  else if (AColumn is TCustomNumberColumn) and not (AIsAverage and (AColumn is TIntegerColumn)) then
+    Result := AColumn.ValueToString(AValue)
+  else
+    Result := FormatFloat('0.##', AValue);
+end;
+
 function TS4YGridModel.GetFilterValue(const AColumn: TColumn): TValue;
 begin
   if not FFilterValues.TryGetValue(AColumn, Result) then
     Result := TValue.Empty;
+end;
+
+function TS4YGridModel.GetFooterText(const AColumn: TColumn): string;
+var
+  LSetting: TS4YGridColumnSetting;
+  LValue: TValue;
+  LNumber: Double;
+  LCount: Integer;
+  LNumbers: Integer;
+  LSum: Double;
+  LMin: Double;
+  LMax: Double;
+begin
+  Result := '';
+  LSetting := FColumnSettings.FindColumn(AColumn);
+
+  if Assigned(LSetting) and (LSetting.FooterKind = gfkText) then
+    Result := LSetting.FooterText
+  else if Assigned(LSetting) and (LSetting.FooterKind <> gfkNone) then
+  begin
+    LCount := 0;
+    LNumbers := 0;
+    LSum := 0;
+    LMin := 0;
+    LMax := 0;
+
+    // The values of the rows of the grid, read again: the data may have changed since they were drawn.
+    for var LRow := 0 to RowCount - 1 do
+    begin
+      LValue := GetValue(AColumn.Index, LRow, True);
+
+      if not LValue.IsEmpty then
+      begin
+        Inc(LCount);
+
+        if TryValueToNumber(LValue, LNumber) then
+        begin
+          if (LNumbers = 0) or (LNumber < LMin) then
+            LMin := LNumber;
+
+          if (LNumbers = 0) or (LNumber > LMax) then
+            LMax := LNumber;
+
+          LSum := LSum + LNumber;
+          Inc(LNumbers);
+        end;
+      end;
+    end;
+
+    case LSetting.FooterKind of
+      gfkCount:
+        if LSetting.FooterFormat <> '' then
+          Result := Format(LSetting.FooterFormat, [LCount])
+        else
+          Result := IntToStr(LCount);
+      gfkSum:
+        if LNumbers > 0 then
+          Result := FormatFooterValue(AColumn, LSetting, LSum, False);
+      gfkAverage:
+        if LNumbers > 0 then
+          Result := FormatFooterValue(AColumn, LSetting, LSum / LNumbers, True);
+      gfkMin:
+        if LNumbers > 0 then
+          Result := FormatFooterValue(AColumn, LSetting, LMin, False);
+      gfkMax:
+        if LNumbers > 0 then
+          Result := FormatFooterValue(AColumn, LSetting, LMax, False);
+    end;
+  end;
+
+  if Assigned(FOnGetFooterText) then
+    FOnGetFooterText(Owner, AColumn, Result);
 end;
 
 function TS4YGridModel.IsFiltered: Boolean;
@@ -622,6 +939,16 @@ end;
 procedure TS4YGridModel.SetFilterRow(const Value: TS4YGridFilterRow);
 begin
   FFilterRow.Assign(Value);
+end;
+
+procedure TS4YGridModel.SetFooterRow(const Value: TS4YGridFooterRow);
+begin
+  FFooterRow.Assign(Value);
+end;
+
+procedure TS4YGridModel.UpdateFooter;
+begin
+  SendMessage(MM_S4Y_GRID_FOOTER_CHANGED);
 end;
 
 procedure TS4YGridModel.SetFilterValue(const AColumn: TColumn; const AValue: TValue);
@@ -676,6 +1003,11 @@ begin
   Result := Model.GetFilterValue(AColumn);
 end;
 
+function TS4YGrid.GetFooterRow: TS4YGridFooterRow;
+begin
+  Result := Model.FooterRow;
+end;
+
 function TS4YGrid.GetModel: TS4YGridModel;
 begin
   Result := GetModel<TS4YGridModel>;
@@ -694,6 +1026,11 @@ end;
 function TS4YGrid.GetOnFilterChanged: TS4YGridColumnEvent;
 begin
   Result := Model.OnFilterChanged;
+end;
+
+function TS4YGrid.GetOnGetFooterText: TS4YGridFooterTextEvent;
+begin
+  Result := Model.OnGetFooterText;
 end;
 
 function TS4YGrid.IsFiltered: Boolean;
@@ -731,6 +1068,11 @@ begin
   Model.SetFilterValue(AColumn, Value);
 end;
 
+procedure TS4YGrid.SetFooterRow(const Value: TS4YGridFooterRow);
+begin
+  Model.FooterRow := Value;
+end;
+
 procedure TS4YGrid.SetOnCreateFilterEditor(const Value: TS4YGridCreateFilterEditorEvent);
 begin
   Model.OnCreateFilterEditor := Value;
@@ -744,6 +1086,16 @@ end;
 procedure TS4YGrid.SetOnFilterChanged(const Value: TS4YGridColumnEvent);
 begin
   Model.OnFilterChanged := Value;
+end;
+
+procedure TS4YGrid.SetOnGetFooterText(const Value: TS4YGridFooterTextEvent);
+begin
+  Model.OnGetFooterText := Value;
+end;
+
+procedure TS4YGrid.UpdateFooter;
+begin
+  Model.UpdateFooter;
 end;
 
 end.

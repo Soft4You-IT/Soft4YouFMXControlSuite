@@ -40,6 +40,28 @@ type
   end;
 
   /// <summary>
+  /// What the footer shows under a column.
+  /// </summary>
+  /// <remarks>
+  /// gfkNone: nothing.
+  /// gfkSum: the sum of the values of the rows.
+  /// gfkAverage: the average of the values of the rows.
+  /// gfkCount: the number of rows with a value.
+  /// gfkMin: the lowest value, also of a date column.
+  /// gfkMax: the highest value, also of a date column.
+  /// gfkText: the text FooterText of the settings of the column.
+  /// </remarks>
+  TS4YGridFooterKind = (
+    gfkNone,
+    gfkSum,
+    gfkAverage,
+    gfkCount,
+    gfkMin,
+    gfkMax,
+    gfkText
+  );
+
+  /// <summary>
   /// An event about a column of the grid.
   /// </summary>
   TS4YGridColumnEvent = procedure(Sender: TObject; const AColumn: TColumn) of object;
@@ -52,6 +74,14 @@ type
   /// IS4YGridFilterEditor; the grid becomes its parent and frees it.
   /// </remarks>
   TS4YGridCreateFilterEditorEvent = procedure(Sender: TObject; const AColumn: TColumn; var AEditor: TControl) of object;
+
+  /// <summary>
+  /// The event that lets the application change the text of the footer under a column.
+  /// </summary>
+  /// <remarks>
+  /// AText is the text the grid calculated from the settings of the column, empty when it has none.
+  /// </remarks>
+  TS4YGridFooterTextEvent = procedure(Sender: TObject; const AColumn: TColumn; var AText: string) of object;
 
 implementation
 

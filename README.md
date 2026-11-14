@@ -26,7 +26,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 |  | `TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter`, `TS4YCircularMeter`, `TS4YSkinCircularGauge`, `TS4YSkinLinearGauge` | Gauges that show a value in a range as a horizontal or vertical bar, or as a ring or an arc, that fills with the value, with a caption and the value written; the meters add a graduation along the bar or the arc, colored ranges, a target, a needle or a pointer; the look comes from a style, and the skin gauges are made only of the parts of their style, such as a dial and a needle or a thermometer drawn as images | [Docs\Gauges](Docs/Gauges/README.md)<br>[Screenshot](Docs/Screenshots/gauges.png) |
 |  | `TS4YStepProgressBar` | Progress indicator made of steps along a horizontal or vertical line, like the phases of an installation or the pages of a wizard; the look comes from a style | [Docs\StepProgressBar](Docs/StepProgressBar/README.md)<br>[Screenshot](Docs/Screenshots/stepprogressbar.png) |
 | **Charts** | `TS4YPieChart`, `TS4YBarChart`, `TS4YLineChart` | Pie and ring chart, vertical or horizontal bar chart and line chart with categories, series and axes; legend, values written, animation and click on an element; filled in the Object Inspector, in code or by the LiveBindings through a `TLinkGridToDataSource`; the look comes from a style | [Docs\Charts](Docs/Charts/README.md)<br>[Screenshot](Docs/Screenshots/charts.png) |
-| **Grids** | `TS4YGrid` | Grid (a `TGrid`) with a filter row under the header: an editor for each column, from the type of the column; the application filters its data when the user asks | [Docs\Grid](Docs/Grid/README.md) |
+| **Grids** | `TS4YGrid` | Grid (a `TGrid`) with a filter row under the header, an editor for each column from the type of the column, and a footer with totals, averages or texts under the columns; the application filters its data when the user asks | [Docs\Grid](Docs/Grid/README.md) |
 
 All the controls are built into the same two packages and appear in the Tool Palette page **Soft4You FMX Controls Suite**. `TS4YExpander` uses `TS4YBadge`, so the two are always installed together.
 
@@ -43,7 +43,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Sources\Expander` | Units of the Expander control (`TS4YExpander`), with its styles and resource scripts |
 | `Sources\ColorSelector` | Units of the ColorSelector control (`TS4YColorSelector`) and the types of its event |
 | `Sources\StepProgressBar` | Units of the StepProgressBar control (`TS4YStepProgressBar`) and its types, with its styles and resource scripts |
-| `Sources\Grid` | Units of the grid (`TS4YGrid`), its presentation with the filter row, the editors of the filters and its types |
+| `Sources\Grid` | Units of the grid (`TS4YGrid`), its presentation with the filter row and the footer, the editors of the filters and its types |
 | `Sources\Charts` | Units of the charts (`TS4YPieChart`, `TS4YBarChart`, `TS4YLineChart`), their types and their support of the LiveBindings, with their styles and resource scripts |
 | `Sources\Gauges` | Units of the gauges (`TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter`, `TS4YCircularMeter`, `TS4YSkinCircularGauge`, `TS4YSkinLinearGauge`) and their types, with their styles and resource scripts |
 | `Sources\Design` | Design-time unit shared by all the controls of the suite (IDE splash screen and About box) |
