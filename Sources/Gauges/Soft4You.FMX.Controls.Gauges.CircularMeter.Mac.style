@@ -58,6 +58,25 @@ object TLayout
     Stroke.Thickness = 3.000000000000000000
     Visible = False
   end
+  object TLine
+    StyleName = 'needle'
+    HitTest = False
+    LineType = Top
+    Stroke.Cap = Round
+    Stroke.Color = xFFC62828
+    Stroke.Thickness = 3.000000000000000000
+    Visible = False
+  end
+  object TCircle
+    StyleName = 'needlecap'
+    Fill.Color = xFF424242
+    HitTest = False
+    Size.Width = 12.000000000000000000
+    Size.Height = 12.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    Visible = False
+  end
   object TText
     StyleName = 'scaletext'
     HitTest = False

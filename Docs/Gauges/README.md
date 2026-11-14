@@ -9,12 +9,12 @@ Download                    72
 
 - `TS4YLinearGauge` draws the value as a horizontal or vertical **bar**, with the caption and the value on one side of it.
 - `TS4YCircularGauge` draws it as a **ring**, an open arc or a half circle, with the value and the caption in the middle.
-- `TS4YLinearMeter` and `TS4YCircularMeter` are the same gauges with a **graduation**: ticks and numbers along the bar, like a ruler or a thermometer, or along the arc, like the dial of an instrument. They can color **ranges** of the scale, such as a green, a yellow and a red zone, and mark a **target** value.
+- `TS4YLinearMeter` and `TS4YCircularMeter` are the same gauges with a **graduation**: ticks and numbers along the bar, like a ruler or a thermometer, or along the arc, like the dial of an instrument. They can color **ranges** of the scale, such as a green, a yellow and a red zone, and mark a **target** value; the circular meter shows the value with a **needle**, the linear one can add a **pointer** beside the bar.
 - The value goes from `Min` to `Max`; a large change of `Value` moves the fill with an animation, a small one is drawn at once.
 - The value is written with a format of its own (`ValueFormat`), or with a text given by the application (`OnGetValueText`).
 - Every part of the gauge comes from a **style**: the track, the fill and the fonts of the texts. The track and the fill can have any shape designed in the style; properties can replace the colors of the simple shapes.
 
-Units: `Soft4You.FMX.Controls.Gauges.Linear` for `TS4YLinearGauge`, `Soft4You.FMX.Controls.Gauges.Circular` for `TS4YCircularGauge`, `Soft4You.FMX.Controls.Gauges.LinearMeter` for `TS4YLinearMeter` and `Soft4You.FMX.Controls.Gauges.CircularMeter` for `TS4YCircularMeter`, in `Sources\Gauges`; the base class of the gauges is in `Soft4You.FMX.Controls.Gauges`, the graduation of the meters in `Soft4You.FMX.Controls.Gauges.Scales`, the types in `Soft4You.FMX.Controls.Gauges.Types`.
+Units: `Soft4You.FMX.Controls.Gauges.Linear` for `TS4YLinearGauge`, `Soft4You.FMX.Controls.Gauges.Circular` for `TS4YCircularGauge`, `Soft4You.FMX.Controls.Gauges.LinearMeter` for `TS4YLinearMeter` and `Soft4You.FMX.Controls.Gauges.CircularMeter` for `TS4YCircularMeter`, in `Sources\Gauges`; the base class of the gauges is in `Soft4You.FMX.Controls.Gauges`, the graduation, the ranges, the needle and the pointer of the meters in `Soft4You.FMX.Controls.Gauges.Scales`, the types in `Soft4You.FMX.Controls.Gauges.Types`.
 
 ## Installation
 
@@ -31,7 +31,7 @@ Add the folder `Sources\Gauges` to the Delphi library path to compile your own p
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.pas` | `TS4YCircularGauge` |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.LinearMeter.pas` | `TS4YLinearMeter` |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.CircularMeter.pas` | `TS4YCircularMeter` |
-| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Scales.pas` | The graduation of the meters (`TS4YMeterGraduation`, `TS4YLinearMeterGraduation`, `TS4YCircularMeterGraduation`) and their ranges (`TS4YMeterRange`, `TS4YMeterRanges`) |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Scales.pas` | The graduation of the meters (`TS4YMeterGraduation`, `TS4YLinearMeterGraduation`, `TS4YCircularMeterGraduation`) their ranges (`TS4YMeterRange`, `TS4YMeterRanges`), the needle of the circular meter (`TS4YCircularMeterNeedle`) and the pointer of the linear one (`TS4YLinearMeterPointer`) |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Types.pas` | Enumerations, sets and event types |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Register.pas` | Registration in the Tool Palette (design time) |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Win.rc` / `.Mac.rc` | Resource scripts that link the style of `TS4YLinearGauge` as the resource `S4YLinearGaugeStyle` |
@@ -135,7 +135,7 @@ The arc is as large as the area inside `Padding` allows, keeping the circle roun
 
 ## Meters
 
-`TS4YLinearMeter` and `TS4YCircularMeter` descend from `TS4YLinearGauge` and `TS4YCircularGauge`: they have all their properties, and add a graduation along the track, in the property `Graduation`, colored ranges and a target value.
+`TS4YLinearMeter` and `TS4YCircularMeter` descend from `TS4YLinearGauge` and `TS4YCircularGauge`: they have all their properties, and add a graduation along the track, in the property `Graduation`, colored ranges, a target value, a needle (circular meter) and a pointer (linear meter).
 
 ```
      0    20    40    60    80   100
@@ -143,7 +143,7 @@ The arc is as large as the area inside `Padding` allows, keeping the circle roun
 |  '  |  '  |  '  |  '  |  '  |  '  |
 ```
 
-A new `TS4YCircularMeter` is an arc open at the bottom (`StartAngle` -135, `SweepAngle` 270), 160 x 160 pixels; a new `TS4YLinearMeter` is horizontal, 240 x 64 pixels.
+A new `TS4YCircularMeter` is an arc open at the bottom (`StartAngle` -135, `SweepAngle` 270), 160 x 160 pixels, with a needle and without the fill; a new `TS4YLinearMeter` is horizontal, 240 x 64 pixels, with the fill and without the pointer.
 
 ### Graduation
 
@@ -188,9 +188,23 @@ On the track the ranges are under the fill, so they are seen where the fill does
 | `ShowTarget` | `False` | Marks the value of `Target` with a line across the track, 4 pixels longer than its thickness on each side |
 | `Target` | 0 | The value to reach; a value out of the range is marked at its nearest end |
 
+### Needle and pointer
+
+The needle of `TS4YCircularMeter` is a line from the center of the arc towards the value, with a circle over the center; the pointer of `TS4YLinearMeter` is a small triangle beside the bar, with its tip towards the value. Both follow the animation of the value.
+
+| Property | Default | Meaning |
+|---|---|---|
+| `Needle.Visible` | `True` | Draws the needle of the circular meter |
+| `Needle.Length` | 90 | Length of the needle, in percent of the distance from the center to the inner edge of the track, from 0 to 100 |
+| `Pointer.Visible` | `False` | Draws the pointer of the linear meter |
+| `Pointer.Position` | `gbsBefore` | Side of the bar where the pointer is drawn: before it, above it or on its left (`gbsBefore`), or after it, below it or on its right (`gbsAfter`) |
+| `ShowFill` | `False` (circular), `True` (linear) | Draws the filled part of the track. Without it the needle or the pointer shows the value, and the ranges on the track are seen whole |
+
+With the needle visible, the value and the caption are written below the center of the arc, under the circle of the needle, instead of in the middle of the area enclosed by the arc; when the arc has not enough room below its center, as in a half circle, it becomes smaller to make it. The tip of the pointer touches the bar, or the band of the ranges on the same side; a graduation on the same side is drawn beyond the pointer.
+
 ### Style of the meters
 
-The style of `TS4YLinearMeter` is `S4YLinearMeterStyle`, the style of `TS4YCircularMeter` is `S4YCircularMeterStyle`. They have the parts of the style of the gauge they descend from (`track`, `fill`, `valuetext`, `captiontext`) and four more:
+The style of `TS4YLinearMeter` is `S4YLinearMeterStyle`, the style of `TS4YCircularMeter` is `S4YCircularMeterStyle`. They have the parts of the style of the gauge they descend from (`track`, `fill`, `valuetext`, `captiontext`) and these more:
 
 | Part (`StyleName`) | In the default style | Use |
 |---|---|---|
@@ -198,8 +212,11 @@ The style of `TS4YLinearMeter` is `S4YLinearMeterStyle`, the style of `TS4YCircu
 | `minortick` | `TLine`, light gray, 1 pixel | Gives the brush of the minor ticks |
 | `target` | `TLine`, dark gray, 3 pixels | Gives the brush of the mark of the target |
 | `scaletext` | `TText`, size 11 | Font and color of the numbers |
+| `needle` | `TLine`, red, 3 pixels, round ends | Circular meter: gives the brush of the needle |
+| `needlecap` | `TCircle`, dark gray, 12 pixels | Circular meter: gives the brushes (`Fill`, `Stroke`) and, with its width, the size of the circle over the center |
+| `pointer` | `TPath`, dark gray triangle, 10 x 8 pixels | Linear meter: gives the brushes of the pointer and, with its width and height, its size along the bar and away from it |
 
-The ticks and the target can be any shape, a `TLine` or a `TRectangle` for example: only the brush of its border is used, the meter draws the lines itself. A missing tick is replaced by a gray line 1.5 pixels thick, a missing target by a dark gray line 3 pixels thick, a missing text by the default font. The colors of the ranges come from the collection, not from the style. With `FillFromRange` the fill keeps the round ends of its `TArc` or the rounded corners of its `TRectangle`, with the color of the range. The style of the gauge the meter descends from is not used.
+The ticks and the target can be any shape, a `TLine` or a `TRectangle` for example: only the brush of its border is used, the meter draws the lines itself. The needle too can be any shape, of which only the brush of the border is used; the circle of the needle and the pointer can be any shape, of which the brushes and the size are used, and the meter draws a circle and a triangle with them. A missing tick is replaced by a gray line 1.5 pixels thick, a missing target by a dark gray line 3 pixels thick, a missing needle by a red line 3 pixels thick, a missing circle of the needle by a dark gray circle 12 pixels wide, a missing pointer by a dark gray triangle 10 x 8 pixels, a missing text by the default font. The colors of the ranges come from the collection, not from the style. With `FillFromRange` the fill keeps the round ends of its `TArc` or the rounded corners of its `TRectangle`, with the color of the range. The style of the gauge the meter descends from is not used.
 
 ## Styles
 

@@ -24,12 +24,13 @@ uses
 
 type
   /// <summary>
-  /// A linear gauge with a graduation along the bar, like a ruler or a thermometer, with colored ranges and a target value.
+  /// A linear gauge with a graduation along the bar, like a ruler or a thermometer, with a pointer, colored ranges and a target value.
   /// </summary>
   /// <remarks>
   /// Graduation gives the ticks and their numbers, on one side of the bar; the bar, the graduation and the texts are kept together in the middle of the control.
+  /// Pointer adds a small triangle beside the bar that points at the value; ShowFill can hide the fill, to show the value with the pointer only.
   /// Ranges color parts of the scale, on the bar or in thin bands beside it (RangePlacement); FillFromRange gives the fill the color of the range of the value. ShowTarget marks the value of Target across the bar.
-  /// The style is S4YLinearMeterStyle: besides the parts of S4YLinearGaugeStyle, the shapes majortick, minortick and target give the stroke of the ticks and of the mark of the target, and the text scaletext the font and the color of the numbers.
+  /// The style is S4YLinearMeterStyle: besides the parts of S4YLinearGaugeStyle, the shapes majortick, minortick and target give the stroke of the ticks and of the mark of the target, the shape pointer the brushes and the size of the pointer, and the text scaletext the font and the color of the numbers.
   /// </remarks>
   TS4YLinearMeter = class(TS4YLinearGauge)
   public const
@@ -37,29 +38,37 @@ type
     C_DEFAULT_MAJOR_TICK_COLOR: TAlphaColor = $FF757575;
     /// <summary>Color of the minor ticks when the style has no minortick.</summary>
     C_DEFAULT_MINOR_TICK_COLOR: TAlphaColor = $FFBDBDBD;
+    /// <summary>Color of the pointer when the style has no pointer.</summary>
+    C_DEFAULT_POINTER_COLOR: TAlphaColor = $FF424242;
     /// <summary>Default value of RangeBandThickness, in pixels.</summary>
     C_DEFAULT_RANGE_BAND_THICKNESS: Single = 4;
     /// <summary>Default value of RangePlacement: the ranges are drawn on the bar.</summary>
     C_DEFAULT_RANGE_PLACEMENT: TS4YGaugeBarRangePlacement = [gbrTrack];
     /// <summary>Color of the numbers of the graduation when the style has no scaletext.</summary>
     C_DEFAULT_SCALE_TEXT_COLOR: TAlphaColor = $FF616161;
+    /// <summary>Default value of ShowFill.</summary>
+    C_DEFAULT_SHOW_FILL = True;
     /// <summary>Color of the mark of the target when the style has no target.</summary>
     C_DEFAULT_TARGET_COLOR: TAlphaColor = $FF212121;
   private
     FFillFromRange: Boolean;
     FGraduation: TS4YLinearMeterGraduation;
+    FPointer: TS4YLinearMeterPointer;
     FRangeBandThickness: Single;
     FRangePlacement: TS4YGaugeBarRangePlacement;
     FRanges: TS4YMeterRanges;
+    FShowFill: Boolean;
     FShowTarget: Boolean;
     FStyleMajorTick: TShape;
     FStyleMinorTick: TShape;
+    FStylePointer: TShape;
     FStyleScaleText: TText;
     FStyleTarget: TShape;
     FTarget: Single;
     function BandRoom(const APlace: TS4YGaugeBarRangePlace): Single;
     procedure DrawBand(const ABarRect: TRectF; const APlace: TS4YGaugeBarRangePlace);
     procedure DrawGraduation(const ABarRect: TRectF);
+    procedure DrawPointer(const ABarRect: TRectF);
     procedure DrawTarget(const ABarRect: TRectF);
     procedure DrawTicks(const ABarRect: TRectF; const AValues: TArray<Single>; const AStyleTick: TShape;
       const ADefaultColor: TAlphaColor; const ALength: Single);
@@ -72,6 +81,9 @@ type
     function GetStartCorners: TCorners;
     procedure GraduationChanged(Sender: TObject);
     function MaxLabelSize: TSizeF;
+    procedure PointerChanged(Sender: TObject);
+    function PointerRoom(const ASide: TS4YGaugeBarSide): Single;
+    function PointerSize: TSizeF;
     procedure PrepareStroke(const AStyleShape: TShape; const ADefaultColor: TAlphaColor; const ADefaultThickness: Single);
     function RangeBandThicknessStored: Boolean;
     function RangePlacementStored: Boolean;
@@ -79,25 +91,27 @@ type
     function RangesStored: Boolean;
     procedure SetFillFromRange(const Value: Boolean);
     procedure SetGraduation(const Value: TS4YLinearMeterGraduation);
+    procedure SetPointer(const Value: TS4YLinearMeterPointer);
     procedure SetRangeBandThickness(const Value: Single);
     procedure SetRangePlacement(const Value: TS4YGaugeBarRangePlacement);
     procedure SetRanges(const Value: TS4YMeterRanges);
+    procedure SetShowFill(const Value: Boolean);
     procedure SetShowTarget(const Value: Boolean);
     procedure SetTarget(const Value: Single);
     function TargetStored: Boolean;
     function TickStart(const ABarRect: TRectF): Single;
   protected
-    /// <summary>Finds the ticks, the mark of the target and the text of the graduation in the style.</summary>
+    /// <summary>Finds the ticks, the mark of the target, the pointer and the text of the graduation in the style.</summary>
     procedure ApplyStyle; override;
-    /// <summary>Draws the bands of the ranges, the graduation and the mark of the target.</summary>
+    /// <summary>Draws the bands of the ranges, the graduation, the mark of the target and the pointer.</summary>
     procedure DrawDecorations(const ABarRect: TRectF); override;
-    /// <summary>Draws the filled part of the bar, with the color of the range of the value when FillFromRange is True.</summary>
+    /// <summary>Draws the filled part of the bar when ShowFill is True, with the color of the range of the value when FillFromRange is True.</summary>
     procedure DrawFill(const ABarRect: TRectF); override;
     /// <summary>Draws the whole track and the ranges on it.</summary>
     procedure DrawTrack(const ABarRect: TRectF); override;
     /// <summary>Releases the parts of the style.</summary>
     procedure FreeStyle; override;
-    /// <summary>Returns the room of what is drawn beside the bar: the graduation, the bands of the ranges and the mark of the target.</summary>
+    /// <summary>Returns the room of what is drawn beside the bar: the graduation, the bands of the ranges, the pointer and the mark of the target.</summary>
     procedure GetBarMargins(out ABefore, AAfter: Single); override;
     /// <summary>Returns the size of a new control: 240 x 64.</summary>
     function GetDefaultSize: TSizeF; override;
@@ -110,6 +124,8 @@ type
     property FillFromRange: Boolean read FFillFromRange write SetFillFromRange default False;
     /// <summary>The ticks and the numbers drawn along the bar, on one of its sides.</summary>
     property Graduation: TS4YLinearMeterGraduation read FGraduation write SetGraduation;
+    /// <summary>The small triangle beside the bar that points at the value; hidden by default.</summary>
+    property Pointer: TS4YLinearMeterPointer read FPointer write SetPointer;
     /// <summary>Thickness of the bands of the ranges beside the bar, in pixels. The default is 4.</summary>
     property RangeBandThickness: Single read FRangeBandThickness write SetRangeBandThickness stored RangeBandThicknessStored nodefault;
     /// <summary>
@@ -121,6 +137,8 @@ type
     property RangePlacement: TS4YGaugeBarRangePlacement read FRangePlacement write SetRangePlacement stored RangePlacementStored nodefault;
     /// <summary>The ranges of values with a color of their own, for example a green, a yellow and a red zone.</summary>
     property Ranges: TS4YMeterRanges read FRanges write SetRanges stored RangesStored;
+    /// <summary>True draws the filled part of the bar. The default is True; with False the pointer shows the value.</summary>
+    property ShowFill: Boolean read FShowFill write SetShowFill default C_DEFAULT_SHOW_FILL;
     /// <summary>True marks the value of Target across the bar. The default is False.</summary>
     property ShowTarget: Boolean read FShowTarget write SetShowTarget default False;
     /// <summary>The value to reach, marked across the bar when ShowTarget is True. A value out of the range is marked at its nearest end.</summary>
@@ -132,6 +150,7 @@ implementation
 uses
   System.SysUtils,
   System.Math,
+  System.Math.Vectors,
   FMX.Controls,
   FMX.Graphics;
 
@@ -145,11 +164,15 @@ uses
 const
   C_STYLE_MAJOR_TICK = 'majortick';
   C_STYLE_MINOR_TICK = 'minortick';
+  C_STYLE_POINTER = 'pointer';
   C_STYLE_SCALE_TEXT = 'scaletext';
   C_STYLE_TARGET = 'target';
 
   // Space between the bar and the bands of the ranges, in pixels.
   C_BAND_SPACING = 3;
+  // Size of the pointer when the style has no shape for it, in pixels: along the bar and away from it.
+  C_DEFAULT_POINTER_WIDTH = 10;
+  C_DEFAULT_POINTER_HEIGHT = 8;
   // Size of a new meter.
   C_DEFAULT_WIDTH = 240;
   C_DEFAULT_HEIGHT = 64;
@@ -172,8 +195,11 @@ begin
 
   FRangeBandThickness := C_DEFAULT_RANGE_BAND_THICKNESS;
   FRangePlacement := C_DEFAULT_RANGE_PLACEMENT;
+  FShowFill := C_DEFAULT_SHOW_FILL;
   FGraduation := TS4YLinearMeterGraduation.Create;
   FGraduation.OnChange := GraduationChanged;
+  FPointer := TS4YLinearMeterPointer.Create;
+  FPointer.OnChange := PointerChanged;
   FRanges := TS4YMeterRanges.Create(Self);
   FRanges.OnChange := RangesChanged;
 end;
@@ -181,6 +207,7 @@ end;
 destructor TS4YLinearMeter.Destroy;
 begin
   FreeAndNil(FRanges);
+  FreeAndNil(FPointer);
   FreeAndNil(FGraduation);
 
   inherited;
@@ -193,6 +220,7 @@ begin
   FindStyleResource<TShape>(C_STYLE_MAJOR_TICK, FStyleMajorTick);
   FindStyleResource<TShape>(C_STYLE_MINOR_TICK, FStyleMinorTick);
   FindStyleResource<TShape>(C_STYLE_TARGET, FStyleTarget);
+  FindStyleResource<TShape>(C_STYLE_POINTER, FStylePointer);
   FindStyleResource<TText>(C_STYLE_SCALE_TEXT, FStyleScaleText);
 end;
 
@@ -253,6 +281,9 @@ begin
 
   if FShowTarget then
     DrawTarget(ABarRect);
+
+  if FPointer.Visible then
+    DrawPointer(ABarRect);
 end;
 
 procedure TS4YLinearMeter.DrawFill(const ABarRect: TRectF);
@@ -260,6 +291,9 @@ var
   LFraction: Single;
   LRange: TS4YMeterRange;
 begin
+  if not FShowFill then
+    Exit;
+
   LRange := nil;
   LFraction := GetDisplayedFraction;
 
@@ -339,6 +373,75 @@ begin
 
     RenderText(FStyleScaleText, C_DEFAULT_SCALE_TEXT_COLOR, LText, LTextRect, TTextAlign.Center, TTextAlign.Center);
   end;
+end;
+
+procedure TS4YLinearMeter.DrawPointer(const ABarRect: TRectF);
+var
+  LBase: Single;
+  LEdge: Single;
+  LPolygon: TPolygon;
+  LPosition: Single;
+  LSize: TSizeF;
+begin
+  // A triangle with its tip on the edge of the bar, or of the band of the ranges on the same side,
+  // that follows the animation of the value.
+  LSize := PointerSize;
+  LPosition := BarPosition(ABarRect, GetDisplayedFraction);
+
+  if (Orientation = TOrientation.Horizontal) and (FPointer.Position = gbsBefore) then
+  begin
+    LEdge := ABarRect.Top - BandRoom(gbrBefore);
+    LBase := LEdge - LSize.Height;
+  end
+  else if Orientation = TOrientation.Horizontal then
+  begin
+    LEdge := ABarRect.Bottom + BandRoom(gbrAfter);
+    LBase := LEdge + LSize.Height;
+  end
+  else if FPointer.Position = gbsBefore then
+  begin
+    LEdge := ABarRect.Left - BandRoom(gbrBefore);
+    LBase := LEdge - LSize.Height;
+  end
+  else
+  begin
+    LEdge := ABarRect.Right + BandRoom(gbrAfter);
+    LBase := LEdge + LSize.Height;
+  end;
+
+  System.SetLength(LPolygon, 4);
+
+  if Orientation = TOrientation.Horizontal then
+  begin
+    LPolygon[0] := TPointF.Create(LPosition, LEdge);
+    LPolygon[1] := TPointF.Create(LPosition - LSize.Width / 2, LBase);
+    LPolygon[2] := TPointF.Create(LPosition + LSize.Width / 2, LBase);
+  end
+  else
+  begin
+    LPolygon[0] := TPointF.Create(LEdge, LPosition);
+    LPolygon[1] := TPointF.Create(LBase, LPosition - LSize.Width / 2);
+    LPolygon[2] := TPointF.Create(LBase, LPosition + LSize.Width / 2);
+  end;
+
+  LPolygon[3] := LPolygon[0];
+
+  if Assigned(FStylePointer) then
+  begin
+    Canvas.Fill.Assign(FStylePointer.Fill);
+    Canvas.Stroke.Assign(FStylePointer.Stroke);
+  end
+  else
+  begin
+    Canvas.Fill.Kind := TBrushKind.Solid;
+    Canvas.Fill.Color := C_DEFAULT_POINTER_COLOR;
+    Canvas.Stroke.Kind := TBrushKind.None;
+  end;
+
+  Canvas.FillPolygon(LPolygon, AbsoluteOpacity);
+
+  if Canvas.Stroke.Kind <> TBrushKind.None then
+    Canvas.DrawPolygon(LPolygon, AbsoluteOpacity);
 end;
 
 procedure TS4YLinearMeter.DrawTarget(const ABarRect: TRectF);
@@ -441,6 +544,7 @@ procedure TS4YLinearMeter.FreeStyle;
 begin
   FStyleMajorTick := nil;
   FStyleMinorTick := nil;
+  FStylePointer := nil;
   FStyleScaleText := nil;
   FStyleTarget := nil;
 
@@ -449,8 +553,8 @@ end;
 
 procedure TS4YLinearMeter.GetBarMargins(out ABefore, AAfter: Single);
 begin
-  ABefore := BandRoom(gbrBefore);
-  AAfter := BandRoom(gbrAfter);
+  ABefore := BandRoom(gbrBefore) + PointerRoom(gbsBefore);
+  AAfter := BandRoom(gbrAfter) + PointerRoom(gbsAfter);
 
   if FGraduation.Position = gbsAfter then
     AAfter := AAfter + GetGraduationExtent
@@ -549,6 +653,29 @@ begin
   end;
 end;
 
+procedure TS4YLinearMeter.PointerChanged(Sender: TObject);
+begin
+  Repaint;
+end;
+
+function TS4YLinearMeter.PointerRoom(const ASide: TS4YGaugeBarSide): Single;
+begin
+  if FPointer.Visible and (FPointer.Position = ASide) then
+    Result := PointerSize.Height
+  else
+    Result := 0;
+end;
+
+function TS4YLinearMeter.PointerSize: TSizeF;
+begin
+  // The part of the style gives the size of the triangle: its width along the bar, its height away
+  // from it.
+  if Assigned(FStylePointer) then
+    Result := TSizeF.Create(System.Math.Max(0, FStylePointer.Width), System.Math.Max(0, FStylePointer.Height))
+  else
+    Result := TSizeF.Create(C_DEFAULT_POINTER_WIDTH, C_DEFAULT_POINTER_HEIGHT);
+end;
+
 procedure TS4YLinearMeter.PrepareStroke(const AStyleShape: TShape; const ADefaultColor: TAlphaColor;
   const ADefaultThickness: Single);
 begin
@@ -599,6 +726,11 @@ begin
   FGraduation.Assign(Value);
 end;
 
+procedure TS4YLinearMeter.SetPointer(const Value: TS4YLinearMeterPointer);
+begin
+  FPointer.Assign(Value);
+end;
+
 procedure TS4YLinearMeter.SetRangeBandThickness(const Value: Single);
 begin
   if SameValue(FRangeBandThickness, Value) then
@@ -620,6 +752,15 @@ end;
 procedure TS4YLinearMeter.SetRanges(const Value: TS4YMeterRanges);
 begin
   FRanges.Assign(Value);
+end;
+
+procedure TS4YLinearMeter.SetShowFill(const Value: Boolean);
+begin
+  if FShowFill = Value then
+    Exit;
+
+  FShowFill := Value;
+  Repaint;
 end;
 
 procedure TS4YLinearMeter.SetShowTarget(const Value: Boolean);
@@ -648,20 +789,21 @@ end;
 
 function TS4YLinearMeter.TickStart(const ABarRect: TRectF): Single;
 begin
-  // The ticks start a little away from the bar, beyond the band of the ranges on the same side.
+  // The ticks start a little away from the bar, beyond the band of the ranges and the pointer on the
+  // same side.
   if Orientation = TOrientation.Horizontal then
   begin
     if FGraduation.Position = gbsAfter then
-      Result := ABarRect.Bottom + BandRoom(gbrAfter) + C_SCALE_SPACING
+      Result := ABarRect.Bottom + BandRoom(gbrAfter) + PointerRoom(gbsAfter) + C_SCALE_SPACING
     else
-      Result := ABarRect.Top - BandRoom(gbrBefore) - C_SCALE_SPACING;
+      Result := ABarRect.Top - BandRoom(gbrBefore) - PointerRoom(gbsBefore) - C_SCALE_SPACING;
   end
   else
   begin
     if FGraduation.Position = gbsAfter then
-      Result := ABarRect.Right + BandRoom(gbrAfter) + C_SCALE_SPACING
+      Result := ABarRect.Right + BandRoom(gbrAfter) + PointerRoom(gbsAfter) + C_SCALE_SPACING
     else
-      Result := ABarRect.Left - BandRoom(gbrBefore) - C_SCALE_SPACING;
+      Result := ABarRect.Left - BandRoom(gbrBefore) - PointerRoom(gbsBefore) - C_SCALE_SPACING;
   end;
 end;
 

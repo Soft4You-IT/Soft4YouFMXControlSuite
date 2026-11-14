@@ -2,7 +2,7 @@ unit Soft4You.FMX.Controls.Gauges.Scales;
 
 { *****************************************************************************
   Soft4You FMX Control Suite - FireMonkey (FMX) controls for Delphi
-  TS4YLinearMeter, TS4YCircularMeter - graduation and ranges of the meters
+  TS4YLinearMeter, TS4YCircularMeter - graduation, ranges, needle and pointer of the meters
   Copyright (c) 2026 Carlo Marona (Soft4You)
 
   This Source Code Form is subject to the terms of the Mozilla Public
@@ -137,6 +137,69 @@ type
   published
     /// <summary>Side of the bar where the graduation is drawn: gbsBefore, above a horizontal bar or on the left of a vertical one, or gbsAfter (the default), below or on the right.</summary>
     property Position: TS4YGaugeBarSide read FPosition write SetPosition default C_DEFAULT_POSITION;
+  end;
+
+  /// <summary>
+  /// The needle of a TS4YCircularMeter: a line from the center of the arc towards the value.
+  /// </summary>
+  TS4YCircularMeterNeedle = class(TPersistent)
+  public const
+    /// <summary>Default value of Length, in percent.</summary>
+    C_DEFAULT_LENGTH: Single = 90;
+    /// <summary>Default value of Visible.</summary>
+    C_DEFAULT_VISIBLE = True;
+  private
+    FLength: Single;
+    FVisible: Boolean;
+    FOnChange: TNotifyEvent;
+    function LengthStored: Boolean;
+    procedure SetLength(const Value: Single);
+    procedure SetVisible(const Value: Boolean);
+  public
+    /// <summary>Creates a visible needle 90 percent long.</summary>
+    constructor Create;
+
+    /// <summary>Copies the settings from another needle.</summary>
+    procedure Assign(Source: TPersistent); override;
+
+    /// <summary>Fires when a setting changes.</summary>
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+  published
+    /// <summary>Length of the needle, in percent of the distance from the center to the inner edge of the track, from 0 to 100. The default is 90.</summary>
+    property Length: Single read FLength write SetLength stored LengthStored nodefault;
+    /// <summary>True draws the needle. The default is True.</summary>
+    property Visible: Boolean read FVisible write SetVisible default C_DEFAULT_VISIBLE;
+  end;
+
+  /// <summary>
+  /// The pointer of a TS4YLinearMeter: a small triangle beside the bar that points at the value.
+  /// </summary>
+  TS4YLinearMeterPointer = class(TPersistent)
+  public const
+    /// <summary>Default value of Position.</summary>
+    C_DEFAULT_POSITION = gbsBefore;
+    /// <summary>Default value of Visible.</summary>
+    C_DEFAULT_VISIBLE = False;
+  private
+    FPosition: TS4YGaugeBarSide;
+    FVisible: Boolean;
+    FOnChange: TNotifyEvent;
+    procedure SetPosition(const Value: TS4YGaugeBarSide);
+    procedure SetVisible(const Value: Boolean);
+  public
+    /// <summary>Creates a hidden pointer before the bar.</summary>
+    constructor Create;
+
+    /// <summary>Copies the settings from another pointer.</summary>
+    procedure Assign(Source: TPersistent); override;
+
+    /// <summary>Fires when a setting changes.</summary>
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+  published
+    /// <summary>Side of the bar where the pointer is drawn: gbsBefore (the default), above a horizontal bar or on the left of a vertical one, or gbsAfter, below or on the right.</summary>
+    property Position: TS4YGaugeBarSide read FPosition write SetPosition default C_DEFAULT_POSITION;
+    /// <summary>True draws the pointer. The default is False.</summary>
+    property Visible: Boolean read FVisible write SetVisible default C_DEFAULT_VISIBLE;
   end;
 
   /// <summary>
@@ -478,6 +541,111 @@ begin
 
   FPosition := Value;
   DoChange;
+end;
+
+{ TS4YCircularMeterNeedle }
+
+constructor TS4YCircularMeterNeedle.Create;
+begin
+  inherited Create;
+
+  FLength := C_DEFAULT_LENGTH;
+  FVisible := C_DEFAULT_VISIBLE;
+end;
+
+procedure TS4YCircularMeterNeedle.Assign(Source: TPersistent);
+var
+  LSource: TS4YCircularMeterNeedle;
+begin
+  if not (Source is TS4YCircularMeterNeedle) then
+  begin
+    inherited;
+    Exit;
+  end;
+
+  LSource := TS4YCircularMeterNeedle(Source);
+  FLength := LSource.Length;
+  FVisible := LSource.Visible;
+
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+function TS4YCircularMeterNeedle.LengthStored: Boolean;
+begin
+  Result := not SameValue(FLength, C_DEFAULT_LENGTH);
+end;
+
+procedure TS4YCircularMeterNeedle.SetLength(const Value: Single);
+begin
+  if SameValue(FLength, Value) then
+    Exit;
+
+  FLength := EnsureRange(Value, 0, 100);
+
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+procedure TS4YCircularMeterNeedle.SetVisible(const Value: Boolean);
+begin
+  if FVisible = Value then
+    Exit;
+
+  FVisible := Value;
+
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+{ TS4YLinearMeterPointer }
+
+constructor TS4YLinearMeterPointer.Create;
+begin
+  inherited Create;
+
+  FPosition := C_DEFAULT_POSITION;
+  FVisible := C_DEFAULT_VISIBLE;
+end;
+
+procedure TS4YLinearMeterPointer.Assign(Source: TPersistent);
+var
+  LSource: TS4YLinearMeterPointer;
+begin
+  if not (Source is TS4YLinearMeterPointer) then
+  begin
+    inherited;
+    Exit;
+  end;
+
+  LSource := TS4YLinearMeterPointer(Source);
+  FPosition := LSource.Position;
+  FVisible := LSource.Visible;
+
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+procedure TS4YLinearMeterPointer.SetPosition(const Value: TS4YGaugeBarSide);
+begin
+  if FPosition = Value then
+    Exit;
+
+  FPosition := Value;
+
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+procedure TS4YLinearMeterPointer.SetVisible(const Value: Boolean);
+begin
+  if FVisible = Value then
+    Exit;
+
+  FVisible := Value;
+
+  if Assigned(FOnChange) then
+    FOnChange(Self);
 end;
 
 { TS4YMeterRange }

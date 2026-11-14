@@ -43,6 +43,7 @@ type
     FSweepAngle: Single;
     function CalculateUnitArcBounds: TRectF;
     procedure DrawTexts(const ATextArea: TRectF; const AContentWidth: Single);
+    function MeasureTextsHeight: Single;
     procedure SetStartAngle(const Value: Single);
     procedure SetSweepAngle(const Value: Single);
     function StartAngleStored: Boolean;
@@ -77,6 +78,9 @@ type
     function GetDefaultSweepAngle: Single; virtual;
     /// <summary>Returns the room a descendant needs outside the track, all around the arc, in pixels. 0 here.</summary>
     function GetOuterMargin: Single; virtual;
+    /// <summary>Returns the distance from the center of the arc, in pixels, where a descendant wants the texts to start below the center, to leave the center to a needle; 0 here: the texts are in the middle of the area enclosed by the arc.</summary>
+    /// <remarks>When the arc has not enough room below its center for the texts, as in a half circle, it becomes smaller to make it.</remarks>
+    function GetTextGapBelowCenter: Single; virtual;
   public
     /// <summary>Creates a ring gauge with the default settings.</summary>
     constructor Create(AOwner: TComponent); override;
@@ -266,18 +270,26 @@ end;
 
 procedure TS4YCircularGauge.DrawGauge;
 var
+  LAbove: Single;
+  LBelow: Single;
   LCenter: TPointF;
   LContentRect: TRectF;
   LLeft: Single;
   LOuterSize: Single;
   LRadius: Single;
+  LTextGap: Single;
+  LTextHeight: Single;
   LThickness: Single;
-  LTop: Single;
   LUnitBounds: TRectF;
 begin
   LContentRect := GetContentRect;
   LThickness := Thickness;
   LUnitBounds := CalculateUnitArcBounds;
+  LTextGap := GetTextGapBelowCenter;
+  LTextHeight := 0;
+
+  if LTextGap > 0 then
+    LTextHeight := MeasureTextsHeight;
 
   // The arc, with its thickness and the room of a descendant outside it, is as large as the content
   // allows, and the circle stays round.
@@ -286,24 +298,41 @@ begin
     (LContentRect.Width - LOuterSize) / System.Math.Max(LUnitBounds.Width, C_MIN_UNIT_ARC_EXTENT),
     (LContentRect.Height - LOuterSize) / System.Math.Max(LUnitBounds.Height, C_MIN_UNIT_ARC_EXTENT));
 
+  // Texts below the center that go beyond the bottom of the arc make it smaller, so that the arc above
+  // the center and the texts below it fit in the height of the content.
+  if (LTextHeight > 0) and (LRadius * LUnitBounds.Bottom + LOuterSize / 2 < LTextGap + LTextHeight) then
+    LRadius := System.Math.Min(LRadius, (LContentRect.Height - LOuterSize / 2 - LTextGap - LTextHeight) /
+      System.Math.Max(-LUnitBounds.Top, C_MIN_UNIT_ARC_EXTENT));
+
   if (LRadius <= 0) or (FSweepAngle < C_MIN_DRAWN_SWEEP_ANGLE) then
   begin
     DrawTexts(LContentRect, LContentRect.Width);
     Exit;
   end;
 
+  // The block of the arc and of the texts below it is in the middle of the content.
+  LAbove := LOuterSize / 2 - LRadius * LUnitBounds.Top;
+  LBelow := LRadius * LUnitBounds.Bottom + LOuterSize / 2;
+
+  if LTextHeight > 0 then
+    LBelow := System.Math.Max(LBelow, LTextGap + LTextHeight);
+
   LLeft := LContentRect.Left + (LContentRect.Width - LRadius * LUnitBounds.Width - LOuterSize) / 2;
-  LTop := LContentRect.Top + (LContentRect.Height - LRadius * LUnitBounds.Height - LOuterSize) / 2;
   LCenter := TPointF.Create(LLeft + LOuterSize / 2 - LRadius * LUnitBounds.Left,
-    LTop + LOuterSize / 2 - LRadius * LUnitBounds.Top);
+    LContentRect.Top + (LContentRect.Height - LAbove - LBelow) / 2 + LAbove);
 
   DrawTrack(LCenter, LRadius);
   DrawFill(LCenter, LRadius);
   DrawDecorations(LCenter, LRadius);
 
-  // The texts are centered in the area enclosed by the arc.
-  DrawTexts(TRectF.Create(LCenter.X + LRadius * LUnitBounds.Left, LCenter.Y + LRadius * LUnitBounds.Top,
-    LCenter.X + LRadius * LUnitBounds.Right, LCenter.Y + LRadius * LUnitBounds.Bottom), LContentRect.Width);
+  // The texts are centered in the area enclosed by the arc, or start below the center.
+  if LTextGap > 0 then
+    DrawTexts(TRectF.Create(LCenter.X + LRadius * LUnitBounds.Left, LCenter.Y + LTextGap,
+      LCenter.X + LRadius * LUnitBounds.Right, LCenter.Y + LTextGap + LTextHeight), LContentRect.Width)
+  else
+    DrawTexts(TRectF.Create(LCenter.X + LRadius * LUnitBounds.Left, LCenter.Y + LRadius * LUnitBounds.Top,
+      LCenter.X + LRadius * LUnitBounds.Right, LCenter.Y + LRadius * LUnitBounds.Bottom), LContentRect.Width);
+
   DrawOverlay(LCenter, LRadius);
 end;
 
@@ -368,6 +397,17 @@ end;
 function TS4YCircularGauge.GetOuterMargin: Single;
 begin
   Result := 0;
+end;
+
+function TS4YCircularGauge.GetTextGapBelowCenter: Single;
+begin
+  Result := 0;
+end;
+
+function TS4YCircularGauge.MeasureTextsHeight: Single;
+begin
+  Result := MeasureText(StyleValueText, C_DEFAULT_VALUE_TEXT_COLOR, GetValueText).Height +
+    MeasureText(StyleCaptionText, C_DEFAULT_CAPTION_TEXT_COLOR, Caption).Height;
 end;
 
 procedure TS4YCircularGauge.SetStartAngle(const Value: Single);

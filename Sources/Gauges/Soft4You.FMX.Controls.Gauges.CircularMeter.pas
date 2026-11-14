@@ -24,12 +24,13 @@ uses
 
 type
   /// <summary>
-  /// A circular gauge with a graduation along the arc, like the dial of an instrument, with colored ranges and a target value.
+  /// A circular gauge with a graduation along the arc, like the dial of an instrument, with a needle, colored ranges and a target value.
   /// </summary>
   /// <remarks>
   /// The arc is open at the bottom by default (StartAngle -135, SweepAngle 270). Graduation gives the ticks and their numbers, inside or outside the arc; outside, the arc becomes smaller to leave room for them.
+  /// Needle points at the value from the center of the arc, and the value and the caption are written below the center; the fill of the arc is hidden by default (ShowFill).
   /// Ranges color parts of the scale, on the track or in thin bands beside it (RangePlacement); FillFromRange gives the fill the color of the range of the value. ShowTarget marks the value of Target across the track.
-  /// The style is S4YCircularMeterStyle: besides the parts of S4YCircularGaugeStyle, the shapes majortick, minortick and target give the stroke of the ticks and of the mark of the target, and the text scaletext the font and the color of the numbers.
+  /// The style is S4YCircularMeterStyle: besides the parts of S4YCircularGaugeStyle, the shapes majortick, minortick, target and needle give the stroke of the ticks, of the mark of the target and of the needle, the shape needlecap the brushes and the size of the circle at the center, and the text scaletext the font and the color of the numbers.
   /// </remarks>
   TS4YCircularMeter = class(TS4YCircularGauge)
   public const
@@ -37,12 +38,18 @@ type
     C_DEFAULT_MAJOR_TICK_COLOR: TAlphaColor = $FF757575;
     /// <summary>Color of the minor ticks when the style has no minortick.</summary>
     C_DEFAULT_MINOR_TICK_COLOR: TAlphaColor = $FFBDBDBD;
+    /// <summary>Color of the circle at the center of the needle when the style has no needlecap.</summary>
+    C_DEFAULT_NEEDLE_CAP_COLOR: TAlphaColor = $FF424242;
+    /// <summary>Color of the needle when the style has no needle.</summary>
+    C_DEFAULT_NEEDLE_COLOR: TAlphaColor = $FFC62828;
     /// <summary>Default value of RangeBandThickness, in pixels.</summary>
     C_DEFAULT_RANGE_BAND_THICKNESS: Single = 4;
     /// <summary>Default value of RangePlacement: the ranges are drawn on the track.</summary>
     C_DEFAULT_RANGE_PLACEMENT: TS4YGaugeArcRangePlacement = [garTrack];
     /// <summary>Color of the numbers of the graduation when the style has no scaletext.</summary>
     C_DEFAULT_SCALE_TEXT_COLOR: TAlphaColor = $FF616161;
+    /// <summary>Default value of ShowFill: the needle shows the value, not the fill.</summary>
+    C_DEFAULT_SHOW_FILL = False;
     /// <summary>Default value of StartAngle, in degrees.</summary>
     C_DEFAULT_START_ANGLE: Single = -135;
     /// <summary>Default value of SweepAngle, in degrees: an arc open at the bottom.</summary>
@@ -52,12 +59,16 @@ type
   private
     FFillFromRange: Boolean;
     FGraduation: TS4YCircularMeterGraduation;
+    FNeedle: TS4YCircularMeterNeedle;
     FRangeBandThickness: Single;
     FRangePlacement: TS4YGaugeArcRangePlacement;
     FRanges: TS4YMeterRanges;
+    FShowFill: Boolean;
     FShowTarget: Boolean;
     FStyleMajorTick: TShape;
     FStyleMinorTick: TShape;
+    FStyleNeedle: TShape;
+    FStyleNeedleCap: TShape;
     FStyleScaleText: TText;
     FStyleTarget: TShape;
     FTarget: Single;
@@ -65,6 +76,7 @@ type
     procedure DrawColoredArc(const ACenter: TPointF; const ARadius, AThickness, AStartFraction, AEndFraction: Single;
       const AColor: TAlphaColor; const ACap: TStrokeCap);
     procedure DrawGraduation(const ACenter: TPointF; const ARadius: Single);
+    procedure DrawNeedle(const ACenter: TPointF; const ARadius: Single);
     procedure DrawRanges(const ACenter: TPointF; const ARadius, AThickness: Single; const ACap: TStrokeCap);
     procedure DrawTarget(const ACenter: TPointF; const ARadius: Single);
     procedure DrawTicks(const ACenter: TPointF; const AFromRadius: Single; const AValues: TArray<Single>;
@@ -74,6 +86,8 @@ type
     function IsValueDrawn(const AValue: Single): Boolean;
     function IsWholeCircle: Boolean;
     function MaxLabelExtent: Single;
+    function NeedleCapSize: Single;
+    procedure NeedleChanged(Sender: TObject);
     procedure PrepareStroke(const AStyleShape: TShape; const ADefaultColor: TAlphaColor; const ADefaultThickness: Single);
     function RangeBandThicknessStored: Boolean;
     function RangePlacementStored: Boolean;
@@ -81,19 +95,23 @@ type
     function RangesStored: Boolean;
     procedure SetFillFromRange(const Value: Boolean);
     procedure SetGraduation(const Value: TS4YCircularMeterGraduation);
+    procedure SetNeedle(const Value: TS4YCircularMeterNeedle);
     procedure SetRangeBandThickness(const Value: Single);
     procedure SetRangePlacement(const Value: TS4YGaugeArcRangePlacement);
     procedure SetRanges(const Value: TS4YMeterRanges);
+    procedure SetShowFill(const Value: Boolean);
     procedure SetShowTarget(const Value: Boolean);
     procedure SetTarget(const Value: Single);
     function TargetStored: Boolean;
   protected
-    /// <summary>Finds the ticks, the mark of the target and the text of the graduation in the style.</summary>
+    /// <summary>Finds the ticks, the mark of the target, the needle and the text of the graduation in the style.</summary>
     procedure ApplyStyle; override;
     /// <summary>Draws the bands of the ranges, the graduation and the mark of the target.</summary>
     procedure DrawDecorations(const ACenter: TPointF; const ARadius: Single); override;
-    /// <summary>Draws the filled part of the arc, with the color of the range of the value when FillFromRange is True.</summary>
+    /// <summary>Draws the filled part of the arc when ShowFill is True, with the color of the range of the value when FillFromRange is True.</summary>
     procedure DrawFill(const ACenter: TPointF; const ARadius: Single); override;
+    /// <summary>Draws the needle over the texts.</summary>
+    procedure DrawOverlay(const ACenter: TPointF; const ARadius: Single); override;
     /// <summary>Draws the whole track and the ranges on it.</summary>
     procedure DrawTrack(const ACenter: TPointF; const ARadius: Single); override;
     /// <summary>Releases the parts of the style.</summary>
@@ -106,8 +124,10 @@ type
     function GetDefaultSweepAngle: Single; override;
     /// <summary>Returns the room of what is drawn outside the arc: the graduation, the band of the ranges and the mark of the target.</summary>
     function GetOuterMargin: Single; override;
+    /// <summary>Returns the distance from the center where the texts start when the needle is visible, below the circle at the center of the needle; 0 without the needle.</summary>
+    function GetTextGapBelowCenter: Single; override;
   public
-    /// <summary>Creates a meter with an arc open at the bottom and a graduation inside it.</summary>
+    /// <summary>Creates a meter with an arc open at the bottom, a graduation inside it and a needle.</summary>
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   published
@@ -115,6 +135,8 @@ type
     property FillFromRange: Boolean read FFillFromRange write SetFillFromRange default False;
     /// <summary>The ticks and the numbers drawn along the arc, inside or outside it.</summary>
     property Graduation: TS4YCircularMeterGraduation read FGraduation write SetGraduation;
+    /// <summary>The needle that points at the value from the center of the arc, over the texts.</summary>
+    property Needle: TS4YCircularMeterNeedle read FNeedle write SetNeedle;
     /// <summary>Thickness of the bands of the ranges inside and outside the arc, in pixels. The default is 4.</summary>
     property RangeBandThickness: Single read FRangeBandThickness write SetRangeBandThickness stored RangeBandThicknessStored nodefault;
     /// <summary>
@@ -126,6 +148,8 @@ type
     property RangePlacement: TS4YGaugeArcRangePlacement read FRangePlacement write SetRangePlacement stored RangePlacementStored nodefault;
     /// <summary>The ranges of values with a color of their own, for example a green, a yellow and a red zone.</summary>
     property Ranges: TS4YMeterRanges read FRanges write SetRanges stored RangesStored;
+    /// <summary>True draws the filled part of the arc, as in TS4YCircularGauge. The default is False: the needle shows the value.</summary>
+    property ShowFill: Boolean read FShowFill write SetShowFill default C_DEFAULT_SHOW_FILL;
     /// <summary>True marks the value of Target across the track. The default is False.</summary>
     property ShowTarget: Boolean read FShowTarget write SetShowTarget default False;
     /// <summary>The value to reach, marked across the track when ShowTarget is True. A value out of the range is marked at its nearest end.</summary>
@@ -150,11 +174,17 @@ uses
 const
   C_STYLE_MAJOR_TICK = 'majortick';
   C_STYLE_MINOR_TICK = 'minortick';
+  C_STYLE_NEEDLE = 'needle';
+  C_STYLE_NEEDLE_CAP = 'needlecap';
   C_STYLE_SCALE_TEXT = 'scaletext';
   C_STYLE_TARGET = 'target';
 
   // Space between the track and the bands of the ranges, in pixels.
   C_BAND_SPACING = 3;
+  // Diameter of the circle at the center of the needle when the style has no shape for it, in pixels.
+  C_DEFAULT_NEEDLE_CAP_SIZE = 12;
+  // Thickness of the needle when the style has no shape for it, in pixels.
+  C_DEFAULT_NEEDLE_THICKNESS = 3;
   // Size of a new meter.
   C_DEFAULT_SIZE = 160;
   // Thickness of the mark of the target when the style has no shape for it, in pixels.
@@ -167,6 +197,8 @@ const
   C_MIN_DRAWN_SWEEP_ANGLE = 0.01;
   // Arc drawn with round ends to put a round end on a range, in degrees: a dot.
   C_ROUND_END_SWEEP_ANGLE = 0.1;
+  // Space between the circle at the center of the needle and the texts below it, in pixels.
+  C_NEEDLE_TEXT_SPACING = 4;
   // Space between the arc, the ticks and the numbers, in pixels.
   C_SCALE_SPACING = 3;
   // Length of the mark of the target beyond each side of the track, in pixels.
@@ -180,8 +212,11 @@ begin
 
   FRangeBandThickness := C_DEFAULT_RANGE_BAND_THICKNESS;
   FRangePlacement := C_DEFAULT_RANGE_PLACEMENT;
+  FShowFill := C_DEFAULT_SHOW_FILL;
   FGraduation := TS4YCircularMeterGraduation.Create;
   FGraduation.OnChange := GraduationChanged;
+  FNeedle := TS4YCircularMeterNeedle.Create;
+  FNeedle.OnChange := NeedleChanged;
   FRanges := TS4YMeterRanges.Create(Self);
   FRanges.OnChange := RangesChanged;
 end;
@@ -189,6 +224,7 @@ end;
 destructor TS4YCircularMeter.Destroy;
 begin
   FreeAndNil(FRanges);
+  FreeAndNil(FNeedle);
   FreeAndNil(FGraduation);
 
   inherited;
@@ -201,6 +237,8 @@ begin
   FindStyleResource<TShape>(C_STYLE_MAJOR_TICK, FStyleMajorTick);
   FindStyleResource<TShape>(C_STYLE_MINOR_TICK, FStyleMinorTick);
   FindStyleResource<TShape>(C_STYLE_TARGET, FStyleTarget);
+  FindStyleResource<TShape>(C_STYLE_NEEDLE, FStyleNeedle);
+  FindStyleResource<TShape>(C_STYLE_NEEDLE_CAP, FStyleNeedleCap);
   FindStyleResource<TText>(C_STYLE_SCALE_TEXT, FStyleScaleText);
 end;
 
@@ -253,6 +291,9 @@ var
   LFraction: Single;
   LRange: TS4YMeterRange;
 begin
+  if not FShowFill then
+    Exit;
+
   LRange := nil;
   LFraction := GetDisplayedFraction;
 
@@ -326,6 +367,57 @@ begin
         TTextAlign.Center, TTextAlign.Center);
     end;
   end;
+end;
+
+procedure TS4YCircularMeter.DrawNeedle(const ACenter: TPointF; const ARadius: Single);
+var
+  LAngle: Single;
+  LCapRect: TRectF;
+  LCapSize: Single;
+  LLength: Single;
+begin
+  // A line from the center towards the value, as long as a part of the distance from the center to
+  // the inner edge of the track; it follows the animation of the value.
+  LAngle := DegToRad(AngleOfFraction(GetDisplayedFraction));
+  LLength := System.Math.Max(0, ARadius - Thickness / 2) * FNeedle.Length / 100;
+
+  if LLength > 0 then
+  begin
+    PrepareStroke(FStyleNeedle, C_DEFAULT_NEEDLE_COLOR, C_DEFAULT_NEEDLE_THICKNESS);
+    Canvas.DrawLine(ACenter, TPointF.Create(ACenter.X + LLength * Cos(LAngle), ACenter.Y + LLength * Sin(LAngle)),
+      AbsoluteOpacity);
+  end;
+
+  // A circle over the center, with the brushes and the width of the part of the style.
+  LCapSize := NeedleCapSize;
+
+  if Assigned(FStyleNeedleCap) then
+  begin
+    Canvas.Fill.Assign(FStyleNeedleCap.Fill);
+    Canvas.Stroke.Assign(FStyleNeedleCap.Stroke);
+  end
+  else
+  begin
+    Canvas.Fill.Kind := TBrushKind.Solid;
+    Canvas.Fill.Color := C_DEFAULT_NEEDLE_CAP_COLOR;
+    Canvas.Stroke.Kind := TBrushKind.None;
+  end;
+
+  if LCapSize <= 0 then
+    Exit;
+
+  LCapRect := TRectF.Create(ACenter.X - LCapSize / 2, ACenter.Y - LCapSize / 2, ACenter.X + LCapSize / 2,
+    ACenter.Y + LCapSize / 2);
+  Canvas.FillEllipse(LCapRect, AbsoluteOpacity);
+
+  if Canvas.Stroke.Kind <> TBrushKind.None then
+    Canvas.DrawEllipse(LCapRect, AbsoluteOpacity);
+end;
+
+procedure TS4YCircularMeter.DrawOverlay(const ACenter: TPointF; const ARadius: Single);
+begin
+  if FNeedle.Visible then
+    DrawNeedle(ACenter, ARadius);
 end;
 
 procedure TS4YCircularMeter.DrawRanges(const ACenter: TPointF; const ARadius, AThickness: Single;
@@ -412,6 +504,8 @@ procedure TS4YCircularMeter.FreeStyle;
 begin
   FStyleMajorTick := nil;
   FStyleMinorTick := nil;
+  FStyleNeedle := nil;
+  FStyleNeedleCap := nil;
   FStyleScaleText := nil;
   FStyleTarget := nil;
 
@@ -456,6 +550,14 @@ begin
     Result := System.Math.Max(Result, C_TARGET_OVERHANG);
 end;
 
+function TS4YCircularMeter.GetTextGapBelowCenter: Single;
+begin
+  if FNeedle.Visible then
+    Result := NeedleCapSize / 2 + C_NEEDLE_TEXT_SPACING
+  else
+    Result := 0;
+end;
+
 function TS4YCircularMeter.GetPartCap(const APart: TObject): TStrokeCap;
 begin
   // The arcs of the style give their ends; another part is drawn with flat ends.
@@ -495,6 +597,19 @@ begin
     LTextSize := MeasureText(FStyleScaleText, C_DEFAULT_SCALE_TEXT_COLOR, FGraduation.FormatLabel(LMajorValues[I]));
     Result := System.Math.Max(Result, System.Math.Max(LTextSize.Width, LTextSize.Height));
   end;
+end;
+
+function TS4YCircularMeter.NeedleCapSize: Single;
+begin
+  if Assigned(FStyleNeedleCap) then
+    Result := System.Math.Max(0, FStyleNeedleCap.Width)
+  else
+    Result := C_DEFAULT_NEEDLE_CAP_SIZE;
+end;
+
+procedure TS4YCircularMeter.NeedleChanged(Sender: TObject);
+begin
+  Repaint;
 end;
 
 procedure TS4YCircularMeter.PrepareStroke(const AStyleShape: TShape; const ADefaultColor: TAlphaColor;
@@ -547,6 +662,11 @@ begin
   FGraduation.Assign(Value);
 end;
 
+procedure TS4YCircularMeter.SetNeedle(const Value: TS4YCircularMeterNeedle);
+begin
+  FNeedle.Assign(Value);
+end;
+
 procedure TS4YCircularMeter.SetRangeBandThickness(const Value: Single);
 begin
   if SameValue(FRangeBandThickness, Value) then
@@ -568,6 +688,15 @@ end;
 procedure TS4YCircularMeter.SetRanges(const Value: TS4YMeterRanges);
 begin
   FRanges.Assign(Value);
+end;
+
+procedure TS4YCircularMeter.SetShowFill(const Value: Boolean);
+begin
+  if FShowFill = Value then
+    Exit;
+
+  FShowFill := Value;
+  Repaint;
 end;
 
 procedure TS4YCircularMeter.SetShowTarget(const Value: Boolean);
