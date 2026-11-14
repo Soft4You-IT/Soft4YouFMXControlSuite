@@ -2,13 +2,19 @@
 
 Thank you for your interest in the Soft4You FMX Control Suite. This guide explains how to report a problem, how to propose a change and the coding rules of the sources.
 
+## Code of conduct
+
+Everyone taking part in the project, in the issues, in the pull requests and in any other space of the repository, follows the [code of conduct](CODE_OF_CONDUCT.md). Behavior that does not respect it can be reported to [dev-github@soft4you.it](mailto:dev-github@soft4you.it).
+
 ## Reporting a problem
 
-Open an [issue](https://github.com/Soft4You-IT/Soft4YouFMXControlSuite/issues) with:
+Open an [issue](https://github.com/Soft4You-IT/Soft4YouFMXControlSuite/issues) with the form **Bug report**, which asks for:
 
 - the version of the suite (shown in the IDE splash screen and About box) and of Delphi;
 - the platform (Windows, macOS, iOS, Android);
 - the steps to reproduce the problem, and if possible a small project or the HTML that shows it.
+
+To propose a new feature, open an issue with the form **Feature request**.
 
 ## Proposing a change
 
@@ -20,7 +26,7 @@ The repository has two long-lived branches:
 1. Create your branch from `develop`, with a prefix that tells what it is: `fea_` for a feature, `fix_` for a fix, `doc_` for documentation only, followed by a name in PascalCase with underscores (for example `fix_Expander_Header_Click`).
 2. Keep a branch to one topic, and document the change in the same branch: the README of the control in `Docs`, the XML documentation of the sources, the demos where they apply.
 3. Build the packages of at least one Delphi version (see "Installation" in the [README](README.md)) and run the tests in `Tests` if you changed a control that has them.
-4. Open the pull request against **`develop`**, not against `main`.
+4. Open the pull request against **`develop`**, not against `main`. Its description starts with a checklist of these points.
 
 Before committing, check that the IDE did not write settings of your installation into the project files: the list of the installed packages (`DCC_UsePackage`) in the demos, packages excluded with an absolute path (`Excluded_Packages`), the path of the file an image was loaded from (`FileName`) in the `.fmx` forms.
 
@@ -172,7 +178,20 @@ Constructors and destructors belong only to the `public` section.
   property HasSelection: Boolean read FHasSelection;  // correct
   property HasSelection: Boolean read GetHasSelection; // wrong if GetHasSelection only does Result := FHasSelection
   ```
-- Use getter/setter methods only when (1) there is logic to run, or (2) the class implements an interface that requires them
+- Use getter and setter methods when:
+  1. there is logic to run when the property is read or written;
+  2. the property belongs to an **interface**: the properties of an interface can only be read and written through methods, so the class that implements it declares a getter and a setter even when they only read and write the field:
+     ```delphi
+     IS4YSelection = interface
+       function GetHasSelection: Boolean;
+       property HasSelection: Boolean read GetHasSelection;
+     end;
+
+     function TS4YEditor.GetHasSelection: Boolean;  // correct: required by IS4YSelection
+     begin
+       Result := FHasSelection;
+     end;
+     ```
 
 ### Header of the sources
 

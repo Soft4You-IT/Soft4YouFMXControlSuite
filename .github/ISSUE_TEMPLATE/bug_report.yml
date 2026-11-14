@@ -1,0 +1,71 @@
+name: Bug report
+description: Report a problem of a control of the suite.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a problem. Please fill in the fields below, so that the problem can be reproduced.
+  - type: input
+    id: suite-version
+    attributes:
+      label: Version of the suite
+      description: Shown in the IDE splash screen and in the About box, for example 1.0.0.
+    validations:
+      required: true
+  - type: input
+    id: delphi-version
+    attributes:
+      label: Version of Delphi
+      description: For example Delphi 12.3 Athens.
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      description: The platforms where the problem happens.
+      multiple: true
+      options:
+        - Windows
+        - macOS
+        - iOS
+        - Android
+    validations:
+      required: true
+  - type: input
+    id: control
+    attributes:
+      label: Control
+      description: The control that shows the problem, for example TS4YHTMLEditor or TS4YCircularGauge.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What to do to see the problem.
+      placeholder: |
+        1. Put a ... on a form
+        2. Set ... to ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      description: What happens instead, with the text of the error if there is one.
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Sample
+      description: If possible, attach a small project that shows the problem, or paste the HTML for the HTML editor.
