@@ -236,8 +236,54 @@ A circular gauge whose look is made only of the parts of its style: a dial and a
 | `StartAngle` | -135 | Angle of the needle at `Min`, in degrees: 0 is the top of the dial, 90 its right side. Used only when the style has no `scale` |
 | `SweepAngle` | 270 | Angle covered by the needle from `Min` to `Max`, from 0 to 360. Used only when the style has no `scale` |
 | `Reversed` | `False` | The needle turns counterclockwise as the value grows. Used only when the style has no `scale` |
+| `Needles` | empty | Other needles of the style, each with a value of its own (see [Other needles](#other-needles)) |
 
 A new gauge is 160 x 160 pixels. The parts of the style are shown as they are, with their own position and size: the style decides where the needle, the value and the caption are.
+
+### Other needles
+
+A style can have more needles than `needle`, for example the hands of a clock or the needle of a small dial inside the main one, such as the fuel level in a speedometer. Each one is an item of the collection `Needles`, with a value of its own:
+
+| Property | Default | Meaning |
+|---|---|---|
+| `PartName` | empty | Name (`StyleName`) of the part of the style that is the needle, for example `needleminutes`; another part than `needle` |
+| `ScalePart` | empty | Name of the `TArc` of the style that gives the angles and the center of rotation of the needle, for example the scale of a small dial. Empty, or when the style has no part with this name, the needle uses `scale` |
+| `Min` | 0 | Value at the start of the scale of the needle |
+| `Max` | 100 | Value at the end of the scale of the needle |
+| `Value` | 0 | Value shown by the needle |
+| `Wrap` | `False` | `True` makes the value go round the scale, as the hours of a clock: `Max` is at the same angle as `Min`, 13 of a scale from 0 to 12 is shown as 1 and -3 as 9. `False` stops the needle at `Min` and `Max` |
+
+These needles are drawn and turned like `needle`: pointing up, with the `RotationAngle` of the style added as a correction, around the center of their scale; without a scale, around their own `RotationCenter` with the angles of the gauge. `needle` always shows `Value` of the gauge, with the animation; the needles of the collection move at once to their values, without animation. A part no longer named by the collection goes back to its angle and center of rotation of the style.
+
+A clock, for example, has a `scale` from -90 (the top) for 360 degrees and the parts `needlehours` and `needleminutes`, with these needles, updated by a timer:
+
+```pascal
+var
+  LHours: TS4YSkinGaugeNeedle;
+  LMinutes: TS4YSkinGaugeNeedle;
+begin
+  LHours := Clock.Needles.Add as TS4YSkinGaugeNeedle;
+  LHours.PartName := 'needlehours';
+  LHours.Max := 12;
+  LHours.Wrap := True;
+  LMinutes := Clock.Needles.Add as TS4YSkinGaugeNeedle;
+  LMinutes.PartName := 'needleminutes';
+  LMinutes.Max := 60;
+  LMinutes.Wrap := True;
+end;
+
+procedure TClockForm.ClockTimerTimer(Sender: TObject);
+var
+  LNow: TDateTime;
+begin
+  LNow := Now;
+  Clock.Needles[0].Value := HourOf(LNow) + MinuteOf(LNow) / 60;
+  Clock.Needles[1].Value := MinuteOf(LNow) + SecondOf(LNow) / 60;
+  Clock.Value := SecondOf(LNow);
+end;
+```
+
+Here `needle` is the hand of the seconds, with `Max` of the gauge at 60 and `AnimationDuration` at 0, so that it does not turn back from 59 to 0; the needles can also be set in the Object Inspector.
 
 ### Style of the skin gauge
 
@@ -249,6 +295,7 @@ The style of `TS4YSkinCircularGauge` is `S4YSkinCircularGaugeStyle`. Unlike the 
 | `scale` | `TArc`, hidden, from 135 for 270 degrees | Gives the angles of the needle and its center of rotation |
 | `valuetext` | `TText`, bold, size 22 | Receives the value; hidden when the value is not written |
 | `captiontext` | `TText` | Receives the caption; hidden when it is empty |
+| the parts named in `Needles` | none | Other needles, turned to their own values (see [Other needles](#other-needles)) |
 
 Any other part is just shown: in the default style a round `face`, a gray `band` along the scale and a `needlecap` over the center of the needle. The default style puts all its parts in a `TScaledLayout` aligned with `Fit`: the whole dial is resized with the gauge and stays round, also in a control that is not square.
 
