@@ -1,0 +1,23 @@
+name: Feature request
+description: Propose a new feature for a control, or a new control.
+labels: ["enhancement"]
+body:
+  - type: input
+    id: control
+    attributes:
+      label: Control
+      description: The control the feature is for, or "new control".
+    validations:
+      required: true
+  - type: textarea
+    id: need
+    attributes:
+      label: What is needed
+      description: What the feature should do, and the case where you need it.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: How you work around it now, or other solutions you considered.

@@ -118,7 +118,7 @@ The releases are tagged on `main`, and their packages open in the **Release** co
 
 ## Contributing
 
-Issues and pull requests are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md) for how to report a problem, how to propose a change and the coding rules.
+Issues and pull requests are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md) for how to report a problem, how to propose a change and the coding rules. Everyone taking part in the project follows the [code of conduct](CODE_OF_CONDUCT.md).
 
 ---
 
