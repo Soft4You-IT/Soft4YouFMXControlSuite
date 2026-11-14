@@ -9,50 +9,25 @@
 
 A suite of native controls for Delphi FireMonkey (FMX), by Soft4You. 100% Delphi: no WebBrowser, no COM/OLE and no third-party dependency is required.
 
+![Some controls of the suite, in the order they entered it: the HTML editor, a FlexBox dashboard, expanders with a badge, step progress bars, gauges and charts](Docs/Screenshots/cover.png)
+
 Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on Windows with Delphi 11.3 (RAD Studio 22.0); the packages have also been built and installed on Delphi 12 and 13.1.
 
 ## The controls
 
-| Control | Description | Documentation |
-|---|---|---|
-| `TS4YHTMLEditor` | WYSIWYG HTML editor: formatting, lists, tables, images, links, placeholders, find and replace | [Docs\HTMLEditor](Docs/HTMLEditor/README.md) |
-| `TS4YFlexBox`, `TS4YFlexItem` | Container that lays out its items with the CSS Flexbox model (W3C Level 1) | [Docs\FlexBox](Docs/FlexBox/README.md) |
-| `TS4YBlockScrollBox` | Scroll box that stacks its children as the blocks of the CSS flow (`display: block`); a `TS4YFlexBox` in it behaves as a block of a web page | [Docs\BlockScrollBox](Docs/BlockScrollBox/README.md) |
-| `TS4YBadge` | Badge like the notification counter of a smartphone icon: a number or a short text over another control | [Docs\Badge](Docs/Badge/README.md) |
-| `TS4YExpander` | Collapsible panel with an icon in the header, a height animation, a click on the whole header and a badge counter | [Docs\Expander](Docs/Expander/README.md) |
-| `TS4YColorSelector` | Foreground and background color swatches, like in the drawing programs: a click asks the application to change one of the two colors | [Docs\ColorSelector](Docs/ColorSelector/README.md) |
-| `TS4YStepProgressBar` | Progress indicator made of steps along a horizontal or vertical line, like the phases of an installation or the pages of a wizard; the look comes from a style | [Docs\StepProgressBar](Docs/StepProgressBar/README.md) |
-| `TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter`, `TS4YCircularMeter`, `TS4YSkinCircularGauge`, `TS4YSkinLinearGauge` | Gauges that show a value in a range as a horizontal or vertical bar, or as a ring or an arc, that fills with the value, with a caption and the value written; the meters add a graduation along the bar or the arc, colored ranges, a target, a needle or a pointer; the look comes from a style, and the skin gauges are made only of the parts of their style, such as a dial and a needle or a thermometer drawn as images | [Docs\Gauges](Docs/Gauges/README.md) |
-| `TS4YPieChart`, `TS4YBarChart`, `TS4YLineChart` | Pie and ring chart, vertical or horizontal bar chart and line chart with categories, series and axes; legend, values written, animation and click on an element; filled in the Object Inspector, in code or by the LiveBindings through a `TLinkGridToDataSource`; the look comes from a style | [Docs\Charts](Docs/Charts/README.md) |
+| Category | Control | Description | Documentation |
+|---|---|---|---|
+| **Editing and input** | `TS4YColorSelector` | Foreground and background color swatches, like in the drawing programs: a click asks the application to change one of the two colors | [Docs\ColorSelector](Docs/ColorSelector/README.md)<br>[Screenshot](Docs/Screenshots/colorselector.png) |
+|  | `TS4YHTMLEditor` | WYSIWYG HTML editor: formatting, lists, tables, images, links, placeholders, find and replace | [Docs\HTMLEditor](Docs/HTMLEditor/README.md)<br>[Screenshot](Docs/Screenshots/htmleditor.png) |
+| **Layout and containers** | `TS4YBlockScrollBox` | Scroll box that stacks its children as the blocks of the CSS flow (`display: block`); a `TS4YFlexBox` in it behaves as a block of a web page | [Docs\BlockScrollBox](Docs/BlockScrollBox/README.md)<br>[Screenshot](Docs/Screenshots/blockscrollbox.png) |
+|  | `TS4YExpander` | Collapsible panel with an icon in the header, a height animation, a click on the whole header and a badge counter | [Docs\Expander](Docs/Expander/README.md)<br>[Screenshot](Docs/Screenshots/expander.png) |
+|  | `TS4YFlexBox`, `TS4YFlexItem` | Container that lays out its items with the CSS Flexbox model (W3C Level 1) | [Docs\FlexBox](Docs/FlexBox/README.md)<br>[Screenshot](Docs/Screenshots/flexbox.png) |
+| **Indicators** | `TS4YBadge` | Badge like the notification counter of a smartphone icon: a number or a short text over another control | [Docs\Badge](Docs/Badge/README.md)<br>[Screenshot](Docs/Screenshots/badge.png) |
+|  | `TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter`, `TS4YCircularMeter`, `TS4YSkinCircularGauge`, `TS4YSkinLinearGauge` | Gauges that show a value in a range as a horizontal or vertical bar, or as a ring or an arc, that fills with the value, with a caption and the value written; the meters add a graduation along the bar or the arc, colored ranges, a target, a needle or a pointer; the look comes from a style, and the skin gauges are made only of the parts of their style, such as a dial and a needle or a thermometer drawn as images | [Docs\Gauges](Docs/Gauges/README.md)<br>[Screenshot](Docs/Screenshots/gauges.png) |
+|  | `TS4YStepProgressBar` | Progress indicator made of steps along a horizontal or vertical line, like the phases of an installation or the pages of a wizard; the look comes from a style | [Docs\StepProgressBar](Docs/StepProgressBar/README.md)<br>[Screenshot](Docs/Screenshots/stepprogressbar.png) |
+| **Charts** | `TS4YPieChart`, `TS4YBarChart`, `TS4YLineChart` | Pie and ring chart, vertical or horizontal bar chart and line chart with categories, series and axes; legend, values written, animation and click on an element; filled in the Object Inspector, in code or by the LiveBindings through a `TLinkGridToDataSource`; the look comes from a style | [Docs\Charts](Docs/Charts/README.md)<br>[Screenshot](Docs/Screenshots/charts.png) |
 
 All the controls are built into the same two packages and appear in the Tool Palette page **Soft4You FMX Controls Suite**. `TS4YExpander` uses `TS4YBadge`, so the two are always installed together.
-
-## Screenshots
-
-Taken from the demos and the galleries in `Demos`; a click on an image opens the documentation of the control.
-
-<table>
-<tr>
-<td align="center" width="50%"><a href="Docs/HTMLEditor/README.md"><img src="Docs/Screenshots/htmleditor.png" alt="TS4YHTMLEditor: WYSIWYG HTML editor"></a><br><b>TS4YHTMLEditor</b>: WYSIWYG HTML editor</td>
-<td align="center" width="50%"><a href="Docs/FlexBox/README.md"><img src="Docs/Screenshots/flexbox.png" alt="TS4YFlexBox: a dashboard laid out with Flexbox"></a><br><b>TS4YFlexBox</b>: a dashboard laid out with Flexbox</td>
-</tr>
-<tr>
-<td align="center" width="50%"><a href="Docs/BlockScrollBox/README.md"><img src="Docs/Screenshots/blockscrollbox.png" alt="TS4YBlockScrollBox: blocks in the CSS flow"></a><br><b>TS4YBlockScrollBox</b>: blocks in the CSS flow</td>
-<td align="center" width="50%"><a href="Docs/StepProgressBar/README.md"><img src="Docs/Screenshots/stepprogressbar.png" alt="TS4YStepProgressBar: steps, images, failed step, timeline"></a><br><b>TS4YStepProgressBar</b>: steps, images, failed step, timeline</td>
-</tr>
-<tr>
-<td align="center" width="50%"><a href="Docs/Gauges/README.md"><img src="Docs/Screenshots/gauges.png" alt="Gauges: meters and skin gauges"></a><br><b>Gauges</b>: meters and skin gauges</td>
-<td align="center" width="50%"><a href="Docs/Charts/README.md"><img src="Docs/Screenshots/charts.png" alt="Charts: pie, ring, bars and lines"></a><br><b>Charts</b>: pie, ring, bars and lines</td>
-</tr>
-<tr>
-<td align="center" width="50%"><a href="Docs/Badge/README.md"><img src="Docs/Screenshots/badge.png" alt="TS4YBadge: counters and labels"></a><br><b>TS4YBadge</b>: counters and labels</td>
-<td align="center" width="50%"><a href="Docs/Expander/README.md"><img src="Docs/Screenshots/expander.png" alt="TS4YExpander: panels with a badge"></a><br><b>TS4YExpander</b>: panels with a badge</td>
-</tr>
-<tr>
-<td align="center" width="50%"><a href="Docs/ColorSelector/README.md"><img src="Docs/Screenshots/colorselector.png" alt="TS4YColorSelector: foreground and background colors"></a><br><b>TS4YColorSelector</b>: foreground and background colors</td>
-<td></td>
-</tr>
-</table>
 
 ---
 
