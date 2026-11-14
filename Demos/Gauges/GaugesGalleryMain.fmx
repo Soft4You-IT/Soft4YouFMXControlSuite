@@ -1,7 +1,7 @@
 object GaugesGalleryForm: TGaugesGalleryForm
   Left = 0
   Top = 0
-  Caption = 'TS4YLinearGauge and TS4YCircularGauge gallery'
+  Caption = 'Gauges and meters gallery'
   ClientHeight = 600
   ClientWidth = 900
   Position = ScreenCenter
@@ -20,6 +20,8 @@ object GaugesGalleryForm: TGaugesGalleryForm
     TabOrder = 0
     TabPosition = PlatformDefault
     Sizes = (
+      900s
+      574s
       900s
       574s
       900s
@@ -197,6 +199,140 @@ object GaugesGalleryForm: TGaugesGalleryForm
         Size.PlatformDefault = False
         StartAngle = -90.000000000000000000
         Value = 65.000000000000000000
+      end
+    end
+    object MetersTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = False
+      Size.Width = 57.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Meters'
+      ExplicitSize.cx = 90.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object MetersLabel: TLabel
+        Position.X = 24.000000000000000000
+        Position.Y = 12.000000000000000000
+        Size.Width = 840.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.VertAlign = Leading
+        Text =
+          'TS4YCircularMeter and TS4YLinearMeter, with values changed by a ' +
+          'timer: a speedometer with its zones, a manometer with a target, ' +
+          'a thermometer whose fill takes the color of the range and a tun' +
+          'er with a pointer only.'
+        TabOrder = 0
+      end
+      object SpeedometerMeter: TS4YCircularMeter
+        Caption = 'km/h'
+        Graduation.MajorStep = 40.000000000000000000
+        Graduation.Position = gasOutside
+        Max = 240.000000000000000000
+        Position.X = 24.000000000000000000
+        Position.Y = 70.000000000000000000
+        Ranges = <
+          item
+            Color = xFFFDD835
+            EndValue = 200.000000000000000000
+            StartValue = 160.000000000000000000
+          end
+          item
+            Color = xFFE53935
+            EndValue = 240.000000000000000000
+            StartValue = 200.000000000000000000
+          end>
+        Size.Width = 250.000000000000000000
+        Size.Height = 250.000000000000000000
+        Size.PlatformDefault = False
+        Value = 90.000000000000000000
+      end
+      object ManometerMeter: TS4YCircularMeter
+        Caption = 'bar'
+        Graduation.MajorStep = 2.000000000000000000
+        Graduation.MinorCount = 3
+        Max = 10.000000000000000000
+        Position.X = 304.000000000000000000
+        Position.Y = 70.000000000000000000
+        RangePlacement = [garOutside]
+        Ranges = <
+          item
+            Color = xFF43A047
+            EndValue = 6.000000000000000000
+          end
+          item
+            Color = xFFFDD835
+            EndValue = 8.000000000000000000
+            StartValue = 6.000000000000000000
+          end
+          item
+            Color = xFFE53935
+            EndValue = 10.000000000000000000
+            StartValue = 8.000000000000000000
+          end>
+        ShowTarget = True
+        Size.Width = 250.000000000000000000
+        Size.Height = 250.000000000000000000
+        Size.PlatformDefault = False
+        Target = 6.000000000000000000
+        Value = 4.500000000000000000
+        ValueFormat = '%.1f'
+      end
+      object ThermometerMeter: TS4YLinearMeter
+        Caption = 'Outside'
+        FillFromRange = True
+        Graduation.MajorStep = 10.000000000000000000
+        Max = 50.000000000000000000
+        Min = -20.000000000000000000
+        Orientation = Vertical
+        Position.X = 600.000000000000000000
+        Position.Y = 60.000000000000000000
+        RangePlacement = [gbrBefore]
+        Ranges = <
+          item
+            Color = xFF29B6F6
+            StartValue = -20.000000000000000000
+          end
+          item
+            Color = xFF43A047
+            EndValue = 30.000000000000000000
+          end
+          item
+            Color = xFFE53935
+            EndValue = 50.000000000000000000
+            StartValue = 30.000000000000000000
+          end>
+        Size.Width = 110.000000000000000000
+        Size.Height = 490.000000000000000000
+        Size.PlatformDefault = False
+        Value = 18.000000000000000000
+        ValueFormat = '%.1f C'
+      end
+      object TunerMeter: TS4YLinearMeter
+        Caption = 'Tuner'
+        Graduation.MajorStep = 10.000000000000000000
+        Max = 50.000000000000000000
+        Min = -50.000000000000000000
+        Pointer.Visible = True
+        Position.X = 24.000000000000000000
+        Position.Y = 370.000000000000000000
+        Ranges = <
+          item
+            Color = xFF43A047
+            EndValue = 5.000000000000000000
+            StartValue = -5.000000000000000000
+          end>
+        ShowFill = False
+        Size.Width = 530.000000000000000000
+        Size.Height = 100.000000000000000000
+        Size.PlatformDefault = False
+        Value = 12.000000000000000000
+        ValueFormat = '%.0f cents'
       end
     end
     object DashboardTab: TTabItem
@@ -790,6 +926,12 @@ object GaugesGalleryForm: TGaugesGalleryForm
   object EqualizerTimer: TTimer
     Interval = 150
     OnTimer = EqualizerTimerTimer
+    Left = 800
+    Top = 440
+  end
+  object MetersTimer: TTimer
+    Interval = 1500
+    OnTimer = MetersTimerTimer
     Left = 800
     Top = 440
   end

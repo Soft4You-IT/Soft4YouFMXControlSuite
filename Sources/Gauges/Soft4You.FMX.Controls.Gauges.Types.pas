@@ -2,7 +2,7 @@ unit Soft4You.FMX.Controls.Gauges.Types;
 
 { *****************************************************************************
   Soft4You FMX Control Suite - FireMonkey (FMX) controls for Delphi
-  TS4YLinearGauge, TS4YCircularGauge - types of the gauges
+  TS4YLinearGauge, TS4YCircularGauge, TS4YLinearMeter, TS4YCircularMeter - types of the gauges
   Copyright (c) 2026 Carlo Marona (Soft4You)
 
   This Source Code Form is subject to the terms of the Mozilla Public
@@ -43,6 +43,68 @@ type
     gtpBefore,
     gtpAfter
   );
+
+  /// <summary>
+  /// Side of the arc of a TS4YCircularMeter where a graduation or a band of ranges is drawn.
+  /// </summary>
+  /// <remarks>
+  /// gasInside: towards the center of the arc.
+  /// gasOutside: away from the center.
+  /// </remarks>
+  TS4YGaugeArcSide = (
+    gasInside,
+    gasOutside
+  );
+
+  /// <summary>
+  /// Side of the bar of a TS4YLinearMeter where a graduation or a band of ranges is drawn.
+  /// </summary>
+  /// <remarks>
+  /// gbsBefore: above a horizontal bar, on the left of a vertical one.
+  /// gbsAfter: below a horizontal bar, on the right of a vertical one.
+  /// </remarks>
+  TS4YGaugeBarSide = (
+    gbsBefore,
+    gbsAfter
+  );
+
+  /// <summary>
+  /// A place where a TS4YCircularMeter draws its ranges.
+  /// </summary>
+  /// <remarks>
+  /// garTrack: on the track, with the thickness of the arc.
+  /// garInside: in a thin band inside the arc, towards the center.
+  /// garOutside: in a thin band outside the arc.
+  /// </remarks>
+  TS4YGaugeArcRangePlace = (
+    garTrack,
+    garInside,
+    garOutside
+  );
+
+  /// <summary>
+  /// The places where a TS4YCircularMeter draws its ranges; more than one can be chosen.
+  /// </summary>
+  TS4YGaugeArcRangePlacement = set of TS4YGaugeArcRangePlace;
+
+  /// <summary>
+  /// A place where a TS4YLinearMeter draws its ranges.
+  /// </summary>
+  /// <remarks>
+  /// gbrTrack: on the bar, with its thickness.
+  /// gbrBefore: in a thin band above a horizontal bar or on the left of a vertical one.
+  /// gbrAfter: in a thin band below a horizontal bar or on the right of a vertical one.
+  /// </remarks>
+  TS4YGaugeBarRangePlace = (
+    gbrTrack,
+    gbrBefore,
+    gbrAfter
+  );
+
+  /// <summary>
+  /// The places where a TS4YLinearMeter draws its ranges; more than one can be chosen.
+  /// </summary>
+  TS4YGaugeBarRangePlacement = set of TS4YGaugeBarRangePlace;
 
   /// <summary>
   /// Event fired when a gauge writes its value.

@@ -22,7 +22,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 | `TS4YExpander` | Collapsible panel with an icon in the header, a height animation, a click on the whole header and a badge counter | [Docs\Expander](Docs/Expander/README.md) |
 | `TS4YColorSelector` | Foreground and background color swatches, like in the drawing programs: a click asks the application to change one of the two colors | [Docs\ColorSelector](Docs/ColorSelector/README.md) |
 | `TS4YStepProgressBar` | Progress indicator made of steps along a horizontal or vertical line, like the phases of an installation or the pages of a wizard; the look comes from a style | [Docs\StepProgressBar](Docs/StepProgressBar/README.md) |
-| `TS4YLinearGauge`, `TS4YCircularGauge` | Gauges that show a value in a range as a horizontal or vertical bar, or as a ring or an arc, that fills with the value, with a caption and the value written; the look comes from a style | [Docs\Gauges](Docs/Gauges/README.md) |
+| `TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter`, `TS4YCircularMeter` | Gauges that show a value in a range as a horizontal or vertical bar, or as a ring or an arc, that fills with the value, with a caption and the value written; the meters add a graduation along the bar or the arc, colored ranges, a target, a needle or a pointer; the look comes from a style | [Docs\Gauges](Docs/Gauges/README.md) |
 | `TS4YPieChart`, `TS4YBarChart`, `TS4YLineChart` | Pie and ring chart, vertical or horizontal bar chart and line chart with categories, series and axes; legend, values written, animation and click on an element; filled in the Object Inspector, in code or by the LiveBindings through a `TLinkGridToDataSource`; the look comes from a style | [Docs\Charts](Docs/Charts/README.md) |
 
 All the controls are built into the same two packages and appear in the Tool Palette page **Soft4You FMX Controls Suite**. `TS4YExpander` uses `TS4YBadge`, so the two are always installed together.
@@ -41,7 +41,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Sources\ColorSelector` | Units of the ColorSelector control (`TS4YColorSelector`) and the types of its event |
 | `Sources\StepProgressBar` | Units of the StepProgressBar control (`TS4YStepProgressBar`) and its types, with its styles and resource scripts |
 | `Sources\Charts` | Units of the charts (`TS4YPieChart`, `TS4YBarChart`, `TS4YLineChart`), their types and their support of the LiveBindings, with their styles and resource scripts |
-| `Sources\Gauges` | Units of the gauges (`TS4YLinearGauge`, `TS4YCircularGauge`) and their types, with their styles and resource scripts |
+| `Sources\Gauges` | Units of the gauges (`TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter`, `TS4YCircularMeter`) and their types, with their styles and resource scripts |
 | `Sources\Design` | Design-time unit shared by all the controls of the suite (IDE splash screen and About box) |
 | `Packages\D11`, `D12`, `D13` | Runtime and design-time packages and their project group, one folder for each Delphi version (11, 12, 13) |
 | `Resources` | Resources compiled by the packages from the `.rc` files (styles of the Badge, the Expander, the StepProgressBar, the gauges and the charts, Tool Palette icons, version information); created when the packages are built, not in the repository |
@@ -52,7 +52,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Demos\Badge` | Sample FMX application with `TS4YBadge`: a counter and a text badge, and the settings to change them |
 | `Demos\Expander` | Sample FMX application with three `TS4YExpander`: a badge on the header, the animation and the header click |
 | `Demos\StepProgressBar` | Sample FMX application with two `TS4YStepProgressBar`: the steps of an installation, moved by buttons, and the steps of a wizard, chosen with a click |
-| `Demos\Gauges` | Sample FMX applications with `TS4YLinearGauge` and `TS4YCircularGauge`: the settings of the gauges, and a gallery of examples |
+| `Demos\Gauges` | Sample FMX applications with `TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter` and `TS4YCircularMeter`: the settings of the gauges and of the meters, and a gallery of examples |
 | `Demos\Charts` | Sample FMX applications with `TS4YPieChart`, `TS4YBarChart` and `TS4YLineChart`: the settings of the charts, and a gallery of examples with a tab for the LiveBindings |
 | `Docs\HTMLEditor` | Documentation of the HTML editor: [`README.md`](Docs/HTMLEditor/README.md) (installation, properties, methods, events), [`DeveloperGuide.md`](Docs/HTMLEditor/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals) |
 | `Docs\FlexBox` | Documentation of the FlexBox control: [`README.md`](Docs/FlexBox/README.md) (installation, properties, examples) |
@@ -147,7 +147,7 @@ The public API of every control is documented with DocXML comments (`/// <summar
 
 The suite is the work of Carlo Marona (Soft4You), who designs and directs it. Artificial intelligence was used for part of the controls, through [Claude](https://www.anthropic.com/claude) (Anthropic) and Claude Code:
 
-- `TS4YHTMLEditor`, `TS4YFlexBox`, `TS4YStepProgressBar`, `TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YPieChart`, `TS4YBarChart` and `TS4YLineChart` were developed with the assistance of Claude from the start.
+- `TS4YHTMLEditor`, `TS4YFlexBox`, `TS4YStepProgressBar`, `TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter`, `TS4YCircularMeter`, `TS4YPieChart`, `TS4YBarChart` and `TS4YLineChart` were developed with the assistance of Claude from the start.
 - `TS4YBadge`, `TS4YExpander` and `TS4YColorSelector` were first written by Carlo Marona and later refined with the assistance of Claude, mainly `TS4YExpander`.
 
 ---

@@ -17,13 +17,19 @@ uses
   FMX.SpinBox,
   FMX.Edit,
   FMX.Colors,
+  FMX.TabControl,
   Soft4You.FMX.Controls.Gauges,
   Soft4You.FMX.Controls.Gauges.Types,
+  Soft4You.FMX.Controls.Gauges.Scales,
   Soft4You.FMX.Controls.Gauges.Linear,
-  Soft4You.FMX.Controls.Gauges.Circular;
+  Soft4You.FMX.Controls.Gauges.Circular,
+  Soft4You.FMX.Controls.Gauges.LinearMeter,
+  Soft4You.FMX.Controls.Gauges.CircularMeter;
 
 type
   TGaugesDemoForm = class(TForm)
+    DemoTabControl: TTabControl;
+    GaugesTab: TTabItem;
     DemoLayout: TLayout;
     LinearTitleLabel: TLabel;
     FirstLinearGauge: TS4YLinearGauge;
@@ -67,25 +73,81 @@ type
     SweepAngleTrackBar: TTrackBar;
     CircularThicknessLabel: TLabel;
     CircularThicknessTrackBar: TTrackBar;
+    MetersTab: TTabItem;
+    MetersLayout: TLayout;
+    CircularMeterTitleLabel: TLabel;
+    CircularMeter: TS4YCircularMeter;
+    VerticalMeterTitleLabel: TLabel;
+    VerticalMeter: TS4YLinearMeter;
+    LinearMeterTitleLabel: TLabel;
+    LinearMeter: TS4YLinearMeter;
+    MetersNoteLabel: TLabel;
+    MeterSettingsScrollBox: TVertScrollBox;
+    MeterValueSettingsLabel: TLabel;
+    MeterValueLabel: TLabel;
+    MeterValueTrackBar: TTrackBar;
+    MeterRandomButton: TButton;
+    GraduationSettingsLabel: TLabel;
+    GraduationVisibleCheckBox: TCheckBox;
+    ShowLabelsCheckBox: TCheckBox;
+    MajorStepLabel: TLabel;
+    MajorStepComboBox: TComboBox;
+    CircularGraduationLabel: TLabel;
+    CircularGraduationComboBox: TComboBox;
+    LinearGraduationLabel: TLabel;
+    LinearGraduationComboBox: TComboBox;
+    RangesSettingsLabel: TLabel;
+    RangesCheckBox: TCheckBox;
+    RangeTrackCheckBox: TCheckBox;
+    RangeInsideCheckBox: TCheckBox;
+    RangeOutsideCheckBox: TCheckBox;
+    FillFromRangeCheckBox: TCheckBox;
+    TargetSettingsLabel: TLabel;
+    ShowTargetCheckBox: TCheckBox;
+    TargetLabel: TLabel;
+    TargetTrackBar: TTrackBar;
+    NeedleSettingsLabel: TLabel;
+    NeedleVisibleCheckBox: TCheckBox;
+    NeedleLengthLabel: TLabel;
+    NeedleLengthTrackBar: TTrackBar;
+    CircularShowFillCheckBox: TCheckBox;
+    PointerVisibleCheckBox: TCheckBox;
+    PointerPositionLabel: TLabel;
+    PointerPositionComboBox: TComboBox;
+    LinearShowFillCheckBox: TCheckBox;
     procedure AnimatedCheckBoxChange(Sender: TObject);
     procedure AngleTrackBarChange(Sender: TObject);
     procedure CaptionEditChangeTracking(Sender: TObject);
     procedure CircularThicknessTrackBarChange(Sender: TObject);
     procedure CustomTextCheckBoxChange(Sender: TObject);
     procedure FillColorComboBoxChange(Sender: TObject);
+    procedure FillFromRangeCheckBoxChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure GraduationCheckBoxChange(Sender: TObject);
+    procedure GraduationPositionComboBoxChange(Sender: TObject);
     procedure LinearThicknessTrackBarChange(Sender: TObject);
+    procedure MajorStepComboBoxChange(Sender: TObject);
+    procedure MeterRandomButtonClick(Sender: TObject);
+    procedure MeterValueTrackBarChange(Sender: TObject);
+    procedure NeedleChange(Sender: TObject);
     procedure OrientationComboBoxChange(Sender: TObject);
+    procedure PointerChange(Sender: TObject);
     procedure RandomButtonClick(Sender: TObject);
+    procedure RangePlacementCheckBoxChange(Sender: TObject);
+    procedure RangesCheckBoxChange(Sender: TObject);
     procedure RangeSpinBoxChange(Sender: TObject);
     procedure ShapeComboBoxChange(Sender: TObject);
+    procedure ShowFillCheckBoxChange(Sender: TObject);
     procedure ShowValueCheckBoxChange(Sender: TObject);
     procedure StyleFillCheckBoxChange(Sender: TObject);
+    procedure TargetChange(Sender: TObject);
     procedure TextPositionComboBoxChange(Sender: TObject);
     procedure ValueFormatComboBoxChange(Sender: TObject);
     procedure ValueTrackBarChange(Sender: TObject);
   private
+    procedure AddRanges(const ARanges: TS4YMeterRanges);
     function GetGauges: TArray<TS4YCustomGauge>;
+    function GetLinearMeters: TArray<TS4YLinearMeter>;
     procedure GaugeGetValueText(Sender: TObject; const AValue: Single; var AText: string);
     procedure UpdateAngleLabels;
   end;
@@ -99,18 +161,35 @@ implementation
 
 resourcestring
   S_CUSTOM_VALUE_TEXT = '%.0f of %.0f';
+  S_NEEDLE_LENGTH = 'Needle.Length: %.0f';
   S_START_ANGLE = 'StartAngle: %.0f';
   S_SWEEP_ANGLE = 'SweepAngle: %.0f';
+  S_TARGET = 'Target: %.0f';
   S_THICKNESS = 'Thickness: %.0f';
   S_VALUE = 'Value: %.1f';
 
 const
   C_ANIMATION_DURATION = 0.3;
+  // Steps of the items of MajorStepComboBox, in the same order: 0 is automatic.
+  C_MAJOR_STEPS: array[0..3] of Single = (0, 10, 20, 25);
+  // Ranges of the meters: green, yellow and red zones.
+  C_GREEN_RANGE_END = 60;
+  C_YELLOW_RANGE_END = 80;
+  C_GREEN_RANGE_COLOR: TAlphaColor = $FF43A047;
+  C_YELLOW_RANGE_COLOR: TAlphaColor = $FFFDD835;
+  C_RED_RANGE_COLOR: TAlphaColor = $FFE53935;
   // Formats of the items of ValueFormatComboBox, in the same order.
   C_VALUE_FORMATS: array[0..3] of string = ('%.0f', '%.1f %%', '%.0f GB', '');
   // Angles of the items of ShapeComboBox, in the same order: ring, open arc, half circle.
   C_SHAPE_START_ANGLES: array[0..2] of Single = (0, -135, -90);
   C_SHAPE_SWEEP_ANGLES: array[0..2] of Single = (360, 270, 180);
+
+procedure TGaugesDemoForm.AddRanges(const ARanges: TS4YMeterRanges);
+begin
+  ARanges.Add(0, C_GREEN_RANGE_END, C_GREEN_RANGE_COLOR);
+  ARanges.Add(C_GREEN_RANGE_END, C_YELLOW_RANGE_END, C_YELLOW_RANGE_COLOR);
+  ARanges.Add(C_YELLOW_RANGE_END, 100, C_RED_RANGE_COLOR);
+end;
 
 procedure TGaugesDemoForm.AnimatedCheckBoxChange(Sender: TObject);
 var
@@ -166,12 +245,26 @@ begin
     StyleFillCheckBoxChange(StyleFillCheckBox);
 end;
 
+procedure TGaugesDemoForm.FillFromRangeCheckBoxChange(Sender: TObject);
+begin
+  CircularMeter.FillFromRange := FillFromRangeCheckBox.IsChecked;
+
+  for var LMeter in GetLinearMeters do
+    LMeter.FillFromRange := FillFromRangeCheckBox.IsChecked;
+end;
+
 procedure TGaugesDemoForm.FormCreate(Sender: TObject);
 begin
+  // The demo always opens on the first tab, whichever tab was selected when the form was saved.
+  DemoTabControl.TabIndex := 0;
   UpdateAngleLabels;
   ValueTrackBarChange(ValueTrackBar);
   LinearThicknessTrackBarChange(LinearThicknessTrackBar);
   CircularThicknessTrackBarChange(CircularThicknessTrackBar);
+  MeterValueTrackBarChange(MeterValueTrackBar);
+  RangesCheckBoxChange(RangesCheckBox);
+  TargetChange(TargetTrackBar);
+  NeedleChange(NeedleLengthTrackBar);
 end;
 
 procedure TGaugesDemoForm.GaugeGetValueText(Sender: TObject; const AValue: Single; var AText: string);
@@ -184,11 +277,78 @@ begin
   Result := [FirstLinearGauge, VerticalGauge, CircularGauge];
 end;
 
+function TGaugesDemoForm.GetLinearMeters: TArray<TS4YLinearMeter>;
+begin
+  Result := [LinearMeter, VerticalMeter];
+end;
+
+procedure TGaugesDemoForm.GraduationCheckBoxChange(Sender: TObject);
+begin
+  CircularMeter.Graduation.Visible := GraduationVisibleCheckBox.IsChecked;
+  CircularMeter.Graduation.ShowLabels := ShowLabelsCheckBox.IsChecked;
+
+  for var LMeter in GetLinearMeters do
+  begin
+    LMeter.Graduation.Visible := GraduationVisibleCheckBox.IsChecked;
+    LMeter.Graduation.ShowLabels := ShowLabelsCheckBox.IsChecked;
+  end;
+end;
+
+procedure TGaugesDemoForm.GraduationPositionComboBoxChange(Sender: TObject);
+begin
+  // The items follow the order of TS4YGaugeArcSide and TS4YGaugeBarSide.
+  if CircularGraduationComboBox.ItemIndex >= 0 then
+    CircularMeter.Graduation.Position := TS4YGaugeArcSide(CircularGraduationComboBox.ItemIndex);
+
+  if LinearGraduationComboBox.ItemIndex < 0 then
+    Exit;
+
+  for var LMeter in GetLinearMeters do
+    LMeter.Graduation.Position := TS4YGaugeBarSide(LinearGraduationComboBox.ItemIndex);
+end;
+
 procedure TGaugesDemoForm.LinearThicknessTrackBarChange(Sender: TObject);
 begin
   FirstLinearGauge.Thickness := LinearThicknessTrackBar.Value;
   VerticalGauge.Thickness := LinearThicknessTrackBar.Value;
   LinearThicknessLabel.Text := Format(S_THICKNESS, [LinearThicknessTrackBar.Value]);
+end;
+
+procedure TGaugesDemoForm.MajorStepComboBoxChange(Sender: TObject);
+var
+  LIndex: Integer;
+begin
+  LIndex := MajorStepComboBox.ItemIndex;
+
+  if LIndex < 0 then
+    Exit;
+
+  CircularMeter.Graduation.MajorStep := C_MAJOR_STEPS[LIndex];
+
+  for var LMeter in GetLinearMeters do
+    LMeter.Graduation.MajorStep := C_MAJOR_STEPS[LIndex];
+end;
+
+procedure TGaugesDemoForm.MeterRandomButtonClick(Sender: TObject);
+begin
+  MeterValueTrackBar.Value := MeterValueTrackBar.Min + Random * (MeterValueTrackBar.Max - MeterValueTrackBar.Min);
+end;
+
+procedure TGaugesDemoForm.MeterValueTrackBarChange(Sender: TObject);
+begin
+  CircularMeter.Value := MeterValueTrackBar.Value;
+
+  for var LMeter in GetLinearMeters do
+    LMeter.Value := MeterValueTrackBar.Value;
+
+  MeterValueLabel.Text := Format(S_VALUE, [MeterValueTrackBar.Value]);
+end;
+
+procedure TGaugesDemoForm.NeedleChange(Sender: TObject);
+begin
+  CircularMeter.Needle.Visible := NeedleVisibleCheckBox.IsChecked;
+  CircularMeter.Needle.Length := NeedleLengthTrackBar.Value;
+  NeedleLengthLabel.Text := Format(S_NEEDLE_LENGTH, [NeedleLengthTrackBar.Value]);
 end;
 
 procedure TGaugesDemoForm.OrientationComboBoxChange(Sender: TObject);
@@ -197,9 +357,70 @@ begin
   FirstLinearGauge.Orientation := TOrientation(OrientationComboBox.ItemIndex);
 end;
 
+procedure TGaugesDemoForm.PointerChange(Sender: TObject);
+begin
+  for var LMeter in GetLinearMeters do
+  begin
+    LMeter.Pointer.Visible := PointerVisibleCheckBox.IsChecked;
+
+    // The items follow the order of TS4YGaugeBarSide: before, after
+    if PointerPositionComboBox.ItemIndex >= 0 then
+      LMeter.Pointer.Position := TS4YGaugeBarSide(PointerPositionComboBox.ItemIndex);
+  end;
+end;
+
 procedure TGaugesDemoForm.RandomButtonClick(Sender: TObject);
 begin
   ValueTrackBar.Value := ValueTrackBar.Min + Random * (ValueTrackBar.Max - ValueTrackBar.Min);
+end;
+
+procedure TGaugesDemoForm.RangePlacementCheckBoxChange(Sender: TObject);
+var
+  LArcPlacement: TS4YGaugeArcRangePlacement;
+  LBarPlacement: TS4YGaugeBarRangePlacement;
+begin
+  // The same three check boxes give the places on the arc and on the bar.
+  LArcPlacement := [];
+  LBarPlacement := [];
+
+  if RangeTrackCheckBox.IsChecked then
+  begin
+    LArcPlacement := LArcPlacement + [garTrack];
+    LBarPlacement := LBarPlacement + [gbrTrack];
+  end;
+
+  if RangeInsideCheckBox.IsChecked then
+  begin
+    LArcPlacement := LArcPlacement + [garInside];
+    LBarPlacement := LBarPlacement + [gbrBefore];
+  end;
+
+  if RangeOutsideCheckBox.IsChecked then
+  begin
+    LArcPlacement := LArcPlacement + [garOutside];
+    LBarPlacement := LBarPlacement + [gbrAfter];
+  end;
+
+  CircularMeter.RangePlacement := LArcPlacement;
+
+  for var LMeter in GetLinearMeters do
+    LMeter.RangePlacement := LBarPlacement;
+end;
+
+procedure TGaugesDemoForm.RangesCheckBoxChange(Sender: TObject);
+begin
+  CircularMeter.Ranges.Clear;
+
+  if RangesCheckBox.IsChecked then
+    AddRanges(CircularMeter.Ranges);
+
+  for var LMeter in GetLinearMeters do
+  begin
+    LMeter.Ranges.Clear;
+
+    if RangesCheckBox.IsChecked then
+      AddRanges(LMeter.Ranges);
+  end;
 end;
 
 procedure TGaugesDemoForm.RangeSpinBoxChange(Sender: TObject);
@@ -235,6 +456,14 @@ begin
   SweepAngleTrackBar.Value := C_SHAPE_SWEEP_ANGLES[LIndex];
 end;
 
+procedure TGaugesDemoForm.ShowFillCheckBoxChange(Sender: TObject);
+begin
+  CircularMeter.ShowFill := CircularShowFillCheckBox.IsChecked;
+
+  for var LMeter in GetLinearMeters do
+    LMeter.ShowFill := LinearShowFillCheckBox.IsChecked;
+end;
+
 procedure TGaugesDemoForm.ShowValueCheckBoxChange(Sender: TObject);
 begin
   for var LGauge in GetGauges do
@@ -251,6 +480,20 @@ begin
     else
       LGauge.FillBrush.Color := FillColorComboBox.Color;
   end;
+end;
+
+procedure TGaugesDemoForm.TargetChange(Sender: TObject);
+begin
+  CircularMeter.ShowTarget := ShowTargetCheckBox.IsChecked;
+  CircularMeter.Target := TargetTrackBar.Value;
+
+  for var LMeter in GetLinearMeters do
+  begin
+    LMeter.ShowTarget := ShowTargetCheckBox.IsChecked;
+    LMeter.Target := TargetTrackBar.Value;
+  end;
+
+  TargetLabel.Text := Format(S_TARGET, [TargetTrackBar.Value]);
 end;
 
 procedure TGaugesDemoForm.TextPositionComboBoxChange(Sender: TObject);

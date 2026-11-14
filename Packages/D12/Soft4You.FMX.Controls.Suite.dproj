@@ -225,6 +225,9 @@
         <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.pas"/>
         <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.pas"/>
         <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.pas"/>
+        <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.Scales.pas"/>
+        <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.LinearMeter.pas"/>
+        <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.CircularMeter.pas"/>
         <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Types.pas"/>
         <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.pas"/>
         <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Bindings.pas"/>
@@ -261,6 +264,18 @@
         </RcCompile>
         <RcCompile Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.Win.rc">
             <Form>Soft4You.FMX.Controls.Gauges.Circular.Win.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.LinearMeter.Mac.rc">
+            <Form>Soft4You.FMX.Controls.Gauges.LinearMeter.Mac.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.LinearMeter.Win.rc">
+            <Form>Soft4You.FMX.Controls.Gauges.LinearMeter.Win.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.CircularMeter.Mac.rc">
+            <Form>Soft4You.FMX.Controls.Gauges.CircularMeter.Mac.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.CircularMeter.Win.rc">
+            <Form>Soft4You.FMX.Controls.Gauges.CircularMeter.Win.res</Form>
         </RcCompile>
         <RcCompile Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Pie.Mac.rc">
             <Form>Soft4You.FMX.Controls.Charts.Pie.Mac.res</Form>

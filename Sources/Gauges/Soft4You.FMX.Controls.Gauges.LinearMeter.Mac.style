@@ -1,0 +1,79 @@
+object TLayout
+  StyleName = 'S4YLinearMeterStyle'
+  Align = Contents
+  HitTest = False
+  object TRectangle
+    StyleName = 'track'
+    Fill.Color = xFFE0E0E0
+    HitTest = False
+    Stroke.Kind = None
+    Visible = False
+    XRadius = 4.000000000000000000
+    YRadius = 4.000000000000000000
+  end
+  object TRectangle
+    StyleName = 'fill'
+    Fill.Color = xFF1E88E5
+    HitTest = False
+    Stroke.Kind = None
+    Visible = False
+    XRadius = 4.000000000000000000
+    YRadius = 4.000000000000000000
+  end
+  object TText
+    StyleName = 'valuetext'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.Font.Style = [fsBold]
+    TextSettings.FontColor = xFF212121
+    Visible = False
+  end
+  object TText
+    StyleName = 'captiontext'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.FontColor = xFF616161
+    Visible = False
+  end
+  object TLine
+    StyleName = 'majortick'
+    HitTest = False
+    LineType = Top
+    Stroke.Color = xFF757575
+    Stroke.Thickness = 1.500000000000000000
+    Visible = False
+  end
+  object TLine
+    StyleName = 'minortick'
+    HitTest = False
+    LineType = Top
+    Stroke.Color = xFFBDBDBD
+    Visible = False
+  end
+  object TLine
+    StyleName = 'target'
+    HitTest = False
+    LineType = Top
+    Stroke.Color = xFF212121
+    Stroke.Thickness = 3.000000000000000000
+    Visible = False
+  end
+  object TPath
+    StyleName = 'pointer'
+    Data.Data = 'M0,0 L10,0 L5,8 Z'
+    Fill.Color = xFF424242
+    HitTest = False
+    Size.Width = 10.000000000000000000
+    Size.Height = 8.000000000000000000
+    Size.PlatformDefault = False
+    Stroke.Kind = None
+    Visible = False
+  end
+  object TText
+    StyleName = 'scaletext'
+    HitTest = False
+    TextSettings.Font.Size = 11.000000000000000000
+    TextSettings.FontColor = xFF616161
+    Visible = False
+  end
+end

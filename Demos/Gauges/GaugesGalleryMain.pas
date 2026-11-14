@@ -6,6 +6,7 @@ uses
   System.SysUtils,
   System.Classes,
   System.UITypes,
+  System.Math,
   FMX.Types,
   FMX.Controls,
   FMX.Forms,
@@ -17,7 +18,9 @@ uses
   FMX.Objects,
   Soft4You.FMX.Controls.Gauges,
   Soft4You.FMX.Controls.Gauges.Linear,
-  Soft4You.FMX.Controls.Gauges.Circular;
+  Soft4You.FMX.Controls.Gauges.Circular,
+  Soft4You.FMX.Controls.Gauges.LinearMeter,
+  Soft4You.FMX.Controls.Gauges.CircularMeter;
 
 type
   TGaugesGalleryForm = class(TForm)
@@ -37,6 +40,13 @@ type
     HalfCircleGauge: TS4YCircularGauge;
     QuarterGauge: TS4YCircularGauge;
     LeftRingGauge: TS4YCircularGauge;
+    MetersTab: TTabItem;
+    MetersLabel: TLabel;
+    SpeedometerMeter: TS4YCircularMeter;
+    ManometerMeter: TS4YCircularMeter;
+    ThermometerMeter: TS4YLinearMeter;
+    TunerMeter: TS4YLinearMeter;
+    MetersTimer: TTimer;
     DashboardTab: TTabItem;
     DashboardLabel: TLabel;
     CpuGauge: TS4YCircularGauge;
@@ -81,6 +91,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure LoadGaugeGetValueText(Sender: TObject; const AValue: Single; var AText: string);
     procedure LoadTrackBarChange(Sender: TObject);
+    procedure MetersTimerTimer(Sender: TObject);
   private
     FDownloadPause: Integer;
   end;
@@ -191,6 +202,18 @@ begin
   LoadBarGauge.FillBrush.Color := LColor;
   LoadGauge.Value := LoadTrackBar.Value;
   LoadBarGauge.Value := LoadTrackBar.Value;
+end;
+
+procedure TGaugesGalleryForm.MetersTimerTimer(Sender: TObject);
+begin
+  // The speed and the temperature drift from their values, the pressure and the pitch jump: the needle
+  // and the pointer follow the animation.
+  SpeedometerMeter.Value := EnsureRange(SpeedometerMeter.Value + Random(81) - 40, SpeedometerMeter.Min,
+    SpeedometerMeter.Max);
+  ManometerMeter.Value := 3 + Random * 6;
+  ThermometerMeter.Value := EnsureRange(ThermometerMeter.Value + Random * 16 - 8, ThermometerMeter.Min,
+    ThermometerMeter.Max);
+  TunerMeter.Value := Random(61) - 30;
 end;
 
 end.

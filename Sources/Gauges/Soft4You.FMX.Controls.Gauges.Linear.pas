@@ -45,8 +45,20 @@ type
     procedure SetOrientation(const Value: TOrientation);
     procedure SetTextPosition(const Value: TS4YGaugeTextPosition);
   protected
+    /// <summary>Returns the position along ABarRect of the point at AFraction of the range, from 0 to 1: an X for a horizontal bar, filled from the left, a Y for a vertical one, filled from the bottom.</summary>
+    function BarPosition(const ABarRect: TRectF; const AFraction: Single): Single;
+    /// <summary>Returns the part of ABarRect from AStartFraction to AEndFraction of the range.</summary>
+    function BarSegment(const ABarRect: TRectF; const AStartFraction, AEndFraction: Single): TRectF;
+    /// <summary>Draws what a descendant adds beside the bar or over it, such as a graduation. Nothing here.</summary>
+    procedure DrawDecorations(const ABarRect: TRectF); virtual;
+    /// <summary>Draws the filled part of the bar.</summary>
+    procedure DrawFill(const ABarRect: TRectF); virtual;
     /// <summary>Draws the bar, its fill, the caption and the value.</summary>
     procedure DrawGauge; override;
+    /// <summary>Draws the whole track.</summary>
+    procedure DrawTrack(const ABarRect: TRectF); virtual;
+    /// <summary>Returns the room a descendant needs on the two sides of the bar, in pixels: ABefore above a horizontal bar or on the left of a vertical one, AAfter on the other side. 0 here.</summary>
+    procedure GetBarMargins(out ABefore, AAfter: Single); virtual;
     /// <summary>Returns the size of a new control: 200 x 40.</summary>
     function GetDefaultSize: TSizeF; override;
     /// <summary>Returns 8, the default thickness of the bar.</summary>
@@ -135,6 +147,34 @@ begin
   FTextPosition := C_DEFAULT_TEXT_POSITION;
 end;
 
+function TS4YLinearGauge.BarPosition(const ABarRect: TRectF; const AFraction: Single): Single;
+begin
+  if FOrientation = TOrientation.Horizontal then
+    Result := ABarRect.Left + ABarRect.Width * AFraction
+  else
+    Result := ABarRect.Bottom - ABarRect.Height * AFraction;
+end;
+
+function TS4YLinearGauge.BarSegment(const ABarRect: TRectF; const AStartFraction, AEndFraction: Single): TRectF;
+begin
+  if FOrientation = TOrientation.Horizontal then
+    Result := TRectF.Create(BarPosition(ABarRect, AStartFraction), ABarRect.Top, BarPosition(ABarRect, AEndFraction),
+      ABarRect.Bottom)
+  else
+    Result := TRectF.Create(ABarRect.Left, BarPosition(ABarRect, AEndFraction), ABarRect.Right,
+      BarPosition(ABarRect, AStartFraction));
+end;
+
+procedure TS4YLinearGauge.DrawDecorations(const ABarRect: TRectF);
+begin
+  // Nothing: the descendants draw a graduation or other marks here.
+end;
+
+procedure TS4YLinearGauge.DrawFill(const ABarRect: TRectF);
+begin
+  DrawPart(FillPart, BarSegment(ABarRect, 0, GetDisplayedFraction));
+end;
+
 procedure TS4YLinearGauge.DrawGauge;
 var
   LCaption: string;
@@ -151,7 +191,9 @@ end;
 
 procedure TS4YLinearGauge.DrawHorizontal(const AContentRect: TRectF; const ACaption, AValueText: string);
 var
+  LAfter: Single;
   LBarRect: TRectF;
+  LBefore: Single;
   LBlockHeight: Single;
   LTextHeight: Single;
   LTextRect: TRectF;
@@ -165,8 +207,10 @@ begin
     LTextHeight := System.Math.Max(MeasureText(StyleCaptionText, C_DEFAULT_CAPTION_TEXT_COLOR, ACaption).Height,
       MeasureText(StyleValueText, C_DEFAULT_VALUE_TEXT_COLOR, AValueText).Height);
 
-  // The bar and the line of text are one block, in the middle of the content.
-  LBlockHeight := Thickness;
+  // The bar, the room of a descendant around it and the line of text are one block, in the middle
+  // of the content.
+  GetBarMargins(LBefore, LAfter);
+  LBlockHeight := LBefore + Thickness + LAfter;
 
   if LTextHeight > 0 then
     LBlockHeight := LBlockHeight + C_TEXT_SPACING + LTextHeight;
@@ -179,15 +223,16 @@ begin
     LTop := LTextRect.Bottom + C_TEXT_SPACING;
   end;
 
+  LTop := LTop + LBefore;
   LBarRect := TRectF.Create(AContentRect.Left, LTop, AContentRect.Right, LTop + Thickness);
 
   if (LTextHeight > 0) and (FTextPosition = gtpAfter) then
-    LTextRect := TRectF.Create(AContentRect.Left, LBarRect.Bottom + C_TEXT_SPACING, AContentRect.Right,
-      LBarRect.Bottom + C_TEXT_SPACING + LTextHeight);
+    LTextRect := TRectF.Create(AContentRect.Left, LBarRect.Bottom + LAfter + C_TEXT_SPACING, AContentRect.Right,
+      LBarRect.Bottom + LAfter + C_TEXT_SPACING + LTextHeight);
 
-  DrawPart(TrackPart, LBarRect);
-  DrawPart(FillPart, TRectF.Create(LBarRect.Left, LBarRect.Top, LBarRect.Left + LBarRect.Width * GetDisplayedFraction,
-    LBarRect.Bottom));
+  DrawTrack(LBarRect);
+  DrawFill(LBarRect);
+  DrawDecorations(LBarRect);
 
   if LTextHeight > 0 then
   begin
@@ -206,7 +251,9 @@ end;
 
 procedure TS4YLinearGauge.DrawVertical(const AContentRect: TRectF; const ACaption, AValueText: string);
 var
+  LAfter: Single;
   LBarRect: TRectF;
+  LBefore: Single;
   LBlockWidth: Single;
   LLeft: Single;
   LTextHorizontalAlign: TTextAlign;
@@ -220,8 +267,10 @@ begin
     LTextWidth := System.Math.Max(MeasureText(StyleCaptionText, C_DEFAULT_CAPTION_TEXT_COLOR, ACaption).Width,
       MeasureText(StyleValueText, C_DEFAULT_VALUE_TEXT_COLOR, AValueText).Width);
 
-  // The bar and the column of text are one block, in the middle of the content.
-  LBlockWidth := Thickness;
+  // The bar, the room of a descendant around it and the column of text are one block, in the middle
+  // of the content.
+  GetBarMargins(LBefore, LAfter);
+  LBlockWidth := LBefore + Thickness + LAfter;
 
   if LTextWidth > 0 then
     LBlockWidth := LBlockWidth + C_TEXT_SPACING + LTextWidth;
@@ -234,15 +283,16 @@ begin
     LLeft := LTextRect.Right + C_TEXT_SPACING;
   end;
 
+  LLeft := LLeft + LBefore;
   LBarRect := TRectF.Create(LLeft, AContentRect.Top, LLeft + Thickness, AContentRect.Bottom);
 
   if (LTextWidth > 0) and (FTextPosition = gtpAfter) then
-    LTextRect := TRectF.Create(LBarRect.Right + C_TEXT_SPACING, AContentRect.Top,
-      LBarRect.Right + C_TEXT_SPACING + LTextWidth, AContentRect.Bottom);
+    LTextRect := TRectF.Create(LBarRect.Right + LAfter + C_TEXT_SPACING, AContentRect.Top,
+      LBarRect.Right + LAfter + C_TEXT_SPACING + LTextWidth, AContentRect.Bottom);
 
-  DrawPart(TrackPart, LBarRect);
-  DrawPart(FillPart, TRectF.Create(LBarRect.Left, LBarRect.Bottom - LBarRect.Height * GetDisplayedFraction,
-    LBarRect.Right, LBarRect.Bottom));
+  DrawTrack(LBarRect);
+  DrawFill(LBarRect);
+  DrawDecorations(LBarRect);
 
   if LTextWidth > 0 then
   begin
@@ -258,6 +308,17 @@ begin
     RenderText(StyleValueText, C_DEFAULT_VALUE_TEXT_COLOR, AValueText, LTextRect, LTextHorizontalAlign,
       TTextAlign.Leading);
   end;
+end;
+
+procedure TS4YLinearGauge.DrawTrack(const ABarRect: TRectF);
+begin
+  DrawPart(TrackPart, ABarRect);
+end;
+
+procedure TS4YLinearGauge.GetBarMargins(out ABefore, AAfter: Single);
+begin
+  ABefore := 0;
+  AAfter := 0;
 end;
 
 function TS4YLinearGauge.GetDefaultSize: TSizeF;
