@@ -24,7 +24,9 @@ uses
   Soft4You.FMX.Controls.Gauges.Linear,
   Soft4You.FMX.Controls.Gauges.Circular,
   Soft4You.FMX.Controls.Gauges.LinearMeter,
-  Soft4You.FMX.Controls.Gauges.CircularMeter;
+  Soft4You.FMX.Controls.Gauges.CircularMeter,
+  Soft4You.FMX.Controls.Gauges.SkinCircular,
+  Soft4You.FMX.Controls.Gauges.SkinLinear;
 
 type
   TGaugesDemoForm = class(TForm)
@@ -119,6 +121,24 @@ type
     PointerPositionLabel: TLabel;
     PointerPositionComboBox: TComboBox;
     LinearShowFillCheckBox: TCheckBox;
+    SkinsTab: TTabItem;
+    SkinsLayout: TLayout;
+    SkinCircularTitleLabel: TLabel;
+    SkinCircularGauge: TS4YSkinCircularGauge;
+    SkinLinearTitleLabel: TLabel;
+    SkinLinearGauge: TS4YSkinLinearGauge;
+    SkinsNoteLabel: TLabel;
+    SkinSettingsScrollBox: TVertScrollBox;
+    SkinValueSettingsLabel: TLabel;
+    SkinValueLabel: TLabel;
+    SkinValueTrackBar: TTrackBar;
+    SkinAnimatedCheckBox: TCheckBox;
+    SkinRandomButton: TButton;
+    SkinTextSettingsLabel: TLabel;
+    SkinCaptionEdit: TEdit;
+    SkinShowValueCheckBox: TCheckBox;
+    SkinLinearSettingsLabel: TLabel;
+    SkinReversedCheckBox: TCheckBox;
     procedure AnimatedCheckBoxChange(Sender: TObject);
     procedure AngleTrackBarChange(Sender: TObject);
     procedure CaptionEditChangeTracking(Sender: TObject);
@@ -146,6 +166,12 @@ type
     procedure ShapeComboBoxChange(Sender: TObject);
     procedure ShowFillCheckBoxChange(Sender: TObject);
     procedure ShowValueCheckBoxChange(Sender: TObject);
+    procedure SkinAnimatedCheckBoxChange(Sender: TObject);
+    procedure SkinCaptionEditChangeTracking(Sender: TObject);
+    procedure SkinRandomButtonClick(Sender: TObject);
+    procedure SkinReversedCheckBoxChange(Sender: TObject);
+    procedure SkinShowValueCheckBoxChange(Sender: TObject);
+    procedure SkinValueTrackBarChange(Sender: TObject);
     procedure StyleFillCheckBoxChange(Sender: TObject);
     procedure TargetChange(Sender: TObject);
     procedure TextPositionComboBoxChange(Sender: TObject);
@@ -155,6 +181,7 @@ type
     procedure AddRanges(const ARanges: TS4YMeterRanges);
     function GetGauges: TArray<TS4YCustomGauge>;
     function GetLinearMeters: TArray<TS4YLinearMeter>;
+    function GetSkinGauges: TArray<TS4YCustomGauge>;
     procedure GaugeGetValueText(Sender: TObject; const AValue: Single; var AText: string);
     procedure UpdateAngleLabels;
   end;
@@ -279,6 +306,7 @@ begin
   RangesCheckBoxChange(RangesCheckBox);
   TargetChange(TargetTrackBar);
   NeedleChange(NeedleLengthTrackBar);
+  SkinValueTrackBarChange(SkinValueTrackBar);
 end;
 
 procedure TGaugesDemoForm.GaugeGetValueText(Sender: TObject; const AValue: Single; var AText: string);
@@ -294,6 +322,11 @@ end;
 function TGaugesDemoForm.GetLinearMeters: TArray<TS4YLinearMeter>;
 begin
   Result := [LinearMeter, VerticalMeter];
+end;
+
+function TGaugesDemoForm.GetSkinGauges: TArray<TS4YCustomGauge>;
+begin
+  Result := [SkinCircularGauge, SkinLinearGauge];
 end;
 
 procedure TGaugesDemoForm.GraduationCheckBoxChange(Sender: TObject);
@@ -508,6 +541,49 @@ procedure TGaugesDemoForm.ShowValueCheckBoxChange(Sender: TObject);
 begin
   for var LGauge in GetGauges do
     LGauge.ShowValue := ShowValueCheckBox.IsChecked;
+end;
+
+procedure TGaugesDemoForm.SkinAnimatedCheckBoxChange(Sender: TObject);
+var
+  LDuration: Single;
+begin
+  LDuration := 0;
+
+  if SkinAnimatedCheckBox.IsChecked then
+    LDuration := C_ANIMATION_DURATION;
+
+  for var LGauge in GetSkinGauges do
+    LGauge.AnimationDuration := LDuration;
+end;
+
+procedure TGaugesDemoForm.SkinCaptionEditChangeTracking(Sender: TObject);
+begin
+  for var LGauge in GetSkinGauges do
+    LGauge.Caption := SkinCaptionEdit.Text;
+end;
+
+procedure TGaugesDemoForm.SkinRandomButtonClick(Sender: TObject);
+begin
+  SkinValueTrackBar.Value := SkinValueTrackBar.Min + Random * (SkinValueTrackBar.Max - SkinValueTrackBar.Min);
+end;
+
+procedure TGaugesDemoForm.SkinReversedCheckBoxChange(Sender: TObject);
+begin
+  SkinLinearGauge.Reversed := SkinReversedCheckBox.IsChecked;
+end;
+
+procedure TGaugesDemoForm.SkinShowValueCheckBoxChange(Sender: TObject);
+begin
+  for var LGauge in GetSkinGauges do
+    LGauge.ShowValue := SkinShowValueCheckBox.IsChecked;
+end;
+
+procedure TGaugesDemoForm.SkinValueTrackBarChange(Sender: TObject);
+begin
+  for var LGauge in GetSkinGauges do
+    LGauge.Value := SkinValueTrackBar.Value;
+
+  SkinValueLabel.Text := Format(S_VALUE, [SkinValueTrackBar.Value]);
 end;
 
 procedure TGaugesDemoForm.StyleFillCheckBoxChange(Sender: TObject);
