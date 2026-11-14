@@ -605,6 +605,20 @@ object GaugesDemoForm: TGaugesDemoForm
             TabOrder = 2
             Text = 'Half circle'
           end
+          object ShapeComboBoxItem4: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 3
+            Text = 'Upside-down half circle'
+          end
+          object ShapeComboBoxItem5: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 4
+            Text = 'Half circle on the right'
+          end
         end
         object StartAngleLabel: TLabel
           Align = Top
@@ -667,6 +681,20 @@ object GaugesDemoForm: TGaugesDemoForm
           TabOrder = 29
           Value = 360.000000000000000000
           OnChange = AngleTrackBarChange
+        end
+        object ReversedCheckBox: TCheckBox
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 812.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 40
+          Text = 'Reversed'
+          OnChange = ReversedCheckBoxChange
         end
         object CircularThicknessLabel: TLabel
           Align = Top
@@ -784,8 +812,8 @@ object GaugesDemoForm: TGaugesDemoForm
           Text = 
             'The settings apply to the three meters. The ranges are green fro' +
             'm 0 to 60, yellow to 80 and red to 100. The circular meter shows' +
-            ' the value with its needle, with the texts below the center; Sho' +
-            'wFill draws its fill too.'
+            ' the value with its needle, with the texts beside the center on ' +
+            'the side opposite to the arc; ShowFill draws its fill too.'
         end
       end
       object MeterSettingsScrollBox: TVertScrollBox
@@ -855,6 +883,85 @@ object GaugesDemoForm: TGaugesDemoForm
           TabOrder = 3
           Text = 'Random value'
           OnClick = MeterRandomButtonClick
+        end
+        object MeterShapeSettingsLabel: TLabel
+          StyledSettings = [Family, Size, FontColor]
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 125.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          Text = 'Shape of the circular meter'
+          TabOrder = 41
+        end
+        object MeterShapeComboBox: TComboBox
+          ItemIndex = 0
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 126.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 24.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 42
+          OnChange = MeterShapeComboBoxChange
+          object MeterShapeComboBoxItem1: TListBoxItem
+            IsSelected = True
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Text = 'Open arc'
+          end
+          object MeterShapeComboBoxItem2: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = 'Half circle'
+          end
+          object MeterShapeComboBoxItem3: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 2
+            Text = 'Upside-down half circle'
+          end
+          object MeterShapeComboBoxItem4: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 3
+            Text = 'Half circle on the right'
+          end
+          object MeterShapeComboBoxItem5: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 4
+            Text = 'Ring'
+          end
+        end
+        object MeterReversedCheckBox: TCheckBox
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 127.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 43
+          Text = 'Reversed'
+          OnChange = MeterReversedCheckBoxChange
         end
         object GraduationSettingsLabel: TLabel
           StyledSettings = [Family, Size, FontColor]

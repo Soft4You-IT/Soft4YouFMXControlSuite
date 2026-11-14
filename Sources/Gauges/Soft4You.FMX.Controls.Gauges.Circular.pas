@@ -24,7 +24,7 @@ type
   /// A gauge drawn as a ring or an arc that fills with the value, with the value and the caption in the middle.
   /// </summary>
   /// <remarks>
-  /// StartAngle and SweepAngle give the shape: a ring (0 and 360, the default), an open arc (-135 and 270) or a half circle (-90 and 180). The angles are in degrees, with 0 at the top and the positive values clockwise; the fill grows clockwise from StartAngle.
+  /// StartAngle and SweepAngle give the shape: a ring (0 and 360, the default), an open arc (-135 and 270) or a half circle (-90 and 180). The angles are in degrees, with 0 at the top and the positive values clockwise; the fill grows clockwise from StartAngle, or counterclockwise when Reversed is True.
   /// The arc is as large as the control allows, and the value and the caption are centered in the area enclosed by it.
   /// The style is S4YCircularGaugeStyle: its parts track and fill are TArc objects, which give the brush and the ends of the arc; the gauge draws the arc itself with its angles and Thickness.
   /// </remarks>
@@ -39,11 +39,17 @@ type
     /// <summary>Largest value of SweepAngle, in degrees.</summary>
     C_MAX_SWEEP_ANGLE: Single = 360;
   private
+    FReversed: Boolean;
     FStartAngle: Single;
     FSweepAngle: Single;
     function CalculateUnitArcBounds: TRectF;
     procedure DrawTexts(const ATextArea: TRectF; const AContentWidth: Single);
-    function MeasureTextsHeight: Single;
+    procedure LayOutBesideCenter(const AContentRect, AUnitBounds: TRectF; const AOuterSize, ATextGap: Single;
+      out ACenter: TPointF; out ARadius: Single; out ATextArea: TRectF);
+    procedure LayOutInsideArc(const AContentRect, AUnitBounds: TRectF; const AOuterSize: Single;
+      out ACenter: TPointF; out ARadius: Single; out ATextArea: TRectF);
+    function MeasureTextsSize: TSizeF;
+    procedure SetReversed(const Value: Boolean);
     procedure SetStartAngle(const Value: Single);
     procedure SetSweepAngle(const Value: Single);
     function StartAngleStored: Boolean;
@@ -76,11 +82,13 @@ type
     function GetDefaultStartAngle: Single; virtual;
     /// <summary>Returns the default value of SweepAngle: 360.</summary>
     function GetDefaultSweepAngle: Single; virtual;
+    /// <summary>Returns SweepAngle with the sign of the direction of the arc: negative when Reversed is True.</summary>
+    function GetDirectedSweepAngle: Single;
     /// <summary>Returns the room a descendant needs outside the track, all around the arc, in pixels. 0 here.</summary>
     function GetOuterMargin: Single; virtual;
-    /// <summary>Returns the distance from the center of the arc, in pixels, where a descendant wants the texts to start below the center, to leave the center to a needle; 0 here: the texts are in the middle of the area enclosed by the arc.</summary>
-    /// <remarks>When the arc has not enough room below its center for the texts, as in a half circle, it becomes smaller to make it.</remarks>
-    function GetTextGapBelowCenter: Single; virtual;
+    /// <summary>Returns the distance from the center of the arc, in pixels, where a descendant wants the texts to start, to leave the center to a needle; 0 here: the texts are in the middle of the area enclosed by the arc.</summary>
+    /// <remarks>The texts are then on the side of the center opposite to the middle of the arc: below it for an arc at the top, above it for an arc at the bottom, beside it for an arc on a side. When there is not enough room on that side, the arc becomes smaller to make it.</remarks>
+    function GetTextGapFromCenter: Single; virtual;
   public
     /// <summary>Creates a ring gauge with the default settings.</summary>
     constructor Create(AOwner: TComponent); override;
@@ -101,6 +109,13 @@ type
     property Padding;
     property PopupMenu;
     property Position;
+    /// <summary>
+    /// True makes the value grow counterclockwise from StartAngle. The default is False: clockwise.
+    /// </summary>
+    /// <remarks>
+    /// With the same angles, the arc is the mirror image of the one drawn clockwise: for example StartAngle -90 and SweepAngle 180 draw a half circle that starts on the left and goes over the top, or with Reversed under the bottom.
+    /// </remarks>
+    property Reversed: Boolean read FReversed write SetReversed default False;
     property RotationAngle;
     property RotationCenter;
     property Scale;
@@ -110,7 +125,7 @@ type
     property StartAngle: Single read FStartAngle write SetStartAngle stored StartAngleStored nodefault;
     property StyleLookup;
     /// <summary>
-    /// Length of the arc, in degrees clockwise from StartAngle, from 0 to 360. The default is 360, a whole ring.
+    /// Length of the arc, in degrees from StartAngle, from 0 to 360: clockwise, or counterclockwise when Reversed is True. The default is 360, a whole ring.
     /// </summary>
     /// <remarks>
     /// For example 270 with StartAngle = -135 draws an arc open at the bottom, 180 with StartAngle = -90 a half circle.
@@ -161,6 +176,27 @@ const
   // divide by zero.
   C_MIN_UNIT_ARC_EXTENT = 0.01;
 
+function CenterCoordinate(const AStart, AAvailable, ALowExtent, AHighExtent: Single): Single;
+begin
+  // A block that goes ALowExtent before the center and AHighExtent after it, in the middle of the
+  // available room.
+  Result := AStart + (AAvailable - ALowExtent - AHighExtent) / 2 + ALowExtent;
+end;
+
+function FitRadius(const AAvailable, AArcLow, AArcHigh, ATextLow, ATextHigh, AMargin: Single): Single;
+begin
+  // The largest radius for which the larger of the arc and the texts fits on both sides of the center,
+  // along one axis: the arc reaches AArcLow and AArcHigh times the radius, plus AMargin, the texts
+  // ATextLow and ATextHigh. Every pair of the two sides must fit in AAvailable.
+  Result := (AAvailable - 2 * AMargin) / System.Math.Max(AArcLow + AArcHigh, C_MIN_UNIT_ARC_EXTENT);
+
+  if AArcLow > C_MIN_UNIT_ARC_EXTENT then
+    Result := System.Math.Min(Result, (AAvailable - AMargin - ATextHigh) / AArcLow);
+
+  if AArcHigh > C_MIN_UNIT_ARC_EXTENT then
+    Result := System.Math.Min(Result, (AAvailable - AMargin - ATextLow) / AArcHigh);
+end;
+
 { TS4YCircularGauge }
 
 constructor TS4YCircularGauge.Create(AOwner: TComponent);
@@ -173,7 +209,7 @@ end;
 
 function TS4YCircularGauge.AngleOfFraction(const AFraction: Single): Single;
 begin
-  Result := FStartAngle + C_FMX_TOP_ANGLE + FSweepAngle * AFraction;
+  Result := FStartAngle + C_FMX_TOP_ANGLE + GetDirectedSweepAngle * AFraction;
 end;
 
 procedure TS4YCircularGauge.ApplyPartBrush(const APart: TControl; const ABrush: TBrush);
@@ -203,8 +239,13 @@ var
   end;
 
 begin
-  // The area covered by the arc in a circle of radius 1 centered in 0, 0, with the angles of FMX.
-  LStartAngle := FStartAngle + C_FMX_TOP_ANGLE;
+  // The area covered by the arc in a circle of radius 1 centered in 0, 0, with the angles of FMX; a
+  // reversed arc covers the same area as the clockwise arc from its end to its start.
+  if FReversed then
+    LStartAngle := AngleOfFraction(1)
+  else
+    LStartAngle := AngleOfFraction(0);
+
   LEndAngle := LStartAngle + FSweepAngle;
   LBounds := TRectF.Create(Cos(DegToRad(LStartAngle)), Sin(DegToRad(LStartAngle)), Cos(DegToRad(LStartAngle)),
     Sin(DegToRad(LStartAngle)));
@@ -254,8 +295,8 @@ begin
   end;
 
   Canvas.Stroke.Thickness := Thickness;
-  Canvas.DrawArc(ACenter, TPointF.Create(ARadius, ARadius), AngleOfFraction(AStartFraction), LSweepAngle,
-    AbsoluteOpacity);
+  Canvas.DrawArc(ACenter, TPointF.Create(ARadius, ARadius), AngleOfFraction(AStartFraction),
+    GetDirectedSweepAngle * (AEndFraction - AStartFraction), AbsoluteOpacity);
 end;
 
 procedure TS4YCircularGauge.DrawDecorations(const ACenter: TPointF; const ARadius: Single);
@@ -270,39 +311,23 @@ end;
 
 procedure TS4YCircularGauge.DrawGauge;
 var
-  LAbove: Single;
-  LBelow: Single;
   LCenter: TPointF;
   LContentRect: TRectF;
-  LLeft: Single;
   LOuterSize: Single;
   LRadius: Single;
+  LTextArea: TRectF;
   LTextGap: Single;
-  LTextHeight: Single;
-  LThickness: Single;
   LUnitBounds: TRectF;
 begin
   LContentRect := GetContentRect;
-  LThickness := Thickness;
   LUnitBounds := CalculateUnitArcBounds;
-  LTextGap := GetTextGapBelowCenter;
-  LTextHeight := 0;
+  LOuterSize := Thickness + 2 * GetOuterMargin;
+  LTextGap := GetTextGapFromCenter;
 
   if LTextGap > 0 then
-    LTextHeight := MeasureTextsHeight;
-
-  // The arc, with its thickness and the room of a descendant outside it, is as large as the content
-  // allows, and the circle stays round.
-  LOuterSize := LThickness + 2 * GetOuterMargin;
-  LRadius := System.Math.Min(
-    (LContentRect.Width - LOuterSize) / System.Math.Max(LUnitBounds.Width, C_MIN_UNIT_ARC_EXTENT),
-    (LContentRect.Height - LOuterSize) / System.Math.Max(LUnitBounds.Height, C_MIN_UNIT_ARC_EXTENT));
-
-  // Texts below the center that go beyond the bottom of the arc make it smaller, so that the arc above
-  // the center and the texts below it fit in the height of the content.
-  if (LTextHeight > 0) and (LRadius * LUnitBounds.Bottom + LOuterSize / 2 < LTextGap + LTextHeight) then
-    LRadius := System.Math.Min(LRadius, (LContentRect.Height - LOuterSize / 2 - LTextGap - LTextHeight) /
-      System.Math.Max(-LUnitBounds.Top, C_MIN_UNIT_ARC_EXTENT));
+    LayOutBesideCenter(LContentRect, LUnitBounds, LOuterSize, LTextGap, LCenter, LRadius, LTextArea)
+  else
+    LayOutInsideArc(LContentRect, LUnitBounds, LOuterSize, LCenter, LRadius, LTextArea);
 
   if (LRadius <= 0) or (FSweepAngle < C_MIN_DRAWN_SWEEP_ANGLE) then
   begin
@@ -310,29 +335,10 @@ begin
     Exit;
   end;
 
-  // The block of the arc and of the texts below it is in the middle of the content.
-  LAbove := LOuterSize / 2 - LRadius * LUnitBounds.Top;
-  LBelow := LRadius * LUnitBounds.Bottom + LOuterSize / 2;
-
-  if LTextHeight > 0 then
-    LBelow := System.Math.Max(LBelow, LTextGap + LTextHeight);
-
-  LLeft := LContentRect.Left + (LContentRect.Width - LRadius * LUnitBounds.Width - LOuterSize) / 2;
-  LCenter := TPointF.Create(LLeft + LOuterSize / 2 - LRadius * LUnitBounds.Left,
-    LContentRect.Top + (LContentRect.Height - LAbove - LBelow) / 2 + LAbove);
-
   DrawTrack(LCenter, LRadius);
   DrawFill(LCenter, LRadius);
   DrawDecorations(LCenter, LRadius);
-
-  // The texts are centered in the area enclosed by the arc, or start below the center.
-  if LTextGap > 0 then
-    DrawTexts(TRectF.Create(LCenter.X + LRadius * LUnitBounds.Left, LCenter.Y + LTextGap,
-      LCenter.X + LRadius * LUnitBounds.Right, LCenter.Y + LTextGap + LTextHeight), LContentRect.Width)
-  else
-    DrawTexts(TRectF.Create(LCenter.X + LRadius * LUnitBounds.Left, LCenter.Y + LRadius * LUnitBounds.Top,
-      LCenter.X + LRadius * LUnitBounds.Right, LCenter.Y + LRadius * LUnitBounds.Bottom), LContentRect.Width);
-
+  DrawTexts(LTextArea, LContentRect.Width);
   DrawOverlay(LCenter, LRadius);
 end;
 
@@ -394,20 +400,117 @@ begin
   Result := C_DEFAULT_THICKNESS;
 end;
 
+function TS4YCircularGauge.GetDirectedSweepAngle: Single;
+begin
+  if FReversed then
+    Result := -FSweepAngle
+  else
+    Result := FSweepAngle;
+end;
+
 function TS4YCircularGauge.GetOuterMargin: Single;
 begin
   Result := 0;
 end;
 
-function TS4YCircularGauge.GetTextGapBelowCenter: Single;
+function TS4YCircularGauge.GetTextGapFromCenter: Single;
 begin
   Result := 0;
 end;
 
-function TS4YCircularGauge.MeasureTextsHeight: Single;
+procedure TS4YCircularGauge.LayOutBesideCenter(const AContentRect, AUnitBounds: TRectF; const AOuterSize,
+  ATextGap: Single; out ACenter: TPointF; out ARadius: Single; out ATextArea: TRectF);
+var
+  LArcBottom: Single;
+  LArcLeft: Single;
+  LArcRight: Single;
+  LArcTop: Single;
+  LDirection: TPointF;
+  LMargin: Single;
+  LMiddleAngle: Single;
+  LOffset: TPointF;
+  LTextBottom: Single;
+  LTextLeft: Single;
+  LTextRight: Single;
+  LTextSize: TSizeF;
+  LTextTop: Single;
 begin
-  Result := MeasureText(StyleValueText, C_DEFAULT_VALUE_TEXT_COLOR, GetValueText).Height +
-    MeasureText(StyleCaptionText, C_DEFAULT_CAPTION_TEXT_COLOR, Caption).Height;
+  // The texts are on the side of the center opposite to the middle of the arc, along the line from
+  // the middle of the arc through the center, with their nearest side ATextGap away from the center.
+  LTextSize := MeasureTextsSize;
+  LMiddleAngle := DegToRad(AngleOfFraction(0.5));
+  LDirection := TPointF.Create(-Cos(LMiddleAngle), -Sin(LMiddleAngle));
+  LOffset := LDirection * (ATextGap + Abs(LTextSize.Width / 2 * LDirection.X) +
+    Abs(LTextSize.Height / 2 * LDirection.Y));
+
+  // How far the texts and the arc go from the center on each side; the arc includes the center,
+  // where the needle is.
+  LTextLeft := LTextSize.Width / 2 - LOffset.X;
+  LTextRight := LTextSize.Width / 2 + LOffset.X;
+  LTextTop := LTextSize.Height / 2 - LOffset.Y;
+  LTextBottom := LTextSize.Height / 2 + LOffset.Y;
+  LArcLeft := System.Math.Max(0, -AUnitBounds.Left);
+  LArcRight := System.Math.Max(0, AUnitBounds.Right);
+  LArcTop := System.Math.Max(0, -AUnitBounds.Top);
+  LArcBottom := System.Math.Max(0, AUnitBounds.Bottom);
+  LMargin := AOuterSize / 2;
+
+  // The arc is as large as the content allows with the texts beside it: when there is not enough room
+  // for them, it becomes smaller.
+  ARadius := System.Math.Min(
+    FitRadius(AContentRect.Width, LArcLeft, LArcRight, LTextLeft, LTextRight, LMargin),
+    FitRadius(AContentRect.Height, LArcTop, LArcBottom, LTextTop, LTextBottom, LMargin));
+  // The block of the arc and of the texts is in the middle of the content.
+  ACenter.X := CenterCoordinate(AContentRect.Left, AContentRect.Width,
+    System.Math.Max(LArcLeft * ARadius + LMargin, LTextLeft),
+    System.Math.Max(LArcRight * ARadius + LMargin, LTextRight));
+  ACenter.Y := CenterCoordinate(AContentRect.Top, AContentRect.Height,
+    System.Math.Max(LArcTop * ARadius + LMargin, LTextTop),
+    System.Math.Max(LArcBottom * ARadius + LMargin, LTextBottom));
+  ATextArea := TRectF.Create(ACenter + LOffset, ACenter + LOffset);
+  ATextArea.Inflate(LTextSize.Width / 2, LTextSize.Height / 2);
+end;
+
+procedure TS4YCircularGauge.LayOutInsideArc(const AContentRect, AUnitBounds: TRectF; const AOuterSize: Single;
+  out ACenter: TPointF; out ARadius: Single; out ATextArea: TRectF);
+var
+  LLeft: Single;
+  LTop: Single;
+begin
+  // The arc, with its thickness and the room of a descendant outside it, is as large as the content
+  // allows, and the circle stays round.
+  ARadius := System.Math.Min(
+    (AContentRect.Width - AOuterSize) / System.Math.Max(AUnitBounds.Width, C_MIN_UNIT_ARC_EXTENT),
+    (AContentRect.Height - AOuterSize) / System.Math.Max(AUnitBounds.Height, C_MIN_UNIT_ARC_EXTENT));
+  LLeft := AContentRect.Left + (AContentRect.Width - ARadius * AUnitBounds.Width - AOuterSize) / 2;
+  LTop := AContentRect.Top + (AContentRect.Height - ARadius * AUnitBounds.Height - AOuterSize) / 2;
+  ACenter := TPointF.Create(LLeft + AOuterSize / 2 - ARadius * AUnitBounds.Left,
+    LTop + AOuterSize / 2 - ARadius * AUnitBounds.Top);
+
+  // The texts are centered in the area enclosed by the arc.
+  ATextArea := TRectF.Create(ACenter.X + ARadius * AUnitBounds.Left, ACenter.Y + ARadius * AUnitBounds.Top,
+    ACenter.X + ARadius * AUnitBounds.Right, ACenter.Y + ARadius * AUnitBounds.Bottom);
+end;
+
+function TS4YCircularGauge.MeasureTextsSize: TSizeF;
+var
+  LCaptionSize: TSizeF;
+  LValueSize: TSizeF;
+begin
+  // The value with the caption under it.
+  LValueSize := MeasureText(StyleValueText, C_DEFAULT_VALUE_TEXT_COLOR, GetValueText);
+  LCaptionSize := MeasureText(StyleCaptionText, C_DEFAULT_CAPTION_TEXT_COLOR, Caption);
+  Result := TSizeF.Create(System.Math.Max(LValueSize.Width, LCaptionSize.Width),
+    LValueSize.Height + LCaptionSize.Height);
+end;
+
+procedure TS4YCircularGauge.SetReversed(const Value: Boolean);
+begin
+  if FReversed = Value then
+    Exit;
+
+  FReversed := Value;
+  Repaint;
 end;
 
 procedure TS4YCircularGauge.SetStartAngle(const Value: Single);
