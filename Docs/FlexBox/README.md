@@ -1,5 +1,7 @@
 # TS4YFlexBox for FireMonkey — Installation and usage guide
 
+![TS4YFlexBox](../Screenshots/flexbox.png)
+
 FMX components that implement the CSS Flexbox model (W3C Level 1):
 
 - **`TS4YFlexBox`**: the container, with the CSS container properties.

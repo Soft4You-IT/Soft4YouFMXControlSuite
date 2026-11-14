@@ -1,5 +1,7 @@
 # TS4YHTMLEditor — Soft4You FMX HTML Editor
 
+![TS4YHTMLEditor](../Screenshots/htmleditor.png)
+
 WYSIWYG HTML editor component for Delphi FireMonkey (FMX). 100% native Delphi — no WebBrowser and no COM/OLE dependencies. No third-party dependency is required: SVG images are rendered through an event or a renderer of your choice, and an optional unit based on [Skia4Delphi](https://github.com/skia4delphi/skia4delphi) is provided.
 
 This document describes the HTML editor of the Soft4You FMX Control Suite. For the installation of the packages and the other controls, see the [README in the root of the repository](../../README.md).

@@ -1,5 +1,7 @@
 # Gauges for FireMonkey
 
+![Gauges and meters](../Screenshots/gauges.png)
+
 Indicators of a value in a range, in the modern look: a track that fills with the value, the value written next to it and a caption.
 
 ```

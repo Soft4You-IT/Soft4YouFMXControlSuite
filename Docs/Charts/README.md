@@ -1,5 +1,7 @@
 # Charts for FireMonkey
 
+![Charts](../Screenshots/charts.png)
+
 Charts drawn with the canvas of FireMonkey, with the look given by a style and the data given in the Object Inspector, in code or by the LiveBindings.
 
 - `TS4YPieChart` draws the values as the slices of a **pie**, or of a **ring** with a hole in the middle.

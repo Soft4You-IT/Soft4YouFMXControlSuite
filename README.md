@@ -27,6 +27,33 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 
 All the controls are built into the same two packages and appear in the Tool Palette page **Soft4You FMX Controls Suite**. `TS4YExpander` uses `TS4YBadge`, so the two are always installed together.
 
+## Screenshots
+
+Taken from the demos and the galleries in `Demos`; a click on an image opens the documentation of the control.
+
+<table>
+<tr>
+<td align="center" width="50%"><a href="Docs/HTMLEditor/README.md"><img src="Docs/Screenshots/htmleditor.png" alt="TS4YHTMLEditor: WYSIWYG HTML editor"></a><br><b>TS4YHTMLEditor</b>: WYSIWYG HTML editor</td>
+<td align="center" width="50%"><a href="Docs/FlexBox/README.md"><img src="Docs/Screenshots/flexbox.png" alt="TS4YFlexBox: a dashboard laid out with Flexbox"></a><br><b>TS4YFlexBox</b>: a dashboard laid out with Flexbox</td>
+</tr>
+<tr>
+<td align="center" width="50%"><a href="Docs/BlockScrollBox/README.md"><img src="Docs/Screenshots/blockscrollbox.png" alt="TS4YBlockScrollBox: blocks in the CSS flow"></a><br><b>TS4YBlockScrollBox</b>: blocks in the CSS flow</td>
+<td align="center" width="50%"><a href="Docs/StepProgressBar/README.md"><img src="Docs/Screenshots/stepprogressbar.png" alt="TS4YStepProgressBar: steps, images, failed step, timeline"></a><br><b>TS4YStepProgressBar</b>: steps, images, failed step, timeline</td>
+</tr>
+<tr>
+<td align="center" width="50%"><a href="Docs/Gauges/README.md"><img src="Docs/Screenshots/gauges.png" alt="Gauges: meters and skin gauges"></a><br><b>Gauges</b>: meters and skin gauges</td>
+<td align="center" width="50%"><a href="Docs/Charts/README.md"><img src="Docs/Screenshots/charts.png" alt="Charts: pie, ring, bars and lines"></a><br><b>Charts</b>: pie, ring, bars and lines</td>
+</tr>
+<tr>
+<td align="center" width="50%"><a href="Docs/Badge/README.md"><img src="Docs/Screenshots/badge.png" alt="TS4YBadge: counters and labels"></a><br><b>TS4YBadge</b>: counters and labels</td>
+<td align="center" width="50%"><a href="Docs/Expander/README.md"><img src="Docs/Screenshots/expander.png" alt="TS4YExpander: panels with a badge"></a><br><b>TS4YExpander</b>: panels with a badge</td>
+</tr>
+<tr>
+<td align="center" width="50%"><a href="Docs/ColorSelector/README.md"><img src="Docs/Screenshots/colorselector.png" alt="TS4YColorSelector: foreground and background colors"></a><br><b>TS4YColorSelector</b>: foreground and background colors</td>
+<td></td>
+</tr>
+</table>
+
 ---
 
 ## Repository layout

@@ -1,5 +1,7 @@
 # TS4YBlockScrollBox for FireMonkey
 
+![TS4YBlockScrollBox](../Screenshots/blockscrollbox.png)
+
 A scroll box that stacks its children as the blocks of the CSS flow (`display: block`): each child under the previous one, in the order of the children. The box decides the position and the width of every child, the child its height. When the flow is taller or wider than the box, the scroll bars show the rest.
 
 It is the parent that a `TS4YFlexBox` needs to behave as a block of a web page: inside the box the flexbox has the width of the box (`width: auto`), follows it without hooking any event, and the next block moves when the flexbox changes height.
