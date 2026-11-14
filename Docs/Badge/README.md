@@ -1,5 +1,7 @@
 # TS4YBadge for FireMonkey
 
+![TS4YBadge](../Screenshots/badge.png)
+
 A badge like the notification counter of a smartphone icon: a small circle that shows a number, or a short text, over another control.
 
 - **Numeric badge** (`BadgeStyle = bdgsNumeric`, the default): `CurrentValue` is shown inside a circle. With `CurrentValue = 0` the badge is hidden. Above `MaxValue` (default 99) it shows `MaxValue+`, for example `99+`.

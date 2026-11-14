@@ -1,5 +1,7 @@
 # TS4YStepProgressBar for FireMonkey
 
+![TS4YStepProgressBar](../Screenshots/stepprogressbar.png)
+
 A progress indicator made of steps along a horizontal or vertical line, like the ones that show the phases of an installation or the pages of a wizard.
 
 ```

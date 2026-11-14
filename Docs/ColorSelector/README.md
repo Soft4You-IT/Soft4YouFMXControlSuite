@@ -1,5 +1,7 @@
 # TS4YColorSelector for FireMonkey
 
+![TS4YColorSelector](../Screenshots/colorselector.png)
+
 Two overlapping color swatches, like in the drawing programs: the foreground color at the top left and the background color at the bottom right. A click on a swatch tells the application which color the user wants to change; the application shows its own color picker and sets the new color.
 
 Units: `Soft4You.FMX.Controls.ColorSelector` and `Soft4You.FMX.Controls.ColorSelector.Types` (in `Sources\ColorSelector`).

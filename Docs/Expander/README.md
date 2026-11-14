@@ -1,5 +1,7 @@
 # TS4YExpander for FireMonkey
 
+![TS4YExpander](../Screenshots/expander.png)
+
 An expander (a collapsible panel with a header) that extends the standard FMX `TExpander` with an icon in the header, an optional height animation, a click on the whole header and a badge counter on the header.
 
 Unit: `Soft4You.FMX.Controls.Expander` (in `Sources\Expander`). It uses `TS4YBadge` (`Soft4You.FMX.Controls.Badge`) for the badge, so the two controls are always installed together.
