@@ -1,7 +1,7 @@
 object GaugesDemoForm: TGaugesDemoForm
   Left = 0
   Top = 0
-  Caption = 'TS4YLinearGauge and TS4YCircularGauge demo'
+  Caption = 'Gauges and meters demo'
   ClientHeight = 700
   ClientWidth = 900
   Position = ScreenCenter
@@ -10,668 +10,1329 @@ object GaugesDemoForm: TGaugesDemoForm
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
   DesignerMasterStyle = 0
-  object DemoLayout: TLayout
+  object DemoTabControl: TTabControl
     Align = Client
-    Size.Width = 600.000000000000000000
+    Size.Width = 900.000000000000000000
     Size.Height = 700.000000000000000000
     Size.PlatformDefault = False
+    TabIndex = 0
     TabOrder = 0
-    object LinearTitleLabel: TLabel
-      Position.X = 24.000000000000000000
-      Position.Y = 16.000000000000000000
-      Size.Width = 540.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'TS4YLinearGauge (Orientation and TextPosition in the settings)'
-    end
-    object FirstLinearGauge: TS4YLinearGauge
-      Caption = 'Usage'
-      Position.X = 24.000000000000000000
-      Position.Y = 40.000000000000000000
-      Size.Width = 540.000000000000000000
-      Size.Height = 120.000000000000000000
-      Size.PlatformDefault = False
-      Value = 40.000000000000000000
-    end
-    object VerticalTitleLabel: TLabel
-      Position.X = 24.000000000000000000
-      Position.Y = 180.000000000000000000
-      Size.Width = 160.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'Vertical'
-    end
-    object VerticalGauge: TS4YLinearGauge
-      Caption = 'Usage'
-      Orientation = Vertical
-      Position.X = 24.000000000000000000
-      Position.Y = 204.000000000000000000
-      Size.Width = 160.000000000000000000
-      Size.Height = 300.000000000000000000
-      Size.PlatformDefault = False
-      Value = 40.000000000000000000
-    end
-    object CircularTitleLabel: TLabel
-      Position.X = 214.000000000000000000
-      Position.Y = 180.000000000000000000
-      Size.Width = 350.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'TS4YCircularGauge'
-    end
-    object CircularGauge: TS4YCircularGauge
-      Caption = 'Usage'
-      Position.X = 214.000000000000000000
-      Position.Y = 204.000000000000000000
-      Size.Width = 350.000000000000000000
-      Size.Height = 300.000000000000000000
-      Size.PlatformDefault = False
-      Value = 40.000000000000000000
-    end
-    object NoteLabel: TLabel
-      Position.X = 24.000000000000000000
-      Position.Y = 524.000000000000000000
-      Size.Width = 540.000000000000000000
-      Size.Height = 120.000000000000000000
-      Size.PlatformDefault = False
-      TextSettings.VertAlign = Leading
-      Text = 
-        'A change of the value larger than 5% of the range is animated, a' +
-        ' smaller one is drawn at once: drag the track bar slowly, then p' +
-        'ress Random value. The settings apply to the three gauges.'
-    end
-  end
-  object SettingsScrollBox: TVertScrollBox
-    Align = Left
-    Padding.Bottom = 20.000000000000000000
-    Size.Width = 300.000000000000000000
-    Size.Height = 700.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 1
-    Viewport.Width = 284.000000000000000000
-    Viewport.Height = 700.000000000000000000
-    object ValueSettingsLabel: TLabel
-      Align = Top
-      StyledSettings = [Family, Size, FontColor]
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 16.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 16.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      TextSettings.Font.StyleExt = {00070000000000000004000000}
-      Text = 'Value'
-      TabOrder = 0
-    end
-    object ValueLabel: TLabel
-      Align = Top
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 40.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'Value: 40.0'
-      TabOrder = 1
-    end
-    object ValueTrackBar: TTrackBar
-      Align = Top
-      CanParentFocus = True
-      Frequency = 0.100000001490116100
-      Orientation = Horizontal
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 64.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 19.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 2
-      Value = 40.000000000000000000
-      OnChange = ValueTrackBarChange
-    end
-    object RangeLabel: TLabel
-      Align = Top
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 87.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'Min and Max'
-      TabOrder = 3
-    end
-    object RangeLayout: TLayout
-      Align = Top
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 111.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 24.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 4
-      object MinSpinBox: TSpinBox
-        Touch.InteractiveGestures = [LongTap, DoubleTap]
-        Align = Left
-        TabOrder = 1
-        Cursor = crIBeam
-        Min = -1000.000000000000000000
-        Max = 1000.000000000000000000
-        Size.Width = 120.000000000000000000
-        Size.Height = 24.000000000000000000
-        Size.PlatformDefault = False
-        OnChange = RangeSpinBoxChange
-      end
-      object MaxSpinBox: TSpinBox
-        Touch.InteractiveGestures = [LongTap, DoubleTap]
-        Align = Right
-        TabOrder = 0
-        Cursor = crIBeam
-        Min = -1000.000000000000000000
-        Max = 1000.000000000000000000
-        Value = 100.000000000000000000
-        Position.X = 140.000000000000000000
-        Size.Width = 120.000000000000000000
-        Size.Height = 24.000000000000000000
-        Size.PlatformDefault = False
-        OnChange = RangeSpinBoxChange
-      end
-    end
-    object AnimatedCheckBox: TCheckBox
-      Align = Top
-      IsChecked = True
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 139.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 5
-      Text = 'Animate the large changes'
-      OnChange = AnimatedCheckBoxChange
-    end
-    object RandomButton: TButton
-      Align = Top
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 163.000000000000000000
-      Size.Width = 260.000000000000000000
+    TabPosition = PlatformDefault
+    Sizes = (
+      900s
+      674s
+      900s
+      674s)
+    object GaugesTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = True
+      Size.Width = 59.000000000000000000
       Size.Height = 26.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 6
-      Text = 'Random value'
-      OnClick = RandomButtonClick
-    end
-    object TextSettingsLabel: TLabel
-      Align = Top
-      StyledSettings = [Family, Size, FontColor]
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 16.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 205.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      TextSettings.Font.StyleExt = {00070000000000000004000000}
-      Text = 'Text'
-      TabOrder = 7
-    end
-    object CaptionEdit: TEdit
-      Touch.InteractiveGestures = [LongTap, DoubleTap]
-      Align = Top
-      TabOrder = 8
-      Text = 'Usage'
-      Position.X = 12.000000000000000000
-      Position.Y = 229.000000000000000000
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 24.000000000000000000
-      Size.PlatformDefault = False
-      OnChangeTracking = CaptionEditChangeTracking
-    end
-    object ShowValueCheckBox: TCheckBox
-      Align = Top
-      IsChecked = True
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 257.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 9
-      Text = 'ShowValue'
-      OnChange = ShowValueCheckBoxChange
-    end
-    object ValueFormatLabel: TLabel
-      Align = Top
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 281.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'ValueFormat'
-      TabOrder = 10
-    end
-    object ValueFormatComboBox: TComboBox
-      Align = Top
-      ItemIndex = 0
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 305.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 24.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 11
-      OnChange = ValueFormatComboBoxChange
-      object ValueFormatComboBoxItem1: TListBoxItem
-        IsSelected = True
-        Size.Width = 19.000000000000000000
-        Size.Height = 19.000000000000000000
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Gauges'
+      ExplicitSize.cx = 90.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object DemoLayout: TLayout
+        Align = Client
+        Size.Width = 600.000000000000000000
+        Size.Height = 674.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
-        Text = '%.0f'
+        object LinearTitleLabel: TLabel
+          Position.X = 24.000000000000000000
+          Position.Y = 16.000000000000000000
+          Size.Width = 540.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'TS4YLinearGauge (Orientation and TextPosition in the settings)'
+        end
+        object FirstLinearGauge: TS4YLinearGauge
+          Caption = 'Usage'
+          Position.X = 24.000000000000000000
+          Position.Y = 40.000000000000000000
+          Size.Width = 540.000000000000000000
+          Size.Height = 120.000000000000000000
+          Size.PlatformDefault = False
+          Value = 40.000000000000000000
+        end
+        object VerticalTitleLabel: TLabel
+          Position.X = 24.000000000000000000
+          Position.Y = 180.000000000000000000
+          Size.Width = 160.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Vertical'
+        end
+        object VerticalGauge: TS4YLinearGauge
+          Caption = 'Usage'
+          Orientation = Vertical
+          Position.X = 24.000000000000000000
+          Position.Y = 204.000000000000000000
+          Size.Width = 160.000000000000000000
+          Size.Height = 300.000000000000000000
+          Size.PlatformDefault = False
+          Value = 40.000000000000000000
+        end
+        object CircularTitleLabel: TLabel
+          Position.X = 214.000000000000000000
+          Position.Y = 180.000000000000000000
+          Size.Width = 350.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'TS4YCircularGauge'
+        end
+        object CircularGauge: TS4YCircularGauge
+          Caption = 'Usage'
+          Position.X = 214.000000000000000000
+          Position.Y = 204.000000000000000000
+          Size.Width = 350.000000000000000000
+          Size.Height = 300.000000000000000000
+          Size.PlatformDefault = False
+          Value = 40.000000000000000000
+        end
+        object NoteLabel: TLabel
+          Position.X = 24.000000000000000000
+          Position.Y = 524.000000000000000000
+          Size.Width = 540.000000000000000000
+          Size.Height = 120.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.VertAlign = Leading
+          Text = 
+            'A change of the value larger than 5% of the range is animated, a' +
+            ' smaller one is drawn at once: drag the track bar slowly, then p' +
+            'ress Random value. The settings apply to the three gauges.'
+        end
       end
-      object ValueFormatComboBoxItem2: TListBoxItem
-        Size.Width = 19.000000000000000000
-        Size.Height = 19.000000000000000000
+      object SettingsScrollBox: TVertScrollBox
+        Align = Left
+        Padding.Bottom = 20.000000000000000000
+        Size.Width = 300.000000000000000000
+        Size.Height = 674.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 1
-        Text = '%.1f %%'
+        Viewport.Width = 284.000000000000000000
+        Viewport.Height = 674.000000000000000000
+        object ValueSettingsLabel: TLabel
+          Align = Top
+          StyledSettings = [Family, Size, FontColor]
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 16.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          Text = 'Value'
+          TabOrder = 0
+        end
+        object ValueLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 40.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Value: 40.0'
+          TabOrder = 1
+        end
+        object ValueTrackBar: TTrackBar
+          Align = Top
+          CanParentFocus = True
+          Frequency = 0.100000001490116100
+          Orientation = Horizontal
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 64.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 2
+          Value = 40.000000000000000000
+          OnChange = ValueTrackBarChange
+        end
+        object RangeLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 87.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Min and Max'
+          TabOrder = 3
+        end
+        object RangeLayout: TLayout
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 111.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 24.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 4
+          object MinSpinBox: TSpinBox
+            Touch.InteractiveGestures = [LongTap, DoubleTap]
+            Align = Left
+            TabOrder = 1
+            Cursor = crIBeam
+            Min = -1000.000000000000000000
+            Max = 1000.000000000000000000
+            Size.Width = 120.000000000000000000
+            Size.Height = 24.000000000000000000
+            Size.PlatformDefault = False
+            OnChange = RangeSpinBoxChange
+          end
+          object MaxSpinBox: TSpinBox
+            Touch.InteractiveGestures = [LongTap, DoubleTap]
+            Align = Right
+            TabOrder = 0
+            Cursor = crIBeam
+            Min = -1000.000000000000000000
+            Max = 1000.000000000000000000
+            Value = 100.000000000000000000
+            Position.X = 140.000000000000000000
+            Size.Width = 120.000000000000000000
+            Size.Height = 24.000000000000000000
+            Size.PlatformDefault = False
+            OnChange = RangeSpinBoxChange
+          end
+        end
+        object AnimatedCheckBox: TCheckBox
+          Align = Top
+          IsChecked = True
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 139.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 5
+          Text = 'Animate the large changes'
+          OnChange = AnimatedCheckBoxChange
+        end
+        object RandomButton: TButton
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 163.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 26.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 6
+          Text = 'Random value'
+          OnClick = RandomButtonClick
+        end
+        object TextSettingsLabel: TLabel
+          Align = Top
+          StyledSettings = [Family, Size, FontColor]
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 205.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          Text = 'Text'
+          TabOrder = 7
+        end
+        object CaptionEdit: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = Top
+          TabOrder = 8
+          Text = 'Usage'
+          Position.X = 12.000000000000000000
+          Position.Y = 229.000000000000000000
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 24.000000000000000000
+          Size.PlatformDefault = False
+          OnChangeTracking = CaptionEditChangeTracking
+        end
+        object ShowValueCheckBox: TCheckBox
+          Align = Top
+          IsChecked = True
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 257.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 9
+          Text = 'ShowValue'
+          OnChange = ShowValueCheckBoxChange
+        end
+        object ValueFormatLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 281.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'ValueFormat'
+          TabOrder = 10
+        end
+        object ValueFormatComboBox: TComboBox
+          Align = Top
+          ItemIndex = 0
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 305.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 24.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 11
+          OnChange = ValueFormatComboBoxChange
+          object ValueFormatComboBoxItem1: TListBoxItem
+            IsSelected = True
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Text = '%.0f'
+          end
+          object ValueFormatComboBoxItem2: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = '%.1f %%'
+          end
+          object ValueFormatComboBoxItem3: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 2
+            Text = '%.0f GB'
+          end
+          object ValueFormatComboBoxItem4: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 3
+            Text = '(empty)'
+          end
+        end
+        object CustomTextCheckBox: TCheckBox
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 333.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 12
+          Text = 'Text from OnGetValueText'
+          OnChange = CustomTextCheckBoxChange
+        end
+        object LookSettingsLabel: TLabel
+          Align = Top
+          StyledSettings = [Family, Size, FontColor]
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 369.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          Text = 'Fill'
+          TabOrder = 13
+        end
+        object StyleFillCheckBox: TCheckBox
+          Align = Top
+          IsChecked = True
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 393.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 14
+          Text = 'Fill from the style (gsbFill)'
+          OnChange = StyleFillCheckBoxChange
+        end
+        object FillColorComboBox: TColorComboBox
+          DropDownKind = Custom
+          Color = claOrange
+          Align = Top
+          DisableFocusEffect = False
+          ItemIndex = 105
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 417.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 24.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 15
+          OnChange = FillColorComboBoxChange
+        end
+        object LinearSettingsLabel: TLabel
+          Align = Top
+          StyledSettings = [Family, Size, FontColor]
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 457.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          Text = 'Linear gauges'
+          TabOrder = 16
+        end
+        object OrientationLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 481.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Orientation of the first gauge'
+          TabOrder = 17
+        end
+        object OrientationComboBox: TComboBox
+          Align = Top
+          ItemIndex = 0
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 505.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 24.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 18
+          OnChange = OrientationComboBoxChange
+          object OrientationComboBoxItem1: TListBoxItem
+            IsSelected = True
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Text = 'Horizontal'
+          end
+          object OrientationComboBoxItem2: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = 'Vertical'
+          end
+        end
+        object TextPositionLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 533.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'TextPosition'
+          TabOrder = 19
+        end
+        object TextPositionComboBox: TComboBox
+          Align = Top
+          ItemIndex = 1
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 557.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 24.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 20
+          OnChange = TextPositionComboBoxChange
+          object TextPositionComboBoxItem1: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Text = 'gtpNone'
+          end
+          object TextPositionComboBoxItem2: TListBoxItem
+            IsSelected = True
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = 'gtpBefore'
+          end
+          object TextPositionComboBoxItem3: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 2
+            Text = 'gtpAfter'
+          end
+        end
+        object LinearThicknessLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 585.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Thickness: 8'
+          TabOrder = 21
+        end
+        object LinearThicknessTrackBar: TTrackBar
+          Align = Top
+          CanParentFocus = True
+          Frequency = 1.000000000000000000
+          Max = 40.000000000000000000
+          Min = 2.000000000000000000
+          Orientation = Horizontal
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 609.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 22
+          Value = 8.000000000000000000
+          OnChange = LinearThicknessTrackBarChange
+        end
+        object CircularSettingsLabel: TLabel
+          Align = Top
+          StyledSettings = [Family, Size, FontColor]
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 644.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          Text = 'Circular gauge'
+          TabOrder = 23
+        end
+        object ShapeLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 668.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Shape'
+          TabOrder = 24
+        end
+        object ShapeComboBox: TComboBox
+          Align = Top
+          ItemIndex = 0
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 692.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 24.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 25
+          OnChange = ShapeComboBoxChange
+          object ShapeComboBoxItem1: TListBoxItem
+            IsSelected = True
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Text = 'Ring'
+          end
+          object ShapeComboBoxItem2: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = 'Open arc'
+          end
+          object ShapeComboBoxItem3: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 2
+            Text = 'Half circle'
+          end
+        end
+        object StartAngleLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 720.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'StartAngle: 0'
+          TabOrder = 26
+        end
+        object StartAngleTrackBar: TTrackBar
+          Align = Top
+          CanParentFocus = True
+          Frequency = 1.000000000000000000
+          Max = 180.000000000000000000
+          Min = -180.000000000000000000
+          Orientation = Horizontal
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 744.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 27
+          OnChange = AngleTrackBarChange
+        end
+        object SweepAngleLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 767.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'SweepAngle: 360'
+          TabOrder = 28
+        end
+        object SweepAngleTrackBar: TTrackBar
+          Align = Top
+          CanParentFocus = True
+          Frequency = 1.000000000000000000
+          Max = 360.000000000000000000
+          Orientation = Horizontal
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 791.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 29
+          Value = 360.000000000000000000
+          OnChange = AngleTrackBarChange
+        end
+        object CircularThicknessLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 814.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Thickness: 12'
+          TabOrder = 30
+        end
+        object CircularThicknessTrackBar: TTrackBar
+          Align = Top
+          CanParentFocus = True
+          Frequency = 1.000000000000000000
+          Max = 60.000000000000000000
+          Min = 2.000000000000000000
+          Orientation = Horizontal
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 838.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 31
+          Value = 12.000000000000000000
+          OnChange = CircularThicknessTrackBarChange
+        end
       end
-      object ValueFormatComboBoxItem3: TListBoxItem
-        Size.Width = 19.000000000000000000
-        Size.Height = 19.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 2
-        Text = '%.0f GB'
-      end
-      object ValueFormatComboBoxItem4: TListBoxItem
-        Size.Width = 19.000000000000000000
-        Size.Height = 19.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 3
-        Text = '(empty)'
-      end
     end
-    object CustomTextCheckBox: TCheckBox
-      Align = Top
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 333.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
+    object MetersTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = False
+      Size.Width = 57.000000000000000000
+      Size.Height = 26.000000000000000000
       Size.PlatformDefault = False
-      TabOrder = 12
-      Text = 'Text from OnGetValueText'
-      OnChange = CustomTextCheckBoxChange
-    end
-    object LookSettingsLabel: TLabel
-      Align = Top
-      StyledSettings = [Family, Size, FontColor]
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 16.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 369.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      TextSettings.Font.StyleExt = {00070000000000000004000000}
-      Text = 'Fill'
-      TabOrder = 13
-    end
-    object StyleFillCheckBox: TCheckBox
-      Align = Top
-      IsChecked = True
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 393.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 14
-      Text = 'Fill from the style (gsbFill)'
-      OnChange = StyleFillCheckBoxChange
-    end
-    object FillColorComboBox: TColorComboBox
-      DropDownKind = Custom
-      Color = claOrange
-      Align = Top
-      DisableFocusEffect = False
-      ItemIndex = 105
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 417.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 24.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 15
-      OnChange = FillColorComboBoxChange
-    end
-    object LinearSettingsLabel: TLabel
-      Align = Top
-      StyledSettings = [Family, Size, FontColor]
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 16.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 457.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      TextSettings.Font.StyleExt = {00070000000000000004000000}
-      Text = 'Linear gauges'
-      TabOrder = 16
-    end
-    object OrientationLabel: TLabel
-      Align = Top
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 481.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'Orientation of the first gauge'
-      TabOrder = 17
-    end
-    object OrientationComboBox: TComboBox
-      Align = Top
-      ItemIndex = 0
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 505.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 24.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 18
-      OnChange = OrientationComboBoxChange
-      object OrientationComboBoxItem1: TListBoxItem
-        IsSelected = True
-        Size.Width = 19.000000000000000000
-        Size.Height = 19.000000000000000000
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Meters'
+      ExplicitSize.cx = 90.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object MetersLayout: TLayout
+        Align = Client
+        Size.Width = 600.000000000000000000
+        Size.Height = 674.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
-        Text = 'Horizontal'
+        object CircularMeterTitleLabel: TLabel
+          Position.X = 24.000000000000000000
+          Position.Y = 16.000000000000000000
+          Size.Width = 300.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'TS4YCircularMeter'
+        end
+        object CircularMeter: TS4YCircularMeter
+          Caption = 'Usage'
+          Position.X = 24.000000000000000000
+          Position.Y = 40.000000000000000000
+          Size.Width = 300.000000000000000000
+          Size.Height = 300.000000000000000000
+          Size.PlatformDefault = False
+          Value = 40.000000000000000000
+        end
+        object VerticalMeterTitleLabel: TLabel
+          Position.X = 354.000000000000000000
+          Position.Y = 16.000000000000000000
+          Size.Width = 210.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Vertical'
+        end
+        object VerticalMeter: TS4YLinearMeter
+          Caption = 'Usage'
+          Orientation = Vertical
+          Position.X = 354.000000000000000000
+          Position.Y = 40.000000000000000000
+          Size.Width = 140.000000000000000000
+          Size.Height = 300.000000000000000000
+          Size.PlatformDefault = False
+          Value = 40.000000000000000000
+        end
+        object LinearMeterTitleLabel: TLabel
+          Position.X = 24.000000000000000000
+          Position.Y = 360.000000000000000000
+          Size.Width = 540.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'TS4YLinearMeter'
+        end
+        object LinearMeter: TS4YLinearMeter
+          Caption = 'Usage'
+          Position.X = 24.000000000000000000
+          Position.Y = 384.000000000000000000
+          Size.Width = 540.000000000000000000
+          Size.Height = 120.000000000000000000
+          Size.PlatformDefault = False
+          Value = 40.000000000000000000
+        end
+        object MetersNoteLabel: TLabel
+          Position.X = 24.000000000000000000
+          Position.Y = 524.000000000000000000
+          Size.Width = 540.000000000000000000
+          Size.Height = 120.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.VertAlign = Leading
+          Text = 
+            'The settings apply to the three meters. The ranges are green fro' +
+            'm 0 to 60, yellow to 80 and red to 100. The circular meter shows' +
+            ' the value with its needle, with the texts below the center; Sho' +
+            'wFill draws its fill too.'
+        end
       end
-      object OrientationComboBoxItem2: TListBoxItem
-        Size.Width = 19.000000000000000000
-        Size.Height = 19.000000000000000000
+      object MeterSettingsScrollBox: TVertScrollBox
+        Align = Left
+        Padding.Bottom = 20.000000000000000000
+        Size.Width = 300.000000000000000000
+        Size.Height = 674.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 1
-        Text = 'Vertical'
+        Viewport.Width = 284.000000000000000000
+        Viewport.Height = 674.000000000000000000
+        object MeterValueSettingsLabel: TLabel
+          StyledSettings = [Family, Size, FontColor]
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 16.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          Text = 'Value'
+          TabOrder = 0
+        end
+        object MeterValueLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 52.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Value: 40.0'
+          TabOrder = 1
+        end
+        object MeterValueTrackBar: TTrackBar
+          CanParentFocus = True
+          Frequency = 0.100000000000000006
+          Orientation = Horizontal
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 76.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 2
+          Value = 40.000000000000000000
+          OnChange = MeterValueTrackBarChange
+        end
+        object MeterRandomButton: TButton
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 99.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 26.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 3
+          Text = 'Random value'
+          OnClick = MeterRandomButtonClick
+        end
+        object GraduationSettingsLabel: TLabel
+          StyledSettings = [Family, Size, FontColor]
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 129.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          Text = 'Graduation'
+          TabOrder = 4
+        end
+        object GraduationVisibleCheckBox: TCheckBox
+          IsChecked = True
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 165.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 5
+          Text = 'Visible'
+          OnChange = GraduationCheckBoxChange
+        end
+        object ShowLabelsCheckBox: TCheckBox
+          IsChecked = True
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 189.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 6
+          Text = 'ShowLabels'
+          OnChange = GraduationCheckBoxChange
+        end
+        object MajorStepLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 213.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'MajorStep'
+          TabOrder = 7
+        end
+        object MajorStepComboBox: TComboBox
+          ItemIndex = 0
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 237.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 24.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 8
+          OnChange = MajorStepComboBoxChange
+          object MajorStepComboBoxItem1: TListBoxItem
+            IsSelected = True
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Text = '0 (automatic)'
+          end
+          object MajorStepComboBoxItem2: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = '10'
+          end
+          object MajorStepComboBoxItem3: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 2
+            Text = '20'
+          end
+          object MajorStepComboBoxItem4: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 3
+            Text = '25'
+          end
+        end
+        object CircularGraduationLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 265.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Position on the circular meter'
+          TabOrder = 9
+        end
+        object CircularGraduationComboBox: TComboBox
+          ItemIndex = 0
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 289.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 24.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 10
+          OnChange = GraduationPositionComboBoxChange
+          object CircularGraduationComboBoxItem1: TListBoxItem
+            IsSelected = True
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Text = 'gasInside'
+          end
+          object CircularGraduationComboBoxItem2: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = 'gasOutside'
+          end
+        end
+        object LinearGraduationLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 317.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Position on the linear meters'
+          TabOrder = 11
+        end
+        object LinearGraduationComboBox: TComboBox
+          ItemIndex = 1
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 341.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 24.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 12
+          OnChange = GraduationPositionComboBoxChange
+          object LinearGraduationComboBoxItem1: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Text = 'gbsBefore'
+          end
+          object LinearGraduationComboBoxItem2: TListBoxItem
+            IsSelected = True
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = 'gbsAfter'
+          end
+        end
+        object RangesSettingsLabel: TLabel
+          StyledSettings = [Family, Size, FontColor]
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 369.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          Text = 'Ranges'
+          TabOrder = 13
+        end
+        object RangesCheckBox: TCheckBox
+          IsChecked = True
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 405.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 14
+          Text = 'Green, yellow and red ranges'
+          OnChange = RangesCheckBoxChange
+        end
+        object RangeTrackCheckBox: TCheckBox
+          IsChecked = True
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 429.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 15
+          Text = 'On the track'
+          OnChange = RangePlacementCheckBoxChange
+        end
+        object RangeInsideCheckBox: TCheckBox
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 453.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 16
+          Text = 'Band inside the arc, before the bar'
+          OnChange = RangePlacementCheckBoxChange
+        end
+        object RangeOutsideCheckBox: TCheckBox
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 477.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 17
+          Text = 'Band outside the arc, after the bar'
+          OnChange = RangePlacementCheckBoxChange
+        end
+        object FillFromRangeCheckBox: TCheckBox
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 501.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 18
+          Text = 'FillFromRange'
+          OnChange = FillFromRangeCheckBoxChange
+        end
+        object TargetSettingsLabel: TLabel
+          StyledSettings = [Family, Size, FontColor]
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 525.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          Text = 'Target'
+          TabOrder = 19
+        end
+        object ShowTargetCheckBox: TCheckBox
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 561.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 20
+          Text = 'ShowTarget'
+          OnChange = TargetChange
+        end
+        object TargetLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 585.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Target: 75'
+          TabOrder = 21
+        end
+        object TargetTrackBar: TTrackBar
+          CanParentFocus = True
+          Frequency = 1.000000000000000000
+          Orientation = Horizontal
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 609.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 22
+          Value = 75.000000000000000000
+          OnChange = TargetChange
+        end
+        object NeedleSettingsLabel: TLabel
+          StyledSettings = [Family, Size, FontColor]
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 632.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          Text = 'Needle and pointer'
+          TabOrder = 23
+        end
+        object NeedleVisibleCheckBox: TCheckBox
+          IsChecked = True
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 668.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 24
+          Text = 'Needle.Visible'
+          OnChange = NeedleChange
+        end
+        object NeedleLengthLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 692.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Needle.Length: 90'
+          TabOrder = 25
+        end
+        object NeedleLengthTrackBar: TTrackBar
+          CanParentFocus = True
+          Frequency = 1.000000000000000000
+          Orientation = Horizontal
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 716.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 26
+          Value = 90.000000000000000000
+          OnChange = NeedleChange
+        end
+        object CircularShowFillCheckBox: TCheckBox
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 739.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 27
+          Text = 'ShowFill of the circular meter'
+          OnChange = ShowFillCheckBoxChange
+        end
+        object PointerVisibleCheckBox: TCheckBox
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 763.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 28
+          Text = 'Pointer.Visible'
+          OnChange = PointerChange
+        end
+        object PointerPositionLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 787.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Pointer.Position'
+          TabOrder = 29
+        end
+        object PointerPositionComboBox: TComboBox
+          ItemIndex = 0
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 811.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 24.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 30
+          OnChange = PointerChange
+          object PointerPositionComboBoxItem1: TListBoxItem
+            IsSelected = True
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Text = 'gbsBefore'
+          end
+          object PointerPositionComboBoxItem2: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = 'gbsAfter'
+          end
+        end
+        object LinearShowFillCheckBox: TCheckBox
+          IsChecked = True
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 839.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 31
+          Text = 'ShowFill of the linear meters'
+          OnChange = ShowFillCheckBoxChange
+        end
       end
-    end
-    object TextPositionLabel: TLabel
-      Align = Top
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 533.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'TextPosition'
-      TabOrder = 19
-    end
-    object TextPositionComboBox: TComboBox
-      Align = Top
-      ItemIndex = 1
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 557.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 24.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 20
-      OnChange = TextPositionComboBoxChange
-      object TextPositionComboBoxItem1: TListBoxItem
-        Size.Width = 19.000000000000000000
-        Size.Height = 19.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 0
-        Text = 'gtpNone'
-      end
-      object TextPositionComboBoxItem2: TListBoxItem
-        IsSelected = True
-        Size.Width = 19.000000000000000000
-        Size.Height = 19.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 1
-        Text = 'gtpBefore'
-      end
-      object TextPositionComboBoxItem3: TListBoxItem
-        Size.Width = 19.000000000000000000
-        Size.Height = 19.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 2
-        Text = 'gtpAfter'
-      end
-    end
-    object LinearThicknessLabel: TLabel
-      Align = Top
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 585.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'Thickness: 8'
-      TabOrder = 21
-    end
-    object LinearThicknessTrackBar: TTrackBar
-      Align = Top
-      CanParentFocus = True
-      Frequency = 1.000000000000000000
-      Max = 40.000000000000000000
-      Min = 2.000000000000000000
-      Orientation = Horizontal
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 609.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 19.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 22
-      Value = 8.000000000000000000
-      OnChange = LinearThicknessTrackBarChange
-    end
-    object CircularSettingsLabel: TLabel
-      Align = Top
-      StyledSettings = [Family, Size, FontColor]
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 16.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 644.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      TextSettings.Font.StyleExt = {00070000000000000004000000}
-      Text = 'Circular gauge'
-      TabOrder = 23
-    end
-    object ShapeLabel: TLabel
-      Align = Top
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 668.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'Shape'
-      TabOrder = 24
-    end
-    object ShapeComboBox: TComboBox
-      Align = Top
-      ItemIndex = 0
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 692.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 24.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 25
-      OnChange = ShapeComboBoxChange
-      object ShapeComboBoxItem1: TListBoxItem
-        IsSelected = True
-        Size.Width = 19.000000000000000000
-        Size.Height = 19.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 0
-        Text = 'Ring'
-      end
-      object ShapeComboBoxItem2: TListBoxItem
-        Size.Width = 19.000000000000000000
-        Size.Height = 19.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 1
-        Text = 'Open arc'
-      end
-      object ShapeComboBoxItem3: TListBoxItem
-        Size.Width = 19.000000000000000000
-        Size.Height = 19.000000000000000000
-        Size.PlatformDefault = False
-        TabOrder = 2
-        Text = 'Half circle'
-      end
-    end
-    object StartAngleLabel: TLabel
-      Align = Top
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 720.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'StartAngle: 0'
-      TabOrder = 26
-    end
-    object StartAngleTrackBar: TTrackBar
-      Align = Top
-      CanParentFocus = True
-      Frequency = 1.000000000000000000
-      Max = 180.000000000000000000
-      Min = -180.000000000000000000
-      Orientation = Horizontal
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 744.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 19.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 27
-      OnChange = AngleTrackBarChange
-    end
-    object SweepAngleLabel: TLabel
-      Align = Top
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 767.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'SweepAngle: 360'
-      TabOrder = 28
-    end
-    object SweepAngleTrackBar: TTrackBar
-      Align = Top
-      CanParentFocus = True
-      Frequency = 1.000000000000000000
-      Max = 360.000000000000000000
-      Orientation = Horizontal
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 791.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 19.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 29
-      Value = 360.000000000000000000
-      OnChange = AngleTrackBarChange
-    end
-    object CircularThicknessLabel: TLabel
-      Align = Top
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 814.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 20.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'Thickness: 12'
-      TabOrder = 30
-    end
-    object CircularThicknessTrackBar: TTrackBar
-      Align = Top
-      CanParentFocus = True
-      Frequency = 1.000000000000000000
-      Max = 60.000000000000000000
-      Min = 2.000000000000000000
-      Orientation = Horizontal
-      Margins.Left = 12.000000000000000000
-      Margins.Top = 4.000000000000000000
-      Margins.Right = 12.000000000000000000
-      Position.X = 12.000000000000000000
-      Position.Y = 838.000000000000000000
-      Size.Width = 260.000000000000000000
-      Size.Height = 19.000000000000000000
-      Size.PlatformDefault = False
-      TabOrder = 31
-      Value = 12.000000000000000000
-      OnChange = CircularThicknessTrackBarChange
     end
   end
 end
