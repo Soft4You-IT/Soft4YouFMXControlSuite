@@ -229,6 +229,7 @@
         <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.LinearMeter.pas"/>
         <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.CircularMeter.pas"/>
         <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinCircular.pas"/>
+        <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinLinear.pas"/>
         <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Types.pas"/>
         <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.pas"/>
         <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Bindings.pas"/>
@@ -283,6 +284,12 @@
         </RcCompile>
         <RcCompile Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinCircular.Win.rc">
             <Form>Soft4You.FMX.Controls.Gauges.SkinCircular.Win.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinLinear.Mac.rc">
+            <Form>Soft4You.FMX.Controls.Gauges.SkinLinear.Mac.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinLinear.Win.rc">
+            <Form>Soft4You.FMX.Controls.Gauges.SkinLinear.Win.res</Form>
         </RcCompile>
         <RcCompile Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Pie.Mac.rc">
             <Form>Soft4You.FMX.Controls.Charts.Pie.Mac.res</Form>

@@ -10,12 +10,12 @@ Download                    72
 - `TS4YLinearGauge` draws the value as a horizontal or vertical **bar**, with the caption and the value on one side of it.
 - `TS4YCircularGauge` draws it as a **ring**, an open arc or a half circle, with the value and the caption in the middle.
 - `TS4YLinearMeter` and `TS4YCircularMeter` are the same gauges with a **graduation**: ticks and numbers along the bar, like a ruler or a thermometer, or along the arc, like the dial of an instrument. They can color **ranges** of the scale, such as a green, a yellow and a red zone, and mark a **target** value; the circular meter shows the value with a **needle**, the linear one can add a **pointer** beside the bar.
-- `TS4YSkinCircularGauge` has no look of its own: it is made of the parts of its style, such as a **dial and a needle drawn as images**; it turns the needle to the value and writes the value and the caption.
+- `TS4YSkinCircularGauge` has no look of its own: it is made of the parts of its style, such as a **dial and a needle drawn as images**; it turns the needle to the value and writes the value and the caption. `TS4YSkinLinearGauge` is its linear twin, for a **thermometer or a level drawn as images**: it moves a pointer to the value and uncovers the filled part of an image.
 - The value goes from `Min` to `Max`; a large change of `Value` moves the fill with an animation, a small one is drawn at once.
 - The value is written with a format of its own (`ValueFormat`), or with a text given by the application (`OnGetValueText`).
 - Every part of the gauge comes from a **style**: the track, the fill and the fonts of the texts. The track and the fill can have any shape designed in the style; properties can replace the colors of the simple shapes.
 
-Units: `Soft4You.FMX.Controls.Gauges.Linear` for `TS4YLinearGauge`, `Soft4You.FMX.Controls.Gauges.Circular` for `TS4YCircularGauge`, `Soft4You.FMX.Controls.Gauges.LinearMeter` for `TS4YLinearMeter`, `Soft4You.FMX.Controls.Gauges.CircularMeter` for `TS4YCircularMeter` and `Soft4You.FMX.Controls.Gauges.SkinCircular` for `TS4YSkinCircularGauge`, in `Sources\Gauges`; the base class of the gauges is in `Soft4You.FMX.Controls.Gauges`, the graduation, the ranges, the needle and the pointer of the meters in `Soft4You.FMX.Controls.Gauges.Scales`, the types in `Soft4You.FMX.Controls.Gauges.Types`.
+Units: `Soft4You.FMX.Controls.Gauges.Linear` for `TS4YLinearGauge`, `Soft4You.FMX.Controls.Gauges.Circular` for `TS4YCircularGauge`, `Soft4You.FMX.Controls.Gauges.LinearMeter` for `TS4YLinearMeter`, `Soft4You.FMX.Controls.Gauges.CircularMeter` for `TS4YCircularMeter` and `Soft4You.FMX.Controls.Gauges.SkinCircular` for `TS4YSkinCircularGauge` and `Soft4You.FMX.Controls.Gauges.SkinLinear` for `TS4YSkinLinearGauge`, in `Sources\Gauges`; the base class of the gauges is in `Soft4You.FMX.Controls.Gauges`, the graduation, the ranges, the needle and the pointer of the meters in `Soft4You.FMX.Controls.Gauges.Scales`, the types in `Soft4You.FMX.Controls.Gauges.Types`.
 
 ## Installation
 
@@ -32,7 +32,8 @@ Add the folder `Sources\Gauges` to the Delphi library path to compile your own p
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.pas` | `TS4YCircularGauge` |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.LinearMeter.pas` | `TS4YLinearMeter` |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.CircularMeter.pas` | `TS4YCircularMeter` |
-| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinCircular.pas` | `TS4YSkinCircularGauge` |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinCircular.pas` | `TS4YSkinCircularGauge` and its other needles (`TS4YSkinGaugeNeedle`, `TS4YSkinGaugeNeedles`) |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinLinear.pas` | `TS4YSkinLinearGauge` and its other pointers (`TS4YSkinGaugePointer`, `TS4YSkinGaugePointers`) |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Scales.pas` | The graduation of the meters (`TS4YMeterGraduation`, `TS4YLinearMeterGraduation`, `TS4YCircularMeterGraduation`) their ranges (`TS4YMeterRange`, `TS4YMeterRanges`), the needle of the circular meter (`TS4YCircularMeterNeedle`) and the pointer of the linear one (`TS4YLinearMeterPointer`) |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Types.pas` | Enumerations, sets and event types |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Register.pas` | Registration in the Tool Palette (design time) |
@@ -43,8 +44,9 @@ Add the folder `Sources\Gauges` to the Delphi library path to compile your own p
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.LinearMeter.Win.rc` / `.Mac.rc`, `.Win.style` / `.Mac.style` | Resource scripts and default style of `TS4YLinearMeter`, the resource `S4YLinearMeterStyle` |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.CircularMeter.Win.rc` / `.Mac.rc`, `.Win.style` / `.Mac.style` | Resource scripts and default style of `TS4YCircularMeter`, the resource `S4YCircularMeterStyle` |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinCircular.Win.rc` / `.Mac.rc`, `.Win.style` / `.Mac.style` | Resource scripts and default style of `TS4YSkinCircularGauge`, the resource `S4YSkinCircularGaugeStyle` |
-| `Graphics\Gauges\TS4YLinearGauge.svg`, `TS4YCircularGauge.svg`, `TS4YLinearMeter.svg`, `TS4YCircularMeter.svg`, `TS4YSkinCircularGauge.svg` | Vector masters of the icons of the Tool Palette |
-| `Graphics\Gauges\TS4YLinearGauge.bmp`, `TS4YCircularGauge.bmp`, `TS4YLinearMeter.bmp`, `TS4YCircularMeter.bmp`, `TS4YSkinCircularGauge.bmp`, `GaugesDesign.rc` | Icons of the Tool Palette (24x24 bitmaps) and the resource script that links them |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinLinear.Win.rc` / `.Mac.rc`, `.Win.style` / `.Mac.style` | Resource scripts and default style of `TS4YSkinLinearGauge`, the resource `S4YSkinLinearGaugeStyle` |
+| `Graphics\Gauges\TS4YLinearGauge.svg`, `TS4YCircularGauge.svg`, `TS4YLinearMeter.svg`, `TS4YCircularMeter.svg`, `TS4YSkinCircularGauge.svg`, `TS4YSkinLinearGauge.svg` | Vector masters of the icons of the Tool Palette |
+| `Graphics\Gauges\TS4YLinearGauge.bmp`, `TS4YCircularGauge.bmp`, `TS4YLinearMeter.bmp`, `TS4YCircularMeter.bmp`, `TS4YSkinCircularGauge.bmp`, `TS4YSkinLinearGauge.bmp`, `GaugesDesign.rc` | Icons of the Tool Palette (24x24 bitmaps) and the resource script that links them |
 
 ## Properties of all the gauges
 
@@ -62,7 +64,7 @@ Add the folder `Sources\Gauges` to the Delphi library path to compile your own p
 | `TrackBrush` | light gray | Brush of the track, used in place of the one of the style |
 | `StyledBrushes` | `[gsbFill, gsbTrack]` | Which brushes come from the style instead of `FillBrush` and `TrackBrush` |
 
-These properties are public in the base class `TS4YCustomGauge`, so that code can work on any gauge through it, for example in a loop or in an `OnGetValueText` shared by several gauges. `TS4YSkinCircularGauge` has no track and no fill: it does not use `Thickness`, `FillBrush`, `TrackBrush` and `StyledBrushes` (see [TS4YSkinCircularGauge](#ts4yskincirculargauge)).
+These properties are public in the base class `TS4YCustomGauge`, so that code can work on any gauge through it, for example in a loop or in an `OnGetValueText` shared by several gauges. `TS4YSkinCircularGauge` and `TS4YSkinLinearGauge` have no track and no fill: they do not use `Thickness`, `FillBrush`, `TrackBrush` and `StyledBrushes` (see [TS4YSkinCircularGauge](#ts4yskincirculargauge) and [TS4YSkinLinearGauge](#ts4yskinlineargauge)).
 
 The usual `TControl` properties (`Align`, `Anchors`, `Position`, `Size`, `Margins`, `Padding`, `Opacity`, `Visible`, `Enabled`, `HitTest`, `Cursor`, `RotationAngle`, `Scale`, `PopupMenu`, `StyleLookup`) are published too. `Padding` leaves room between the edges of the control and its content.
 
@@ -307,9 +309,58 @@ Without `scale`, the needle turns around its own `RotationCenter`, as set in the
 
 To make a gauge of your own, add to a `TStyleBook` a `TLayout` with `StyleName = 'S4YSkinCircularGaugeStyle'`, or with another name given to the `StyleLookup` of the gauges that use it; the default style, `Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinCircular.Win.style`, can be used as a model: replace the face with an image of your dial, the needle with an image of your needle, and set the `scale` on the numbers of the dial.
 
+## TS4YSkinLinearGauge
+
+A linear gauge whose look is made only of the parts of its style: a bar, a thermometer, a level or a slider drawn as images or as shapes. The gauge does not draw anything: it moves a pointer of the style to the value, uncovers the filled part of an image of the style, and writes the value and the caption in the texts of the style. Like `TS4YSkinCircularGauge`, it has the range, the animation and the format of the value of all the gauges, and does not use `Thickness`, `FillBrush`, `TrackBrush` and `StyledBrushes`, which are not published.
+
+| Property | Default | Meaning |
+|---|---|---|
+| `Orientation` | `Horizontal` | Direction of the scale: `Horizontal`, from the left to the right, or `Vertical`, from the bottom to the top |
+| `Reversed` | `False` | The scale starts from the other end: from the right, or from the top for a vertical gauge |
+| `Pointers` | empty | Other pointers of the style, each with a value of its own (see [Other pointers](#other-pointers)) |
+
+`Orientation` and `Reversed` are used also when the style has a `scale`: a rectangle has no direction, unlike the arc of the circular skin gauge. A new gauge is 200 x 60 pixels.
+
+### Other pointers
+
+A style can have more pointers than `pointer`, for example the marks of the lowest and the highest value of the day on a thermometer. Each one is an item of the collection `Pointers`, with a value of its own:
+
+| Property | Default | Meaning |
+|---|---|---|
+| `PartName` | empty | Name (`StyleName`) of the part of the style that is the pointer, for example `pointermax`; another part than `pointer` |
+| `ScalePart` | empty | Name of the part of the style whose rectangle is the scale of the pointer. Empty, or when the style has no part with this name, the pointer uses `scale` |
+| `Min` | 0 | Value at the start of the scale of the pointer |
+| `Max` | 100 | Value at the end of the scale of the pointer |
+| `Value` | 0 | Value shown by the pointer; the pointer stops at `Min` and `Max` |
+
+These pointers are moved like `pointer`, along the scale and in the direction of the gauge. `pointer` always shows `Value` of the gauge, with the animation; the pointers of the collection move at once to their values, without animation. A part no longer named by the collection goes back to its position of the style.
+
+### Style of the skin linear gauge
+
+The style of `TS4YSkinLinearGauge` is `S4YSkinLinearGaugeStyle`. As for the circular skin gauge, its parts are **visible**: they are the gauge. The gauge uses these parts, all optional:
+
+| Part (`StyleName`) | In the default style | Use |
+|---|---|---|
+| `scale` | `TLayout`, hidden, on the bar | Its rectangle is the scale, from `Min` to `Max`; without it, the scale is the whole gauge |
+| `pointer` | `TPath`, a dark triangle above the bar | Moved along the scale until its center is on the value |
+| `reveal` | `TLayout` with a blue bar | Cut at the value, from the side of `Min`: shows only the filled part of its children |
+| `valuetext` | `TText`, bold, on the right below the bar | Receives the value; hidden when the value is not written |
+| `captiontext` | `TText`, on the left below the bar | Receives the caption; hidden when it is empty |
+| the parts named in `Pointers` | none | Other pointers, moved to their own values (see [Other pointers](#other-pointers)) |
+
+Any other part is just shown: in the default style a gray `track` under the `reveal`. The default style puts all its parts in a `TScaledLayout` aligned with `Fit`: the whole bar is resized with the gauge without being stretched. For a vertical gauge, make a style of your own, with the parts placed vertically, and set `Orientation` to `Vertical`.
+
+**The pointer** can be any object, a `TImage`, a `TPath` or a `TLayout` with several objects. Along the scale the gauge moves it so that its center is on the value; across the scale it stays where the style puts it, above, below or over the bar. Its `Align` must be `None`.
+
+**The reveal** is a container, usually a `TLayout`, with the image of the full bar inside it: the colored column of a thermometer over a gray one, a bar of LEDs all lit over the same bar off. The gauge cuts the rectangle of the reveal at the value on the scale and moves its children against the cut, so they stay still and are uncovered little by little; it sets `ClipChildren` of the reveal. The reveal can be longer than the scale: the part before the start of the scale, such as the bulb of a thermometer, is always shown. The reveal and its children must have `Align` set to `None`.
+
+**The scale** is any object, usually a hidden `TLayout`, whose rectangle goes from `Min` to `Max`: along its width for a horizontal gauge, along its height for a vertical one. The pointer and the reveal can be in other containers than the scale: the gauge brings the value to their coordinates.
+
+To make a gauge of your own, add to a `TStyleBook` a `TLayout` with `StyleName = 'S4YSkinLinearGaugeStyle'`, or with another name given to the `StyleLookup` of the gauges that use it; the default style, `Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinLinear.Win.style`, can be used as a model.
+
 ## Styles
 
-The look of `TS4YLinearGauge` comes from a style named `S4YLinearGaugeStyle`, the look of `TS4YCircularGauge` from a style named `S4YCircularGaugeStyle`. Each style is a container of invisible parts with the same names. The styles of the meters are described in [Style of the meters](#style-of-the-meters), the one of `TS4YSkinCircularGauge` in [Style of the skin gauge](#style-of-the-skin-gauge).
+The look of `TS4YLinearGauge` comes from a style named `S4YLinearGaugeStyle`, the look of `TS4YCircularGauge` from a style named `S4YCircularGaugeStyle`. Each style is a container of invisible parts with the same names. The styles of the meters are described in [Style of the meters](#style-of-the-meters), the one of `TS4YSkinCircularGauge` in [Style of the skin gauge](#style-of-the-skin-gauge), the one of `TS4YSkinLinearGauge` in [Style of the skin linear gauge](#style-of-the-skin-linear-gauge).
 
 ### Style of the linear gauge
 

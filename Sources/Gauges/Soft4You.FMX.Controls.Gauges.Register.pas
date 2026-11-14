@@ -2,8 +2,8 @@ unit Soft4You.FMX.Controls.Gauges.Register;
 
 { *****************************************************************************
   Soft4You FMX Control Suite - FireMonkey (FMX) controls for Delphi
-  TS4YLinearGauge, TS4YCircularGauge, TS4YLinearMeter, TS4YCircularMeter, TS4YSkinCircularGauge -
-  indicators of a value
+  TS4YLinearGauge, TS4YCircularGauge, TS4YLinearMeter, TS4YCircularMeter, TS4YSkinCircularGauge,
+  TS4YSkinLinearGauge - indicators of a value
   Copyright (c) 2026 Carlo Marona (Soft4You)
 
   This Source Code Form is subject to the terms of the Mozilla Public
@@ -29,7 +29,8 @@ uses
   Soft4You.FMX.Controls.Gauges.Circular,
   Soft4You.FMX.Controls.Gauges.LinearMeter,
   Soft4You.FMX.Controls.Gauges.CircularMeter,
-  Soft4You.FMX.Controls.Gauges.SkinCircular;
+  Soft4You.FMX.Controls.Gauges.SkinCircular,
+  Soft4You.FMX.Controls.Gauges.SkinLinear;
 
 procedure Register;
 begin
@@ -37,7 +38,7 @@ begin
   // match the class names in upper case ('TS4YLINEARGAUGE'), compiled into
   // the .res from GaugesDesign.rc.
   RegisterComponents('Soft4You FMX Controls Suite', [TS4YLinearGauge, TS4YCircularGauge, TS4YLinearMeter,
-    TS4YCircularMeter, TS4YSkinCircularGauge]);
+    TS4YCircularMeter, TS4YSkinCircularGauge, TS4YSkinLinearGauge]);
 end;
 
 end.
