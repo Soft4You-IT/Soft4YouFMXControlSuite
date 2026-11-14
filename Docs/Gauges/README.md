@@ -10,11 +10,12 @@ Download                    72
 - `TS4YLinearGauge` draws the value as a horizontal or vertical **bar**, with the caption and the value on one side of it.
 - `TS4YCircularGauge` draws it as a **ring**, an open arc or a half circle, with the value and the caption in the middle.
 - `TS4YLinearMeter` and `TS4YCircularMeter` are the same gauges with a **graduation**: ticks and numbers along the bar, like a ruler or a thermometer, or along the arc, like the dial of an instrument. They can color **ranges** of the scale, such as a green, a yellow and a red zone, and mark a **target** value; the circular meter shows the value with a **needle**, the linear one can add a **pointer** beside the bar.
+- `TS4YSkinCircularGauge` has no look of its own: it is made of the parts of its style, such as a **dial and a needle drawn as images**; it turns the needle to the value and writes the value and the caption.
 - The value goes from `Min` to `Max`; a large change of `Value` moves the fill with an animation, a small one is drawn at once.
 - The value is written with a format of its own (`ValueFormat`), or with a text given by the application (`OnGetValueText`).
 - Every part of the gauge comes from a **style**: the track, the fill and the fonts of the texts. The track and the fill can have any shape designed in the style; properties can replace the colors of the simple shapes.
 
-Units: `Soft4You.FMX.Controls.Gauges.Linear` for `TS4YLinearGauge`, `Soft4You.FMX.Controls.Gauges.Circular` for `TS4YCircularGauge`, `Soft4You.FMX.Controls.Gauges.LinearMeter` for `TS4YLinearMeter` and `Soft4You.FMX.Controls.Gauges.CircularMeter` for `TS4YCircularMeter`, in `Sources\Gauges`; the base class of the gauges is in `Soft4You.FMX.Controls.Gauges`, the graduation, the ranges, the needle and the pointer of the meters in `Soft4You.FMX.Controls.Gauges.Scales`, the types in `Soft4You.FMX.Controls.Gauges.Types`.
+Units: `Soft4You.FMX.Controls.Gauges.Linear` for `TS4YLinearGauge`, `Soft4You.FMX.Controls.Gauges.Circular` for `TS4YCircularGauge`, `Soft4You.FMX.Controls.Gauges.LinearMeter` for `TS4YLinearMeter`, `Soft4You.FMX.Controls.Gauges.CircularMeter` for `TS4YCircularMeter` and `Soft4You.FMX.Controls.Gauges.SkinCircular` for `TS4YSkinCircularGauge`, in `Sources\Gauges`; the base class of the gauges is in `Soft4You.FMX.Controls.Gauges`, the graduation, the ranges, the needle and the pointer of the meters in `Soft4You.FMX.Controls.Gauges.Scales`, the types in `Soft4You.FMX.Controls.Gauges.Types`.
 
 ## Installation
 
@@ -31,6 +32,7 @@ Add the folder `Sources\Gauges` to the Delphi library path to compile your own p
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.pas` | `TS4YCircularGauge` |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.LinearMeter.pas` | `TS4YLinearMeter` |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.CircularMeter.pas` | `TS4YCircularMeter` |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinCircular.pas` | `TS4YSkinCircularGauge` |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Scales.pas` | The graduation of the meters (`TS4YMeterGraduation`, `TS4YLinearMeterGraduation`, `TS4YCircularMeterGraduation`) their ranges (`TS4YMeterRange`, `TS4YMeterRanges`), the needle of the circular meter (`TS4YCircularMeterNeedle`) and the pointer of the linear one (`TS4YLinearMeterPointer`) |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Types.pas` | Enumerations, sets and event types |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Register.pas` | Registration in the Tool Palette (design time) |
@@ -40,8 +42,9 @@ Add the folder `Sources\Gauges` to the Delphi library path to compile your own p
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.Win.style` / `.Mac.style` | Default style of `TS4YCircularGauge` (the two are identical) |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.LinearMeter.Win.rc` / `.Mac.rc`, `.Win.style` / `.Mac.style` | Resource scripts and default style of `TS4YLinearMeter`, the resource `S4YLinearMeterStyle` |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.CircularMeter.Win.rc` / `.Mac.rc`, `.Win.style` / `.Mac.style` | Resource scripts and default style of `TS4YCircularMeter`, the resource `S4YCircularMeterStyle` |
-| `Graphics\Gauges\TS4YLinearGauge.svg`, `TS4YCircularGauge.svg`, `TS4YLinearMeter.svg`, `TS4YCircularMeter.svg` | Vector masters of the icons of the Tool Palette |
-| `Graphics\Gauges\TS4YLinearGauge.bmp`, `TS4YCircularGauge.bmp`, `TS4YLinearMeter.bmp`, `TS4YCircularMeter.bmp`, `GaugesDesign.rc` | Icons of the Tool Palette (24x24 bitmaps) and the resource script that links them |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinCircular.Win.rc` / `.Mac.rc`, `.Win.style` / `.Mac.style` | Resource scripts and default style of `TS4YSkinCircularGauge`, the resource `S4YSkinCircularGaugeStyle` |
+| `Graphics\Gauges\TS4YLinearGauge.svg`, `TS4YCircularGauge.svg`, `TS4YLinearMeter.svg`, `TS4YCircularMeter.svg`, `TS4YSkinCircularGauge.svg` | Vector masters of the icons of the Tool Palette |
+| `Graphics\Gauges\TS4YLinearGauge.bmp`, `TS4YCircularGauge.bmp`, `TS4YLinearMeter.bmp`, `TS4YCircularMeter.bmp`, `TS4YSkinCircularGauge.bmp`, `GaugesDesign.rc` | Icons of the Tool Palette (24x24 bitmaps) and the resource script that links them |
 
 ## Properties of all the gauges
 
@@ -59,7 +62,7 @@ Add the folder `Sources\Gauges` to the Delphi library path to compile your own p
 | `TrackBrush` | light gray | Brush of the track, used in place of the one of the style |
 | `StyledBrushes` | `[gsbFill, gsbTrack]` | Which brushes come from the style instead of `FillBrush` and `TrackBrush` |
 
-These properties are public in the base class `TS4YCustomGauge`, so that code can work on any gauge through it, for example in a loop or in an `OnGetValueText` shared by several gauges.
+These properties are public in the base class `TS4YCustomGauge`, so that code can work on any gauge through it, for example in a loop or in an `OnGetValueText` shared by several gauges. `TS4YSkinCircularGauge` has no track and no fill: it does not use `Thickness`, `FillBrush`, `TrackBrush` and `StyledBrushes` (see [TS4YSkinCircularGauge](#ts4yskincirculargauge)).
 
 The usual `TControl` properties (`Align`, `Anchors`, `Position`, `Size`, `Margins`, `Padding`, `Opacity`, `Visible`, `Enabled`, `HitTest`, `Cursor`, `RotationAngle`, `Scale`, `PopupMenu`, `StyleLookup`) are published too. `Padding` leaves room between the edges of the control and its content.
 
@@ -224,9 +227,42 @@ The style of `TS4YLinearMeter` is `S4YLinearMeterStyle`, the style of `TS4YCircu
 
 The ticks and the target can be any shape, a `TLine` or a `TRectangle` for example: only the brush of its border is used, the meter draws the lines itself. The needle too can be any shape, of which only the brush of the border is used; the circle of the needle and the pointer can be any shape, of which the brushes and the size are used, and the meter draws a circle and a triangle with them. A missing tick is replaced by a gray line 1.5 pixels thick, a missing target by a dark gray line 3 pixels thick, a missing needle by a red line 3 pixels thick, a missing circle of the needle by a dark gray circle 12 pixels wide, a missing pointer by a dark gray triangle 10 x 8 pixels, a missing text by the default font. The colors of the ranges come from the collection, not from the style. With `FillFromRange` the fill keeps the round ends of its `TArc` or the rounded corners of its `TRectangle`, with the color of the range. The style of the gauge the meter descends from is not used.
 
+## TS4YSkinCircularGauge
+
+A circular gauge whose look is made only of the parts of its style: a dial and a needle drawn as images or as shapes, for example the dial of a car or of a vintage instrument. The gauge does not draw anything: it turns the needle of the style to the angle of the value, and writes the value and the caption in the texts of the style. It has the range, the animation and the format of the value of all the gauges; it has no track and no fill, so it does not use `Thickness`, `FillBrush`, `TrackBrush` and `StyledBrushes`, which are not published.
+
+| Property | Default | Meaning |
+|---|---|---|
+| `StartAngle` | -135 | Angle of the needle at `Min`, in degrees: 0 is the top of the dial, 90 its right side. Used only when the style has no `scale` |
+| `SweepAngle` | 270 | Angle covered by the needle from `Min` to `Max`, from 0 to 360. Used only when the style has no `scale` |
+| `Reversed` | `False` | The needle turns counterclockwise as the value grows. Used only when the style has no `scale` |
+
+A new gauge is 160 x 160 pixels. The parts of the style are shown as they are, with their own position and size: the style decides where the needle, the value and the caption are.
+
+### Style of the skin gauge
+
+The style of `TS4YSkinCircularGauge` is `S4YSkinCircularGaugeStyle`. Unlike the styles of the other gauges, its parts are **visible**: they are the gauge. The gauge uses these parts, all optional:
+
+| Part (`StyleName`) | In the default style | Use |
+|---|---|---|
+| `needle` | `TPath`, red, pointing up | Turned to the angle of the value, around its center of rotation |
+| `scale` | `TArc`, hidden, from 135 for 270 degrees | Gives the angles of the needle and its center of rotation |
+| `valuetext` | `TText`, bold, size 22 | Receives the value; hidden when the value is not written |
+| `captiontext` | `TText` | Receives the caption; hidden when it is empty |
+
+Any other part is just shown: in the default style a round `face`, a gray `band` along the scale and a `needlecap` over the center of the needle. The default style puts all its parts in a `TScaledLayout` aligned with `Fit`: the whole dial is resized with the gauge and stays round, also in a control that is not square.
+
+**The needle** can be any object, a `TImage` with a PNG or an SVG, a `TPath` or a `TLayout` with several objects, drawn **pointing up**, toward the top of the dial. The gauge sets its `RotationAngle`: the angle of the value, plus the `RotationAngle` that the needle has in the style, which can correct an image that does not point exactly up.
+
+**The scale** is a `TArc`, usually hidden, with its center on the center of the dial. Its `StartAngle` is the angle of `Min` and its `EndAngle` the angle covered up to `Max`, in the angles of FMX: 0 is the right side and the angles grow clockwise, so 135 is the bottom left; a negative `EndAngle` makes the needle turn counterclockwise. Its center becomes the center of rotation of the needle, also when the two parts are in different containers, so the needle can be placed anywhere in the style. A gauge whose style has a `scale` does not use `StartAngle`, `SweepAngle` and `Reversed`.
+
+Without `scale`, the needle turns around its own `RotationCenter`, as set in the style (by default its middle: for a needle that turns around one end, set `RotationCenter.Y` to the position of that end, from 0 at the top to 1 at the bottom), and the angles come from `StartAngle`, `SweepAngle` and `Reversed` of the gauge.
+
+To make a gauge of your own, add to a `TStyleBook` a `TLayout` with `StyleName = 'S4YSkinCircularGaugeStyle'`, or with another name given to the `StyleLookup` of the gauges that use it; the default style, `Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinCircular.Win.style`, can be used as a model: replace the face with an image of your dial, the needle with an image of your needle, and set the `scale` on the numbers of the dial.
+
 ## Styles
 
-The look of `TS4YLinearGauge` comes from a style named `S4YLinearGaugeStyle`, the look of `TS4YCircularGauge` from a style named `S4YCircularGaugeStyle`. Each style is a container of invisible parts with the same names. The styles of the meters are described in [Style of the meters](#style-of-the-meters).
+The look of `TS4YLinearGauge` comes from a style named `S4YLinearGaugeStyle`, the look of `TS4YCircularGauge` from a style named `S4YCircularGaugeStyle`. Each style is a container of invisible parts with the same names. The styles of the meters are described in [Style of the meters](#style-of-the-meters), the one of `TS4YSkinCircularGauge` in [Style of the skin gauge](#style-of-the-skin-gauge).
 
 ### Style of the linear gauge
 

@@ -1,0 +1,95 @@
+object TLayout
+  StyleName = 'S4YSkinCircularGaugeStyle'
+  Align = Client
+  HitTest = False
+  object TScaledLayout
+    Align = Fit
+    HitTest = False
+    OriginalWidth = 200.000000000000000000
+    OriginalHeight = 200.000000000000000000
+    Size.Width = 200.000000000000000000
+    Size.Height = 200.000000000000000000
+    Size.PlatformDefault = False
+    object TCircle
+      StyleName = 'face'
+      Align = Client
+      Fill.Color = xFFFAFAFA
+      HitTest = False
+      Stroke.Color = xFFBDBDBD
+      Stroke.Thickness = 2.000000000000000000
+    end
+    object TArc
+      StyleName = 'band'
+      Position.X = 20.000000000000000000
+      Position.Y = 20.000000000000000000
+      Size.Width = 160.000000000000000000
+      Size.Height = 160.000000000000000000
+      Size.PlatformDefault = False
+      EndAngle = 270.000000000000000000
+      Fill.Kind = None
+      HitTest = False
+      StartAngle = 135.000000000000000000
+      Stroke.Cap = Round
+      Stroke.Color = xFFE0E0E0
+      Stroke.Thickness = 8.000000000000000000
+    end
+    object TArc
+      StyleName = 'scale'
+      Position.X = 20.000000000000000000
+      Position.Y = 20.000000000000000000
+      Size.Width = 160.000000000000000000
+      Size.Height = 160.000000000000000000
+      Size.PlatformDefault = False
+      EndAngle = 270.000000000000000000
+      Fill.Kind = None
+      HitTest = False
+      StartAngle = 135.000000000000000000
+      Visible = False
+    end
+    object TPath
+      StyleName = 'needle'
+      Data.Data = 'M5,0 L10,70 L5,85 L0,70 Z'
+      Position.X = 95.000000000000000000
+      Position.Y = 30.000000000000000000
+      Size.Width = 10.000000000000000000
+      Size.Height = 85.000000000000000000
+      Size.PlatformDefault = False
+      Fill.Color = xFFC62828
+      HitTest = False
+      Stroke.Kind = None
+    end
+    object TCircle
+      StyleName = 'needlecap'
+      Position.X = 91.000000000000000000
+      Position.Y = 91.000000000000000000
+      Size.Width = 18.000000000000000000
+      Size.Height = 18.000000000000000000
+      Size.PlatformDefault = False
+      Fill.Color = xFF424242
+      HitTest = False
+      Stroke.Kind = None
+    end
+    object TText
+      StyleName = 'valuetext'
+      Position.X = 40.000000000000000000
+      Position.Y = 128.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 30.000000000000000000
+      Size.PlatformDefault = False
+      HitTest = False
+      TextSettings.Font.Size = 22.000000000000000000
+      TextSettings.Font.Style = [fsBold]
+      TextSettings.FontColor = xFF212121
+    end
+    object TText
+      StyleName = 'captiontext'
+      Position.X = 40.000000000000000000
+      Position.Y = 158.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 18.000000000000000000
+      Size.PlatformDefault = False
+      HitTest = False
+      TextSettings.FontColor = xFF616161
+    end
+  end
+end

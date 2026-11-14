@@ -180,6 +180,7 @@ var
   LCaption: string;
   LValueText: string;
 begin
+  EnsureParts;
   LCaption := Caption;
   LValueText := GetValueText;
 
