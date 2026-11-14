@@ -26,6 +26,8 @@ const
   MM_S4Y_GRID_FILTER_ROW_CHANGED = MM_GRID_USER + 1;
   /// <summary>Message of the model to the presentation: the filter value of a column changed.</summary>
   MM_S4Y_GRID_FILTER_VALUE_CHANGED = MM_GRID_USER + 2;
+  /// <summary>Message of the model to the presentation: the settings of the columns changed.</summary>
+  MM_S4Y_GRID_COLUMN_SETTINGS_CHANGED = MM_GRID_USER + 3;
 
 type
   TS4YGridModel = class;
@@ -35,18 +37,27 @@ type
   /// </summary>
   TS4YGridFilterRow = class(TPersistent)
   public const
+    /// <summary>Default value of FilterDelay, in milliseconds.</summary>
+    C_DEFAULT_FILTER_DELAY = 400;
     /// <summary>Default value of Height: automatic.</summary>
     C_DEFAULT_HEIGHT = 0;
   private
+    FAutoFilter: Boolean;
     FClearOnHide: Boolean;
+    FFilterDelay: Integer;
     FHeight: Integer;
     FVisible: Boolean;
     FOnChange: TNotifyEvent;
     procedure Changed;
+    procedure SetAutoFilter(const Value: Boolean);
     procedure SetClearOnHide(const Value: Boolean);
+    procedure SetFilterDelay(const Value: Integer);
     procedure SetHeight(const Value: Integer);
     procedure SetVisible(const Value: Boolean);
   public
+    /// <summary>Creates the settings with the default values.</summary>
+    constructor Create;
+
     /// <summary>Copies the settings from another filter row.</summary>
     procedure Assign(Source: TPersistent); override;
 
@@ -54,10 +65,24 @@ type
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   published
     /// <summary>
+    /// True fires OnFilter by itself when the user stops typing in an editor of text, number or date for FilterDelay
+    /// milliseconds. The default is False: the user filters with Enter.
+    /// </summary>
+    /// <remarks>
+    /// Each key starts the wait again, so the data are not filtered at each key. Enter, Esc, a choice in a drop-down
+    /// list and a click on a check box filter at once, also when AutoFilter is False.
+    /// </remarks>
+    property AutoFilter: Boolean read FAutoFilter write SetAutoFilter default False;
+    /// <summary>
     /// True clears the filters when the filter row is hidden, and asks the application to filter again with OnFilter.
     /// The default is False: the filters stay, and are shown again with the row.
     /// </summary>
     property ClearOnHide: Boolean read FClearOnHide write SetClearOnHide default False;
+    /// <summary>
+    /// Milliseconds without typing after which AutoFilter fires OnFilter. The default is 400; 0 fires it at each
+    /// change.
+    /// </summary>
+    property FilterDelay: Integer read FFilterDelay write SetFilterDelay default C_DEFAULT_FILTER_DELAY;
     /// <summary>
     /// Height of the filter row, in pixels; 0, the default, is automatic: the height of the editors, at least the
     /// height of the rows of the grid.
@@ -77,14 +102,20 @@ type
   private
     FColumn: TColumn;
     FFilterable: Boolean;
+    FFilterItems: TStrings;
+    procedure FilterItemsChange(Sender: TObject);
+    function FilterItemsStored: Boolean;
     procedure SetColumn(const Value: TColumn);
     procedure SetFilterable(const Value: Boolean);
+    procedure SetFilterItems(const Value: TStrings);
   protected
     /// <summary>Returns the name of the column, for the editor of the collection.</summary>
     function GetDisplayName: string; override;
   public
     /// <summary>Creates the settings of no column, with the default values.</summary>
     constructor Create(Collection: TCollection); override;
+    /// <summary>Destroys the settings.</summary>
+    destructor Destroy; override;
 
     /// <summary>Copies the settings from another item.</summary>
     procedure Assign(Source: TPersistent); override;
@@ -93,6 +124,11 @@ type
     property Column: TColumn read FColumn write SetColumn;
     /// <summary>True shows the editor of the filter of the column in the filter row. The default is True.</summary>
     property Filterable: Boolean read FFilterable write SetFilterable default C_DEFAULT_FILTERABLE;
+    /// <summary>
+    /// The values the user can choose as filter of the column: when there are some, the editor of the column is a
+    /// drop-down list with them, whatever the type of the column. Empty by default.
+    /// </summary>
+    property FilterItems: TStrings read FFilterItems write SetFilterItems stored FilterItemsStored;
   end;
 
   /// <summary>
@@ -114,6 +150,8 @@ type
     function Add(const AColumn: TColumn): TS4YGridColumnSetting; overload;
     /// <summary>Returns the settings of AColumn, or nil when the column has none.</summary>
     function FindColumn(const AColumn: TColumn): TS4YGridColumnSetting;
+    /// <summary>Returns the FilterItems of AColumn, or nil when it has none.</summary>
+    function GetFilterItems(const AColumn: TColumn): TStrings;
     /// <summary>Returns True when the filter of AColumn is shown in the filter row.</summary>
     function IsFilterable(const AColumn: TColumn): Boolean;
 
@@ -252,6 +290,13 @@ uses
 
 { TS4YGridFilterRow }
 
+constructor TS4YGridFilterRow.Create;
+begin
+  inherited;
+
+  FFilterDelay := C_DEFAULT_FILTER_DELAY;
+end;
+
 procedure TS4YGridFilterRow.Assign(Source: TPersistent);
 var
   LSource: TS4YGridFilterRow;
@@ -259,7 +304,9 @@ begin
   if Source is TS4YGridFilterRow then
   begin
     LSource := TS4YGridFilterRow(Source);
+    FAutoFilter := LSource.AutoFilter;
     FClearOnHide := LSource.ClearOnHide;
+    FFilterDelay := LSource.FilterDelay;
     FHeight := LSource.Height;
     FVisible := LSource.Visible;
     Changed;
@@ -274,12 +321,34 @@ begin
     FOnChange(Self);
 end;
 
+procedure TS4YGridFilterRow.SetAutoFilter(const Value: Boolean);
+begin
+  if FAutoFilter = Value then
+    Exit;
+
+  FAutoFilter := Value;
+  Changed;
+end;
+
 procedure TS4YGridFilterRow.SetClearOnHide(const Value: Boolean);
 begin
   if FClearOnHide = Value then
     Exit;
 
   FClearOnHide := Value;
+  Changed;
+end;
+
+procedure TS4YGridFilterRow.SetFilterDelay(const Value: Integer);
+begin
+  if FFilterDelay = Value then
+    Exit;
+
+  if Value < 0 then
+    FFilterDelay := 0
+  else
+    FFilterDelay := Value;
+
   Changed;
 end;
 
@@ -312,6 +381,15 @@ begin
   inherited;
 
   FFilterable := C_DEFAULT_FILTERABLE;
+  FFilterItems := TStringList.Create;
+  TStringList(FFilterItems).OnChange := FilterItemsChange;
+end;
+
+destructor TS4YGridColumnSetting.Destroy;
+begin
+  FFilterItems.Free;
+
+  inherited;
 end;
 
 procedure TS4YGridColumnSetting.Assign(Source: TPersistent);
@@ -323,10 +401,21 @@ begin
     LSource := TS4YGridColumnSetting(Source);
     Column := LSource.Column;
     FFilterable := LSource.Filterable;
+    FFilterItems.Assign(LSource.FilterItems);
     Changed(False);
   end
   else
     inherited;
+end;
+
+procedure TS4YGridColumnSetting.FilterItemsChange(Sender: TObject);
+begin
+  Changed(False);
+end;
+
+function TS4YGridColumnSetting.FilterItemsStored: Boolean;
+begin
+  Result := FFilterItems.Count > 0;
 end;
 
 function TS4YGridColumnSetting.GetDisplayName: string;
@@ -353,6 +442,11 @@ begin
     FColumn.FreeNotification(TComponent(LOwner));
 
   Changed(False);
+end;
+
+procedure TS4YGridColumnSetting.SetFilterItems(const Value: TStrings);
+begin
+  FFilterItems.Assign(Value);
 end;
 
 procedure TS4YGridColumnSetting.SetFilterable(const Value: Boolean);
@@ -391,6 +485,18 @@ begin
 
     Inc(LIndex);
   end;
+end;
+
+function TS4YGridColumnSettings.GetFilterItems(const AColumn: TColumn): TStrings;
+var
+  LSetting: TS4YGridColumnSetting;
+begin
+  LSetting := FindColumn(AColumn);
+
+  if Assigned(LSetting) and (LSetting.FilterItems.Count > 0) then
+    Result := LSetting.FilterItems
+  else
+    Result := nil;
 end;
 
 function TS4YGridColumnSettings.GetItem(const AIndex: Integer): TS4YGridColumnSetting;
@@ -461,7 +567,7 @@ end;
 
 procedure TS4YGridModel.ColumnSettingsChange(Sender: TObject);
 begin
-  SendMessage(MM_S4Y_GRID_FILTER_ROW_CHANGED);
+  SendMessage(MM_S4Y_GRID_COLUMN_SETTINGS_CHANGED);
 end;
 
 procedure TS4YGridModel.DoColumnRemoved(const Column: TColumn);

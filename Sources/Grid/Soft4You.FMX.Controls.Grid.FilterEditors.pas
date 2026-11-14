@@ -19,6 +19,7 @@ uses
   FMX.Edit,
   FMX.DateTimeCtrls,
   FMX.StdCtrls,
+  FMX.ListBox,
   Soft4You.FMX.Controls.Grid.Types;
 
 type
@@ -34,7 +35,7 @@ type
   protected
     /// <summary>Returns editstyle, the style of TEdit, also for the editors that descend from this one.</summary>
     function GetDefaultStyleLookupName: string; override;
-    /// <summary>Asks to filter when Enter is pressed.</summary>
+    /// <summary>Asks to filter when Enter is pressed; Esc clears the text and asks to filter.</summary>
     procedure KeyDown(var Key: Word; var KeyChar: System.WideChar; Shift: TShiftState); override;
     /// <summary>Shows AText without firing the change.</summary>
     procedure SetTextSilently(const AText: string);
@@ -96,7 +97,7 @@ type
   protected
     /// <summary>Returns dateeditstyle, the style of TDateEdit.</summary>
     function GetDefaultStyleLookupName: string; override;
-    /// <summary>Asks to filter when Enter is pressed.</summary>
+    /// <summary>Asks to filter when Enter is pressed; Esc clears the date and asks to filter.</summary>
     procedure KeyDown(var Key: Word; var KeyChar: System.WideChar; Shift: TShiftState); override;
   public
     /// <summary>Creates an empty editor with the button that clears the date.</summary>
@@ -149,6 +150,9 @@ type
     /// <summary>Creates an editor without filter.</summary>
     constructor Create(AOwner: TComponent); override;
 
+    /// <summary>Esc shows any row again and asks to filter.</summary>
+    procedure KeyDown(var Key: Word; var KeyChar: System.WideChar; Shift: TShiftState); override;
+
     /// <summary>Returns True for checked rows, False for unchecked rows, an empty value for any row.</summary>
     function GetFilterValue: TValue;
     /// <summary>Shows the Boolean AValue; an empty value shows the state without filter.</summary>
@@ -162,10 +166,42 @@ type
     property State: TS4YGridCheckFilterState read FState write SetState;
   end;
 
+  /// <summary>
+  /// The editor of the filter of a column with a list of values, such as a TPopupColumn: a drop-down list whose
+  /// first item, empty, is no filter; the filter is the text of the item chosen, a string. A choice asks to filter.
+  /// </summary>
+  TS4YGridListFilterEditor = class(TComboBox, IS4YGridFilterEditor)
+  private
+    FOnFilterSubmit: TNotifyEvent;
+    FOnFilterValueChange: TNotifyEvent;
+    FSettingValue: Boolean;
+    procedure ListChange(Sender: TObject);
+  protected
+    /// <summary>Returns comboboxstyle, the style of TComboBox.</summary>
+    function GetDefaultStyleLookupName: string; override;
+    /// <summary>Esc, with the list closed, chooses the empty item and asks to filter.</summary>
+    procedure KeyDown(var Key: Word; var KeyChar: System.WideChar; Shift: TShiftState); override;
+  public
+    /// <summary>Creates an editor with only the empty item.</summary>
+    constructor Create(AOwner: TComponent); override;
+
+    /// <summary>Returns the text of the item chosen, or an empty value for the empty item.</summary>
+    function GetFilterValue: TValue;
+    /// <summary>Shows the empty item and then the items of AItems.</summary>
+    procedure SetFilterItems(const AItems: TStrings);
+    /// <summary>Chooses the item with the text AValue; an empty value chooses the empty item.</summary>
+    procedure SetFilterValue(const AValue: TValue);
+    /// <summary>Sets the event fired when the user chooses an item.</summary>
+    procedure SetOnFilterValueChange(const AEvent: TNotifyEvent);
+    /// <summary>Sets the event fired after the choice.</summary>
+    procedure SetOnFilterSubmit(const AEvent: TNotifyEvent);
+  end;
+
 implementation
 
 uses
   System.SysUtils,
+  System.Math,
   FMX.Types;
 
 { TS4YGridTextFilterEditor }
@@ -194,6 +230,18 @@ procedure TS4YGridTextFilterEditor.KeyDown(var Key: Word; var KeyChar: System.Wi
 var
   LKey: Word;
 begin
+  // Esc with a filter clears it, and is not passed on, for example to close the form.
+  if (Key = vkEscape) and (Text <> '') then
+  begin
+    Key := 0;
+    Text := '';
+
+    if Assigned(FOnFilterSubmit) then
+      FOnFilterSubmit(Self);
+
+    Exit;
+  end;
+
   LKey := Key;
 
   inherited;
@@ -320,6 +368,17 @@ procedure TS4YGridDateFilterEditor.KeyDown(var Key: Word; var KeyChar: System.Wi
 var
   LKey: Word;
 begin
+  if (Key = vkEscape) and not IsEmpty then
+  begin
+    Key := 0;
+    IsEmpty := True;
+
+    if Assigned(FOnFilterSubmit) then
+      FOnFilterSubmit(Self);
+
+    Exit;
+  end;
+
   LKey := Key;
 
   inherited;
@@ -403,6 +462,25 @@ begin
   end;
 end;
 
+procedure TS4YGridCheckFilterEditor.KeyDown(var Key: Word; var KeyChar: System.WideChar; Shift: TShiftState);
+begin
+  if (Key = vkEscape) and (FState <> gcfAny) then
+  begin
+    Key := 0;
+    SetState(gcfAny);
+
+    if Assigned(FOnFilterValueChange) then
+      FOnFilterValueChange(Self);
+
+    if Assigned(FOnFilterSubmit) then
+      FOnFilterSubmit(Self);
+
+    Exit;
+  end;
+
+  inherited;
+end;
+
 procedure TS4YGridCheckFilterEditor.SetFilterValue(const AValue: TValue);
 begin
   if AValue.IsEmpty then
@@ -442,6 +520,100 @@ begin
   finally
     FSettingValue := False;
   end;
+end;
+
+{ TS4YGridListFilterEditor }
+
+constructor TS4YGridListFilterEditor.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  Items.Add('');
+  ItemIndex := 0;
+  OnChange := ListChange;
+end;
+
+function TS4YGridListFilterEditor.GetDefaultStyleLookupName: string;
+begin
+  Result := 'comboboxstyle';
+end;
+
+function TS4YGridListFilterEditor.GetFilterValue: TValue;
+begin
+  if ItemIndex <= 0 then
+    Result := TValue.Empty
+  else
+    Result := Items[ItemIndex];
+end;
+
+procedure TS4YGridListFilterEditor.KeyDown(var Key: Word; var KeyChar: System.WideChar; Shift: TShiftState);
+begin
+  // With the list open, Esc closes it.
+  if (Key = vkEscape) and not DroppedDown and (ItemIndex > 0) then
+  begin
+    Key := 0;
+    ItemIndex := 0;
+    Exit;
+  end;
+
+  inherited;
+end;
+
+procedure TS4YGridListFilterEditor.ListChange(Sender: TObject);
+begin
+  if FSettingValue then
+    Exit;
+
+  if Assigned(FOnFilterValueChange) then
+    FOnFilterValueChange(Self);
+
+  if Assigned(FOnFilterSubmit) then
+    FOnFilterSubmit(Self);
+end;
+
+procedure TS4YGridListFilterEditor.SetFilterItems(const AItems: TStrings);
+begin
+  FSettingValue := True;
+  try
+    Items.BeginUpdate;
+    try
+      Items.Clear;
+      Items.Add('');
+
+      if Assigned(AItems) then
+        Items.AddStrings(AItems);
+    finally
+      Items.EndUpdate;
+    end;
+
+    ItemIndex := 0;
+  finally
+    FSettingValue := False;
+  end;
+end;
+
+procedure TS4YGridListFilterEditor.SetFilterValue(const AValue: TValue);
+begin
+  FSettingValue := True;
+  try
+    // A value that is not in the list shows the empty item.
+    if AValue.IsEmpty then
+      ItemIndex := 0
+    else
+      ItemIndex := Max(0, Items.IndexOf(AValue.ToString));
+  finally
+    FSettingValue := False;
+  end;
+end;
+
+procedure TS4YGridListFilterEditor.SetOnFilterSubmit(const AEvent: TNotifyEvent);
+begin
+  FOnFilterSubmit := AEvent;
+end;
+
+procedure TS4YGridListFilterEditor.SetOnFilterValueChange(const AEvent: TNotifyEvent);
+begin
+  FOnFilterValueChange := AEvent;
 end;
 
 end.

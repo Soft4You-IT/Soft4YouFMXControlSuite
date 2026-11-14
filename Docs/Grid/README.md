@@ -1,6 +1,6 @@
 # TS4YGrid for FireMonkey
 
-A grid with a **filter row** under the header: an editor for each column, where the user writes the value to look for in that column. The editor comes from the type of the column: a text box for a text column, a box that accepts only numbers for an integer, decimal or currency column, a date picker for a date column, a check box with three states for a check column.
+A grid with a **filter row** under the header: an editor for each column, where the user writes or chooses the value to look for in that column. The editor comes from the type of the column: a text box for a text column, a box that accepts only numbers for an integer, decimal or currency column, a date picker for a date column, a check box with three states for a check column, a drop-down list for a column with a list of values. The data can be filtered when the user presses Enter, or by themselves after a pause in the typing.
 
 `TS4YGrid` is a `TGrid`: the cells get their values from `OnGetValue` or from the LiveBindings, as in a `TGrid`, and every property, column and event of `TGrid` is there. The grid **does not filter the data itself**: it keeps the filter values and tells the application when to filter, with `OnFilter`; the application filters its own data, for example a list of objects or a `TDataSet`, and sets `RowCount` again.
 
@@ -20,7 +20,7 @@ Add the folder `Sources\Grid` to the Delphi library path to compile your own pro
 |---|---|
 | `Sources\Grid\Soft4You.FMX.Controls.Grid.pas` | `TS4YGrid`, its model `TS4YGridModel`, the settings of the filter row (`TS4YGridFilterRow`) and of the columns (`TS4YGridColumnSetting`, `TS4YGridColumnSettings`) |
 | `Sources\Grid\Soft4You.FMX.Controls.Grid.Style.pas` | `TS4YStyledGrid`, the presentation that adds the filter row to the style of the grid, and `TS4YGridBand`, the row itself |
-| `Sources\Grid\Soft4You.FMX.Controls.Grid.FilterEditors.pas` | The editors of the filter row: `TS4YGridTextFilterEditor`, `TS4YGridNumberFilterEditor`, `TS4YGridDateFilterEditor`, `TS4YGridCheckFilterEditor` |
+| `Sources\Grid\Soft4You.FMX.Controls.Grid.FilterEditors.pas` | The editors of the filter row: `TS4YGridTextFilterEditor`, `TS4YGridNumberFilterEditor`, `TS4YGridDateFilterEditor`, `TS4YGridCheckFilterEditor`, `TS4YGridListFilterEditor` |
 | `Sources\Grid\Soft4You.FMX.Controls.Grid.Types.pas` | The interface of the editors `IS4YGridFilterEditor` and the event types |
 | `Sources\Grid\Soft4You.FMX.Controls.Grid.Register.pas` | Registration in the Tool Palette (design time) |
 | `Graphics\Grid\TS4YGrid.svg`, `TS4YGrid.bmp`, `GridDesign.rc` | Icon of the Tool Palette (vector master and 24x24 bitmap) and the resource script that links it |
@@ -32,6 +32,8 @@ Add the folder `Sources\Grid` to the Delphi library path to compile your own pro
 | `FilterRow.Visible` | `False` | Shows the filter row under the header |
 | `FilterRow.Height` | 0 | Height of the row, in pixels; 0 is automatic: the height of the editors, at least the height of the rows of the grid |
 | `FilterRow.ClearOnHide` | `False` | Clears the filters when the row is hidden, and fires `OnFilter`, so the application shows all its data again; `False` keeps them, and shows them again with the row |
+| `FilterRow.AutoFilter` | `False` | Fires `OnFilter` by itself when the user stops typing in an editor of text, number or date for `FilterDelay` milliseconds; `False` filters only with Enter |
+| `FilterRow.FilterDelay` | 400 | Milliseconds without typing after which `AutoFilter` fires `OnFilter`; 0 fires it at each change |
 
 The row follows the columns: an editor has the width of its column, moves with it when the columns are moved or scrolled horizontally, and is hidden with it. The cells of the grid start under the row.
 
@@ -43,9 +45,12 @@ The row follows the columns: an editor has the width of its column, moves with i
 | `TFloatColumn`, `TCurrencyColumn` | Text box that accepts only digits, the minus sign and the decimal separator | `Double` |
 | `TDateColumn` | Date picker with the button that clears the date | `TDate` |
 | `TCheckColumn` | Check box with three states: any row (shown faded), checked rows, unchecked rows; a click passes to the next state | `Boolean` |
+| `TPopupColumn`, or any column with `FilterItems` | Drop-down list with an empty item, which is no filter, and the items of the column or its `FilterItems` | `string`, the text of the item |
 | Any other column, such as `TStringColumn` | Text box | `string` |
 
-Every editor has an **empty** state, which means no filter for that column: no text, a text that is not yet a number (such as a minus sign alone), no date, the faded check box.
+Every editor has an **empty** state, which means no filter for that column: no text, a text that is not yet a number (such as a minus sign alone), no date, the faded check box, the empty item of the list. **Esc** in an editor with a filter clears it and fires `OnFilter`; in a list it works with the list closed, since with the list open it closes the list.
+
+The `FilterItems` of a column come before its type: a text column with a few possible values, such as *Open*, *Closed*, *Suspended*, can have a list instead of a text box.
 
 To give a column an editor of your own, handle `OnCreateFilterEditor` and create a `TControl` that implements `IS4YGridFilterEditor`, the interface of the unit `Soft4You.FMX.Controls.Grid.Types`: the grid becomes its parent and frees it. The editors of the unit `Soft4You.FMX.Controls.Grid.FilterEditors` can be used as models, or as base classes.
 
@@ -57,6 +62,7 @@ To give a column an editor of your own, handle `OnCreateFilterEditor` and create
 |---|---|---|
 | `Column` | | The column of the grid the item is for |
 | `Filterable` | `True` | Shows the editor of the column in the filter row |
+| `FilterItems` | empty | The values the user can choose as filter of the column: when there are some, the editor is a drop-down list with them, whatever the type of the column |
 
 ## Filter values
 
@@ -70,10 +76,10 @@ To give a column an editor of your own, handle `OnCreateFilterEditor` and create
 | Event | Fires |
 |---|---|
 | `OnFilterChanged(Sender, AColumn)` | When the filter value of a column changes, in its editor or by code |
-| `OnFilter(Sender)` | When the application must filter its data: Enter in an editor, a click on a check box of the row, a call to `Filter`, the row hidden with `ClearOnHide` |
+| `OnFilter(Sender)` | When the application must filter its data: Enter or Esc in an editor, a choice in a list or a click on a check box of the row, the pause in the typing with `AutoFilter`, a call to `Filter`, the row hidden with `ClearOnHide` |
 | `OnCreateFilterEditor(Sender, AColumn, var AEditor)` | When the grid creates the editor of a column: an editor of your own instead of the one of the grid |
 
-The meaning of a value is decided by the application: for a text it is usually "contains", for a number or a date "equal". Typing in an editor fires `OnFilterChanged` at each change, but `OnFilter` only with Enter, so the data are not filtered again at each key.
+The meaning of a value is decided by the application: for a text it is usually "contains", for a number or a date "equal". Typing in an editor fires `OnFilterChanged` at each change, but `OnFilter` only with Enter, or with `AutoFilter` after a pause, so the data are not filtered again at each key; each key starts the pause again. A choice in a list and a click on a check box are explicit, and filter at once.
 
 ## Example
 
@@ -104,6 +110,6 @@ end;
 
 ## Styles
 
-The filter row is added to the style of the grid when the style is applied: to the part `background`, aligned to the top after the header, so the part `content` with the cells starts under it. The row draws a line on its bottom side with the brush `linefill` of the style, the brush of the lines of the grid, and its editors take the styles of `TEdit`, `TDateEdit` and `TCheckBox`.
+The filter row is added to the style of the grid when the style is applied: to the part `background`, aligned to the top after the header, so the part `content` with the cells starts under it. The row draws a line on its bottom side with the brush `linefill` of the style, the brush of the lines of the grid, and its editors take the styles of `TEdit`, `TDateEdit`, `TCheckBox` and `TComboBox`.
 
 A style of the grid in a `TStyleBook` can add a part `filterrowbackground`, any control: it becomes the background of the filter row. A style without the part `background` has no filter row.

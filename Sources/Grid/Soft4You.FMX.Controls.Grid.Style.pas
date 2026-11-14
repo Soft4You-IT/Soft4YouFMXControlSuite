@@ -57,13 +57,16 @@ type
   /// </remarks>
   TS4YStyledGrid = class(TStyledGrid)
   private
+    FAutoFilterTimer: TTimer;
     FBackground: TControl;
     FContentPart: TControl;
     FEditors: TDictionary<TColumn, TControl>;
     FFilterRow: TS4YGridBand;
     FLineFill: TBrushObject;
     FUpdatingFromEditor: Boolean;
+    procedure AutoFilterTimer(Sender: TObject);
     function CreateFilterEditor(const AColumn: TColumn): TControl;
+    procedure FreeEditors;
     function FindEditorColumn(const AEditor: TObject): TColumn;
     procedure EditorFilterSubmit(Sender: TObject);
     procedure EditorFilterValueChange(Sender: TObject);
@@ -71,6 +74,7 @@ type
     function GetModel: TS4YGridModel; overload;
     procedure MMColumnChanged(var Message: TDispatchMessageWithValue<Integer>); message MM_COLUMN_CHANGED;
     procedure MMColumnMoved(var Message: TDispatchMessageWithValue<TGridModel.TColumnIndexes>); message MM_COLUMN_MOVED;
+    procedure MMColumnSettingsChanged(var Message: TDispatchMessage); message MM_S4Y_GRID_COLUMN_SETTINGS_CHANGED;
     procedure MMContentChanged(var Message: TDispatchMessage); message MM_CONTENT_CHANGED;
     procedure MMFilterRowChanged(var Message: TDispatchMessage); message MM_S4Y_GRID_FILTER_ROW_CHANGED;
     procedure MMFilterValueChanged(var Message: TDispatchMessageWithValue<TColumn>);
@@ -163,10 +167,14 @@ begin
   inherited;
 
   FEditors := TDictionary<TColumn, TControl>.Create;
+  FAutoFilterTimer := TTimer.Create(nil);
+  FAutoFilterTimer.Enabled := False;
+  FAutoFilterTimer.OnTimer := AutoFilterTimer;
 end;
 
 destructor TS4YStyledGrid.Destroy;
 begin
+  FAutoFilterTimer.Free;
   FEditors.Free;
 
   inherited;
@@ -210,19 +218,36 @@ begin
   UpdateFilterRow;
 end;
 
+procedure TS4YStyledGrid.AutoFilterTimer(Sender: TObject);
+begin
+  FAutoFilterTimer.Enabled := False;
+  Model.Filter;
+end;
+
 function TS4YStyledGrid.CreateFilterEditor(const AColumn: TColumn): TControl;
 var
   LEditor: IS4YGridFilterEditor;
+  LItems: TStrings;
 begin
   Result := nil;
+  LItems := Model.ColumnSettings.GetFilterItems(AColumn);
+
+  if not Assigned(LItems) and (AColumn is TPopupColumn) then
+    LItems := TPopupColumn(AColumn).Items;
 
   if Assigned(Model.OnCreateFilterEditor) then
     Model.OnCreateFilterEditor(Model.Owner, AColumn, Result);
 
+  // The list of values comes before the type of the column.
   if Assigned(Result) then
   begin
     if not Supports(Result, IS4YGridFilterEditor) then
       raise EArgumentException.CreateFmt(S_FILTER_EDITOR_INTERFACE, [AColumn.Name]);
+  end
+  else if Assigned(LItems) then
+  begin
+    Result := TS4YGridListFilterEditor.Create(nil);
+    TS4YGridListFilterEditor(Result).SetFilterItems(LItems);
   end
   else if AColumn is TIntegerColumn then
     Result := TS4YGridNumberFilterEditor.Create(nil)
@@ -261,6 +286,8 @@ end;
 
 procedure TS4YStyledGrid.EditorFilterSubmit(Sender: TObject);
 begin
+  // The filter is applied now: the wait of AutoFilter is no longer needed.
+  FAutoFilterTimer.Enabled := False;
   Model.Filter;
 end;
 
@@ -281,6 +308,15 @@ begin
   finally
     FUpdatingFromEditor := False;
   end;
+
+  // Each change starts the wait again; a change followed at once by a request to filter, as a click on a check
+  // box, stops it.
+  if Model.FilterRow.AutoFilter then
+  begin
+    FAutoFilterTimer.Enabled := False;
+    FAutoFilterTimer.Interval := Max(1, Model.FilterRow.FilterDelay);
+    FAutoFilterTimer.Enabled := True;
+  end;
 end;
 
 function TS4YStyledGrid.FindEditorColumn(const AEditor: TObject): TColumn;
@@ -294,9 +330,18 @@ begin
       Result := LPair.Key;
 end;
 
+procedure TS4YStyledGrid.FreeEditors;
+begin
+  for var LEditor in FEditors.Values do
+    LEditor.Free;
+
+  FEditors.Clear;
+end;
+
 procedure TS4YStyledGrid.FreeStyle;
 begin
   // The row and its editors are children of the style, and are freed with it.
+  FAutoFilterTimer.Enabled := False;
   FEditors.Clear;
   FFilterRow := nil;
   FBackground := nil;
@@ -331,6 +376,13 @@ begin
   inherited;
 
   UpdateFilterRowCells;
+end;
+
+procedure TS4YStyledGrid.MMColumnSettingsChanged(var Message: TDispatchMessage);
+begin
+  // The editors are created again, with the new lists of values; the filter values stay in the model.
+  FreeEditors;
+  UpdateFilterRow;
 end;
 
 procedure TS4YStyledGrid.MMContentChanged(var Message: TDispatchMessage);
