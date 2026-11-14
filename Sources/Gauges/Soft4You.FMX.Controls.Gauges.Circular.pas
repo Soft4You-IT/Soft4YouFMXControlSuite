@@ -319,6 +319,7 @@ var
   LTextGap: Single;
   LUnitBounds: TRectF;
 begin
+  EnsureParts;
   LContentRect := GetContentRect;
   LUnitBounds := CalculateUnitArcBounds;
   LOuterSize := Thickness + 2 * GetOuterMargin;

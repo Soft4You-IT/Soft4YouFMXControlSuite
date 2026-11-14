@@ -30,7 +30,7 @@ type
   /// </summary>
   /// <remarks>
   /// The look comes from a style: its graphic parts track and fill can be any graphic object and are drawn as they are, resized to the area they cover; its texts valuetext and captiontext give fonts and colors.
-  /// The descendants, TS4YLinearGauge and TS4YCircularGauge, decide the shape of the track and where the texts go. The class is not registered in the Tool Palette.
+  /// The descendants, TS4YLinearGauge and TS4YCircularGauge, decide the shape of the track and where the texts go; TS4YSkinCircularGauge draws nothing and shows the value with the parts of its style. The class is not registered in the Tool Palette.
   /// The properties shared by the gauges are public, so that code can work on any gauge through this class.
   /// </remarks>
   TS4YCustomGauge = class(TStyledControl)
@@ -85,7 +85,6 @@ type
     function CreateGaugePart(const AStyleName: string; const AStyledBrush: TS4YGaugeStyledBrush;
       const ABrush: TBrush): TControl;
     function CreatePart(const AStyleName: string; out FromStyle: Boolean): TControl;
-    procedure EnsureParts;
     procedure FillBrushChanged(Sender: TObject);
     function FormatValue(const AValue: Single): string;
     procedure FreeParts;
@@ -120,12 +119,17 @@ type
     procedure ApplyStyle; override;
     /// <summary>Creates the part drawn when the style has no track or no fill: a rectangle without border.</summary>
     function CreateDefaultPart: TControl; virtual;
+    /// <summary>Called when what the gauge shows changes: the value drawn, also at each step of the animation, its text or the caption; also after a style is applied and after loading. Nothing here.</summary>
+    /// <remarks>A descendant that shows the value with the parts of its style, instead of drawing it, updates them here.</remarks>
+    procedure DisplayChanged; virtual;
     /// <summary>Fires OnGetValueText.</summary>
     procedure DoGetValueText(const AValue: Single; var AText: string); virtual;
     /// <summary>Draws the track, the fill and the texts in the area of the content.</summary>
     procedure DrawGauge; virtual; abstract;
     /// <summary>Draws a copy of a part of the style resized to ARect, in the coordinates of the control.</summary>
     procedure DrawPart(const APart: TControl; const ARect: TRectF);
+    /// <summary>Prepares TrackPart and FillPart, the copies of the parts track and fill of the style, when they are not ready; a descendant that draws them calls it at the start of DrawGauge.</summary>
+    procedure EnsureParts;
     /// <summary>Releases the parts of the style.</summary>
     procedure FreeStyle; override;
     /// <summary>Returns the area of the control inside Padding.</summary>
@@ -363,6 +367,7 @@ begin
 
   // The graphic parts are copied from the new style the next time the control paints.
   FreeParts;
+  DisplayChanged;
   Repaint;
 end;
 
@@ -427,6 +432,11 @@ begin
   Result.Stored := False;
   Result.Visible := True;
   Result.Parent := FPartsContainer;
+end;
+
+procedure TS4YCustomGauge.DisplayChanged;
+begin
+  // Nothing: the gauges draw the value and the texts when they paint.
 end;
 
 procedure TS4YCustomGauge.DoGetValueText(const AValue: Single; var AText: string);
@@ -540,6 +550,7 @@ begin
 
   FValue := EnsureRange(FValue, FMin, FMax);
   FDisplayedValue := FValue;
+  DisplayChanged;
 end;
 
 function TS4YCustomGauge.MaxStored: Boolean;
@@ -567,7 +578,6 @@ procedure TS4YCustomGauge.Paint;
 begin
   inherited;
 
-  EnsureParts;
   DrawGauge;
 end;
 
@@ -628,6 +638,7 @@ begin
     Exit;
 
   FCaption := Value;
+  DisplayChanged;
   Repaint;
 end;
 
@@ -637,6 +648,7 @@ begin
     Exit;
 
   FDisplayedValue := Value;
+  DisplayChanged;
   Repaint;
 end;
 
@@ -691,6 +703,7 @@ begin
     Exit;
 
   FShowValue := Value;
+  DisplayChanged;
   Repaint;
 end;
 
@@ -753,6 +766,7 @@ begin
     Exit;
 
   FValueFormat := Value;
+  DisplayChanged;
   Repaint;
 end;
 

@@ -7,6 +7,7 @@ uses
   System.Classes,
   System.UITypes,
   System.Math,
+  System.DateUtils,
   FMX.Types,
   FMX.Controls,
   FMX.Forms,
@@ -20,7 +21,9 @@ uses
   Soft4You.FMX.Controls.Gauges.Linear,
   Soft4You.FMX.Controls.Gauges.Circular,
   Soft4You.FMX.Controls.Gauges.LinearMeter,
-  Soft4You.FMX.Controls.Gauges.CircularMeter;
+  Soft4You.FMX.Controls.Gauges.CircularMeter,
+  Soft4You.FMX.Controls.Gauges.SkinCircular,
+  Soft4You.FMX.Controls.Gauges.SkinLinear;
 
 type
   TGaugesGalleryForm = class(TForm)
@@ -56,6 +59,15 @@ type
     TemperatureMeter: TS4YCircularMeter;
     FuelMeter: TS4YCircularMeter;
     MirroredMeter: TS4YCircularMeter;
+    SkinsTab: TTabItem;
+    SkinsLabel: TLabel;
+    ClockSkinGauge: TS4YSkinCircularGauge;
+    CarSkinGauge: TS4YSkinCircularGauge;
+    ThermometerSkinGauge: TS4YSkinLinearGauge;
+    DefaultSkinCircularGauge: TS4YSkinCircularGauge;
+    DefaultSkinLinearGauge: TS4YSkinLinearGauge;
+    SkinsTimer: TTimer;
+    ClockTimer: TTimer;
     DashboardTab: TTabItem;
     DashboardLabel: TLabel;
     CpuGauge: TS4YCircularGauge;
@@ -94,6 +106,7 @@ type
     DarkCircularGauge: TS4YCircularGauge;
     DarkSpeedometerGauge: TS4YCircularGauge;
     GalleryStyleBook: TStyleBook;
+    procedure ClockTimerTimer(Sender: TObject);
     procedure DashboardTimerTimer(Sender: TObject);
     procedure DownloadTimerTimer(Sender: TObject);
     procedure EqualizerTimerTimer(Sender: TObject);
@@ -101,6 +114,7 @@ type
     procedure LoadGaugeGetValueText(Sender: TObject; const AValue: Single; var AText: string);
     procedure LoadTrackBarChange(Sender: TObject);
     procedure MetersTimerTimer(Sender: TObject);
+    procedure SkinsTimerTimer(Sender: TObject);
   private
     FDownloadPause: Integer;
   end;
@@ -129,6 +143,20 @@ const
   C_DOWNLOAD_INCREMENT = 0.5;
   // Ticks of DownloadTimer to wait at the end of a download, before the next one.
   C_DOWNLOAD_END_PAUSE = 30;
+  // Percent of fuel used at each tick of SkinsTimer.
+  C_FUEL_DECREMENT = 2;
+
+procedure TGaugesGalleryForm.ClockTimerTimer(Sender: TObject);
+var
+  LNow: TDateTime;
+begin
+  // The hands of the hours and the minutes move a little with the minutes and the seconds, the one of the
+  // seconds is needle and jumps from second to second.
+  LNow := Now;
+  ClockSkinGauge.Needles[0].Value := HourOf(LNow) + MinuteOf(LNow) / 60;
+  ClockSkinGauge.Needles[1].Value := MinuteOf(LNow) + SecondOf(LNow) / 60;
+  ClockSkinGauge.Value := SecondOf(LNow);
+end;
 
 procedure TGaugesGalleryForm.DashboardTimerTimer(Sender: TObject);
 begin
@@ -178,6 +206,7 @@ begin
   GalleryTabControl.TabIndex := 0;
   Randomize;
   LoadTrackBarChange(LoadTrackBar);
+  ClockTimerTimer(ClockTimer);
 end;
 
 procedure TGaugesGalleryForm.LoadGaugeGetValueText(Sender: TObject; const AValue: Single; var AText: string);
@@ -223,6 +252,31 @@ begin
   ThermometerMeter.Value := EnsureRange(ThermometerMeter.Value + Random * 16 - 8, ThermometerMeter.Min,
     ThermometerMeter.Max);
   TunerMeter.Value := Random(61) - 30;
+end;
+
+procedure TGaugesGalleryForm.SkinsTimerTimer(Sender: TObject);
+var
+  LFuel: TS4YSkinGaugeNeedle;
+begin
+  CarSkinGauge.Value := EnsureRange(CarSkinGauge.Value + Random(81) - 40, CarSkinGauge.Min, CarSkinGauge.Max);
+
+  // The fuel goes down at each tick, and the tank is filled again when it is empty.
+  LFuel := CarSkinGauge.Needles[0];
+
+  if LFuel.Value <= LFuel.Min then
+    LFuel.Value := LFuel.Max
+  else
+    LFuel.Value := LFuel.Value - C_FUEL_DECREMENT;
+
+  // The marks of the thermometer follow the lowest and the highest temperature reached.
+  ThermometerSkinGauge.Value := EnsureRange(ThermometerSkinGauge.Value + Random * 6 - 3, ThermometerSkinGauge.Min,
+    ThermometerSkinGauge.Max);
+  ThermometerSkinGauge.Pointers[0].Value := System.Math.Min(ThermometerSkinGauge.Pointers[0].Value,
+    ThermometerSkinGauge.Value);
+  ThermometerSkinGauge.Pointers[1].Value := System.Math.Max(ThermometerSkinGauge.Pointers[1].Value,
+    ThermometerSkinGauge.Value);
+  DefaultSkinCircularGauge.Value := Random(101);
+  DefaultSkinLinearGauge.Value := Random(101);
 end;
 
 end.

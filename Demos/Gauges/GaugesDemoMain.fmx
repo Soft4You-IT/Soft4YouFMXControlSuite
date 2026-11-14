@@ -22,6 +22,8 @@ object GaugesDemoForm: TGaugesDemoForm
       900s
       674s
       900s
+      674s
+      900s
       674s)
     object GaugesTab: TTabItem
       CustomIcon = <
@@ -1438,6 +1440,235 @@ object GaugesDemoForm: TGaugesDemoForm
           TabOrder = 31
           Text = 'ShowFill of the linear meters'
           OnChange = ShowFillCheckBoxChange
+        end
+      end
+    end
+    object SkinsTab: TTabItem
+      CustomIcon = <
+        item
+        end>
+      TextSettings.Trimming = None
+      IsSelected = False
+      Size.Width = 48.000000000000000000
+      Size.Height = 26.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Skins'
+      ExplicitSize.cx = 90.000000000000000000
+      ExplicitSize.cy = 26.000000000000000000
+      object SkinsLayout: TLayout
+        Align = Client
+        Size.Width = 600.000000000000000000
+        Size.Height = 674.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        object SkinCircularTitleLabel: TLabel
+          Position.X = 24.000000000000000000
+          Position.Y = 16.000000000000000000
+          Size.Width = 300.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'TS4YSkinCircularGauge'
+        end
+        object SkinCircularGauge: TS4YSkinCircularGauge
+          Caption = 'Usage'
+          Position.X = 24.000000000000000000
+          Position.Y = 40.000000000000000000
+          Size.Width = 300.000000000000000000
+          Size.Height = 300.000000000000000000
+          Size.PlatformDefault = False
+          Value = 40.000000000000000000
+        end
+        object SkinLinearTitleLabel: TLabel
+          Position.X = 24.000000000000000000
+          Position.Y = 360.000000000000000000
+          Size.Width = 540.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'TS4YSkinLinearGauge'
+        end
+        object SkinLinearGauge: TS4YSkinLinearGauge
+          Caption = 'Usage'
+          Position.X = 24.000000000000000000
+          Position.Y = 384.000000000000000000
+          Size.Width = 540.000000000000000000
+          Size.Height = 150.000000000000000000
+          Size.PlatformDefault = False
+          Value = 40.000000000000000000
+        end
+        object SkinsNoteLabel: TLabel
+          Position.X = 24.000000000000000000
+          Position.Y = 554.000000000000000000
+          Size.Width = 540.000000000000000000
+          Size.Height = 100.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.VertAlign = Leading
+          Text = 
+            'The two gauges use their default styles. The style of the circul' +
+            'ar gauge has a scale part, which gives the angles of the needle:' +
+            ' StartAngle, SweepAngle and Reversed of the gauge are used only ' +
+            'by a style without scale. The style of the linear gauge is horiz' +
+            'ontal: a vertical gauge needs a style with its parts placed vert' +
+            'ically. The gallery shows styles of a TStyleBook.'
+        end
+      end
+      object SkinSettingsScrollBox: TVertScrollBox
+        Align = Left
+        Padding.Bottom = 20.000000000000000000
+        Size.Width = 300.000000000000000000
+        Size.Height = 674.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        Viewport.Width = 284.000000000000000000
+        Viewport.Height = 674.000000000000000000
+        object SkinValueSettingsLabel: TLabel
+          Align = Top
+          StyledSettings = [Family, Size, FontColor]
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 16.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          Text = 'Value'
+          TabOrder = 0
+        end
+        object SkinValueLabel: TLabel
+          Align = Top
+          Text = 'Value: 40.0'
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 40.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+        end
+        object SkinValueTrackBar: TTrackBar
+          Align = Top
+          CanParentFocus = True
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 64.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+          Frequency = 0.100000001490116100
+          Orientation = Horizontal
+          TabOrder = 2
+          Value = 40.000000000000000000
+          OnChange = SkinValueTrackBarChange
+        end
+        object SkinAnimatedCheckBox: TCheckBox
+          Align = Top
+          IsChecked = True
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 87.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 3
+          Text = 'Animate the large changes'
+          OnChange = SkinAnimatedCheckBoxChange
+        end
+        object SkinRandomButton: TButton
+          Align = Top
+          TabOrder = 4
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 111.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 26.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Random value'
+          OnClick = SkinRandomButtonClick
+        end
+        object SkinTextSettingsLabel: TLabel
+          Align = Top
+          StyledSettings = [Family, Size, FontColor]
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 153.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          Text = 'Text'
+          TabOrder = 5
+        end
+        object SkinCaptionEdit: TEdit
+          Align = Top
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 177.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 24.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 6
+          Text = 'Usage'
+          OnChangeTracking = SkinCaptionEditChangeTracking
+        end
+        object SkinShowValueCheckBox: TCheckBox
+          Align = Top
+          IsChecked = True
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 205.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 7
+          Text = 'ShowValue'
+          OnChange = SkinShowValueCheckBoxChange
+        end
+        object SkinLinearSettingsLabel: TLabel
+          Align = Top
+          StyledSettings = [Family, Size, FontColor]
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 241.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          Text = 'Linear skin gauge'
+          TabOrder = 8
+        end
+        object SkinReversedCheckBox: TCheckBox
+          Align = Top
+          TabOrder = 9
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 265.000000000000000000
+          Size.Width = 260.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Reversed'
+          OnChange = SkinReversedCheckBoxChange
         end
       end
     end
