@@ -39,6 +39,7 @@ uses
   FireDAC.Comp.DataSet,
   FireDAC.Comp.Client,
   Soft4You.FMX.Controls.Grid.Types,
+  Soft4You.FMX.Controls.Grid.Filters,
   Soft4You.FMX.Controls.Grid;
 
 type
@@ -123,6 +124,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure ObjectsGridFilter(Sender: TObject);
     procedure ObjectsGridFilterChanged(Sender: TObject; const AColumn: TColumn);
+    procedure ObjectsGridFilterMenu(Sender: TObject; const AColumn: TColumn; const AItems: TS4YGridFilterMenuItems);
     procedure ObjectsGridGetFooterText(Sender: TObject; const AColumn: TColumn; var AText: string);
     procedure ObjectsGridGetValue(Sender: TObject; const ACol, ARow: Integer; var Value: TValue);
     procedure ObjectsGridSort(Sender: TObject);
@@ -140,6 +142,7 @@ type
     function Matches(const AGrid: TS4YGrid; const ACustomer: TCustomer; const ANameColumn, ACityColumn, AOrdersColumn,
       AAmountColumn: TColumn): Boolean;
     function MatchesObjects(const ACustomer: TCustomer): Boolean;
+    procedure AboveAverageClick(Sender: TObject);
     procedure SetUpBindingsGrid;
     procedure ShowObjects;
     procedure UpdateRowsLabel;
@@ -155,13 +158,18 @@ implementation
 uses
   System.DateUtils,
   System.Math,
+  System.TypInfo,
   System.Generics.Defaults;
 
 resourcestring
+  S_ABOVE_AVERAGE = 'Above the average';
   S_ALL_DATA = 'All: %s';
-  S_FILTER_CHANGED = 'OnFilterChanged: %s = %s';
+  S_FILTER_CHANGED = 'OnFilterChanged: %s "%s", %s';
+  S_FILTER_EMPTY = 'no filter';
+  S_FILTER_INCOMPLETE = 'incomplete, no filter yet';
+  S_FILTER_INVALID = 'cannot be read, no filter';
+  S_FILTER_VALID = 'operator %s, value %s';
   S_FILTER_DELAY = 'FilterDelay: %d ms';
-  S_NO_FILTER = '(no filter)';
   S_NO_ORDER = '(order of the data)';
   S_ORDER = 'OnSort: %s';
   S_ORDER_DESCENDING = '%s (descending)';
@@ -187,6 +195,20 @@ begin
   for var I := 0 to BindingsGrid.ColumnCount - 1 do
     if SameText(BindingsGrid.Columns[I].Header, AFieldName) then
       Result := BindingsGrid.Columns[I];
+end;
+
+procedure TGridDemoForm.AboveAverageClick(Sender: TObject);
+var
+  LSum: Currency;
+begin
+  // An item of the application in the menu of the filter: it writes the filter, and filters at once.
+  LSum := 0;
+
+  for var LCustomer in FCustomers do
+    LSum := LSum + LCustomer.Amount;
+
+  ObjectsGrid.SetFilter(AmountColumn, gfoGreater, TValue.From<Currency>(RoundTo(LSum / FCustomers.Count, -2)));
+  ObjectsGrid.Filter;
 end;
 
 procedure TGridDemoForm.AllDataCheckBoxChange(Sender: TObject);
@@ -276,32 +298,27 @@ end;
 
 procedure TGridDemoForm.CustomersTableFilterRecord(DataSet: TDataSet; var Accept: Boolean);
 var
-  LValue: TValue;
   LColumn: TColumn;
+  LField: TField;
+  LValue: TValue;
 begin
+  // The header of each column of the link is the name of its field: the grid compares the field with the filter.
   Accept := True;
-  LColumn := BindingsColumn('Name');
 
-  if Assigned(LColumn) then
+  for var I := 0 to BindingsGrid.ColumnCount - 1 do
   begin
-    LValue := BindingsGrid.FilterValue[LColumn];
-    Accept := LValue.IsEmpty or CustomersTableName.AsString.ToLower.Contains(LValue.ToString.ToLower);
-  end;
+    LColumn := BindingsGrid.Columns[I];
+    LField := DataSet.FindField(LColumn.Header);
 
-  LColumn := BindingsColumn('City');
+    if Accept and Assigned(LField) then
+    begin
+      if LField.IsNull then
+        LValue := TValue.Empty
+      else
+        LValue := TValue.FromVariant(LField.Value);
 
-  if Accept and Assigned(LColumn) then
-  begin
-    LValue := BindingsGrid.FilterValue[LColumn];
-    Accept := LValue.IsEmpty or (CustomersTableCity.AsString = LValue.ToString);
-  end;
-
-  LColumn := BindingsColumn('Active');
-
-  if Accept and Assigned(LColumn) then
-  begin
-    LValue := BindingsGrid.FilterValue[LColumn];
-    Accept := LValue.IsEmpty or (CustomersTableActive.AsBoolean = LValue.AsBoolean);
+      Accept := BindingsGrid.FilterMatches(LColumn, LValue);
+    end;
   end;
 end;
 
@@ -380,29 +397,18 @@ end;
 
 function TGridDemoForm.Matches(const AGrid: TS4YGrid; const ACustomer: TCustomer; const ANameColumn, ACityColumn,
   AOrdersColumn, AAmountColumn: TColumn): Boolean;
-var
-  LValue: TValue;
 begin
-  // The meaning of each filter is decided here: "contains" for the name, "equal" for the others.
-  LValue := AGrid.FilterValue[ANameColumn];
-  Result := LValue.IsEmpty or ACustomer.Name.ToLower.Contains(LValue.ToString.ToLower);
-  LValue := AGrid.FilterValue[ACityColumn];
-  Result := Result and (LValue.IsEmpty or (ACustomer.City = LValue.ToString));
-  LValue := AGrid.FilterValue[AOrdersColumn];
-  Result := Result and (LValue.IsEmpty or (ACustomer.Orders = LValue.AsInt64));
-  LValue := AGrid.FilterValue[AAmountColumn];
-  Result := Result and (LValue.IsEmpty or (Abs(ACustomer.Amount - LValue.AsExtended) < 0.005));
+  // The grid compares each value with the operator and the value written in the filter of its column.
+  Result := AGrid.FilterMatches(ANameColumn, ACustomer.Name) and AGrid.FilterMatches(ACityColumn, ACustomer.City) and
+    AGrid.FilterMatches(AOrdersColumn, ACustomer.Orders) and
+    AGrid.FilterMatches(AAmountColumn, TValue.From<Currency>(ACustomer.Amount));
 end;
 
 function TGridDemoForm.MatchesObjects(const ACustomer: TCustomer): Boolean;
-var
-  LValue: TValue;
 begin
-  Result := Matches(ObjectsGrid, ACustomer, NameColumn, CityColumn, OrdersColumn, AmountColumn);
-  LValue := ObjectsGrid.FilterValue[LastOrderColumn];
-  Result := Result and (LValue.IsEmpty or SameDate(ACustomer.LastOrder, LValue.AsExtended));
-  LValue := ObjectsGrid.FilterValue[ActiveColumn];
-  Result := Result and (LValue.IsEmpty or (ACustomer.Active = LValue.AsBoolean));
+  Result := Matches(ObjectsGrid, ACustomer, NameColumn, CityColumn, OrdersColumn, AmountColumn) and
+    ObjectsGrid.FilterMatches(LastOrderColumn, TValue.From<TDate>(ACustomer.LastOrder)) and
+    ObjectsGrid.FilterMatches(ActiveColumn, ACustomer.Active);
 end;
 
 procedure TGridDemoForm.ObjectsGridFilter(Sender: TObject);
@@ -412,14 +418,30 @@ end;
 
 procedure TGridDemoForm.ObjectsGridFilterChanged(Sender: TObject; const AColumn: TColumn);
 var
-  LValue: TValue;
+  LState: string;
 begin
-  LValue := ObjectsGrid.FilterValue[AColumn];
-
-  if LValue.IsEmpty then
-    LastChangeLabel.Text := Format(S_FILTER_CHANGED, [AColumn.Header, S_NO_FILTER])
+  // What the grid read in the text of the filter.
+  case ObjectsGrid.FilterState[AColumn] of
+    gfsIncomplete:
+      LState := S_FILTER_INCOMPLETE;
+    gfsValid:
+      LState := Format(S_FILTER_VALID, [GetEnumName(TypeInfo(TS4YGridFilterOperator),
+        Ord(ObjectsGrid.FilterOperator[AColumn])), ObjectsGrid.FilterValue[AColumn].ToString]);
+    gfsInvalid:
+      LState := S_FILTER_INVALID;
   else
-    LastChangeLabel.Text := Format(S_FILTER_CHANGED, [AColumn.Header, LValue.ToString]);
+    LState := S_FILTER_EMPTY;
+  end;
+
+  LastChangeLabel.Text := Format(S_FILTER_CHANGED, [AColumn.Header, ObjectsGrid.FilterText[AColumn], LState]);
+end;
+
+procedure TGridDemoForm.ObjectsGridFilterMenu(Sender: TObject; const AColumn: TColumn;
+  const AItems: TS4YGridFilterMenuItems);
+begin
+  // The menu of the amount has an item of the application, before the item that clears the filter.
+  if AColumn = AmountColumn then
+    AItems.Insert(AItems.IndexOfAction(gmaClear), S_ABOVE_AVERAGE, AboveAverageClick);
 end;
 
 procedure TGridDemoForm.ObjectsGridGetFooterText(Sender: TObject; const AColumn: TColumn; var AText: string);
@@ -499,21 +521,6 @@ begin
 
   if Assigned(LColumn) then
     BindingsGrid.ColumnSettings.Add(LColumn).FooterKind := gfkSum;
-
-  // Only the columns the data set filters have an editor.
-  for var I := 0 to BindingsGrid.ColumnCount - 1 do
-  begin
-    LColumn := BindingsGrid.Columns[I];
-
-    if not SameText(LColumn.Header, 'Name') and not SameText(LColumn.Header, 'City') and
-      not SameText(LColumn.Header, 'Active') then
-    begin
-      if Assigned(BindingsGrid.ColumnSettings.FindColumn(LColumn)) then
-        BindingsGrid.ColumnSettings.FindColumn(LColumn).Filterable := False
-      else
-        BindingsGrid.ColumnSettings.Add(LColumn).Filterable := False;
-    end;
-  end;
 end;
 
 procedure TGridDemoForm.ObjectsGridSort(Sender: TObject);
