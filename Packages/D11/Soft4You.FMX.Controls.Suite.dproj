@@ -238,6 +238,7 @@
         <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Bar.pas"/>
         <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Line.pas"/>
         <DCCReference Include="..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.Types.pas"/>
+        <DCCReference Include="..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.Filters.pas"/>
         <DCCReference Include="..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.pas"/>
         <DCCReference Include="..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.FilterEditors.pas"/>
         <DCCReference Include="..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.Style.pas"/>

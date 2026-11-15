@@ -40,6 +40,81 @@ type
   end;
 
   /// <summary>
+  /// How the filter of a column compares the values of the rows with its value.
+  /// </summary>
+  /// <remarks>
+  /// gfoNone: no filter, every row.
+  /// gfoContains: the text of the row contains the value; the default of the text columns.
+  /// gfoNotContains: the text of the row does not contain the value.
+  /// gfoStartsWith: the text of the row starts with the value.
+  /// gfoEndsWith: the text of the row ends with the value.
+  /// gfoEqual: the value of the row is the value; the default of the other columns.
+  /// gfoNotEqual: the value of the row is not the value.
+  /// gfoLess: the value of the row is lower than the value.
+  /// gfoLessOrEqual: the value of the row is lower than the value, or the value.
+  /// gfoGreater: the value of the row is higher than the value.
+  /// gfoGreaterOrEqual: the value of the row is higher than the value, or the value.
+  /// gfoEmpty: the row has no value; the filter has no value.
+  /// gfoNotEmpty: the row has a value; the filter has no value.
+  /// The texts are compared without difference between upper and lower case.
+  /// </remarks>
+  TS4YGridFilterOperator = (
+    gfoNone,
+    gfoContains,
+    gfoNotContains,
+    gfoStartsWith,
+    gfoEndsWith,
+    gfoEqual,
+    gfoNotEqual,
+    gfoLess,
+    gfoLessOrEqual,
+    gfoGreater,
+    gfoGreaterOrEqual,
+    gfoEmpty,
+    gfoNotEmpty
+  );
+
+  /// <summary>
+  /// The kind of value of the filter of a column, from the type of the column: it decides the operators and how the
+  /// text of the filter is read.
+  /// </summary>
+  /// <remarks>
+  /// gvkText: a text, a string; any operator but the comparisons.
+  /// gvkList: a value of a list, a string, for a column with FilterItems or a TPopupColumn; equal or not equal.
+  /// gvkInteger: a whole number, an Int64.
+  /// gvkFloat: a number with decimals, a Double.
+  /// gvkDate: a date, a TDate, also for a column of date and time.
+  /// gvkTime: a time, a TTime.
+  /// gvkBoolean: True or False, for a check column.
+  /// </remarks>
+  TS4YGridFilterValueKind = (
+    gvkText,
+    gvkList,
+    gvkInteger,
+    gvkFloat,
+    gvkDate,
+    gvkTime,
+    gvkBoolean
+  );
+
+  /// <summary>
+  /// The state of the text of the filter of a column.
+  /// </summary>
+  /// <remarks>
+  /// gfsEmpty: no text, no filter.
+  /// gfsIncomplete: an operator without a value, such as "&gt;": no filter yet.
+  /// gfsValid: an operator and a value: the filter is applied.
+  /// gfsInvalid: a text that cannot be read, such as a number column with "&gt; abc": no filter, the text is shown
+  /// with the color of the part filterinvalidtext of the style.
+  /// </remarks>
+  TS4YGridFilterState = (
+    gfsEmpty,
+    gfsIncomplete,
+    gfsValid,
+    gfsInvalid
+  );
+
+  /// <summary>
   /// What the footer shows under a column.
   /// </summary>
   /// <remarks>

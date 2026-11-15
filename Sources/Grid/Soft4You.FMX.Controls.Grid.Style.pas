@@ -115,6 +115,7 @@ type
   /// their cells and the texts have only the Padding of the columns.
   /// The header of a column the rows are sorted by shows an arrow, and its position in the order when there are more
   /// keys; a part sortindicator, a TText, gives their color and font, otherwise the ones of the text of the header.
+  /// A part filterinvalidtext, a TText, gives the color of the text of a filter that cannot be read; without it, red.
   /// </remarks>
   TS4YStyledGrid = class(TStyledGrid)
   private
@@ -130,6 +131,7 @@ type
     FHeader: THeader;
     FHeaderClickShift: TShiftState;
     FHorizontalScrollBar: TControl;
+    FInvalidFontColor: TAlphaColor;
     FLineFill: TBrushObject;
     FPreviousHeaderDrawItem: TDrawHeaderItemEvent;
     FSortFont: TFont;
@@ -163,6 +165,7 @@ type
     procedure MMFooterChanged(var Message: TDispatchMessage); message MM_S4Y_GRID_FOOTER_CHANGED;
     procedure InvalidateFooter;
     procedure RemoveOldEditors;
+    procedure ShowEditorFilter(const AColumn: TColumn; const AEditor: TControl);
     procedure UpdateFilterRow;
     procedure UpdateFilterRowCells;
     procedure UpdateFooter;
@@ -208,6 +211,7 @@ resourcestring
 const
   C_STYLE_BACKGROUND = 'background';
   C_STYLE_CONTENT = 'content';
+  C_STYLE_FILTER_INVALID_TEXT = 'filterinvalidtext';
   C_STYLE_FILTER_ROW_BACKGROUND = 'filterrowbackground';
   C_STYLE_FOOTER_BACKGROUND = 'footerbackground';
   C_STYLE_FOOTER_TEXT = 'footertext';
@@ -317,6 +321,7 @@ begin
   FAutoFilterTimer.OnTimer := AutoFilterTimer;
   FEditorPadding := TRectF.Create(C_DEFAULT_EDITOR_PADDING, C_DEFAULT_EDITOR_PADDING, C_DEFAULT_EDITOR_PADDING,
     C_DEFAULT_EDITOR_PADDING);
+  FInvalidFontColor := TS4YGridTextFilterEditor.C_DEFAULT_INVALID_FONT_COLOR;
 end;
 
 destructor TS4YStyledGrid.Destroy;
@@ -333,6 +338,7 @@ procedure TS4YStyledGrid.ApplyStyle;
 var
   LRowBackground: TControl;
   LFooterText: TText;
+  LInvalidText: TText;
   LSortIndicator: TText;
   LTextSettings: ITextSettings;
   LHeader: TControl;
@@ -362,6 +368,14 @@ begin
     FSortFont.Assign(LSortIndicator.TextSettings.Font);
     FSortFontColor := LSortIndicator.TextSettings.FontColor;
     LSortIndicator.Visible := False;
+  end;
+
+  FInvalidFontColor := TS4YGridTextFilterEditor.C_DEFAULT_INVALID_FONT_COLOR;
+
+  if FindStyleResource<TText>(C_STYLE_FILTER_INVALID_TEXT, LInvalidText) then
+  begin
+    FInvalidFontColor := LInvalidText.TextSettings.FontColor;
+    LInvalidText.Visible := False;
   end;
 
   // Without the part background the style has no place for the filter row.
@@ -446,46 +460,35 @@ end;
 function TS4YStyledGrid.CreateFilterEditor(const AColumn: TColumn): TControl;
 var
   LEditor: IS4YGridFilterEditor;
-  LItems: TStrings;
+  LKind: TS4YGridFilterValueKind;
 begin
   Result := nil;
-  LItems := Model.ColumnSettings.GetFilterItems(AColumn);
-
-  if not Assigned(LItems) and (AColumn is TPopupColumn) then
-    LItems := TPopupColumn(AColumn).Items;
+  LKind := Model.GetFilterKind(AColumn);
 
   if Assigned(Model.OnCreateFilterEditor) then
     Model.OnCreateFilterEditor(Model.Owner, AColumn, Result);
 
-  // The list of values comes before the type of the column.
+  // A text field for every column but the check columns.
   if Assigned(Result) then
   begin
     if not Supports(Result, IS4YGridFilterEditor) then
       raise EArgumentException.CreateFmt(S_FILTER_EDITOR_INTERFACE, [AColumn.Name]);
   end
-  else if Assigned(LItems) then
-  begin
-    Result := TS4YGridListFilterEditor.Create(nil);
-    TS4YGridListFilterEditor(Result).SetFilterItems(LItems);
-  end
-  else if AColumn is TIntegerColumn then
-    Result := TS4YGridNumberFilterEditor.Create(nil)
-  else if (AColumn is TFloatColumn) or (AColumn is TCurrencyColumn) then
-  begin
-    Result := TS4YGridNumberFilterEditor.Create(nil);
-    TS4YGridNumberFilterEditor(Result).NumberKind := gnkFloat;
-  end
-  else if AColumn is TDateColumn then
-    Result := TS4YGridDateFilterEditor.Create(nil)
-  else if AColumn is TCheckColumn then
+  else if LKind = gvkBoolean then
     Result := TS4YGridCheckFilterEditor.Create(nil)
   else
+  begin
     Result := TS4YGridTextFilterEditor.Create(nil);
+    TS4YGridTextFilterEditor(Result).InvalidFontColor := FInvalidFontColor;
+
+    if LKind in [gvkInteger, gvkFloat, gvkDate, gvkTime] then
+      TS4YGridTextFilterEditor(Result).KeyboardType := TVirtualKeyboardType.NumbersAndPunctuation;
+  end;
 
   Result.Stored := False;
   Result.Parent := FFilterRow;
+  ShowEditorFilter(AColumn, Result);
   Supports(Result, IS4YGridFilterEditor, LEditor);
-  LEditor.SetFilterValue(Model.GetFilterValue(AColumn));
   LEditor.SetOnFilterValueChange(EditorFilterValueChange);
   LEditor.SetOnFilterSubmit(EditorFilterSubmit);
 end;
@@ -623,10 +626,17 @@ begin
   if not Assigned(LColumn) or not Supports(Sender, IS4YGridFilterEditor, LEditor) then
     Exit;
 
-  // The editor already shows the value: the model does not send it back.
+  // The editor already shows the value: the model does not send it back. The text fields give their text, read by
+  // the model with the syntax of the filters.
   FUpdatingFromEditor := True;
   try
-    Model.SetFilterValue(LColumn, LEditor.GetFilterValue);
+    if Sender is TS4YGridTextFilterEditor then
+    begin
+      Model.SetFilterText(LColumn, TS4YGridTextFilterEditor(Sender).Text);
+      TS4YGridTextFilterEditor(Sender).Invalid := Model.GetFilterState(LColumn) = gfsInvalid;
+    end
+    else
+      Model.SetFilterValue(LColumn, LEditor.GetFilterValue);
   finally
     FUpdatingFromEditor := False;
   end;
@@ -856,13 +866,12 @@ end;
 procedure TS4YStyledGrid.MMFilterValueChanged(var Message: TDispatchMessageWithValue<TColumn>);
 var
   LEditor: TControl;
-  LFilterEditor: IS4YGridFilterEditor;
 begin
   if FUpdatingFromEditor then
     Exit;
 
-  if FEditors.TryGetValue(Message.Value, LEditor) and Supports(LEditor, IS4YGridFilterEditor, LFilterEditor) then
-    LFilterEditor.SetFilterValue(Model.GetFilterValue(Message.Value));
+  if FEditors.TryGetValue(Message.Value, LEditor) then
+    ShowEditorFilter(Message.Value, LEditor);
 end;
 
 procedure TS4YStyledGrid.MMSortChanged(var Message: TDispatchMessage);
@@ -911,6 +920,20 @@ begin
 
   if Assigned(FFooter) then
     FFooter.Repaint;
+end;
+
+procedure TS4YStyledGrid.ShowEditorFilter(const AColumn: TColumn; const AEditor: TControl);
+var
+  LFilterEditor: IS4YGridFilterEditor;
+begin
+  // A text field shows the text of the filter; the other editors its value.
+  if AEditor is TS4YGridTextFilterEditor then
+  begin
+    TS4YGridTextFilterEditor(AEditor).SetFilterText(Model.GetFilterText(AColumn));
+    TS4YGridTextFilterEditor(AEditor).Invalid := Model.GetFilterState(AColumn) = gfsInvalid;
+  end
+  else if Supports(AEditor, IS4YGridFilterEditor, LFilterEditor) then
+    LFilterEditor.SetFilterValue(Model.GetFilterValue(AColumn));
 end;
 
 procedure TS4YStyledGrid.UpdateFilterRow;
