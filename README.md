@@ -26,6 +26,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 |  | `TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter`, `TS4YCircularMeter`, `TS4YSkinCircularGauge`, `TS4YSkinLinearGauge` | Gauges that show a value in a range as a horizontal or vertical bar, or as a ring or an arc, that fills with the value, with a caption and the value written; the meters add a graduation along the bar or the arc, colored ranges, a target, a needle or a pointer; the look comes from a style, and the skin gauges are made only of the parts of their style, such as a dial and a needle or a thermometer drawn as images | [Docs\Gauges](Docs/Gauges/README.md)<br>[Screenshot](Docs/Screenshots/gauges.png) |
 |  | `TS4YStepProgressBar` | Progress indicator made of steps along a horizontal or vertical line, like the phases of an installation or the pages of a wizard; the look comes from a style | [Docs\StepProgressBar](Docs/StepProgressBar/README.md)<br>[Screenshot](Docs/Screenshots/stepprogressbar.png) |
 | **Charts** | `TS4YPieChart`, `TS4YBarChart`, `TS4YLineChart` | Pie and ring chart, vertical or horizontal bar chart and line chart with categories, series and axes; legend, values written, animation and click on an element; filled in the Object Inspector, in code or by the LiveBindings through a `TLinkGridToDataSource`; the look comes from a style | [Docs\Charts](Docs/Charts/README.md)<br>[Screenshot](Docs/Screenshots/charts.png) |
+| **Grids** | `TS4YGrid` | Grid (a `TGrid`) with a filter row under the header, an editor for each column from the type of the column, and a footer with totals, averages or texts under the columns; the application filters its data when the user asks | [Docs\Grid](Docs/Grid/README.md)<br>[Screenshot](Docs/Screenshots/grid.png) |
 
 All the controls are built into the same two packages and appear in the Tool Palette page **Soft4You FMX Controls Suite**. `TS4YExpander` uses `TS4YBadge`, so the two are always installed together.
 
@@ -42,6 +43,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Sources\Expander` | Units of the Expander control (`TS4YExpander`), with its styles and resource scripts |
 | `Sources\ColorSelector` | Units of the ColorSelector control (`TS4YColorSelector`) and the types of its event |
 | `Sources\StepProgressBar` | Units of the StepProgressBar control (`TS4YStepProgressBar`) and its types, with its styles and resource scripts |
+| `Sources\Grid` | Units of the grid (`TS4YGrid`), its presentation with the filter row and the footer, the editors of the filters and its types |
 | `Sources\Charts` | Units of the charts (`TS4YPieChart`, `TS4YBarChart`, `TS4YLineChart`), their types and their support of the LiveBindings, with their styles and resource scripts |
 | `Sources\Gauges` | Units of the gauges (`TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter`, `TS4YCircularMeter`, `TS4YSkinCircularGauge`, `TS4YSkinLinearGauge`) and their types, with their styles and resource scripts |
 | `Sources\Design` | Design-time unit shared by all the controls of the suite (IDE splash screen and About box) |
@@ -56,6 +58,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Demos\StepProgressBar` | Sample FMX application with two `TS4YStepProgressBar`: the steps of an installation, moved by buttons, and the steps of a wizard, chosen with a click |
 | `Demos\Gauges` | Sample FMX applications with `TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter` and `TS4YCircularMeter`: the settings of the gauges and of the meters, and a gallery of examples |
 | `Demos\Charts` | Sample FMX applications with `TS4YPieChart`, `TS4YBarChart` and `TS4YLineChart`: the settings of the charts, and a gallery of examples with a tab for the LiveBindings |
+| `Demos\Grid` | Sample FMX application with `TS4YGrid`: a list of objects filtered by the application, with the settings of the filter row and of the footer, a `TFDMemTable` through the LiveBindings, and a dark style of a style book |
 | `Docs\HTMLEditor` | Documentation of the HTML editor: [`README.md`](Docs/HTMLEditor/README.md) (installation, properties, methods, events), [`DeveloperGuide.md`](Docs/HTMLEditor/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals) |
 | `Docs\FlexBox` | Documentation of the FlexBox control: [`README.md`](Docs/FlexBox/README.md) (installation, properties, examples) |
 | `Docs\BlockScrollBox` | Documentation of the BlockScrollBox control: [`README.md`](Docs/BlockScrollBox/README.md) |
@@ -65,6 +68,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Docs\StepProgressBar` | Documentation of the StepProgressBar control: [`README.md`](Docs/StepProgressBar/README.md) |
 | `Docs\Gauges` | Documentation of the gauges: [`README.md`](Docs/Gauges/README.md) |
 | `Docs\Charts` | Documentation of the charts: [`README.md`](Docs/Charts/README.md) |
+| `Docs\Grid` | Documentation of the grid: [`README.md`](Docs/Grid/README.md) |
 | `Tests\FlexBox` | DUnitX tests of the FlexBox layout engine |
 | `Tests\BlockScrollBox` | DUnitX tests of the block flow of `TS4YBlockScrollBox` |
 
@@ -91,7 +95,7 @@ The suite has two packages, in a folder for each version of Delphi (`Packages\D1
 2. Build the runtime package `Soft4You.FMX.Controls.Suite`.
 3. Build and install the design-time package `Soft4You.FMX.Controls.SuiteD`. It registers the controls, their property editors and the splash screen and About box of the suite.
    The 64-bit IDE (Delphi 12.3 and newer) loads only packages built for Windows 64-bit: select the **Windows 64-bit** platform for both packages, build them, and install `Soft4You.FMX.Controls.SuiteD` from the 64-bit IDE. The 32-bit IDE needs the **Windows 32-bit** build, as before.
-4. Add the folders of the controls you use (`Sources\HTMLEditor`, `Sources\FlexBox`, `Sources\BlockScrollBox`, `Sources\Badge`, `Sources\Expander`, `Sources\ColorSelector`, `Sources\StepProgressBar`, `Sources\Gauges`, `Sources\Charts`) to the Delphi library path; the FlexBox also needs `Sources\BlockScrollBox`, to compile your own projects with their units. Add also the folder `Resources`: the packages compile into it the resources with the styles of the Badge, the Expander, the StepProgressBar, the gauges and the charts, so build the packages before your projects. The demos find the units of the repository through the search path of their project.
+4. Add the folders of the controls you use (`Sources\HTMLEditor`, `Sources\FlexBox`, `Sources\BlockScrollBox`, `Sources\Badge`, `Sources\Expander`, `Sources\ColorSelector`, `Sources\StepProgressBar`, `Sources\Gauges`, `Sources\Charts`, `Sources\Grid`) to the Delphi library path; the FlexBox also needs `Sources\BlockScrollBox`, to compile your own projects with their units. Add also the folder `Resources`: the packages compile into it the resources with the styles of the Badge, the Expander, the StepProgressBar, the gauges and the charts, so build the packages before your projects. The demos find the units of the repository through the search path of their project.
 
 The compiled units and the demo executables are written in `Bin`; the `.bpl` and `.dcp` files of the packages go to the shared folders of the IDE.
 
@@ -149,7 +153,7 @@ The public API of every control is documented with DocXML comments (`/// <summar
 
 The suite is the work of Carlo Marona (Soft4You), who designs and directs it. Artificial intelligence was used for part of the controls, through [Claude](https://www.anthropic.com/claude) (Anthropic) and Claude Code:
 
-- `TS4YHTMLEditor`, `TS4YFlexBox`, `TS4YStepProgressBar`, `TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter`, `TS4YCircularMeter`, `TS4YSkinCircularGauge`, `TS4YSkinLinearGauge`, `TS4YPieChart`, `TS4YBarChart` and `TS4YLineChart` were developed with the assistance of Claude from the start.
+- `TS4YHTMLEditor`, `TS4YFlexBox`, `TS4YStepProgressBar`, `TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter`, `TS4YCircularMeter`, `TS4YSkinCircularGauge`, `TS4YSkinLinearGauge`, `TS4YPieChart`, `TS4YBarChart` and `TS4YLineChart` and `TS4YGrid` were developed with the assistance of Claude from the start.
 - `TS4YBadge`, `TS4YExpander` and `TS4YColorSelector` were first written by Carlo Marona and later refined with the assistance of Claude, mainly `TS4YExpander`.
 
 ---

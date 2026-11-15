@@ -210,6 +210,7 @@
         <DCCReference Include="..\..\Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Register.pas"/>
         <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.Register.pas"/>
         <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Register.pas"/>
+        <DCCReference Include="..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.Register.pas"/>
         <RcCompile Include="..\..\Graphics\HTMLEditor\HTMLEditorDesign.rc">
             <Form>HTMLEditorDesign.res</Form>
         </RcCompile>
@@ -236,6 +237,9 @@
         </RcCompile>
         <RcCompile Include="..\..\Graphics\Charts\ChartsDesign.rc">
             <Form>ChartsDesign.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Graphics\Grid\GridDesign.rc">
+            <Form>GridDesign.res</Form>
         </RcCompile>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

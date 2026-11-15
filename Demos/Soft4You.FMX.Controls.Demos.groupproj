@@ -39,6 +39,9 @@
         <Projects Include="Charts\S4YChartsGallery.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="Grid\S4YGridDemo.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -155,14 +158,23 @@
     <Target Name="S4YChartsGallery:Make">
         <MSBuild Projects="Charts\S4YChartsGallery.dproj" Targets="Make"/>
     </Target>
+    <Target Name="S4YGridDemo">
+        <MSBuild Projects="Grid\S4YGridDemo.dproj"/>
+    </Target>
+    <Target Name="S4YGridDemo:Clean">
+        <MSBuild Projects="Grid\S4YGridDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YGridDemo:Make">
+        <MSBuild Projects="Grid\S4YGridDemo.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="S4YHTMLEditorDemo;S4YHTMLEditorMobile;S4YFlexBoxDemo;S4YExpanderDemo;S4YBadgeDemo;S4YBlockScrollBoxDemo;S4YStepProgressBarDemo;S4YStepProgressBarGallery;S4YGaugesDemo;S4YGaugesGallery;S4YChartsDemo;S4YChartsGallery"/>
+        <CallTarget Targets="S4YHTMLEditorDemo;S4YHTMLEditorMobile;S4YFlexBoxDemo;S4YExpanderDemo;S4YBadgeDemo;S4YBlockScrollBoxDemo;S4YStepProgressBarDemo;S4YStepProgressBarGallery;S4YGaugesDemo;S4YGaugesGallery;S4YChartsDemo;S4YChartsGallery;S4YGridDemo"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="S4YHTMLEditorDemo:Clean;S4YHTMLEditorMobile:Clean;S4YFlexBoxDemo:Clean;S4YExpanderDemo:Clean;S4YBadgeDemo:Clean;S4YBlockScrollBoxDemo:Clean;S4YStepProgressBarDemo:Clean;S4YStepProgressBarGallery:Clean;S4YGaugesDemo:Clean;S4YGaugesGallery:Clean;S4YChartsDemo:Clean;S4YChartsGallery:Clean"/>
+        <CallTarget Targets="S4YHTMLEditorDemo:Clean;S4YHTMLEditorMobile:Clean;S4YFlexBoxDemo:Clean;S4YExpanderDemo:Clean;S4YBadgeDemo:Clean;S4YBlockScrollBoxDemo:Clean;S4YStepProgressBarDemo:Clean;S4YStepProgressBarGallery:Clean;S4YGaugesDemo:Clean;S4YGaugesGallery:Clean;S4YChartsDemo:Clean;S4YChartsGallery:Clean;S4YGridDemo:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="S4YHTMLEditorDemo:Make;S4YHTMLEditorMobile:Make;S4YFlexBoxDemo:Make;S4YExpanderDemo:Make;S4YBadgeDemo:Make;S4YBlockScrollBoxDemo:Make;S4YStepProgressBarDemo:Make;S4YStepProgressBarGallery:Make;S4YGaugesDemo:Make;S4YGaugesGallery:Make;S4YChartsDemo:Make;S4YChartsGallery:Make"/>
+        <CallTarget Targets="S4YHTMLEditorDemo:Make;S4YHTMLEditorMobile:Make;S4YFlexBoxDemo:Make;S4YExpanderDemo:Make;S4YBadgeDemo:Make;S4YBlockScrollBoxDemo:Make;S4YStepProgressBarDemo:Make;S4YStepProgressBarGallery:Make;S4YGaugesDemo:Make;S4YGaugesGallery:Make;S4YChartsDemo:Make;S4YChartsGallery:Make;S4YGridDemo:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
