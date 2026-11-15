@@ -13,7 +13,10 @@ unit Soft4You.FMX.Controls.Grid.Filters;
 interface
 
 uses
+  System.Classes,
   System.Rtti,
+  System.Generics.Collections,
+  FMX.Grid,
   Soft4You.FMX.Controls.Grid.Types;
 
 type
@@ -29,6 +32,8 @@ type
   /// is its opposite. = and &lt;&gt; alone are empty and not empty.
   /// </remarks>
   TS4YGridFilter = record
+    /// <summary>True when the operator is written in the text; False when it is the default operator.</summary>
+    ExplicitOperator: Boolean;
     /// <summary>The kind of value of the column.</summary>
     Kind: TS4YGridFilterValueKind;
     /// <summary>The operator read in the text; gfoNone without text.</summary>
@@ -39,6 +44,8 @@ type
     Text: string;
     /// <summary>The value read in the text, of the type of the column; empty when the filter is not valid.</summary>
     Value: TValue;
+    /// <summary>The text of the value, without the operator and the double quotes, also when it cannot be read.</summary>
+    ValueText: string;
 
     /// <summary>Returns the operator of a text without operator for AKind: contains for text, equal otherwise.</summary>
     class function DefaultOperator(const AKind: TS4YGridFilterValueKind): TS4YGridFilterOperator; static;
@@ -70,6 +77,81 @@ type
     /// </summary>
     function Matches(const AValue: TValue): Boolean;
   end;
+
+  /// <summary>
+  /// An item of the menu of the filter of a column, the menu of the button of its editor.
+  /// </summary>
+  TS4YGridFilterMenuItem = class
+  private
+    FAction: TS4YGridFilterMenuAction;
+    FChecked: Boolean;
+    FColumn: TColumn;
+    FFilterOperator: TS4YGridFilterOperator;
+    FText: string;
+    FValue: TValue;
+    FOnClick: TNotifyEvent;
+  public
+    /// <summary>What the item does.</summary>
+    property Action: TS4YGridFilterMenuAction read FAction write FAction;
+    /// <summary>True shows the item as chosen, as the operator of the filter.</summary>
+    property Checked: Boolean read FChecked write FChecked;
+    /// <summary>The column of the filter.</summary>
+    property Column: TColumn read FColumn write FColumn;
+    /// <summary>The operator written by an item gmaOperator.</summary>
+    property FilterOperator: TS4YGridFilterOperator read FFilterOperator write FFilterOperator;
+    /// <summary>The text of the item.</summary>
+    property Text: string read FText write FText;
+    /// <summary>The value written by an item gmaValue.</summary>
+    property Value: TValue read FValue write FValue;
+
+    /// <summary>Fires when the user chooses an item gmaCustom; Sender is the item.</summary>
+    property OnClick: TNotifyEvent read FOnClick write FOnClick;
+  end;
+
+  /// <summary>
+  /// The items of the menu of the filter of a column: the grid adds its items, and the application can add, remove or
+  /// change them in OnFilterMenu.
+  /// </summary>
+  TS4YGridFilterMenuItems = class
+  private
+    FColumn: TColumn;
+    FItems: TObjectList<TS4YGridFilterMenuItem>;
+    function GetCount: Integer;
+    function GetItem(const AIndex: Integer): TS4YGridFilterMenuItem;
+  public
+    /// <summary>Creates an empty list of items of the menu of AColumn.</summary>
+    constructor Create(const AColumn: TColumn);
+    /// <summary>Destroys the items.</summary>
+    destructor Destroy; override;
+
+    /// <summary>Adds an item of the application with the text AText, which fires AOnClick.</summary>
+    function Add(const AText: string; const AOnClick: TNotifyEvent): TS4YGridFilterMenuItem;
+    /// <summary>Adds an item with the action AAction and the text AText.</summary>
+    function AddAction(const AAction: TS4YGridFilterMenuAction; const AText: string): TS4YGridFilterMenuItem;
+    /// <summary>Adds a line between two groups of items.</summary>
+    function AddSeparator: TS4YGridFilterMenuItem;
+    /// <summary>Removes all the items.</summary>
+    procedure Clear;
+    /// <summary>Removes the item at AIndex.</summary>
+    procedure Delete(const AIndex: Integer);
+    /// <summary>Returns the position of the first item with the action AAction, -1 when there is none.</summary>
+    function IndexOfAction(const AAction: TS4YGridFilterMenuAction): Integer;
+    /// <summary>Inserts at AIndex an item of the application with the text AText, which fires AOnClick.</summary>
+    function Insert(const AIndex: Integer; const AText: string; const AOnClick: TNotifyEvent): TS4YGridFilterMenuItem;
+
+    /// <summary>The column of the filter: the items added take it.</summary>
+    property Column: TColumn read FColumn write FColumn;
+    /// <summary>The number of items.</summary>
+    property Count: Integer read GetCount;
+    /// <summary>The items, by position.</summary>
+    property Items[const AIndex: Integer]: TS4YGridFilterMenuItem read GetItem; default;
+  end;
+
+  /// <summary>
+  /// The event that lets the application change the menu of the filter of a column before it is shown.
+  /// </summary>
+  TS4YGridFilterMenuEvent = procedure(Sender: TObject; const AColumn: TColumn;
+    const AItems: TS4YGridFilterMenuItems) of object;
 
 implementation
 
@@ -568,16 +650,19 @@ var
   LTrailingWildcard: Boolean;
   LValue: TValue;
 begin
+  Result.ExplicitOperator := False;
   Result.Kind := AKind;
   Result.FilterOperator := gfoNone;
   Result.State := gfsEmpty;
   Result.Text := AText;
   Result.Value := TValue.Empty;
+  Result.ValueText := '';
 
   if AText.Trim = '' then
     Exit;
 
   LRest := SplitOperator(AText.Trim, LSymbol);
+  Result.ExplicitOperator := LSymbol <> '';
 
   // = and <> alone: a row without value, a row with a value.
   if (LRest = '') and (LSymbol = C_SYMBOL_EMPTY) then
@@ -596,6 +681,8 @@ begin
 
   if not ReadValue(LRest, LText, LLeadingWildcard, LTrailingWildcard) then
   begin
+    Result.ValueText := LRest;
+
     if LSymbol <> '' then
       Result.FilterOperator := SymbolToOperator(LSymbol, AKind)
     else
@@ -604,6 +691,9 @@ begin
     Result.State := gfsInvalid;
     Exit;
   end;
+
+  Result.ValueText := LText;
+  Result.ExplicitOperator := Result.ExplicitOperator or LLeadingWildcard or LTrailingWildcard;
 
   // The * at the sides are the operator of a text without operator.
   if LSymbol <> '' then
@@ -658,6 +748,87 @@ begin
   else
     Result := False;
   end;
+end;
+
+{ TS4YGridFilterMenuItems }
+
+constructor TS4YGridFilterMenuItems.Create(const AColumn: TColumn);
+begin
+  inherited Create;
+
+  FColumn := AColumn;
+  FItems := TObjectList<TS4YGridFilterMenuItem>.Create;
+end;
+
+destructor TS4YGridFilterMenuItems.Destroy;
+begin
+  FItems.Free;
+
+  inherited;
+end;
+
+function TS4YGridFilterMenuItems.Add(const AText: string; const AOnClick: TNotifyEvent): TS4YGridFilterMenuItem;
+begin
+  Result := Insert(FItems.Count, AText, AOnClick);
+end;
+
+function TS4YGridFilterMenuItems.AddAction(const AAction: TS4YGridFilterMenuAction;
+  const AText: string): TS4YGridFilterMenuItem;
+begin
+  Result := Insert(FItems.Count, AText, nil);
+  Result.Action := AAction;
+end;
+
+function TS4YGridFilterMenuItems.AddSeparator: TS4YGridFilterMenuItem;
+begin
+  Result := AddAction(gmaSeparator, '');
+end;
+
+procedure TS4YGridFilterMenuItems.Clear;
+begin
+  FItems.Clear;
+end;
+
+procedure TS4YGridFilterMenuItems.Delete(const AIndex: Integer);
+begin
+  FItems.Delete(AIndex);
+end;
+
+function TS4YGridFilterMenuItems.GetCount: Integer;
+begin
+  Result := FItems.Count;
+end;
+
+function TS4YGridFilterMenuItems.GetItem(const AIndex: Integer): TS4YGridFilterMenuItem;
+begin
+  Result := FItems[AIndex];
+end;
+
+function TS4YGridFilterMenuItems.IndexOfAction(const AAction: TS4YGridFilterMenuAction): Integer;
+var
+  LIndex: Integer;
+begin
+  Result := -1;
+  LIndex := 0;
+
+  while (Result < 0) and (LIndex < FItems.Count) do
+  begin
+    if FItems[LIndex].Action = AAction then
+      Result := LIndex;
+
+    Inc(LIndex);
+  end;
+end;
+
+function TS4YGridFilterMenuItems.Insert(const AIndex: Integer; const AText: string;
+  const AOnClick: TNotifyEvent): TS4YGridFilterMenuItem;
+begin
+  Result := TS4YGridFilterMenuItem.Create;
+  Result.Action := gmaCustom;
+  Result.Column := FColumn;
+  Result.Text := AText;
+  Result.OnClick := AOnClick;
+  FItems.Insert(AIndex, Result);
 end;
 
 end.

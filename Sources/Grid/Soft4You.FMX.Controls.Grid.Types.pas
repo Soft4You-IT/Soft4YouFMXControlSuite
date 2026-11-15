@@ -115,6 +115,30 @@ type
   );
 
   /// <summary>
+  /// What an item of the menu of the filter of a column does.
+  /// </summary>
+  /// <remarks>
+  /// gmaOperator: writes its operator in the text of the filter, before the value.
+  /// gmaValue: writes its value, after the operator: a value of the list of the column.
+  /// gmaCalendar: shows a calendar, and writes the date chosen.
+  /// gmaToday: writes the date of today.
+  /// gmaCurrentTime: writes the current time, to the minute.
+  /// gmaClear: clears the filter, as Esc.
+  /// gmaSeparator: a line between two groups of items.
+  /// gmaCustom: an item of the application, which does what its OnClick does.
+  /// </remarks>
+  TS4YGridFilterMenuAction = (
+    gmaOperator,
+    gmaValue,
+    gmaCalendar,
+    gmaToday,
+    gmaCurrentTime,
+    gmaClear,
+    gmaSeparator,
+    gmaCustom
+  );
+
+  /// <summary>
   /// What the footer shows under a column.
   /// </summary>
   /// <remarks>

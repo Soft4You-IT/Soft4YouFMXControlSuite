@@ -16,11 +16,41 @@ uses
   System.Classes,
   System.UITypes,
   System.Rtti,
+  FMX.Types,
+  FMX.Controls,
   FMX.Edit,
   FMX.StdCtrls,
   Soft4You.FMX.Controls.Grid.Types;
 
 type
+  /// <summary>
+  /// The button of the menu of the filter in a text field of the filter row: three dots one above the other, with the
+  /// color of the text of the field, on the background of the style of the buttons of the fields.
+  /// </summary>
+  TS4YGridFilterMenuButton = class(TEditButton)
+  public const
+    /// <summary>Diameter of a dot, in pixels.</summary>
+    C_DOT_SIZE = 3;
+    /// <summary>Space between two dots, in pixels.</summary>
+    C_DOT_SPACING = 2;
+  private
+    FIcon: TControl;
+    procedure SetIcon(const Value: TControl);
+  protected
+    /// <summary>Draws the dots over the background of the style, when there is no Icon.</summary>
+    procedure AfterPaint; override;
+    /// <summary>Hides the icon of the style: the button shows the dots or Icon.</summary>
+    procedure ApplyStyle; override;
+    /// <summary>Returns ellipseseditbutton, the style of the button with the dots of TEdit.</summary>
+    function GetDefaultStyleLookupName: string; override;
+  public
+    /// <summary>
+    /// A control shown in the middle of the button in place of the dots, such as the part filtermenubutton of the
+    /// style of the grid; the button becomes its owner and frees it.
+    /// </summary>
+    property Icon: TControl read FIcon write SetIcon;
+  end;
+
   /// <summary>
   /// The editor of the filter of a column of text, numbers, dates, times or lists: the user writes the text of the
   /// filter, an operator and a value, with the syntax of the filters; no text, no filter.
@@ -35,11 +65,16 @@ type
   private
     FInvalid: Boolean;
     FInvalidFontColor: TAlphaColor;
+    FMenuButton: TS4YGridFilterMenuButton;
     FOnFilterSubmit: TNotifyEvent;
     FOnFilterValueChange: TNotifyEvent;
+    FOnMenuButtonClick: TNotifyEvent;
     FSettingValue: Boolean;
+    function GetShowMenuButton: Boolean;
+    procedure MenuButtonClick(Sender: TObject);
     procedure SetInvalid(const Value: Boolean);
     procedure SetInvalidFontColor(const Value: TAlphaColor);
+    procedure SetShowMenuButton(const Value: Boolean);
     procedure ShowInvalid;
     procedure TextChangeTracking(Sender: TObject);
   protected
@@ -64,8 +99,15 @@ type
 
     /// <summary>True shows the text with InvalidFontColor: the text cannot be read as a filter.</summary>
     property Invalid: Boolean read FInvalid write SetInvalid;
+    /// <summary>The button of the menu of the filter, hidden until ShowMenuButton is True.</summary>
+    property MenuButton: TS4YGridFilterMenuButton read FMenuButton;
     /// <summary>The color of a text that cannot be read, from the part filterinvalidtext of the style of the grid.</summary>
     property InvalidFontColor: TAlphaColor read FInvalidFontColor write SetInvalidFontColor;
+    /// <summary>True shows the button of the menu of the filter on the right side of the text.</summary>
+    property ShowMenuButton: Boolean read GetShowMenuButton write SetShowMenuButton;
+
+    /// <summary>Fires when the user clicks the button of the menu.</summary>
+    property OnMenuButtonClick: TNotifyEvent read FOnMenuButtonClick write FOnMenuButtonClick;
   end;
 
   /// <summary>
@@ -91,14 +133,22 @@ type
     /// <summary>Opacity of the box when there is no filter.</summary>
     C_ANY_OPACITY = 0.4;
   private
+    FBoxLayout: TControl;
+    FHorzAlign: TTextAlign;
     FOnFilterSubmit: TNotifyEvent;
     FOnFilterValueChange: TNotifyEvent;
     FSettingValue: Boolean;
     FState: TS4YGridCheckFilterState;
+    procedure AlignBox;
     procedure CheckChange(Sender: TObject);
+    procedure SetHorzAlign(const Value: TTextAlign);
     procedure SetState(const Value: TS4YGridCheckFilterState);
     procedure ShowState;
   protected
+    /// <summary>Places the box of the style as HorzAlign says.</summary>
+    procedure ApplyStyle; override;
+    /// <summary>Forgets the box of the style.</summary>
+    procedure FreeStyle; override;
     /// <summary>Returns checkboxstyle, the style of TCheckBox.</summary>
     function GetDefaultStyleLookupName: string; override;
   public
@@ -117,6 +167,11 @@ type
     /// <summary>Sets the event fired after the change of the state.</summary>
     procedure SetOnFilterSubmit(const AEvent: TNotifyEvent);
 
+    /// <summary>
+    /// The place of the box in the editor, as the HorzAlign of the column places the boxes of its cells: Leading on
+    /// the left, Center in the middle, Trailing on the right. The default is Leading.
+    /// </summary>
+    property HorzAlign: TTextAlign read FHorzAlign write SetHorzAlign;
     /// <summary>The state of the filter.</summary>
     property State: TS4YGridCheckFilterState read FState write SetState;
   end;
@@ -125,8 +180,84 @@ implementation
 
 uses
   System.SysUtils,
-  FMX.Types,
-  FMX.Graphics;
+  System.Types,
+  FMX.Graphics,
+  FMX.Objects;
+
+const
+  C_STYLE_BACKGROUND = 'background';
+  C_STYLE_ICON = 'icon';
+  C_STYLE_FOREGROUND = 'foreground';
+
+{ TS4YGridFilterMenuButton }
+
+procedure TS4YGridFilterMenuButton.AfterPaint;
+var
+  LEdit: TCustomEdit;
+  LForeground: TBrushObject;
+  LTextSettings: ITextSettings;
+  LColor: TAlphaColor;
+  LLeft: Single;
+  LTop: Single;
+begin
+  inherited;
+
+  if Assigned(FIcon) then
+    Exit;
+
+  // The color of the text of the style of the field, not the one of a text that cannot be read.
+  LColor := TAlphaColors.Black;
+  LEdit := GetEdit;
+
+  if Assigned(LEdit) and LEdit.FindStyleResource<TBrushObject>(C_STYLE_FOREGROUND, LForeground) then
+    LColor := LForeground.Brush.Color
+  else if Supports(LEdit, ITextSettings, LTextSettings) then
+    LColor := LTextSettings.ResultingTextSettings.FontColor;
+
+  Canvas.Fill.Kind := TBrushKind.Solid;
+  Canvas.Fill.Color := LColor;
+  LLeft := (Width - C_DOT_SIZE) / 2;
+  LTop := (Height - 3 * C_DOT_SIZE - 2 * C_DOT_SPACING) / 2;
+
+  for var I := 0 to 2 do
+    Canvas.FillEllipse(TRectF.Create(LLeft, LTop + I * (C_DOT_SIZE + C_DOT_SPACING), LLeft + C_DOT_SIZE,
+      LTop + I * (C_DOT_SIZE + C_DOT_SPACING) + C_DOT_SIZE), AbsoluteOpacity);
+end;
+
+procedure TS4YGridFilterMenuButton.ApplyStyle;
+var
+  LIcon: TControl;
+begin
+  inherited;
+
+  if FindStyleResource<TControl>(C_STYLE_ICON, LIcon) then
+    LIcon.Visible := False;
+end;
+
+function TS4YGridFilterMenuButton.GetDefaultStyleLookupName: string;
+begin
+  Result := 'ellipseseditbutton';
+end;
+
+procedure TS4YGridFilterMenuButton.SetIcon(const Value: TControl);
+begin
+  if FIcon = Value then
+    Exit;
+
+  FIcon.Free;
+  FIcon := Value;
+
+  if Assigned(FIcon) then
+  begin
+    FIcon.Stored := False;
+    FIcon.Align := TAlignLayout.Center;
+    FIcon.HitTest := False;
+    FIcon.Visible := True;
+    FIcon.Parent := Self;
+  end;
+
+  Repaint;
+end;
 
 { TS4YGridTextFilterEditor }
 
@@ -136,6 +267,12 @@ begin
 
   FInvalidFontColor := C_DEFAULT_INVALID_FONT_COLOR;
   OnChangeTracking := TextChangeTracking;
+  FMenuButton := TS4YGridFilterMenuButton.Create(Self);
+  FMenuButton.Stored := False;
+  FMenuButton.Locked := True;
+  FMenuButton.Visible := False;
+  FMenuButton.OnClick := MenuButtonClick;
+  FMenuButton.Parent := Self;
 end;
 
 function TS4YGridTextFilterEditor.GetDefaultStyleLookupName: string;
@@ -173,6 +310,17 @@ begin
 
   if (LKey = vkReturn) and Assigned(FOnFilterSubmit) then
     FOnFilterSubmit(Self);
+end;
+
+function TS4YGridTextFilterEditor.GetShowMenuButton: Boolean;
+begin
+  Result := FMenuButton.Visible;
+end;
+
+procedure TS4YGridTextFilterEditor.MenuButtonClick(Sender: TObject);
+begin
+  if Assigned(FOnMenuButtonClick) then
+    FOnMenuButtonClick(Self);
 end;
 
 procedure TS4YGridTextFilterEditor.SetFilterText(const AText: string);
@@ -221,6 +369,11 @@ begin
   FOnFilterValueChange := AEvent;
 end;
 
+procedure TS4YGridTextFilterEditor.SetShowMenuButton(const Value: Boolean);
+begin
+  FMenuButton.Visible := Value;
+end;
+
 procedure TS4YGridTextFilterEditor.ShowInvalid;
 begin
   // The color of the style, or the one of a text that cannot be read.
@@ -245,8 +398,39 @@ constructor TS4YGridCheckFilterEditor.Create(AOwner: TComponent);
 begin
   inherited;
 
+  FHorzAlign := TTextAlign.Leading;
   OnChange := CheckChange;
   ShowState;
+end;
+
+procedure TS4YGridCheckFilterEditor.AlignBox;
+begin
+  if not Assigned(FBoxLayout) then
+    Exit;
+
+  case FHorzAlign of
+    TTextAlign.Center:
+      FBoxLayout.Align := TAlignLayout.HorzCenter;
+    TTextAlign.Trailing:
+      FBoxLayout.Align := TAlignLayout.Right;
+  else
+    FBoxLayout.Align := TAlignLayout.Left;
+  end;
+end;
+
+procedure TS4YGridCheckFilterEditor.ApplyStyle;
+var
+  LBackground: TControl;
+begin
+  inherited;
+
+  // The box is the part background, in a layout of its own on the left side of the style, as in TCheckCell.
+  FBoxLayout := nil;
+
+  if FindStyleResource<TControl>(C_STYLE_BACKGROUND, LBackground) and (LBackground.ParentControl <> ResourceControl) then
+    FBoxLayout := LBackground.ParentControl;
+
+  AlignBox;
 end;
 
 procedure TS4YGridCheckFilterEditor.CheckChange(Sender: TObject);
@@ -269,6 +453,13 @@ begin
 
   if Assigned(FOnFilterSubmit) then
     FOnFilterSubmit(Self);
+end;
+
+procedure TS4YGridCheckFilterEditor.FreeStyle;
+begin
+  FBoxLayout := nil;
+
+  inherited;
 end;
 
 function TS4YGridCheckFilterEditor.GetDefaultStyleLookupName: string;
@@ -325,6 +516,15 @@ end;
 procedure TS4YGridCheckFilterEditor.SetOnFilterValueChange(const AEvent: TNotifyEvent);
 begin
   FOnFilterValueChange := AEvent;
+end;
+
+procedure TS4YGridCheckFilterEditor.SetHorzAlign(const Value: TTextAlign);
+begin
+  if FHorzAlign = Value then
+    Exit;
+
+  FHorzAlign := Value;
+  AlignBox;
 end;
 
 procedure TS4YGridCheckFilterEditor.SetState(const Value: TS4YGridCheckFilterState);
