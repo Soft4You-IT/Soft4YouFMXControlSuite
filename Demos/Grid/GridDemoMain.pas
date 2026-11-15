@@ -47,6 +47,8 @@ type
     Active: Boolean;
     Amount: Currency;
     City: string;
+    // The position in the data: the order of the rows that are the same for all the keys.
+    Id: Integer;
     LastOrder: TDate;
     Name: string;
     Orders: Integer;
@@ -101,9 +103,18 @@ type
     StyledOrdersColumn: TIntegerColumn;
     StyledAmountColumn: TCurrencyColumn;
     GridStyleBook: TStyleBook;
+    SortingSettingsLabel: TLabel;
+    SortingEnabledCheckBox: TCheckBox;
+    MultiColumnCheckBox: TCheckBox;
+    ShowOrderCheckBox: TCheckBox;
+    OrderBeforeCheckBox: TCheckBox;
+    OrderSpacingLabel: TLabel;
+    OrderSpacingTrackBar: TTrackBar;
+    OrderLabel: TLabel;
     procedure AllDataCheckBoxChange(Sender: TObject);
     procedure AmountKindComboBoxChange(Sender: TObject);
     procedure BindingsGridFilter(Sender: TObject);
+    procedure BindingsGridSort(Sender: TObject);
     procedure ClearFiltersButtonClick(Sender: TObject);
     procedure CustomersTableFilterRecord(DataSet: TDataSet; var Accept: Boolean);
     procedure FilterSettingsChange(Sender: TObject);
@@ -114,6 +125,8 @@ type
     procedure ObjectsGridFilterChanged(Sender: TObject; const AColumn: TColumn);
     procedure ObjectsGridGetFooterText(Sender: TObject; const AColumn: TColumn; var AText: string);
     procedure ObjectsGridGetValue(Sender: TObject; const ACol, ARow: Integer; var Value: TValue);
+    procedure ObjectsGridSort(Sender: TObject);
+    procedure SortingSettingsChange(Sender: TObject);
     procedure StyledGridFilter(Sender: TObject);
     procedure StyledGridGetValue(Sender: TObject; const ACol, ARow: Integer; var Value: TValue);
   private
@@ -122,11 +135,13 @@ type
     FVisible: TList<TCustomer>;
     function BindingsColumn(const AFieldName: string): TColumn;
     procedure BuildCustomers;
+    function CompareCustomers(const ALeft, ARight: TCustomer; const AColumn: TColumn): Integer;
     procedure FillCustomersTable;
     function Matches(const AGrid: TS4YGrid; const ACustomer: TCustomer; const ANameColumn, ACityColumn, AOrdersColumn,
       AAmountColumn: TColumn): Boolean;
     function MatchesObjects(const ACustomer: TCustomer): Boolean;
     procedure SetUpBindingsGrid;
+    procedure ShowObjects;
     procedure UpdateRowsLabel;
   end;
 
@@ -139,13 +154,18 @@ implementation
 
 uses
   System.DateUtils,
-  System.Math;
+  System.Math,
+  System.Generics.Defaults;
 
 resourcestring
   S_ALL_DATA = 'All: %s';
   S_FILTER_CHANGED = 'OnFilterChanged: %s = %s';
   S_FILTER_DELAY = 'FilterDelay: %d ms';
   S_NO_FILTER = '(no filter)';
+  S_NO_ORDER = '(order of the data)';
+  S_ORDER = 'OnSort: %s';
+  S_ORDER_DESCENDING = '%s (descending)';
+  S_ORDER_SPACING = 'OrderSpacing: %d px';
   S_ROWS = 'Rows shown: %d of %d';
   S_TOTAL = 'Total';
 
@@ -188,6 +208,27 @@ begin
   BindingsGrid.UpdateFooter;
 end;
 
+procedure TGridDemoForm.BindingsGridSort(Sender: TObject);
+var
+  LFields: string;
+begin
+  // The data set sorts itself: the headers of the columns of the link are the names of the fields.
+  LFields := '';
+
+  for var I := 0 to BindingsGrid.SortCount - 1 do
+  begin
+    if LFields <> '' then
+      LFields := LFields + ';';
+
+    LFields := LFields + BindingsGrid.SortColumn[I].Header;
+
+    if BindingsGrid.SortDescending[I] then
+      LFields := LFields + ':D';
+  end;
+
+  CustomersTable.IndexFieldNames := LFields;
+end;
+
 procedure TGridDemoForm.BuildCustomers;
 var
   LCustomer: TCustomer;
@@ -198,6 +239,7 @@ begin
   for var I := 1 to C_CUSTOMER_COUNT do
   begin
     LCustomer := TCustomer.Create;
+    LCustomer.Id := I;
     LCustomer.Name := C_FIRST_NAMES[Random(Length(C_FIRST_NAMES))] + ' ' + C_LAST_NAMES[Random(Length(C_LAST_NAMES))];
     LCustomer.City := C_CITIES[Random(Length(C_CITIES))];
     LCustomer.Orders := 1 + Random(40);
@@ -212,6 +254,24 @@ procedure TGridDemoForm.ClearFiltersButtonClick(Sender: TObject);
 begin
   ObjectsGrid.ClearFilters;
   ObjectsGrid.Filter;
+end;
+
+function TGridDemoForm.CompareCustomers(const ALeft, ARight: TCustomer; const AColumn: TColumn): Integer;
+begin
+  if AColumn = NameColumn then
+    Result := CompareText(ALeft.Name, ARight.Name)
+  else if AColumn = CityColumn then
+    Result := CompareText(ALeft.City, ARight.City)
+  else if AColumn = OrdersColumn then
+    Result := CompareValue(ALeft.Orders, ARight.Orders)
+  else if AColumn = AmountColumn then
+    Result := CompareValue(ALeft.Amount, ARight.Amount)
+  else if AColumn = LastOrderColumn then
+    Result := CompareDate(ALeft.LastOrder, ARight.LastOrder)
+  else if AColumn = ActiveColumn then
+    Result := CompareValue(Ord(ALeft.Active), Ord(ARight.Active))
+  else
+    Result := 0;
 end;
 
 procedure TGridDemoForm.CustomersTableFilterRecord(DataSet: TDataSet; var Accept: Boolean);
@@ -347,19 +407,7 @@ end;
 
 procedure TGridDemoForm.ObjectsGridFilter(Sender: TObject);
 begin
-  FVisible.Clear;
-
-  for var LCustomer in FCustomers do
-    if MatchesObjects(LCustomer) then
-      FVisible.Add(LCustomer);
-
-  // The grid keeps the values it has shown: the rows are now other customers.
-  ObjectsGrid.Model.ClearCache;
-  ObjectsGrid.RowCount := FVisible.Count;
-  ObjectsGrid.Repaint;
-  // Also when the number of rows is the same, the totals are of other customers.
-  ObjectsGrid.UpdateFooter;
-  UpdateRowsLabel;
+  ShowObjects;
 end;
 
 procedure TGridDemoForm.ObjectsGridFilterChanged(Sender: TObject; const AColumn: TColumn);
@@ -466,6 +514,89 @@ begin
         BindingsGrid.ColumnSettings.Add(LColumn).Filterable := False;
     end;
   end;
+end;
+
+procedure TGridDemoForm.ObjectsGridSort(Sender: TObject);
+var
+  LOrder: string;
+  LText: string;
+begin
+  ShowObjects;
+  LOrder := '';
+
+  for var I := 0 to ObjectsGrid.SortCount - 1 do
+  begin
+    LText := ObjectsGrid.SortColumn[I].Header;
+
+    if ObjectsGrid.SortDescending[I] then
+      LText := Format(S_ORDER_DESCENDING, [LText]);
+
+    if LOrder <> '' then
+      LOrder := LOrder + ', ';
+
+    LOrder := LOrder + LText;
+  end;
+
+  if LOrder = '' then
+    LOrder := S_NO_ORDER;
+
+  OrderLabel.Text := Format(S_ORDER, [LOrder]);
+end;
+
+procedure TGridDemoForm.ShowObjects;
+begin
+  // The customers that pass the filters...
+  FVisible.Clear;
+
+  for var LCustomer in FCustomers do
+    if MatchesObjects(LCustomer) then
+      FVisible.Add(LCustomer);
+
+  // ...in the order of the keys, then in the order of the data.
+  FVisible.Sort(TComparer<TCustomer>.Construct(
+    function(const ALeft, ARight: TCustomer): Integer
+    var
+      LIndex: Integer;
+    begin
+      Result := 0;
+      LIndex := 0;
+
+      while (Result = 0) and (LIndex < ObjectsGrid.SortCount) do
+      begin
+        Result := CompareCustomers(ALeft, ARight, ObjectsGrid.SortColumn[LIndex]);
+
+        if ObjectsGrid.SortDescending[LIndex] then
+          Result := -Result;
+
+        Inc(LIndex);
+      end;
+
+      if Result = 0 then
+        Result := CompareValue(ALeft.Id, ARight.Id);
+    end));
+
+  // The grid keeps the values it has shown: the rows are now other customers.
+  ObjectsGrid.Model.ClearCache;
+  ObjectsGrid.RowCount := FVisible.Count;
+  ObjectsGrid.Repaint;
+  // Also when the number of rows is the same, the totals are of other customers.
+  ObjectsGrid.UpdateFooter;
+  UpdateRowsLabel;
+end;
+
+procedure TGridDemoForm.SortingSettingsChange(Sender: TObject);
+begin
+  ObjectsGrid.Sorting.Enabled := SortingEnabledCheckBox.IsChecked;
+  ObjectsGrid.Sorting.MultiColumn := MultiColumnCheckBox.IsChecked;
+  ObjectsGrid.Sorting.ShowOrder := ShowOrderCheckBox.IsChecked;
+
+  if OrderBeforeCheckBox.IsChecked then
+    ObjectsGrid.Sorting.OrderPosition := gopBefore
+  else
+    ObjectsGrid.Sorting.OrderPosition := gopAfter;
+
+  ObjectsGrid.Sorting.OrderSpacing := Round(OrderSpacingTrackBar.Value);
+  OrderSpacingLabel.Text := Format(S_ORDER_SPACING, [Round(OrderSpacingTrackBar.Value)]);
 end;
 
 procedure TGridDemoForm.StyledGridFilter(Sender: TObject);

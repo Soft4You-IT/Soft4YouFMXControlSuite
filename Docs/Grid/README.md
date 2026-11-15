@@ -163,8 +163,8 @@ The methods work also when `Sorting.Enabled` is `False`, and the header shows th
 
 `Demos\Grid\S4YGridDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) has three tabs:
 
-- **Objects**: 200 customers in a list of objects, shown with `OnGetValue` and filtered by the application in `OnFilter`, with a drop-down list for the city (`FilterItems`) and a footer with a text, an average, a sum and a date; the panel on the left changes the filter row (`Visible`, `AutoFilter`, `FilterDelay`, `ClearOnHide`, `ClearFilters`) and the footer (`Visible`, the `FooterKind` of the amount, the sum of all the data with `OnGetFooterText`), and shows the last `OnFilterChanged` and the rows shown;
-- **LiveBindings**: the same customers in a `TFDMemTable`, shown through a `TLinkGridToDataSource` and filtered by the data set in `OnFilterRecord`, with the footer read through the link;
+- **Objects**: 200 customers in a list of objects, shown with `OnGetValue` and filtered by the application in `OnFilter`, with a drop-down list for the city (`FilterItems`) and a footer with a text, an average, a sum and a date; the panel on the left changes the filter row (`Visible`, `AutoFilter`, `FilterDelay`, `ClearOnHide`, `ClearFilters`) and the footer (`Visible`, the `FooterKind` of the amount, the sum of all the data with `OnGetFooterText`) and the order (`Sorting.Enabled`, `MultiColumn`, `ShowOrder`, `OrderPosition`, `OrderSpacing`), and shows the last `OnFilterChanged`, the rows shown and the keys of the last `OnSort`; the application sorts the list with a comparer that reads the keys, after the filters;
+- **LiveBindings**: the same customers in a `TFDMemTable`, shown through a `TLinkGridToDataSource` and filtered by the data set in `OnFilterRecord` and sorted with its `IndexFieldNames` in `OnSort`, with the footer read through the link;
 - **Style book**: the grid with a dark style of the `TStyleBook` of the form, with the parts `filterrowbackground`, `footerbackground` and `footertext`.
 
 Install the suite packages first.
