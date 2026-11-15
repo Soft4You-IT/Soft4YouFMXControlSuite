@@ -23,6 +23,7 @@ uses
   FMX.Graphics,
   FMX.Objects,
   FMX.Presentation.Messages,
+  FMX.Header,
   FMX.Grid,
   FMX.Grid.Style,
   Soft4You.FMX.Controls.Grid;
@@ -112,6 +113,8 @@ type
   /// the texts; without it, they are the ones of the grid.
   /// The Padding of a part is used also when it is 0; without the part, the editors are 2 pixels from the sides of
   /// their cells and the texts have only the Padding of the columns.
+  /// The header of a column the rows are sorted by shows an arrow, and its position in the order when there are more
+  /// keys; a part sortindicator, a TText, gives their color and font, otherwise the ones of the text of the header.
   /// </remarks>
   TS4YStyledGrid = class(TStyledGrid)
   private
@@ -124,11 +127,24 @@ type
     FFooter: TS4YGridFooterBand;
     FFooterTexts: TDictionary<TColumn, string>;
     FFooterTextsValid: Boolean;
+    FHeader: THeader;
+    FHeaderClickShift: TShiftState;
     FHorizontalScrollBar: TControl;
     FLineFill: TBrushObject;
+    FPreviousHeaderDrawItem: TDrawHeaderItemEvent;
+    FSortFont: TFont;
+    FSortFontColor: TAlphaColor;
+    FSortStyled: Boolean;
     FUpdatingFromEditor: Boolean;
     procedure AutoFilterTimer(Sender: TObject);
     function CreateFilterEditor(const AColumn: TColumn): TControl;
+    function DrawSortIndicator(const ACanvas: TCanvas; const AItem: THeaderItem; const ABounds: TRectF;
+      const AIndex: Integer): Single;
+    procedure HeaderDrawItem(Sender: TObject; const Canvas: TCanvas; const Item: THeaderItem; const Bounds: TRectF);
+    procedure HeaderItemClick(Item: THeaderItem);
+    procedure HeaderItemMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
+    procedure MMSortChanged(var Message: TDispatchMessage); message MM_S4Y_GRID_SORT_CHANGED;
+    procedure RepaintHeader;
     procedure FooterUpdateCells(Sender: TObject);
     procedure FreeEditors;
     function GetCellLeft(const AColumnIndex: Integer; const ABand: TControl): Single;
@@ -179,6 +195,7 @@ implementation
 uses
   System.SysUtils,
   System.Math,
+  System.Math.Vectors,
   System.Rtti,
   FMX.Presentation.Factory,
   FMX.Presentation.Style,
@@ -197,6 +214,15 @@ const
   C_STYLE_HEADER = 'header';
   C_STYLE_HORIZONTAL_SCROLL_BAR = 'hscrollbar';
   C_STYLE_LINE_FILL = 'linefill';
+  C_STYLE_SORT_INDICATOR = 'sortindicator';
+  C_STYLE_TEXT = 'text';
+
+  // The arrow of the order in the header, and the space around it, in pixels.
+  C_SORT_ARROW_WIDTH = 8;
+  C_SORT_ARROW_HEIGHT = 4;
+  C_SORT_MARGIN = 4;
+  // Size of the position in the order compared to the text of the header.
+  C_SORT_ORDER_FONT_SCALE = 0.75;
 
   // Default space between the editors and the sides of their cell, in pixels.
   C_DEFAULT_EDITOR_PADDING = 2;
@@ -285,6 +311,7 @@ begin
 
   FEditors := TDictionary<TColumn, TControl>.Create;
   FFooterTexts := TDictionary<TColumn, string>.Create;
+  FSortFont := TFont.Create;
   FAutoFilterTimer := TTimer.Create(nil);
   FAutoFilterTimer.Enabled := False;
   FAutoFilterTimer.OnTimer := AutoFilterTimer;
@@ -295,6 +322,7 @@ end;
 destructor TS4YStyledGrid.Destroy;
 begin
   FAutoFilterTimer.Free;
+  FSortFont.Free;
   FFooterTexts.Free;
   FEditors.Free;
 
@@ -305,6 +333,7 @@ procedure TS4YStyledGrid.ApplyStyle;
 var
   LRowBackground: TControl;
   LFooterText: TText;
+  LSortIndicator: TText;
   LTextSettings: ITextSettings;
   LHeader: TControl;
 begin
@@ -313,8 +342,27 @@ begin
   FBackground := nil;
   FContentPart := nil;
   FLineFill := nil;
+  FHeader := nil;
+  FPreviousHeaderDrawItem := nil;
   FEditorPadding := TRectF.Create(C_DEFAULT_EDITOR_PADDING, C_DEFAULT_EDITOR_PADDING, C_DEFAULT_EDITOR_PADDING,
     C_DEFAULT_EDITOR_PADDING);
+
+  // The header draws the arrows of the order after the drawing of TStyledGrid, which fires OnDrawColumnHeader.
+  if FindStyleResource<THeader>(C_STYLE_HEADER, FHeader) then
+  begin
+    FPreviousHeaderDrawItem := FHeader.OnDrawItem;
+    FHeader.OnDrawItem := HeaderDrawItem;
+    FHeader.OnItemClick := HeaderItemClick;
+  end;
+
+  FSortStyled := FindStyleResource<TText>(C_STYLE_SORT_INDICATOR, LSortIndicator);
+
+  if FSortStyled then
+  begin
+    FSortFont.Assign(LSortIndicator.TextSettings.Font);
+    FSortFontColor := LSortIndicator.TextSettings.FontColor;
+    LSortIndicator.Visible := False;
+  end;
 
   // Without the part background the style has no place for the filter row.
   if not FindStyleResource<TControl>(C_STYLE_BACKGROUND, FBackground) then
@@ -472,6 +520,92 @@ begin
     FFooter.Repaint;
 end;
 
+function TS4YStyledGrid.DrawSortIndicator(const ACanvas: TCanvas; const AItem: THeaderItem; const ABounds: TRectF;
+  const AIndex: Integer): Single;
+var
+  LTextSettings: ITextSettings;
+  LColor: TAlphaColor;
+  LOrder: string;
+  LOrderWidth: Single;
+  LLeft: Single;
+  LRight: Single;
+  LTop: Single;
+  LArrow: TPolygon;
+  LState: TCanvasSaveState;
+begin
+  // Returns the space taken on the right side of the header, kept free of the text of the header.
+  LOrderWidth := 0;
+  LState := ACanvas.SaveState;
+  try
+    LColor := TAlphaColors.Black;
+
+    if FSortStyled then
+    begin
+      ACanvas.Font.Assign(FSortFont);
+      LColor := FSortFontColor;
+    end
+    else if Supports(AItem, ITextSettings, LTextSettings) then
+    begin
+      ACanvas.Font.Assign(LTextSettings.ResultingTextSettings.Font);
+      ACanvas.Font.Size := ACanvas.Font.Size * C_SORT_ORDER_FONT_SCALE;
+      LColor := LTextSettings.ResultingTextSettings.FontColor;
+    end;
+
+    LOrder := '';
+
+    if Model.Sorting.ShowOrder and (Model.SortCount > 1) then
+      LOrder := IntToStr(AIndex + 1);
+
+    ACanvas.Fill.Kind := TBrushKind.Solid;
+    ACanvas.Fill.Color := LColor;
+
+    // The arrow and the position in the order, as a group on the right side of the header.
+    if LOrder <> '' then
+      LOrderWidth := ACanvas.TextWidth(LOrder) + Model.Sorting.OrderSpacing;
+
+    LLeft := ABounds.Right - C_SORT_MARGIN - C_SORT_ARROW_WIDTH - LOrderWidth;
+
+    if (LOrder <> '') and (Model.Sorting.OrderPosition = gopBefore) then
+    begin
+      ACanvas.FillText(TRectF.Create(LLeft, ABounds.Top, LLeft + LOrderWidth - Model.Sorting.OrderSpacing,
+        ABounds.Bottom), LOrder, False, AItem.AbsoluteOpacity, [], TTextAlign.Leading, TTextAlign.Center);
+      LRight := ABounds.Right - C_SORT_MARGIN;
+    end
+    else
+    begin
+      if LOrder <> '' then
+        ACanvas.FillText(TRectF.Create(LLeft + C_SORT_ARROW_WIDTH + Model.Sorting.OrderSpacing, ABounds.Top,
+          ABounds.Right - C_SORT_MARGIN, ABounds.Bottom), LOrder, False, AItem.AbsoluteOpacity, [], TTextAlign.Leading,
+          TTextAlign.Center);
+
+      LRight := LLeft + C_SORT_ARROW_WIDTH;
+    end;
+
+    // Pointing up from the lowest value, down from the highest.
+    LTop := ABounds.Top + (ABounds.Height - C_SORT_ARROW_HEIGHT) / 2;
+    SetLength(LArrow, 3);
+
+    if Model.SortKeys[AIndex].Descending then
+    begin
+      LArrow[0] := TPointF.Create(LRight - C_SORT_ARROW_WIDTH, LTop);
+      LArrow[1] := TPointF.Create(LRight, LTop);
+      LArrow[2] := TPointF.Create(LRight - C_SORT_ARROW_WIDTH / 2, LTop + C_SORT_ARROW_HEIGHT);
+    end
+    else
+    begin
+      LArrow[0] := TPointF.Create(LRight - C_SORT_ARROW_WIDTH, LTop + C_SORT_ARROW_HEIGHT);
+      LArrow[1] := TPointF.Create(LRight, LTop + C_SORT_ARROW_HEIGHT);
+      LArrow[2] := TPointF.Create(LRight - C_SORT_ARROW_WIDTH / 2, LTop);
+    end;
+
+    ACanvas.FillPolygon(LArrow, AItem.AbsoluteOpacity);
+  finally
+    ACanvas.RestoreState(LState);
+  end;
+
+  Result := 2 * C_SORT_MARGIN + C_SORT_ARROW_WIDTH + LOrderWidth;
+end;
+
 procedure TS4YStyledGrid.EditorFilterSubmit(Sender: TObject);
 begin
   // The filter is applied now: the wait of AutoFilter is no longer needed.
@@ -584,6 +718,8 @@ begin
   FEditors.Clear;
   FFilterRow := nil;
   FFooter := nil;
+  FHeader := nil;
+  FPreviousHeaderDrawItem := nil;
   FHorizontalScrollBar := nil;
   FBackground := nil;
   FContentPart := nil;
@@ -616,6 +752,53 @@ end;
 function TS4YStyledGrid.GetModel: TS4YGridModel;
 begin
   Result := TS4YGridModel(inherited Model);
+end;
+
+procedure TS4YStyledGrid.HeaderDrawItem(Sender: TObject; const Canvas: TCanvas; const Item: THeaderItem;
+  const Bounds: TRectF);
+var
+  LIndex: Integer;
+  LSpace: Single;
+  LText: TFmxObject;
+begin
+  if Assigned(FPreviousHeaderDrawItem) then
+    FPreviousHeaderDrawItem(Sender, Canvas, Item, Bounds);
+
+  if not (Item is TGridHeaderItem) then
+    Exit;
+
+  // The click does not tell the keys: they come from the mouse down. The items are created again by the grid, and
+  // they are drawn before they can be clicked.
+  if not Assigned(Item.OnMouseDown) then
+    Item.OnMouseDown := HeaderItemMouseDown;
+
+  LIndex := Model.SortIndexOf(TGridHeaderItem(Item).Column);
+  LSpace := 0;
+
+  if LIndex >= 0 then
+    LSpace := DrawSortIndicator(Canvas, Item, Bounds, LIndex);
+
+  // The text of the header leaves the space of the arrow; TagFloat keeps the space added to its margin of the style.
+  LText := Item.FindStyleResource(C_STYLE_TEXT);
+
+  if (LText is TControl) and not SameValue(LText.TagFloat, LSpace) then
+  begin
+    TControl(LText).Margins.Right := TControl(LText).Margins.Right - LText.TagFloat + LSpace;
+    LText.TagFloat := LSpace;
+  end;
+end;
+
+procedure TS4YStyledGrid.HeaderItemClick(Item: THeaderItem);
+begin
+  if Item is TGridHeaderItem then
+    Model.SortByHeaderClick(TGridHeaderItem(Item).Column, FHeaderClickShift);
+
+  FHeaderClickShift := [];
+end;
+
+procedure TS4YStyledGrid.HeaderItemMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
+begin
+  FHeaderClickShift := Shift;
 end;
 
 procedure TS4YStyledGrid.InvalidateFooter;
@@ -680,6 +863,20 @@ begin
 
   if FEditors.TryGetValue(Message.Value, LEditor) and Supports(LEditor, IS4YGridFilterEditor, LFilterEditor) then
     LFilterEditor.SetFilterValue(Model.GetFilterValue(Message.Value));
+end;
+
+procedure TS4YStyledGrid.MMSortChanged(var Message: TDispatchMessage);
+begin
+  RepaintHeader;
+end;
+
+procedure TS4YStyledGrid.RepaintHeader;
+begin
+  if not Assigned(FHeader) then
+    Exit;
+
+  for var I := 0 to FHeader.Count - 1 do
+    FHeader.Items[I].Repaint;
 end;
 
 procedure TS4YStyledGrid.RemoveOldEditors;

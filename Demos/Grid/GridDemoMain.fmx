@@ -262,6 +262,112 @@ object GridDemoForm: TGridDemoForm
           Text = 'Sum of all the data (OnGetFooterText)'
           OnChange = AllDataCheckBoxChange
         end
+        object SortingSettingsLabel: TLabel
+          Align = Top
+          StyledSettings = [Family, Size, FontColor]
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 320.000000000000000000
+          Size.Width = 240.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 15
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          Text = 'Sorting'
+        end
+        object SortingEnabledCheckBox: TCheckBox
+          Align = Top
+          IsChecked = True
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 321.000000000000000000
+          Size.Width = 240.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 16
+          Text = 'Enabled (click on a header)'
+          OnChange = SortingSettingsChange
+        end
+        object MultiColumnCheckBox: TCheckBox
+          Align = Top
+          IsChecked = True
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 322.000000000000000000
+          Size.Width = 240.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 17
+          Text = 'MultiColumn (Shift+click)'
+          OnChange = SortingSettingsChange
+        end
+        object ShowOrderCheckBox: TCheckBox
+          Align = Top
+          IsChecked = True
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 323.000000000000000000
+          Size.Width = 240.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 18
+          Text = 'ShowOrder'
+          OnChange = SortingSettingsChange
+        end
+        object OrderBeforeCheckBox: TCheckBox
+          Align = Top
+          IsChecked = True
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 324.000000000000000000
+          Size.Width = 240.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 20
+          Text = 'OrderPosition: gopBefore'
+          OnChange = SortingSettingsChange
+        end
+        object OrderSpacingLabel: TLabel
+          Align = Top
+          Text = 'OrderSpacing: 3 px'
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 325.000000000000000000
+          Size.Width = 240.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 21
+        end
+        object OrderSpacingTrackBar: TTrackBar
+          Align = Top
+          CanParentFocus = True
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 326.000000000000000000
+          Size.Width = 240.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 22
+          Frequency = 1.000000000000000000
+          Max = 10.000000000000000000
+          Orientation = Horizontal
+          Value = 3.000000000000000000
+          OnChange = SortingSettingsChange
+        end
         object EventsSettingsLabel: TLabel
           Align = Top
           StyledSettings = [Family, Size, FontColor]
@@ -304,6 +410,20 @@ object GridDemoForm: TGridDemoForm
           Size.PlatformDefault = False
           TabOrder = 14
         end
+        object OrderLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 430.000000000000000000
+          Size.Width = 240.000000000000000000
+          Size.Height = 40.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 19
+          TextSettings.VertAlign = Leading
+          Text = 'OnSort: -'
+        end
       end
       object ObjectsLayout: TLayout
         Align = Client
@@ -317,7 +437,7 @@ object GridDemoForm: TGridDemoForm
           Margins.Top = 8.000000000000000000
           Margins.Right = 12.000000000000000000
           Size.Width = 800.000000000000000000
-          Size.Height = 40.000000000000000000
+          Size.Height = 56.000000000000000000
           Size.PlatformDefault = False
           TextSettings.VertAlign = Leading
           Text = 
@@ -325,7 +445,9 @@ object GridDemoForm: TGridDemoForm
             'pplication filters them in OnFilter: "contains" for the name, "e' +
             'qual" for the others. Type in the filter row and press Enter, Es' +
             'c clears a filter; the footer shows the totals of the rows shown' +
-            '.'
+            '. A click on a header sorts in OnSort, Shift+click adds a column' +
+            ', Ctrl+click removes it, Alt+click goes back to the order of the' +
+            ' data.'
         end
         object ObjectsGrid: TS4YGrid
           Align = Client
@@ -364,9 +486,11 @@ object GridDemoForm: TGridDemoForm
             end>
           FilterRow.Visible = True
           FooterRow.Visible = True
+          Sorting.Enabled = True
           OnFilter = ObjectsGridFilter
           OnFilterChanged = ObjectsGridFilterChanged
           OnGetFooterText = ObjectsGridGetFooterText
+          OnSort = ObjectsGridSort
           OnGetValue = ObjectsGridGetValue
           object NameColumn: TStringColumn
             Header = 'Name'
@@ -427,7 +551,7 @@ object GridDemoForm: TGridDemoForm
         Margins.Top = 8.000000000000000000
         Margins.Right = 12.000000000000000000
         Size.Width = 800.000000000000000000
-        Size.Height = 40.000000000000000000
+        Size.Height = 56.000000000000000000
         Size.PlatformDefault = False
         TextSettings.VertAlign = Leading
         Text = 
@@ -435,7 +559,8 @@ object GridDemoForm: TGridDemoForm
           'ngs (TBindSourceDB and TLinkGridToDataSource). The data set filt' +
           'ers itself in OnFilterRecord with the filter values of the name,' +
           ' the city and the check box; the footer reads the rows through t' +
-          'he link.'
+          'he link. A click on a header sorts the data set with its IndexFi' +
+          'eldNames, Shift+click by more columns.'
       end
       object BindingsGrid: TS4YGrid
         Align = Client
@@ -451,7 +576,9 @@ object GridDemoForm: TGridDemoForm
         TabOrder = 1
         FilterRow.Visible = True
         FooterRow.Visible = True
+        Sorting.Enabled = True
         OnFilter = BindingsGridFilter
+        OnSort = BindingsGridSort
       end
     end
     object StyleBookTab: TTabItem
