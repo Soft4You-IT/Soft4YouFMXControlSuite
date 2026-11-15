@@ -34,7 +34,7 @@ Add the folder `Sources\Grid` to the Delphi library path to compile your own pro
 | Property | Default | Meaning |
 |---|---|---|
 | `FilterRow.Visible` | `False` | Shows the filter row under the header |
-| `FilterRow.Height` | 0 | Height of the row, in pixels; 0 is automatic: the height of the editors, at least the height of the rows of the grid |
+| `FilterRow.Height` | 0 | Height of the row, in pixels; 0 is automatic: the height of the editors with the padding of the style (see [Styles](#styles)), at least the height of the rows of the grid |
 | `FilterRow.ClearOnHide` | `False` | Clears the filters when the row is hidden, and fires `OnFilter`, so the application shows all its data again; `False` keeps them, and shows them again with the row |
 | `FilterRow.AutoFilter` | `False` | Fires `OnFilter` by itself when the user stops typing in an editor of text, number or date for `FilterDelay` milliseconds; `False` filters only with Enter |
 | `FilterRow.FilterDelay` | 400 | Milliseconds without typing after which `AutoFilter` fires `OnFilter`; 0 fires it at each change |
@@ -94,7 +94,7 @@ The meaning of a value is decided by the application: for a text it is usually "
 | Property | Default | Meaning |
 |---|---|---|
 | `FooterRow.Visible` | `False` | Shows the footer under the cells, over the horizontal scroll bar |
-| `FooterRow.Height` | 0 | Height of the footer, in pixels; 0 is the height of the rows of the grid |
+| `FooterRow.Height` | 0 | Height of the footer, in pixels; 0 is the height of the rows of the grid, plus the top and bottom padding of the style (see [Styles](#styles)) |
 
 What the footer shows under each column is in `ColumnSettings`, with `FooterKind`:
 
@@ -175,8 +175,10 @@ A style of the grid in a `TStyleBook` can add these parts, all optional:
 
 | Part | Use |
 |---|---|
-| `filterrowbackground` | Any control: the background of the filter row |
-| `footerbackground` | Any control: the background of the footer |
+| `filterrowbackground` | Any control: the background of the filter row; its `Padding` is the space between the editors and the sides of their cells |
+| `footerbackground` | Any control: the background of the footer; its `Padding` is a space around the texts of all the cells, besides the `Padding` of the columns |
 | `footertext` | A `TText`: the font and the color of the texts of the footer |
+
+The texts of the footer are placed in their cells as the texts of the cells of the grid: in the cell less the `Padding` of the column (a published property of `TColumn`, 3 pixels on each side by default), so a total is aligned with the values above it. When a style has the part `filterrowbackground` or `footerbackground`, its `Padding` is always used, also when it is 0: a style that adds `filterrowbackground` sets its `Padding` too, for example 2 on each side. Without the part, as in the styles of the platform, the editors are 2 pixels from the sides of their cells, and the texts of the footer have only the `Padding` of the columns. The top and bottom padding of the parts are added to the automatic heights; a `Height` greater than 0 comes first, and the editors and the texts take the space left inside the padding.
 
 A style without the part `background` has no filter row and no footer.

@@ -54,7 +54,8 @@ type
   /// A text of the footer, in the cell of a column.
   /// </summary>
   TS4YGridFooterCell = record
-    /// <summary>The cell, in the coordinates of the footer.</summary>
+    /// <summary>The space of the text, in the coordinates of the footer: the cell less the Padding of the
+    /// column.</summary>
     Bounds: TRectF;
     /// <summary>The alignment of the text in the cell.</summary>
     Alignment: TTextAlign;
@@ -66,13 +67,11 @@ type
   /// The footer of the grid: a row aligned with the columns that draws a text in the cell of each column.
   /// </summary>
   TS4YGridFooterBand = class(TS4YGridBand)
-  public const
-    /// <summary>Space between the text and the sides of its cell, in pixels.</summary>
-    C_TEXT_PADDING = 4;
   private
     FCells: TArray<TS4YGridFooterCell>;
     FFont: TFont;
     FFontColor: TAlphaColor;
+    FTextPadding: TRectF;
     FOnUpdateCells: TNotifyEvent;
   protected
     /// <summary>Asks for the cells with OnUpdateCells and draws their texts, then the line, over the background of the
@@ -90,6 +89,9 @@ type
     property Font: TFont read FFont;
     /// <summary>The color of the texts.</summary>
     property FontColor: TAlphaColor read FFontColor write FFontColor;
+    /// <summary>The space added around the texts in all the cells, in pixels, besides the Padding of the
+    /// columns.</summary>
+    property TextPadding: TRectF read FTextPadding write FTextPadding;
 
     /// <summary>Fires before the footer is drawn, so that the presentation sets its cells.</summary>
     property OnUpdateCells: TNotifyEvent read FOnUpdateCells write FOnUpdateCells;
@@ -102,16 +104,21 @@ type
   /// <remarks>
   /// The filter row is added to the part background of the style, aligned to the top after the header, so the cells
   /// of the grid start under it; its cells follow the width, the order, the visibility and the horizontal scroll of
-  /// the columns. A part filterrowbackground in the style of the grid becomes the background of the row.
+  /// the columns. A part filterrowbackground in the style of the grid becomes the background of the row, and its
+  /// Padding the space between the editors and the sides of their cells.
   /// The footer is added in the same way, aligned to the bottom, over the horizontal scroll bar. A part
-  /// footerbackground becomes its background, and a part footertext, a TText, gives the font and the color of its
-  /// texts; without it, they are the ones of the grid.
+  /// footerbackground becomes its background, and its Padding a space around the texts besides the Padding of the
+  /// columns, which places them as the texts of the cells; a part footertext, a TText, gives the font and the color of
+  /// the texts; without it, they are the ones of the grid.
+  /// The Padding of a part is used also when it is 0; without the part, the editors are 2 pixels from the sides of
+  /// their cells and the texts have only the Padding of the columns.
   /// </remarks>
   TS4YStyledGrid = class(TStyledGrid)
   private
     FAutoFilterTimer: TTimer;
     FBackground: TControl;
     FContentPart: TControl;
+    FEditorPadding: TRectF;
     FEditors: TDictionary<TColumn, TControl>;
     FFilterRow: TS4YGridBand;
     FFooter: TS4YGridFooterBand;
@@ -191,8 +198,8 @@ const
   C_STYLE_HORIZONTAL_SCROLL_BAR = 'hscrollbar';
   C_STYLE_LINE_FILL = 'linefill';
 
-  // Space between the editors and the sides of their cell, in pixels.
-  C_EDITOR_MARGIN = 2;
+  // Default space between the editors and the sides of their cell, in pixels.
+  C_DEFAULT_EDITOR_PADDING = 2;
   // Height of an editor in the automatic height of the filter row: the height of a TEdit.
   C_EDITOR_HEIGHT = 22;
 
@@ -262,7 +269,8 @@ begin
   for var I := 0 to High(FCells) do
   begin
     LRect := FCells[I].Bounds;
-    LRect.Inflate(-C_TEXT_PADDING, 0);
+    LRect := TRectF.Create(LRect.Left + FTextPadding.Left, LRect.Top + FTextPadding.Top,
+      LRect.Right - FTextPadding.Right, LRect.Bottom - FTextPadding.Bottom);
     Canvas.FillText(LRect, FCells[I].Text, False, AbsoluteOpacity, [], FCells[I].Alignment, TTextAlign.Center);
   end;
 
@@ -280,6 +288,8 @@ begin
   FAutoFilterTimer := TTimer.Create(nil);
   FAutoFilterTimer.Enabled := False;
   FAutoFilterTimer.OnTimer := AutoFilterTimer;
+  FEditorPadding := TRectF.Create(C_DEFAULT_EDITOR_PADDING, C_DEFAULT_EDITOR_PADDING, C_DEFAULT_EDITOR_PADDING,
+    C_DEFAULT_EDITOR_PADDING);
 end;
 
 destructor TS4YStyledGrid.Destroy;
@@ -303,6 +313,8 @@ begin
   FBackground := nil;
   FContentPart := nil;
   FLineFill := nil;
+  FEditorPadding := TRectF.Create(C_DEFAULT_EDITOR_PADDING, C_DEFAULT_EDITOR_PADDING, C_DEFAULT_EDITOR_PADDING,
+    C_DEFAULT_EDITOR_PADDING);
 
   // Without the part background the style has no place for the filter row.
   if not FindStyleResource<TControl>(C_STYLE_BACKGROUND, FBackground) then
@@ -328,6 +340,8 @@ begin
 
   if FindStyleResource<TControl>(C_STYLE_FILTER_ROW_BACKGROUND, LRowBackground) then
   begin
+    // The part decides the space, also 0; without it the default stays.
+    FEditorPadding := LRowBackground.Padding.Rect;
     LRowBackground.Parent := FFilterRow;
     LRowBackground.Align := TAlignLayout.Contents;
     LRowBackground.HitTest := False;
@@ -351,6 +365,7 @@ begin
 
   if FindStyleResource<TControl>(C_STYLE_FOOTER_BACKGROUND, LRowBackground) then
   begin
+    FFooter.TextPadding := LRowBackground.Padding.Rect;
     LRowBackground.Parent := FFooter;
     LRowBackground.Align := TAlignLayout.Contents;
     LRowBackground.HitTest := False;
@@ -537,7 +552,10 @@ begin
       LRect := CellRect(I, 0);
       LLeft := GetCellLeft(I, FFooter);
       SetLength(LCells, Length(LCells) + 1);
-      LCells[High(LCells)].Bounds := TRectF.Create(LLeft, 0, LLeft + LRect.Width, FFooter.Height);
+
+      // The texts of the footer start where the texts of the cells start.
+      LCells[High(LCells)].Bounds := LColumn.Padding.PaddingRect(TRectF.Create(LLeft, 0, LLeft + LRect.Width,
+        FFooter.Height));
       LCells[High(LCells)].Text := LText;
       LSetting := Model.ColumnSettings.FindColumn(LColumn);
 
@@ -592,7 +610,7 @@ begin
   if Model.FilterRow.Height > 0 then
     Result := Model.FilterRow.Height
   else
-    Result := Max(RowHeight, C_EDITOR_HEIGHT + 2 * C_EDITOR_MARGIN + 1);
+    Result := Max(RowHeight, C_EDITOR_HEIGHT + FEditorPadding.Top + FEditorPadding.Bottom + 1);
 end;
 
 function TS4YStyledGrid.GetModel: TS4YGridModel;
@@ -745,8 +763,9 @@ begin
       if LShown then
       begin
         LRect := CellRect(I, 0);
-        LEditor.SetBounds(GetCellLeft(I, FFilterRow) + C_EDITOR_MARGIN, C_EDITOR_MARGIN,
-          LRect.Width - 2 * C_EDITOR_MARGIN, FFilterRow.Height - 2 * C_EDITOR_MARGIN - 1);
+        LEditor.SetBounds(GetCellLeft(I, FFilterRow) + FEditorPadding.Left, FEditorPadding.Top,
+          LRect.Width - FEditorPadding.Left - FEditorPadding.Right,
+          FFilterRow.Height - FEditorPadding.Top - FEditorPadding.Bottom - 1);
       end;
     end;
   end;
@@ -762,7 +781,7 @@ begin
   if Model.FooterRow.Height > 0 then
     LHeight := Model.FooterRow.Height
   else
-    LHeight := RowHeight;
+    LHeight := RowHeight + FFooter.TextPadding.Top + FFooter.TextPadding.Bottom;
 
   // A change of the visibility or of the height makes the part content smaller or larger.
   if (FFooter.Visible <> Model.FooterRow.Visible) or not SameValue(FFooter.Height, LHeight) then
