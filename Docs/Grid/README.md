@@ -1,5 +1,7 @@
 # TS4YGrid for FireMonkey
 
+![TS4YGrid](../Screenshots/grid.png)
+
 A grid with a **filter row** under the header: an editor for each column, where the user writes or chooses the value to look for in that column. The editor comes from the type of the column: a text box for a text column, a box that accepts only numbers for an integer, decimal or currency column, a date picker for a date column, a check box with three states for a check column, a drop-down list for a column with a list of values. The data can be filtered when the user presses Enter, or by themselves after a pause in the typing.
 
 Under the cells, a **footer** can show a total, an average, a count, the lowest or the highest value, or a text, under each column.
@@ -115,7 +117,17 @@ The footer is calculated again when the number of rows changes, when a cell is e
 | `UpdateFooter` | Calculates and draws the footer again |
 | `OnGetFooterText(Sender, AColumn, var AText)` | Fires for each visible column with the text calculated, which the application can change: for example the total of all its data and not only of the rows shown, or a calculation of its own |
 
-With the LiveBindings on a `TDataSet`, the values of all the rows are read through the link, which moves through the records: on large data sets prefer `OnGetFooterText` with the totals calculated by the data set.
+With the LiveBindings on a `TDataSet` (a `TLinkGridToDataSource`), the values of all the rows are read through the link: in the demo the footer of 200 rows of a `TFDMemTable` is calculated in a few milliseconds, and the current record of the data set does not move. On large data sets prefer `OnGetFooterText` with the totals calculated by the data set.
+
+## Demo
+
+`Demos\Grid\S4YGridDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) has three tabs:
+
+- **Objects**: 200 customers in a list of objects, shown with `OnGetValue` and filtered by the application in `OnFilter`, with a drop-down list for the city (`FilterItems`) and a footer with a text, an average, a sum and a date; the panel on the left changes the filter row (`Visible`, `AutoFilter`, `FilterDelay`, `ClearOnHide`, `ClearFilters`) and the footer (`Visible`, the `FooterKind` of the amount, the sum of all the data with `OnGetFooterText`), and shows the last `OnFilterChanged` and the rows shown;
+- **LiveBindings**: the same customers in a `TFDMemTable`, shown through a `TLinkGridToDataSource` and filtered by the data set in `OnFilterRecord`, with the footer read through the link;
+- **Style book**: the grid with a dark style of the `TStyleBook` of the form, with the parts `filterrowbackground`, `footerbackground` and `footertext`.
+
+Install the suite packages first.
 
 ## Example
 
@@ -133,8 +145,11 @@ begin
     if LName.IsEmpty or LCustomer.Name.Contains(LName.AsString) then
       FVisible.Add(LCustomer);
 
+  // As in any TGrid, the values already shown are cleared: the rows are now other customers.
+  Grid.Model.ClearCache;
   Grid.RowCount := FVisible.Count;
   Grid.Repaint;
+  Grid.UpdateFooter;
 end;
 
 procedure TMainForm.GridGetValue(Sender: TObject; const ACol, ARow: Integer; var Value: TValue);
@@ -143,6 +158,12 @@ begin
     Value := FVisible[ARow].Name;
 end;
 ```
+
+## LiveBindings
+
+A `TLinkGridToDataSource` fills a `TS4YGrid` as a `TGrid`: it creates a column for each field, of the type of the field (`TStringColumn`, `TIntegerColumn`, `TCurrencyColumn`, `TDateColumn`, `TCheckColumn` and so on), so the filter row gets the editors of those types. The columns created by the link are not in the form: their `ColumnSettings` are added in code, after the link is active, for example in `OnCreate` of the form, finding the columns by their `Header`, which is the name of the field.
+
+The application filters the data set in `OnFilter`, for example with its `Filtered` property and `OnFilterRecord`, reading the filter values of the grid; the link shows the records that pass, and the footer is calculated again.
 
 ## Styles
 

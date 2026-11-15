@@ -38,8 +38,8 @@ type
     FLineOnTop: Boolean;
     procedure SetLineBrush(const Value: TBrush);
   protected
-    /// <summary>Draws the line on the bottom side, or on the top side.</summary>
-    procedure Paint; override;
+    /// <summary>Draws the line on the bottom side, or on the top side, over the background of the style.</summary>
+    procedure AfterPaint; override;
   public
     /// <summary>Creates an empty row.</summary>
     constructor Create(AOwner: TComponent); override;
@@ -75,8 +75,9 @@ type
     FFontColor: TAlphaColor;
     FOnUpdateCells: TNotifyEvent;
   protected
-    /// <summary>Asks for the cells with OnUpdateCells and draws their texts, then the line.</summary>
-    procedure Paint; override;
+    /// <summary>Asks for the cells with OnUpdateCells and draws their texts, then the line, over the background of the
+    /// style.</summary>
+    procedure AfterPaint; override;
   public
     /// <summary>Creates an empty footer.</summary>
     constructor Create(AOwner: TComponent); override;
@@ -205,7 +206,7 @@ begin
   ClipChildren := True;
 end;
 
-procedure TS4YGridBand.Paint;
+procedure TS4YGridBand.AfterPaint;
 var
   LY: Single;
 begin
@@ -247,7 +248,7 @@ begin
   inherited;
 end;
 
-procedure TS4YGridFooterBand.Paint;
+procedure TS4YGridFooterBand.AfterPaint;
 var
   LRect: TRectF;
 begin

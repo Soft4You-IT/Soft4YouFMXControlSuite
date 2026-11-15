@@ -1098,4 +1098,9 @@ begin
   Model.UpdateFooter;
 end;
 
+initialization
+  // Registered as TGrid: the LiveBindings look for the grids among the registered classes to create the columns of a
+  // TLinkGridToDataSource.
+  RegisterFmxClasses([TS4YGrid]);
+
 end.
