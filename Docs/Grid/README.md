@@ -2,13 +2,13 @@
 
 ![TS4YGrid](../Screenshots/grid.png)
 
-A grid with a **filter row** under the header: an editor for each column, where the user writes or chooses the value to look for in that column. The editor comes from the type of the column: a text box for a text column, a box that accepts only numbers for an integer, decimal or currency column, a date picker for a date column, a check box with three states for a check column, a drop-down list for a column with a list of values. The data can be filtered when the user presses Enter, or by themselves after a pause in the typing.
+A grid with a **filter row** under the header: an editor for each column, where the user writes the filter of that column, an operator and a value, such as `> 100`, `ros*` or `<> Rome`. Every column has a text field, read with the type of the column (text, number, date, time, a value of a list), except a check column, which has a check box with three states. The button of a text field opens a **menu** with the operators, the values of the list of the column, a calendar, today or the current time, and an item that clears the filter. The data can be filtered when the user presses Enter, or by themselves after a pause in the typing.
 
 Under the cells, a **footer** can show a total, an average, a count, the lowest or the highest value, or a text, under each column.
 
 A click on the header of a column can **sort** the rows by that column, and Shift+click by more columns; the header shows the arrow of the direction and the position of each column in the order.
 
-`TS4YGrid` is a `TGrid`: the cells get their values from `OnGetValue` or from the LiveBindings, as in a `TGrid`, and every property, column and event of `TGrid` is there. The grid **does not filter or sort the data itself**: it keeps the filter values and the keys of the order and tells the application when to filter, with `OnFilter`, and when to sort, with `OnSort`; the application filters and sorts its own data, for example a list of objects or a `TDataSet`, and sets `RowCount` again.
+`TS4YGrid` is a `TGrid`: the cells get their values from `OnGetValue` or from the LiveBindings, as in a `TGrid`, and every property, column and event of `TGrid` is there. The grid **does not filter or sort the data itself**: it reads the filters and keeps them, with the keys of the order, and tells the application when to filter, with `OnFilter`, and when to sort, with `OnSort`; the application filters and sorts its own data, for example a list of objects or a `TDataSet`, and sets `RowCount` again. To filter in memory, `FilterMatches` compares a value with the filter of its column; to filter with a query, the operator and the value of each filter are given apart.
 
 The filter row and the footer take the look of the style of the grid, from the platform or from a `TStyleBook`: they are added to that style, not drawn with a style of their own.
 
@@ -26,8 +26,9 @@ Add the folder `Sources\Grid` to the Delphi library path to compile your own pro
 |---|---|
 | `Sources\Grid\Soft4You.FMX.Controls.Grid.pas` | `TS4YGrid`, its model `TS4YGridModel`, the settings of the filter row (`TS4YGridFilterRow`), of the footer (`TS4YGridFooterRow`), of the order (`TS4YGridSorting`) and of the columns (`TS4YGridColumnSetting`, `TS4YGridColumnSettings`) |
 | `Sources\Grid\Soft4You.FMX.Controls.Grid.Style.pas` | `TS4YStyledGrid`, the presentation that adds the filter row and the footer to the style of the grid and draws the arrows of the order in the header, and the rows themselves, `TS4YGridBand` and `TS4YGridFooterBand` |
-| `Sources\Grid\Soft4You.FMX.Controls.Grid.FilterEditors.pas` | The editors of the filter row: `TS4YGridTextFilterEditor`, `TS4YGridNumberFilterEditor`, `TS4YGridDateFilterEditor`, `TS4YGridCheckFilterEditor`, `TS4YGridListFilterEditor` |
-| `Sources\Grid\Soft4You.FMX.Controls.Grid.Types.pas` | The interface of the editors `IS4YGridFilterEditor`, what the footer shows (`TS4YGridFooterKind`), a key of the order (`TS4YGridSortKey`), the place of the position in the order (`TS4YGridSortOrderPosition`) and the event types |
+| `Sources\Grid\Soft4You.FMX.Controls.Grid.Filters.pas` | `TS4YGridFilter`, the filter of a column: the syntax of its text, its value and the comparison with the values of the rows; the items of the menu of a filter (`TS4YGridFilterMenuItem`, `TS4YGridFilterMenuItems`) |
+| `Sources\Grid\Soft4You.FMX.Controls.Grid.FilterEditors.pas` | The editors of the filter row: `TS4YGridTextFilterEditor` with its button `TS4YGridFilterMenuButton`, and `TS4YGridCheckFilterEditor` |
+| `Sources\Grid\Soft4You.FMX.Controls.Grid.Types.pas` | The interface of the editors `IS4YGridFilterEditor`, the operators, the kinds of value and the states of the filters (`TS4YGridFilterOperator`, `TS4YGridFilterValueKind`, `TS4YGridFilterState`), the actions of the menu (`TS4YGridFilterMenuAction`), what the footer shows (`TS4YGridFooterKind`), a key of the order (`TS4YGridSortKey`), the place of the position in the order (`TS4YGridSortOrderPosition`) and the event types |
 | `Sources\Grid\Soft4You.FMX.Controls.Grid.Register.pas` | Registration in the Tool Palette (design time) |
 | `Graphics\Grid\TS4YGrid.svg`, `TS4YGrid.bmp`, `GridDesign.rc` | Icon of the Tool Palette (vector master and 24x24 bitmap) and the resource script that links it |
 
@@ -40,25 +41,32 @@ Add the folder `Sources\Grid` to the Delphi library path to compile your own pro
 | `FilterRow.ClearOnHide` | `False` | Clears the filters when the row is hidden, and fires `OnFilter`, so the application shows all its data again; `False` keeps them, and shows them again with the row |
 | `FilterRow.AutoFilter` | `False` | Fires `OnFilter` by itself when the user stops typing in an editor of text, number or date for `FilterDelay` milliseconds; `False` filters only with Enter |
 | `FilterRow.FilterDelay` | 400 | Milliseconds without typing after which `AutoFilter` fires `OnFilter`; 0 fires it at each change |
+| `FilterRow.ShowMenuButton` | `True` | Shows the button of the menu of the filter in the text fields (see [Filter menu](#filter-menu)) |
+| `FilterRow.EditStyleLookup` | empty | The name of the style of the text fields of the row; empty uses `editstyle`, the style of `TEdit` |
+| `FilterRow.CheckBoxStyleLookup` | empty | The name of the style of the check boxes of the row; empty uses `checkcellstyle`, the style of the check boxes of the cells of the grid, or `checkboxstyle` when it is not found |
+| `FilterRow.MenuStyleLookup` | empty | The name of the style of the popup of the menu, looked for in the style book of the form and in the style of the platform; empty uses `popupstyle`, the style of `TPopup` |
 
 The row follows the columns: an editor has the width of its column, moves with it when the columns are moved or scrolled horizontally, and is hidden with it. The cells of the grid start under the row.
 
 ### Editors
 
-| Type of the column | Editor | Value of the filter |
-|---|---|---|
-| `TIntegerColumn` | Text box that accepts only digits and the minus sign | `Int64` |
-| `TFloatColumn`, `TCurrencyColumn` | Text box that accepts only digits, the minus sign and the decimal separator | `Double` |
-| `TDateColumn` | Date picker with the button that clears the date | `TDate` |
-| `TCheckColumn` | Check box with three states: any row (shown faded), checked rows, unchecked rows; a click passes to the next state | `Boolean` |
-| `TPopupColumn`, or any column with `FilterItems` | Drop-down list with an empty item, which is no filter, and the items of the column or its `FilterItems` | `string`, the text of the item |
-| Any other column, such as `TStringColumn` | Text box | `string` |
+| Type of the column | Editor | Kind of value | Value of the filter |
+|---|---|---|---|
+| `TCheckColumn` | Check box with three states: any row (shown faded), checked rows, unchecked rows; a click passes to the next state. The box is placed as the boxes of the cells, by the `HorzAlign` of the column | Boolean | `Boolean` |
+| `TPopupColumn`, or any column with `FilterItems` | Text field with the button of the menu, where the values of the list can be chosen | list | `string` |
+| `TIntegerColumn` | Text field with the button of the menu | integer | `Int64` |
+| `TFloatColumn`, `TCurrencyColumn` | Text field with the button of the menu | decimal | `Double` |
+| `TDateColumn`, `TDateTimeColumn` | Text field with the button of the menu, with the calendar and today | date | `TDate` |
+| `TTimeColumn` | Text field with the button of the menu, with the current time | time | `TTime` |
+| Any other column, such as `TStringColumn` | Text field with the button of the menu | text | `string` |
 
-Every editor has an **empty** state, which means no filter for that column: no text, a text that is not yet a number (such as a minus sign alone), no date, the faded check box, the empty item of the list. **Esc** in an editor with a filter clears it and fires `OnFilter`; in a list it works with the list closed, since with the list open it closes the list.
+The user writes in a text field the filter of the column with the [syntax of the filters](#filter-syntax), or builds it with the [menu](#filter-menu). No text means no filter. The `FilterItems` of a column come before its type: a text column with a few possible values, such as *Open*, *Closed*, *Suspended*, can show them in its menu. On a phone or a tablet, the fields of the numbers, the dates and the times open the keyboard with the numbers.
 
-The `FilterItems` of a column come before its type: a text column with a few possible values, such as *Open*, *Closed*, *Suspended*, can have a list instead of a text box.
+A column of date and time is filtered by the day: its time is not compared.
 
-To give a column an editor of your own, handle `OnCreateFilterEditor` and create a `TControl` that implements `IS4YGridFilterEditor`, the interface of the unit `Soft4You.FMX.Controls.Grid.Types`: the grid becomes its parent and frees it. The editors of the unit `Soft4You.FMX.Controls.Grid.FilterEditors` can be used as models, or as base classes.
+**Esc** in an editor with a filter clears it and fires `OnFilter`.
+
+To give a column an editor of your own, handle `OnCreateFilterEditor` and create a `TControl` that implements `IS4YGridFilterEditor`, the interface of the unit `Soft4You.FMX.Controls.Grid.Types`: the grid becomes its parent and frees it. Its value becomes the filter of the column with the default operator of the column; a value the text of a filter cannot hold, such as a range of two dates, is kept as it is in `FilterValue`, and the application filters with it. The editors of the unit `Soft4You.FMX.Controls.Grid.FilterEditors` can be used as models, or as base classes.
 
 ### Settings of the columns
 
@@ -68,29 +76,161 @@ To give a column an editor of your own, handle `OnCreateFilterEditor` and create
 |---|---|---|
 | `Column` | | The column of the grid the item is for |
 | `Filterable` | `True` | Shows the editor of the column in the filter row |
-| `FilterItems` | empty | The values the user can choose as filter of the column: when there are some, the editor is a drop-down list with them, whatever the type of the column |
+| `FilterItems` | empty | The values the user can choose as filter of the column, in the menu of its filter: when there are some, the filter is a value of a list, whatever the type of the column |
+| `FilterMenu` | | A `TPopupMenu` of the application for the button of the editor of the column, instead of the menu of the grid (see [Filter menu](#filter-menu)) |
 | `FooterKind` | `gfkNone` | What the footer shows under the column (see [Footer](#footer)) |
 | `FooterText` | empty | The text of the footer when `FooterKind` is `gfkText`, for example *Total* |
 | `FooterFormat` | empty | Format of the value of the footer, as for the `Format` function of Delphi, for example `'%.2f'`; empty writes it as the column writes its cells |
 | `FooterAlignment` | `Trailing` | Alignment of the text of the footer in the cell of the column |
 | `Sortable` | `True` | Lets the user sort the rows by the column with a click on its header (see [Sorting](#sorting)) |
 
-## Filter values
+## Filter syntax
+
+The text of a filter is an **operator** and a **value**: the operator, when there is one, is at the start, and the value after it. The spaces after the operator do not count: `>10`, `> 10` and `>   10` are the same filter. This section can be copied into the guide of an application, for its users.
+
+| Text | Meaning | Columns |
+|---|---|---|
+| `abc` | A value alone: the default operator of the column, **contains** for a text column, **equal to** for the others | all |
+| `= abc` | Equal to | all |
+| `<> abc`, `!= abc` | Not equal to | all |
+| `! abc` | The opposite of the default operator: **does not contain** for a text column, **not equal to** for the others | all |
+| `abc*` | Starts with | text |
+| `*abc` | Ends with | text |
+| `*abc*` | Contains, written explicitly | text |
+| `< 10`, `<= 10`, `> 10`, `>= 10` | Less than, less than or equal to, greater than, greater than or equal to | numbers, dates, times |
+| `=` alone | Is empty: the rows without a value | all |
+| `<>` alone, `!=` alone | Is not empty: the rows with a value | all |
+
+The texts are compared without difference between upper and lower case. The numbers, the dates and the times are written as in the regional settings of the computer, such as `1,5` or `15/03/2026` in Italian. A column with a list of values accepts only equal to, not equal to, is empty and is not empty.
+
+**The operators are read only at the start, and `*` only as the first or the last character.** Everything else is part of the value: `a*b` looks for *a\*b*, and `x=y` for *x=y*.
+
+**Double quotes.** A value between double quotes is always text, as it is written; a double quote inside it is written twice. They are needed only when the value starts with a character of an operator (`=`, `<`, `>`, `!`, `"`, `*`), ends with `*`, or starts or ends with spaces, which are otherwise left out. The operator and the `*` of starts with and ends with stay outside the double quotes.
+
+| Text | Meaning |
+|---|---|
+| `!2` | Does not contain *2* |
+| `"!2"` | Contains *!2* |
+| `= "<none>"` | Equal to *&lt;none&gt;* |
+| `"*Special"*` | Starts with *\*Special* |
+| `*"a*"*` | Contains *a\** |
+| `"says ""yes"""` | Contains *says "yes"* |
+| `" Rome"` | Contains *&nbsp;Rome*, with the space |
+
+**States of the text.**
+
+| State | Example | Filter |
+|---|---|---|
+| Empty | no text | none |
+| Incomplete | an operator without a value, such as `>` or `!` | none yet; the text keeps its color |
+| Valid | `>= 100` | applied |
+| Invalid | `> abc` on a number column, `15/13/2026` on a date column, a double quote not closed, `ros*` on a list | none; the text takes the color of the part `filterinvalidtext` of the style, red by default |
+
+The operators of two characters are written together: `> =5` is *greater than "=5"*, which is invalid on a number column.
+
+**The text written by the grid.** When the grid writes a filter, with the menu, `SetFilter` or `FilterValue`, it writes the operator, a space and the value (`>= 100`, `! abc`, `<> Rome`), with the double quotes when the value needs them (`= "*Special*"`). The default operator is left out, unless it is chosen in the menu. A text written by the user is never changed while it is written.
+
+## Filter menu
+
+The button of a text field, three dots one above the other, opens the menu of the filter of its column. The menu of the grid has, from top to bottom:
+
+| Column | Items |
+|---|---|
+| Text | Contains, Does not contain, Starts with, Ends with, Equal to, Not equal to |
+| Numbers, dates, times | Equal to, Not equal to, Less than, Less than or equal to, Greater than, Greater than or equal to |
+| List | Equal to, Not equal to, then the values of the list |
+| All | Is empty, Is not empty |
+| Date | Calendar..., Today |
+| Time | Current time |
+| All | Clear filter, as Esc |
+
+The operator of the text, or the default one when there is no text, is shown selected, and so is the value of a list that is written. An **operator** chosen in the menu replaces the operator of the text and leaves the value: `100` becomes `>= 100`, `abc` becomes `*abc*`; a value that is still invalid stays too. A **value**, today, the current time or a date chosen in the **calendar** replace the value and leave the operator. After a choice the editor gets the focus again, with the cursor at the end of the text, and the data are filtered at once when the text changed and the filter is complete; an operator without a value waits for the user to write it. The menu is as wide as the column, or as its longest text when it is wider, up to 480 pixels, and at most 360 pixels high: a longer list scrolls. The texts of the items are `resourcestring` in English, which can be translated.
+
+The application can change the menu:
+
+- `OnFilterMenu(Sender, AColumn, AItems)` fires before the menu is shown: the application can add, insert and remove items of `AItems`. An item added with `AItems.Add` or `AItems.Insert` fires its `OnClick`, with the item as `Sender` (its `Column` is the column of the filter): the application writes the filter, for example with `SetFilter`, and calls `Filter` when the data must be filtered.
+- `ColumnSettings[].FilterMenu` gives a column a `TPopupMenu` of the application, shown under the editor in place of the menu of the grid; its `PopupComponent` is the editor. The application does what its items do, with `FilterText`, `SetFilter` and `Filter`.
+- `Model.GetFilterMenu`, `Model.ApplyFilterMenuItem`, `Model.ApplyFilterOperator` and `Model.ApplyFilterValue` build the menu of the grid and do what its items do, also from a menu of the application.
+- `FilterRow.ShowMenuButton` hides the buttons, and `FilterRow.MenuStyleLookup` gives the popup a style of its own (see [Styles](#styles)).
+
+```pascal
+procedure TMainForm.GridFilterMenu(Sender: TObject; const AColumn: TColumn; const AItems: TS4YGridFilterMenuItems);
+begin
+  // An item of the application, before the item that clears the filter.
+  if AColumn = AmountColumn then
+    AItems.Insert(AItems.IndexOfAction(gmaClear), 'Above the average', AboveAverageClick);
+end;
+
+procedure TMainForm.AboveAverageClick(Sender: TObject);
+begin
+  Grid.SetFilter(AmountColumn, gfoGreater, TValue.From<Currency>(FAverage));
+  Grid.Filter;
+end;
+```
+
+## Filters in code
 
 | Member | Meaning |
 |---|---|
-| `FilterValue[AColumn]` | The filter value of a column, a `TValue` of the type of the column; empty when the column has no filter. Setting it shows the value in the editor |
-| `IsFiltered` | True when at least one column has a filter |
+| `FilterText[AColumn]` | The text of the filter of a column, as it is written; setting it reads it with the syntax of the filters and shows it in the editor |
+| `FilterOperator[AColumn]` | The operator read in the text, a `TS4YGridFilterOperator`; `gfoNone` without text. A text without operator gives the default operator of the column |
+| `FilterValue[AColumn]` | The value read in the text, a `TValue` of the type of the column (see [Editors](#editors)); empty when the filter is not applied, and for is empty and is not empty. Setting it sets the filter with the default operator of the column |
+| `FilterState[AColumn]` | The state of the text: `gfsEmpty`, `gfsIncomplete`, `gfsValid` (the filter is applied) or `gfsInvalid` |
+| `SetFilter(AColumn, AOperator, AValue)` | Sets the filter of a column, and writes its text; `gfoNone` removes it |
+| `FilterMatches(AColumn, AValue)` | True when a value of a row passes the filter of its column; True when the column has no filter applied |
+| `IsFiltered` | True when at least one column has a filter applied |
 | `ClearFilters` | Clears the filters of all the columns |
 | `Filter` | Fires `OnFilter` |
 
+Setting a filter by code shows it in the editor and fires `OnFilterChanged`, not `OnFilter`: call `Filter` to filter the data.
+
+| `TS4YGridFilterOperator` | Meaning |
+|---|---|
+| `gfoNone` | No filter |
+| `gfoContains`, `gfoNotContains` | Contains, does not contain the value (text) |
+| `gfoStartsWith`, `gfoEndsWith` | Starts with, ends with the value (text) |
+| `gfoEqual`, `gfoNotEqual` | Equal to, not equal to the value |
+| `gfoLess`, `gfoLessOrEqual`, `gfoGreater`, `gfoGreaterOrEqual` | The comparisons (numbers, dates, times) |
+| `gfoEmpty`, `gfoNotEmpty` | Is empty, is not empty: the filter has no value |
+
 | Event | Fires |
 |---|---|
-| `OnFilterChanged(Sender, AColumn)` | When the filter value of a column changes, in its editor or by code |
-| `OnFilter(Sender)` | When the application must filter its data: Enter or Esc in an editor, a choice in a list or a click on a check box of the row, the pause in the typing with `AutoFilter`, a call to `Filter`, the row hidden with `ClearOnHide` |
+| `OnFilterChanged(Sender, AColumn)` | When the filter of a column changes, in its editor (at each key) or by code |
+| `OnFilter(Sender)` | When the application must filter its data: Enter or Esc in an editor, a choice in the menu, a click on a check box of the row, the pause in the typing with `AutoFilter`, a call to `Filter`, the row hidden with `ClearOnHide` |
+| `OnFilterMenu(Sender, AColumn, AItems)` | Before the menu of the filter of a column is shown |
 | `OnCreateFilterEditor(Sender, AColumn, var AEditor)` | When the grid creates the editor of a column: an editor of your own instead of the one of the grid |
 
-The meaning of a value is decided by the application: for a text it is usually "contains", for a number or a date "equal". Typing in an editor fires `OnFilterChanged` at each change, but `OnFilter` only with Enter, or with `AutoFilter` after a pause, so the data are not filtered again at each key; each key starts the pause again. A choice in a list and a click on a check box are explicit, and filter at once.
+Typing in an editor fires `OnFilterChanged` at each change, but `OnFilter` only with Enter, or with `AutoFilter` after a pause, so the data are not filtered again at each key; each key starts the pause again. A choice in the menu and a click on a check box are explicit, and filter at once.
+
+**In memory**, `FilterMatches` does the comparison of the operators: the texts without difference between upper and lower case, the numbers as numbers, the dates only by the day and the times to the millisecond, also when the value of the row is a text or a variant. A row without a value passes only not equal to, does not contain and is empty. A value that cannot be compared with the filter, such as a text that is not a number in a number column, passes the filter.
+
+**With a query**, the application reads the operator and the value of each column and writes the condition:
+
+```pascal
+procedure TMainForm.GridFilter(Sender: TObject);
+var
+  LWhere: string;
+begin
+  LWhere := '';
+
+  case Grid.FilterOperator[AmountColumn] of
+    gfoEqual:
+      LWhere := 'Amount = :Amount';
+    gfoGreater:
+      LWhere := 'Amount > :Amount';
+    gfoGreaterOrEqual:
+      LWhere := 'Amount >= :Amount';
+    gfoEmpty:
+      LWhere := 'Amount is null';
+    // ... the other operators
+  end;
+
+  if Grid.FilterState[AmountColumn] <> gfsValid then
+    LWhere := '';
+
+  // Build the query with LWhere, and give the parameter the value Grid.FilterValue[AmountColumn].AsExtended.
+end;
+```
 
 ## Footer
 
@@ -163,26 +303,23 @@ The methods work also when `Sorting.Enabled` is `False`, and the header shows th
 
 `Demos\Grid\S4YGridDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) has three tabs:
 
-- **Objects**: 200 customers in a list of objects, shown with `OnGetValue` and filtered by the application in `OnFilter`, with a drop-down list for the city (`FilterItems`) and a footer with a text, an average, a sum and a date; the panel on the left changes the filter row (`Visible`, `AutoFilter`, `FilterDelay`, `ClearOnHide`, `ClearFilters`) and the footer (`Visible`, the `FooterKind` of the amount, the sum of all the data with `OnGetFooterText`) and the order (`Sorting.Enabled`, `MultiColumn`, `ShowOrder`, `OrderPosition`, `OrderSpacing`), and shows the last `OnFilterChanged`, the rows shown and the keys of the last `OnSort`; the application sorts the list with a comparer that reads the keys, after the filters;
-- **LiveBindings**: the same customers in a `TFDMemTable`, shown through a `TLinkGridToDataSource` and filtered by the data set in `OnFilterRecord` and sorted with its `IndexFieldNames` in `OnSort`, with the footer read through the link;
-- **Style book**: the grid with a dark style of the `TStyleBook` of the form, with the parts `filterrowbackground`, `footerbackground` and `footertext`.
+- **Objects**: 200 customers in a list of objects, shown with `OnGetValue` and filtered by the application in `OnFilter` with `FilterMatches`, with the cities in the menu of their filter (`FilterItems`), an item of the application in the menu of the amount (`OnFilterMenu`) and a footer with a text, an average, a sum and a date; the panel on the left changes the filter row (`Visible`, `AutoFilter`, `FilterDelay`, `ClearOnHide`, `ClearFilters`) and the footer (`Visible`, the `FooterKind` of the amount, the sum of all the data with `OnGetFooterText`) and the order (`Sorting.Enabled`, `MultiColumn`, `ShowOrder`, `OrderPosition`, `OrderSpacing`), and shows the last `OnFilterChanged` with the text, the operator and the value read, the rows shown and the keys of the last `OnSort`; the application sorts the list with a comparer that reads the keys, after the filters;
+- **LiveBindings**: the same customers in a `TFDMemTable`, shown through a `TLinkGridToDataSource`, filtered by the data set in `OnFilterRecord`, which compares each field with `FilterMatches`, and sorted with its `IndexFieldNames` in `OnSort`, with the footer read through the link;
+- **Style book**: the grid with a dark style of the `TStyleBook` of the form, with the parts `filterrowbackground`, `footerbackground`, `footertext` and `filterinvalidtext`.
 
 Install the suite packages first.
 
 ## Example
 
-A list of objects shown with `OnGetValue`, filtered by the application:
+A list of objects shown with `OnGetValue`, filtered by the application with the filters of the grid:
 
 ```pascal
 procedure TMainForm.GridFilter(Sender: TObject);
-var
-  LName: TValue;
 begin
-  LName := Grid.FilterValue[NameColumn];
   FVisible.Clear;
 
   for var LCustomer in FCustomers do
-    if LName.IsEmpty or LCustomer.Name.Contains(LName.AsString) then
+    if Grid.FilterMatches(NameColumn, LCustomer.Name) and Grid.FilterMatches(AmountColumn, LCustomer.Amount) then
       FVisible.Add(LCustomer);
 
   // As in any TGrid, the values already shown are cleared: the rows are now other customers.
@@ -195,7 +332,9 @@ end;
 procedure TMainForm.GridGetValue(Sender: TObject; const ACol, ARow: Integer; var Value: TValue);
 begin
   if ACol = NameColumn.Index then
-    Value := FVisible[ARow].Name;
+    Value := FVisible[ARow].Name
+  else if ACol = AmountColumn.Index then
+    Value := FVisible[ARow].Amount;
 end;
 ```
 
@@ -203,11 +342,39 @@ end;
 
 A `TLinkGridToDataSource` fills a `TS4YGrid` as a `TGrid`: it creates a column for each field, of the type of the field (`TStringColumn`, `TIntegerColumn`, `TCurrencyColumn`, `TDateColumn`, `TCheckColumn` and so on), so the filter row gets the editors of those types. The columns created by the link are not in the form: their `ColumnSettings` are added in code, after the link is active, for example in `OnCreate` of the form, finding the columns by their `Header`, which is the name of the field.
 
-The application filters the data set in `OnFilter`, for example with its `Filtered` property and `OnFilterRecord`, reading the filter values of the grid; the link shows the records that pass, and the footer is calculated again.
+The application filters the data set in `OnFilter`, for example with its `Filtered` property and `OnFilterRecord`, where `FilterMatches` compares the fields with the filters of their columns; the link shows the records that pass, and the footer is calculated again.
+
+```pascal
+procedure TMainForm.CustomersFilterRecord(DataSet: TDataSet; var Accept: Boolean);
+var
+  LField: TField;
+  LValue: TValue;
+begin
+  // The header of each column of the link is the name of its field.
+  Accept := True;
+
+  for var I := 0 to Grid.ColumnCount - 1 do
+  begin
+    LField := DataSet.FindField(Grid.Columns[I].Header);
+
+    if Accept and Assigned(LField) then
+    begin
+      if LField.IsNull then
+        LValue := TValue.Empty
+      else
+        LValue := TValue.FromVariant(LField.Value);
+
+      Accept := Grid.FilterMatches(Grid.Columns[I], LValue);
+    end;
+  end;
+end;
+```
 
 ## Styles
 
-The filter row is added to the style of the grid when the style is applied: to the part `background`, aligned to the top after the header, so the part `content` with the cells starts under it. The row draws a line on its bottom side with the brush `linefill` of the style, the brush of the lines of the grid, and its editors take the styles of `TEdit`, `TDateEdit`, `TCheckBox` and `TComboBox`.
+The filter row is added to the style of the grid when the style is applied: to the part `background`, aligned to the top after the header, so the part `content` with the cells starts under it. The row draws a line on its bottom side with the brush `linefill` of the style, the brush of the lines of the grid, and its editors take the styles of the form, looked for in its style book and in the style of the platform: `editstyle`, the style of `TEdit`, for the text fields, and `checkcellstyle`, the style of the check boxes of the cells of the grid, for the check boxes, so that a check box of the row looks as the ones of the cells. `FilterRow.EditStyleLookup` and `FilterRow.CheckBoxStyleLookup` give the editors of the row styles of their own, different from the other controls of the application; a style that is not found leaves the style of `TEdit` or of `TCheckBox`. The button of the menu takes the style `ellipseseditbutton` of the buttons of `TEdit`, and draws its three dots with the color of the text of the style of `TEdit`.
+
+The menu of a filter is a `TPopup`, which takes the style book of the form. `FilterRow.MenuStyleLookup` gives the popup a style of its own, for its background and its border, without changing the other popups of the application; the list of the items inside it then has no background of its own, so the background of the style is seen. When the popup finds no style, as with the styles of the platform of Windows, which have no `popupstyle`, or with a `MenuStyleLookup` that is not in the style book, the list keeps the background and the border of its own style. The items keep the style of the items of `TListBox`: with a dark background, give them a light text in that style.
 
 The footer is added in the same way, aligned to the bottom over the horizontal scroll bar, with a line on its top side; its texts have the font and the color of the text of the grid.
 
@@ -219,6 +386,8 @@ A style of the grid in a `TStyleBook` can add these parts, all optional:
 | `footerbackground` | Any control: the background of the footer; its `Padding` is a space around the texts of all the cells, besides the `Padding` of the columns |
 | `footertext` | A `TText`: the font and the color of the texts of the footer |
 | `sortindicator` | A `TText`: the color of the arrows of the order and the font of the positions in the order; without it, the color of the text of the header and a smaller font |
+| `filterinvalidtext` | A `TText`: the color of the text of a filter that cannot be read; without it, red |
+| `filtermenubutton` | Any control, such as a `TPath`: shown in the middle of the button of the menu, in place of the three dots; each button shows a copy of it |
 
 The texts of the footer are placed in their cells as the texts of the cells of the grid: in the cell less the `Padding` of the column (a published property of `TColumn`, 3 pixels on each side by default), so a total is aligned with the values above it. When a style has the part `filterrowbackground` or `footerbackground`, its `Padding` is always used, also when it is 0: a style that adds `filterrowbackground` sets its `Padding` too, for example 2 on each side. Without the part, as in the styles of the platform, the editors are 2 pixels from the sides of their cells, and the texts of the footer have only the `Padding` of the columns. The top and bottom padding of the parts are added to the automatic heights; a `Height` greater than 0 comes first, and the editors and the texts take the space left inside the padding.
 

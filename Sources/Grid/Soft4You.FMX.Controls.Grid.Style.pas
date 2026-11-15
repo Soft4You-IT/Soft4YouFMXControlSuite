@@ -24,9 +24,12 @@ uses
   FMX.Objects,
   FMX.Presentation.Messages,
   FMX.Header,
+  FMX.ListBox,
+  FMX.Calendar,
   FMX.Grid,
   FMX.Grid.Style,
-  Soft4You.FMX.Controls.Grid;
+  Soft4You.FMX.Controls.Grid,
+  Soft4You.FMX.Controls.Grid.Filters;
 
 type
   /// <summary>
@@ -115,6 +118,13 @@ type
   /// their cells and the texts have only the Padding of the columns.
   /// The header of a column the rows are sorted by shows an arrow, and its position in the order when there are more
   /// keys; a part sortindicator, a TText, gives their color and font, otherwise the ones of the text of the header.
+  /// The text fields take the style FilterRow.EditStyleLookup, editstyle by default; the check boxes the style
+  /// FilterRow.CheckBoxStyleLookup, by default checkcellstyle, the style of the check boxes of the cells.
+  /// A part filterinvalidtext, a TText, gives the color of the text of a filter that cannot be read; without it, red.
+  /// The button of a text field opens the menu of the filter in a TPopup, with the style book of the form of the grid
+  /// and the style FilterRow.MenuStyleLookup; when the popup finds no style, its list keeps the background of its own
+  /// style. A part filtermenubutton is shown in the button in place of its three
+  /// dots.
   /// </remarks>
   TS4YStyledGrid = class(TStyledGrid)
   private
@@ -130,12 +140,21 @@ type
     FHeader: THeader;
     FHeaderClickShift: TShiftState;
     FHorizontalScrollBar: TControl;
+    FInvalidFontColor: TAlphaColor;
     FLineFill: TBrushObject;
+    FMenuButtonIcon: TControl;
+    FMenuCalendar: TCalendar;
+    FMenuColumn: TColumn;
+    FMenuItems: TS4YGridFilterMenuItems;
+    FMenuList: TListBox;
+    FMenuPopup: TPopup;
     FPreviousHeaderDrawItem: TDrawHeaderItemEvent;
     FSortFont: TFont;
     FSortFontColor: TAlphaColor;
     FSortStyled: Boolean;
     FUpdatingFromEditor: Boolean;
+    procedure ApplyEditorStyle(const AEditor: TControl);
+    procedure ApplyMenuStyle;
     procedure AutoFilterTimer(Sender: TObject);
     function CreateFilterEditor(const AColumn: TColumn): TControl;
     function DrawSortIndicator(const ACanvas: TCanvas; const AItem: THeaderItem; const ABounds: TRectF;
@@ -149,8 +168,14 @@ type
     procedure FreeEditors;
     function GetCellLeft(const AColumnIndex: Integer; const ABand: TControl): Single;
     function FindEditorColumn(const AEditor: TObject): TColumn;
+    procedure CloseMenu;
+    procedure CreateMenuPopup;
     procedure EditorFilterSubmit(Sender: TObject);
     procedure EditorFilterValueChange(Sender: TObject);
+    procedure EditorMenuButtonClick(Sender: TObject);
+    procedure FilterMenuDone(const AColumn: TColumn; const AOldText: string);
+    procedure MenuCalendarDateSelected(Sender: TObject);
+    procedure MenuListItemClick(const Sender: TCustomListBox; const Item: TListBoxItem);
     function GetFilterRowHeight: Single;
     function GetModel: TS4YGridModel; overload;
     procedure MMColumnChanged(var Message: TDispatchMessageWithValue<Integer>); message MM_COLUMN_CHANGED;
@@ -163,6 +188,10 @@ type
     procedure MMFooterChanged(var Message: TDispatchMessage); message MM_S4Y_GRID_FOOTER_CHANGED;
     procedure InvalidateFooter;
     procedure RemoveOldEditors;
+    procedure ShowEditorFilter(const AColumn: TColumn; const AEditor: TControl);
+    procedure ShowFilterCalendar;
+    procedure ShowFilterMenu(const AColumn: TColumn; const AEditor: TControl);
+    procedure UpdateCheckAlignment;
     procedure UpdateFilterRow;
     procedure UpdateFilterRowCells;
     procedure UpdateFooter;
@@ -178,6 +207,8 @@ type
       const ContentSizeChanged: Boolean); override;
     /// <summary>Forgets the filter row and its editors, freed with the style.</summary>
     procedure FreeStyle; override;
+    /// <summary>Places the boxes of the check boxes of the filter row as the boxes of their cells.</summary>
+    procedure Paint; override;
     /// <summary>Places the cells of the filter row again after a change of size.</summary>
     procedure Resize; override;
   public
@@ -197,6 +228,7 @@ uses
   System.Math,
   System.Math.Vectors,
   System.Rtti,
+  FMX.Menus,
   FMX.Presentation.Factory,
   FMX.Presentation.Style,
   Soft4You.FMX.Controls.Grid.Types,
@@ -208,6 +240,9 @@ resourcestring
 const
   C_STYLE_BACKGROUND = 'background';
   C_STYLE_CONTENT = 'content';
+  C_STYLE_CHECK_CELL = 'checkcellstyle';
+  C_STYLE_FILTER_INVALID_TEXT = 'filterinvalidtext';
+  C_STYLE_FILTER_MENU_BUTTON = 'filtermenubutton';
   C_STYLE_FILTER_ROW_BACKGROUND = 'filterrowbackground';
   C_STYLE_FOOTER_BACKGROUND = 'footerbackground';
   C_STYLE_FOOTER_TEXT = 'footertext';
@@ -228,6 +263,34 @@ const
   C_DEFAULT_EDITOR_PADDING = 2;
   // Height of an editor in the automatic height of the filter row: the height of a TEdit.
   C_EDITOR_HEIGHT = 22;
+
+  // The menu of the filter: least and greatest width, space of an item besides its text, greatest height, height of a
+  // separator, size of the calendar, in pixels.
+  C_MENU_WIDTH = 180;
+  C_MENU_MAX_WIDTH = 480;
+  C_MENU_TEXT_SPACE = 40;
+  C_MENU_MAX_HEIGHT = 360;
+  C_MENU_SEPARATOR_HEIGHT = 7;
+  C_MENU_BORDER = 4;
+  C_CALENDAR_WIDTH = 240;
+  C_CALENDAR_HEIGHT = 220;
+  C_SEPARATOR_OPACITY = 0.3;
+  // The list of the menu without background of its own, over a popup with a style.
+  C_STYLE_MENU_LIST_TRANSPARENT = 'transparentlistboxstyle';
+
+type
+  // The popup of the menu of a filter: it tells whether it found its style.
+  TS4YGridMenuPopup = class(TPopup)
+  public
+    function HasStyle: Boolean;
+  end;
+
+{ TS4YGridMenuPopup }
+
+function TS4YGridMenuPopup.HasStyle: Boolean;
+begin
+  Result := Assigned(ResourceControl);
+end;
 
 { TS4YGridBand }
 
@@ -317,10 +380,12 @@ begin
   FAutoFilterTimer.OnTimer := AutoFilterTimer;
   FEditorPadding := TRectF.Create(C_DEFAULT_EDITOR_PADDING, C_DEFAULT_EDITOR_PADDING, C_DEFAULT_EDITOR_PADDING,
     C_DEFAULT_EDITOR_PADDING);
+  FInvalidFontColor := TS4YGridTextFilterEditor.C_DEFAULT_INVALID_FONT_COLOR;
 end;
 
 destructor TS4YStyledGrid.Destroy;
 begin
+  FMenuItems.Free;
   FAutoFilterTimer.Free;
   FSortFont.Free;
   FFooterTexts.Free;
@@ -333,6 +398,7 @@ procedure TS4YStyledGrid.ApplyStyle;
 var
   LRowBackground: TControl;
   LFooterText: TText;
+  LInvalidText: TText;
   LSortIndicator: TText;
   LTextSettings: ITextSettings;
   LHeader: TControl;
@@ -362,6 +428,18 @@ begin
     FSortFont.Assign(LSortIndicator.TextSettings.Font);
     FSortFontColor := LSortIndicator.TextSettings.FontColor;
     LSortIndicator.Visible := False;
+  end;
+
+  FInvalidFontColor := TS4YGridTextFilterEditor.C_DEFAULT_INVALID_FONT_COLOR;
+
+  // The icon of the button of the menu: each button shows a copy of it.
+  if FindStyleResource<TControl>(C_STYLE_FILTER_MENU_BUTTON, FMenuButtonIcon) then
+    FMenuButtonIcon.Visible := False;
+
+  if FindStyleResource<TText>(C_STYLE_FILTER_INVALID_TEXT, LInvalidText) then
+  begin
+    FInvalidFontColor := LInvalidText.TextSettings.FontColor;
+    LInvalidText.Visible := False;
   end;
 
   // Without the part background the style has no place for the filter row.
@@ -437,6 +515,30 @@ begin
   UpdateFooter;
 end;
 
+procedure TS4YStyledGrid.ApplyEditorStyle(const AEditor: TControl);
+begin
+  // A style that is not found gives the default style of the editor: editstyle, checkboxstyle.
+  if AEditor is TS4YGridTextFilterEditor then
+    TS4YGridTextFilterEditor(AEditor).StyleLookup := Model.FilterRow.EditStyleLookup
+  else if (AEditor is TS4YGridCheckFilterEditor) and (Model.FilterRow.CheckBoxStyleLookup <> '') then
+    TS4YGridCheckFilterEditor(AEditor).StyleLookup := Model.FilterRow.CheckBoxStyleLookup
+  else if AEditor is TS4YGridCheckFilterEditor then
+    TS4YGridCheckFilterEditor(AEditor).StyleLookup := C_STYLE_CHECK_CELL;
+end;
+
+procedure TS4YStyledGrid.ApplyMenuStyle;
+begin
+  FMenuPopup.StyleLookup := Model.FilterRow.MenuStyleLookup;
+  FMenuPopup.ApplyStyleLookup;
+
+  // A popup without a style draws no background, as with the styles of the platform that have no popupstyle: the list
+  // keeps the background of its own style. A popup with a style draws its background, and the list does not cover it.
+  if TS4YGridMenuPopup(FMenuPopup).HasStyle then
+    FMenuList.StyleLookup := C_STYLE_MENU_LIST_TRANSPARENT
+  else
+    FMenuList.StyleLookup := '';
+end;
+
 procedure TS4YStyledGrid.AutoFilterTimer(Sender: TObject);
 begin
   FAutoFilterTimer.Enabled := False;
@@ -446,48 +548,79 @@ end;
 function TS4YStyledGrid.CreateFilterEditor(const AColumn: TColumn): TControl;
 var
   LEditor: IS4YGridFilterEditor;
-  LItems: TStrings;
+  LKind: TS4YGridFilterValueKind;
 begin
   Result := nil;
-  LItems := Model.ColumnSettings.GetFilterItems(AColumn);
-
-  if not Assigned(LItems) and (AColumn is TPopupColumn) then
-    LItems := TPopupColumn(AColumn).Items;
+  LKind := Model.GetFilterKind(AColumn);
 
   if Assigned(Model.OnCreateFilterEditor) then
     Model.OnCreateFilterEditor(Model.Owner, AColumn, Result);
 
-  // The list of values comes before the type of the column.
+  // A text field for every column but the check columns.
   if Assigned(Result) then
   begin
     if not Supports(Result, IS4YGridFilterEditor) then
       raise EArgumentException.CreateFmt(S_FILTER_EDITOR_INTERFACE, [AColumn.Name]);
   end
-  else if Assigned(LItems) then
-  begin
-    Result := TS4YGridListFilterEditor.Create(nil);
-    TS4YGridListFilterEditor(Result).SetFilterItems(LItems);
-  end
-  else if AColumn is TIntegerColumn then
-    Result := TS4YGridNumberFilterEditor.Create(nil)
-  else if (AColumn is TFloatColumn) or (AColumn is TCurrencyColumn) then
-  begin
-    Result := TS4YGridNumberFilterEditor.Create(nil);
-    TS4YGridNumberFilterEditor(Result).NumberKind := gnkFloat;
-  end
-  else if AColumn is TDateColumn then
-    Result := TS4YGridDateFilterEditor.Create(nil)
-  else if AColumn is TCheckColumn then
+  else if LKind = gvkBoolean then
     Result := TS4YGridCheckFilterEditor.Create(nil)
   else
+  begin
     Result := TS4YGridTextFilterEditor.Create(nil);
+    TS4YGridTextFilterEditor(Result).InvalidFontColor := FInvalidFontColor;
+    TS4YGridTextFilterEditor(Result).ShowMenuButton := Model.FilterRow.ShowMenuButton;
+    TS4YGridTextFilterEditor(Result).OnMenuButtonClick := EditorMenuButtonClick;
 
+    if Assigned(FMenuButtonIcon) then
+      TS4YGridTextFilterEditor(Result).MenuButton.Icon := TControl(FMenuButtonIcon.Clone(nil));
+
+    if LKind in [gvkInteger, gvkFloat, gvkDate, gvkTime] then
+      TS4YGridTextFilterEditor(Result).KeyboardType := TVirtualKeyboardType.NumbersAndPunctuation;
+  end;
+
+  // Part of the grid: the designer does not select it.
   Result.Stored := False;
+  Result.Locked := True;
+  ApplyEditorStyle(Result);
   Result.Parent := FFilterRow;
+  ShowEditorFilter(AColumn, Result);
   Supports(Result, IS4YGridFilterEditor, LEditor);
-  LEditor.SetFilterValue(Model.GetFilterValue(AColumn));
   LEditor.SetOnFilterValueChange(EditorFilterValueChange);
   LEditor.SetOnFilterSubmit(EditorFilterSubmit);
+end;
+
+procedure TS4YStyledGrid.CloseMenu;
+begin
+  // Before its editor is freed: the popup, also while it closes, no longer refers to it.
+  if not Assigned(FMenuPopup) then
+    Exit;
+
+  FMenuPopup.IsOpen := False;
+  FMenuPopup.PlacementTarget := nil;
+end;
+
+procedure TS4YStyledGrid.CreateMenuPopup;
+begin
+  if Assigned(FMenuPopup) then
+    Exit;
+
+  // A list for the items, and a calendar in its place for the item gmaCalendar.
+  FMenuPopup := TS4YGridMenuPopup.Create(Self);
+  FMenuPopup.Stored := False;
+  FMenuPopup.Placement := TPlacement.Bottom;
+  FMenuPopup.Parent := Self;
+  FMenuList := TListBox.Create(FMenuPopup);
+  FMenuList.Stored := False;
+  FMenuList.Align := TAlignLayout.Client;
+  FMenuList.MultiSelectStyle := TMultiSelectStyle.Extended;
+  FMenuList.OnItemClick := MenuListItemClick;
+  FMenuList.Parent := FMenuPopup;
+  FMenuCalendar := TCalendar.Create(FMenuPopup);
+  FMenuCalendar.Stored := False;
+  FMenuCalendar.Align := TAlignLayout.Client;
+  FMenuCalendar.Visible := False;
+  FMenuCalendar.OnDateSelected := MenuCalendarDateSelected;
+  FMenuCalendar.Parent := FMenuPopup;
 end;
 
 function TS4YStyledGrid.DefineModelClass: TDataModelClass;
@@ -623,10 +756,17 @@ begin
   if not Assigned(LColumn) or not Supports(Sender, IS4YGridFilterEditor, LEditor) then
     Exit;
 
-  // The editor already shows the value: the model does not send it back.
+  // The editor already shows the value: the model does not send it back. The text fields give their text, read by
+  // the model with the syntax of the filters.
   FUpdatingFromEditor := True;
   try
-    Model.SetFilterValue(LColumn, LEditor.GetFilterValue);
+    if Sender is TS4YGridTextFilterEditor then
+    begin
+      Model.SetFilterText(LColumn, TS4YGridTextFilterEditor(Sender).Text);
+      TS4YGridTextFilterEditor(Sender).Invalid := Model.GetFilterState(LColumn) = gfsInvalid;
+    end
+    else
+      Model.SetFilterValue(LColumn, LEditor.GetFilterValue);
   finally
     FUpdatingFromEditor := False;
   end;
@@ -639,6 +779,34 @@ begin
     FAutoFilterTimer.Interval := Max(1, Model.FilterRow.FilterDelay);
     FAutoFilterTimer.Enabled := True;
   end;
+end;
+
+procedure TS4YStyledGrid.EditorMenuButtonClick(Sender: TObject);
+var
+  LColumn: TColumn;
+begin
+  LColumn := FindEditorColumn(Sender);
+
+  if Assigned(LColumn) and (Sender is TControl) then
+    ShowFilterMenu(LColumn, TControl(Sender));
+end;
+
+procedure TS4YStyledGrid.FilterMenuDone(const AColumn: TColumn; const AOldText: string);
+var
+  LEditor: TControl;
+begin
+  // Back to the editor, to write the value after the operator.
+  if FEditors.TryGetValue(AColumn, LEditor) and LEditor.CanFocus then
+  begin
+    LEditor.SetFocus;
+
+    if LEditor is TS4YGridTextFilterEditor then
+      TS4YGridTextFilterEditor(LEditor).GoToTextEnd;
+  end;
+
+  // A filter changed and complete is applied at once; an operator without value waits for it.
+  if (Model.GetFilterText(AColumn) <> AOldText) and (Model.GetFilterState(AColumn) in [gfsEmpty, gfsValid]) then
+    EditorFilterSubmit(nil);
 end;
 
 function TS4YStyledGrid.FindEditorColumn(const AEditor: TObject): TColumn;
@@ -705,6 +873,8 @@ end;
 
 procedure TS4YStyledGrid.FreeEditors;
 begin
+  CloseMenu;
+
   for var LEditor in FEditors.Values do
     LEditor.Free;
 
@@ -713,14 +883,17 @@ end;
 
 procedure TS4YStyledGrid.FreeStyle;
 begin
-  // The row and its editors are children of the style, and are freed with it.
+  // The row and its editors are children of the style, and are freed with it; the menu of an editor is closed.
   FAutoFilterTimer.Enabled := False;
+
+  CloseMenu;
   FEditors.Clear;
   FFilterRow := nil;
   FFooter := nil;
   FHeader := nil;
   FPreviousHeaderDrawItem := nil;
   FHorizontalScrollBar := nil;
+  FMenuButtonIcon := nil;
   FBackground := nil;
   FContentPart := nil;
   FLineFill := nil;
@@ -809,6 +982,49 @@ begin
     FFooter.Repaint;
 end;
 
+procedure TS4YStyledGrid.MenuCalendarDateSelected(Sender: TObject);
+var
+  LOldText: string;
+begin
+  if not Assigned(FMenuColumn) then
+    Exit;
+
+  FMenuPopup.IsOpen := False;
+  LOldText := Model.GetFilterText(FMenuColumn);
+  Model.ApplyFilterValue(FMenuColumn, TValue.From<TDate>(FMenuCalendar.Date));
+  FilterMenuDone(FMenuColumn, LOldText);
+end;
+
+procedure TS4YStyledGrid.MenuListItemClick(const Sender: TCustomListBox; const Item: TListBoxItem);
+var
+  LMenuItem: TS4YGridFilterMenuItem;
+  LColumn: TColumn;
+  LOldText: string;
+begin
+  if not Assigned(Item) or not Assigned(FMenuItems) or (Item.Tag < 0) or (Item.Tag >= FMenuItems.Count) then
+    Exit;
+
+  LMenuItem := FMenuItems[Item.Tag];
+
+  if LMenuItem.Action = gmaSeparator then
+    Exit;
+
+  if LMenuItem.Action = gmaCalendar then
+  begin
+    ShowFilterCalendar;
+    Exit;
+  end;
+
+  FMenuPopup.IsOpen := False;
+  LColumn := FMenuColumn;
+  LOldText := Model.GetFilterText(LColumn);
+  Model.ApplyFilterMenuItem(LMenuItem);
+
+  // An item of the application does what its OnClick does, also about OnFilter.
+  if LMenuItem.Action <> gmaCustom then
+    FilterMenuDone(LColumn, LOldText);
+end;
+
 procedure TS4YStyledGrid.MMColumnChanged(var Message: TDispatchMessageWithValue<Integer>);
 begin
   inherited;
@@ -856,18 +1072,25 @@ end;
 procedure TS4YStyledGrid.MMFilterValueChanged(var Message: TDispatchMessageWithValue<TColumn>);
 var
   LEditor: TControl;
-  LFilterEditor: IS4YGridFilterEditor;
 begin
   if FUpdatingFromEditor then
     Exit;
 
-  if FEditors.TryGetValue(Message.Value, LEditor) and Supports(LEditor, IS4YGridFilterEditor, LFilterEditor) then
-    LFilterEditor.SetFilterValue(Model.GetFilterValue(Message.Value));
+  if FEditors.TryGetValue(Message.Value, LEditor) then
+    ShowEditorFilter(Message.Value, LEditor);
 end;
 
 procedure TS4YStyledGrid.MMSortChanged(var Message: TDispatchMessage);
 begin
   RepaintHeader;
+end;
+
+procedure TS4YStyledGrid.Paint;
+begin
+  inherited;
+
+  // A column does not tell a change of its HorzAlign: its cells use it when they are drawn, and so does the row.
+  UpdateCheckAlignment;
 end;
 
 procedure TS4YStyledGrid.RepaintHeader;
@@ -895,6 +1118,7 @@ begin
     for var I := 0 to High(LColumns) do
       if not LPresent.Contains(LColumns[I]) then
       begin
+        CloseMenu;
         FEditors[LColumns[I]].Free;
         FEditors.Remove(LColumns[I]);
       end;
@@ -913,6 +1137,138 @@ begin
     FFooter.Repaint;
 end;
 
+procedure TS4YStyledGrid.ShowEditorFilter(const AColumn: TColumn; const AEditor: TControl);
+var
+  LFilterEditor: IS4YGridFilterEditor;
+begin
+  // A text field shows the text of the filter; the other editors its value.
+  if AEditor is TS4YGridTextFilterEditor then
+  begin
+    TS4YGridTextFilterEditor(AEditor).SetFilterText(Model.GetFilterText(AColumn));
+    TS4YGridTextFilterEditor(AEditor).Invalid := Model.GetFilterState(AColumn) = gfsInvalid;
+  end
+  else if Supports(AEditor, IS4YGridFilterEditor, LFilterEditor) then
+    LFilterEditor.SetFilterValue(Model.GetFilterValue(AColumn));
+end;
+
+procedure TS4YStyledGrid.ShowFilterCalendar;
+var
+  LFilter: TS4YGridFilter;
+begin
+  // The calendar opens on the date of the filter, or on today.
+  FMenuPopup.IsOpen := False;
+  LFilter := Model.GetFilter(FMenuColumn);
+
+  if LFilter.IsActive and not LFilter.Value.IsEmpty then
+    FMenuCalendar.Date := LFilter.Value.AsExtended
+  else
+    FMenuCalendar.Date := Date;
+
+  FMenuList.Visible := False;
+  FMenuCalendar.Visible := True;
+  FMenuPopup.Width := C_CALENDAR_WIDTH;
+  FMenuPopup.Height := C_CALENDAR_HEIGHT;
+  ApplyMenuStyle;
+  FMenuPopup.Popup;
+end;
+
+procedure TS4YStyledGrid.ShowFilterMenu(const AColumn: TColumn; const AEditor: TControl);
+var
+  LSetting: TS4YGridColumnSetting;
+  LPoint: TPointF;
+  LItem: TListBoxItem;
+  LLine: TLine;
+  LHeight: Single;
+  LWidth: Single;
+begin
+  // A menu of the application is shown in place of the menu of the grid.
+  LSetting := Model.ColumnSettings.FindColumn(AColumn);
+
+  if Assigned(LSetting) and Assigned(LSetting.FilterMenu) then
+  begin
+    LPoint := AEditor.LocalToScreen(TPointF.Create(0, AEditor.Height));
+    LSetting.FilterMenu.PopupComponent := AEditor;
+    LSetting.FilterMenu.Popup(LPoint.X, LPoint.Y);
+    Exit;
+  end;
+
+  CreateMenuPopup;
+  FMenuPopup.IsOpen := False;
+  FMenuColumn := AColumn;
+  FMenuItems.Free;
+  FMenuItems := TS4YGridFilterMenuItems.Create(AColumn);
+  Model.GetFilterMenu(AColumn, FMenuItems);
+  LHeight := 0;
+  FMenuList.BeginUpdate;
+  try
+    FMenuList.Clear;
+
+    // The items chosen, as the operator of the filter, are shown selected.
+    for var I := 0 to FMenuItems.Count - 1 do
+    begin
+      LItem := TListBoxItem.Create(FMenuList);
+      LItem.Stored := False;
+      LItem.Tag := I;
+
+      if FMenuItems[I].Action = gmaSeparator then
+      begin
+        LItem.Height := C_MENU_SEPARATOR_HEIGHT;
+        LItem.Selectable := False;
+        LItem.HitTest := False;
+        LLine := TLine.Create(LItem);
+        LLine.Stored := False;
+        LLine.LineType := TLineType.Top;
+        LLine.Align := TAlignLayout.VertCenter;
+        LLine.Height := 1;
+        LLine.Opacity := C_SEPARATOR_OPACITY;
+        LLine.HitTest := False;
+        LLine.Parent := LItem;
+      end
+      else
+        LItem.Text := FMenuItems[I].Text;
+
+      LItem.Parent := FMenuList;
+      LItem.IsSelected := FMenuItems[I].Checked;
+      LHeight := LHeight + LItem.Height;
+    end;
+  finally
+    FMenuList.EndUpdate;
+  end;
+
+  // As wide as the column, or as the longest text when it is wider, within a limit.
+  LWidth := Max(AEditor.Width, C_MENU_WIDTH);
+
+  for var I := 0 to FMenuList.Count - 1 do
+  begin
+    LItem := FMenuList.ListItems[I];
+
+    if LItem.Text <> '' then
+    begin
+      LItem.ApplyStyleLookup;
+      TCanvasManager.MeasureCanvas.Font.Assign(LItem.ResultingTextSettings.Font);
+      LWidth := Max(LWidth, TCanvasManager.MeasureCanvas.TextWidth(LItem.Text) + C_MENU_TEXT_SPACE);
+    end;
+  end;
+
+  FMenuCalendar.Visible := False;
+  FMenuList.Visible := True;
+  FMenuPopup.PlacementTarget := AEditor;
+  FMenuPopup.Width := Min(LWidth, Max(AEditor.Width, C_MENU_MAX_WIDTH));
+  FMenuPopup.Height := Min(LHeight + C_MENU_BORDER, C_MENU_MAX_HEIGHT);
+  ApplyMenuStyle;
+  FMenuPopup.Popup;
+end;
+
+procedure TS4YStyledGrid.UpdateCheckAlignment;
+var
+  LPair: TPair<TColumn, TControl>;
+begin
+  // The box of a check column in the place of the boxes of its cells.
+  for LPair in FEditors do
+    if LPair.Value is TS4YGridCheckFilterEditor then
+      TS4YGridCheckFilterEditor(LPair.Value).HorzAlign := LPair.Key.HorzAlign;
+end;
+
 procedure TS4YStyledGrid.UpdateFilterRow;
 begin
   if not Assigned(FFilterRow) then
@@ -920,6 +1276,15 @@ begin
 
   FFilterRow.Visible := Model.FilterRow.Visible;
   FFilterRow.Height := GetFilterRowHeight;
+
+  for var LEditor in FEditors.Values do
+  begin
+    ApplyEditorStyle(LEditor);
+
+    if LEditor is TS4YGridTextFilterEditor then
+      TS4YGridTextFilterEditor(LEditor).ShowMenuButton := Model.FilterRow.ShowMenuButton;
+  end;
+
   // The part content is now smaller or larger: the cells of the grid are placed in it again.
   RealignContent;
   RemoveOldEditors;

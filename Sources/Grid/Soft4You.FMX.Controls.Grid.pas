@@ -20,7 +20,9 @@ uses
   FMX.Controls,
   FMX.Controls.Model,
   FMX.Grid,
-  Soft4You.FMX.Controls.Grid.Types;
+  FMX.Menus,
+  Soft4You.FMX.Controls.Grid.Types,
+  Soft4You.FMX.Controls.Grid.Filters;
 
 const
   /// <summary>Message of the model to the presentation: the settings of the filter row or of the columns changed.</summary>
@@ -107,16 +109,24 @@ type
     C_DEFAULT_HEIGHT = 0;
   private
     FAutoFilter: Boolean;
+    FCheckBoxStyleLookup: string;
     FClearOnHide: Boolean;
+    FEditStyleLookup: string;
     FFilterDelay: Integer;
     FHeight: Integer;
+    FMenuStyleLookup: string;
+    FShowMenuButton: Boolean;
     FVisible: Boolean;
     FOnChange: TNotifyEvent;
     procedure Changed;
     procedure SetAutoFilter(const Value: Boolean);
+    procedure SetCheckBoxStyleLookup(const Value: string);
     procedure SetClearOnHide(const Value: Boolean);
+    procedure SetEditStyleLookup(const Value: string);
     procedure SetFilterDelay(const Value: Integer);
     procedure SetHeight(const Value: Integer);
+    procedure SetMenuStyleLookup(const Value: string);
+    procedure SetShowMenuButton(const Value: Boolean);
     procedure SetVisible(const Value: Boolean);
   public
     /// <summary>Creates the settings with the default values.</summary>
@@ -133,15 +143,26 @@ type
     /// milliseconds. The default is False: the user filters with Enter.
     /// </summary>
     /// <remarks>
-    /// Each key starts the wait again, so the data are not filtered at each key. Enter, Esc, a choice in a drop-down
-    /// list and a click on a check box filter at once, also when AutoFilter is False.
+    /// Each key starts the wait again, so the data are not filtered at each key. Enter, Esc, a choice in the menu of a
+    /// filter and a click on a check box filter at once, also when AutoFilter is False.
     /// </remarks>
     property AutoFilter: Boolean read FAutoFilter write SetAutoFilter default False;
+    /// <summary>
+    /// The name of the style of the check boxes of the filter row, looked for in the style book of the form and in the
+    /// style of the platform. Empty by default: checkcellstyle, the style of the check boxes of the cells of the grid,
+    /// or checkboxstyle, the style of TCheckBox, when it is not found.
+    /// </summary>
+    property CheckBoxStyleLookup: string read FCheckBoxStyleLookup write SetCheckBoxStyleLookup;
     /// <summary>
     /// True clears the filters when the filter row is hidden, and asks the application to filter again with OnFilter.
     /// The default is False: the filters stay, and are shown again with the row.
     /// </summary>
     property ClearOnHide: Boolean read FClearOnHide write SetClearOnHide default False;
+    /// <summary>
+    /// The name of the style of the text fields of the filter row, looked for in the style book of the form and in the
+    /// style of the platform. Empty by default: editstyle, the style of TEdit.
+    /// </summary>
+    property EditStyleLookup: string read FEditStyleLookup write SetEditStyleLookup;
     /// <summary>
     /// Milliseconds without typing after which AutoFilter fires OnFilter. The default is 400; 0 fires it at each
     /// change.
@@ -152,6 +173,16 @@ type
     /// height of the rows of the grid.
     /// </summary>
     property Height: Integer read FHeight write SetHeight default C_DEFAULT_HEIGHT;
+    /// <summary>
+    /// The name of the style of the popup of the menu of the filter, its background and border, looked for in the
+    /// style book of the form and in the style of the platform. Empty by default: popupstyle, the style of TPopup.
+    /// </summary>
+    property MenuStyleLookup: string read FMenuStyleLookup write SetMenuStyleLookup;
+    /// <summary>
+    /// True shows a button in the text fields of the filter row, which opens the menu of the filter: the operators,
+    /// the values and the functions of the column. The default is True.
+    /// </summary>
+    property ShowMenuButton: Boolean read FShowMenuButton write SetShowMenuButton default True;
     /// <summary>True shows the filter row under the header. The default is False.</summary>
     property Visible: Boolean read FVisible write SetVisible default False;
   end;
@@ -199,6 +230,7 @@ type
     FColumn: TColumn;
     FFilterable: Boolean;
     FFilterItems: TStrings;
+    FFilterMenu: TPopupMenu;
     FFooterAlignment: TTextAlign;
     FFooterFormat: string;
     FFooterKind: TS4YGridFooterKind;
@@ -209,6 +241,7 @@ type
     procedure SetColumn(const Value: TColumn);
     procedure SetFilterable(const Value: Boolean);
     procedure SetFilterItems(const Value: TStrings);
+    procedure SetFilterMenu(const Value: TPopupMenu);
     procedure SetFooterAlignment(const Value: TTextAlign);
     procedure SetFooterFormat(const Value: string);
     procedure SetFooterKind(const Value: TS4YGridFooterKind);
@@ -235,6 +268,11 @@ type
     /// drop-down list with them, whatever the type of the column. Empty by default.
     /// </summary>
     property FilterItems: TStrings read FFilterItems write SetFilterItems stored FilterItemsStored;
+    /// <summary>
+    /// A menu of the application for the button of the editor of the filter of the column, instead of the menu of the
+    /// grid: the application does what its items do, with FilterText, SetFilter and Filter of the grid.
+    /// </summary>
+    property FilterMenu: TPopupMenu read FFilterMenu write SetFilterMenu;
     /// <summary>Alignment of the text of the footer in the cell of the column. The default is Trailing.</summary>
     property FooterAlignment: TTextAlign read FFooterAlignment write SetFooterAlignment
       default C_DEFAULT_FOOTER_ALIGNMENT;
@@ -288,19 +326,20 @@ type
   end;
 
   /// <summary>
-  /// The model of TS4YGrid: the settings of the filter row and of the columns, and the filter values.
+  /// The model of TS4YGrid: the settings of the filter row and of the columns, and the filters.
   /// </summary>
   TS4YGridModel = class(TGridModel)
   private
     FColumnSettings: TS4YGridColumnSettings;
     FFilterRow: TS4YGridFilterRow;
-    FFilterValues: TDictionary<TColumn, TValue>;
+    FFilters: TDictionary<TColumn, TS4YGridFilter>;
     FFooterRow: TS4YGridFooterRow;
     FSorting: TS4YGridSorting;
     FSortKeys: TList<TS4YGridSortKey>;
     FOnCreateFilterEditor: TS4YGridCreateFilterEditorEvent;
     FOnFilter: TNotifyEvent;
     FOnFilterChanged: TS4YGridColumnEvent;
+    FOnFilterMenu: TS4YGridFilterMenuEvent;
     FOnGetFooterText: TS4YGridFooterTextEvent;
     FOnSort: TNotifyEvent;
     procedure ColumnSettingsChange(Sender: TObject);
@@ -316,6 +355,7 @@ type
     procedure SetSorting(const Value: TS4YGridSorting);
     procedure SortChanged;
     procedure SortingChange(Sender: TObject);
+    procedure StoreFilter(const AColumn: TColumn; const AFilter: TS4YGridFilter);
   protected
     /// <summary>Forgets the filter and the key of the order of a column removed from the grid.</summary>
     procedure DoColumnRemoved(const Column: TColumn); override;
@@ -333,15 +373,61 @@ type
     /// <summary>Destroys the model.</summary>
     destructor Destroy; override;
 
+    /// <summary>
+    /// Does what the item AItem of the menu of a filter does: writes its operator or value, the date of today, the
+    /// current time, clears the filter, or fires its OnClick. The items gmaCalendar and gmaSeparator do nothing: the
+    /// calendar is shown by the menu.
+    /// </summary>
+    procedure ApplyFilterMenuItem(const AItem: TS4YGridFilterMenuItem);
+    /// <summary>
+    /// Writes AOperator in the text of the filter of AColumn, before the value already written, as the menu of the
+    /// filter: the operator is written also when it is the default one.
+    /// </summary>
+    procedure ApplyFilterOperator(const AColumn: TColumn; const AOperator: TS4YGridFilterOperator);
+    /// <summary>
+    /// Writes AValue in the text of the filter of AColumn, after the operator already written, as the menu of the
+    /// filter; an operator that cannot be used with a value becomes the default operator.
+    /// </summary>
+    procedure ApplyFilterValue(const AColumn: TColumn; const AValue: TValue);
     /// <summary>Clears the filters of all the columns, firing OnFilterChanged for each one that had a filter.</summary>
     procedure ClearFilters;
-    /// <summary>Fires OnFilter: the application filters its data with the filter values.</summary>
+    /// <summary>Fires OnFilter: the application filters its data with the filters.</summary>
     procedure Filter;
-    /// <summary>Returns the filter value of AColumn: an empty value when the column has no filter.</summary>
+    /// <summary>
+    /// Returns True when AValue, the value of a row in AColumn, passes the filter of the column; True when the column
+    /// has no filter.
+    /// </summary>
+    function FilterMatches(const AColumn: TColumn; const AValue: TValue): Boolean;
+    /// <summary>Returns the filter of AColumn: its text, operator, value and state.</summary>
+    function GetFilter(const AColumn: TColumn): TS4YGridFilter;
+    /// <summary>Returns the kind of value of the filter of AColumn, from the type of the column.</summary>
+    function GetFilterKind(const AColumn: TColumn): TS4YGridFilterValueKind;
+    /// <summary>
+    /// Fills AItems with the items of the menu of the filter of AColumn: the operators of the column, with the current
+    /// one checked, the values of its list, the functions of its type and the item that clears the filter; then fires
+    /// OnFilterMenu.
+    /// </summary>
+    procedure GetFilterMenu(const AColumn: TColumn; const AItems: TS4YGridFilterMenuItems);
+    /// <summary>Returns the operator of the filter of AColumn; gfoNone when the column has no filter text.</summary>
+    function GetFilterOperator(const AColumn: TColumn): TS4YGridFilterOperator;
+    /// <summary>Returns the state of the text of the filter of AColumn.</summary>
+    function GetFilterState(const AColumn: TColumn): TS4YGridFilterState;
+    /// <summary>Returns the text of the filter of AColumn, as it is written.</summary>
+    function GetFilterText(const AColumn: TColumn): string;
+    /// <summary>Returns the filter value of AColumn: an empty value when the filter is not applied.</summary>
     function GetFilterValue(const AColumn: TColumn): TValue;
-    /// <summary>Returns True when at least one column has a filter.</summary>
+    /// <summary>Returns True when at least one column has a filter that is applied.</summary>
     function IsFiltered: Boolean;
-    /// <summary>Sets the filter value of AColumn and shows it in its editor; an empty value removes the filter.</summary>
+    /// <summary>
+    /// Sets the filter of AColumn to AOperator and AValue and shows its text in the editor; gfoNone removes the filter.
+    /// </summary>
+    procedure SetFilter(const AColumn: TColumn; const AOperator: TS4YGridFilterOperator; const AValue: TValue);
+    /// <summary>Sets the text of the filter of AColumn, read with the syntax of the filters, and shows it in the editor.</summary>
+    procedure SetFilterText(const AColumn: TColumn; const AText: string);
+    /// <summary>
+    /// Sets the filter of AColumn to AValue with the default operator of the column and shows it in its editor; an
+    /// empty value removes the filter.
+    /// </summary>
     procedure SetFilterValue(const AColumn: TColumn; const AValue: TValue);
     /// <summary>
     /// Returns the text of the footer under AColumn: the value calculated from the rows of the grid and the
@@ -387,8 +473,10 @@ type
     property OnCreateFilterEditor: TS4YGridCreateFilterEditorEvent read FOnCreateFilterEditor write FOnCreateFilterEditor;
     /// <summary>Fires when the application must filter its data: Enter in an editor, or a call to Filter.</summary>
     property OnFilter: TNotifyEvent read FOnFilter write FOnFilter;
-    /// <summary>Fires when the filter value of a column changes, in its editor or by code.</summary>
+    /// <summary>Fires when the filter of a column changes, in its editor or by code.</summary>
     property OnFilterChanged: TS4YGridColumnEvent read FOnFilterChanged write FOnFilterChanged;
+    /// <summary>Lets the application change the menu of the filter of a column before it is shown.</summary>
+    property OnFilterMenu: TS4YGridFilterMenuEvent read FOnFilterMenu write FOnFilterMenu;
     /// <summary>Lets the application change the text of the footer under a column.</summary>
     property OnGetFooterText: TS4YGridFooterTextEvent read FOnGetFooterText write FOnGetFooterText;
     /// <summary>Fires when the order of the rows changes: the application sorts its data with the keys.</summary>
@@ -408,13 +496,17 @@ type
   TS4YGrid = class(TGrid)
   private
     function GetColumnSettings: TS4YGridColumnSettings;
+    function GetFilterOperator(const AColumn: TColumn): TS4YGridFilterOperator;
     function GetFilterRow: TS4YGridFilterRow;
+    function GetFilterState(const AColumn: TColumn): TS4YGridFilterState;
+    function GetFilterText(const AColumn: TColumn): string;
     function GetFilterValue(const AColumn: TColumn): TValue;
     function GetFooterRow: TS4YGridFooterRow;
     function GetModel: TS4YGridModel; overload;
     function GetOnCreateFilterEditor: TS4YGridCreateFilterEditorEvent;
     function GetOnFilter: TNotifyEvent;
     function GetOnFilterChanged: TS4YGridColumnEvent;
+    function GetOnFilterMenu: TS4YGridFilterMenuEvent;
     function GetOnGetFooterText: TS4YGridFooterTextEvent;
     function GetOnSort: TNotifyEvent;
     function GetSortColumn(const AIndex: Integer): TColumn;
@@ -423,11 +515,13 @@ type
     function GetSorting: TS4YGridSorting;
     procedure SetColumnSettings(const Value: TS4YGridColumnSettings);
     procedure SetFilterRow(const Value: TS4YGridFilterRow);
+    procedure SetFilterText(const AColumn: TColumn; const Value: string);
     procedure SetFilterValue(const AColumn: TColumn; const Value: TValue);
     procedure SetFooterRow(const Value: TS4YGridFooterRow);
     procedure SetOnCreateFilterEditor(const Value: TS4YGridCreateFilterEditorEvent);
     procedure SetOnFilter(const Value: TNotifyEvent);
     procedure SetOnFilterChanged(const Value: TS4YGridColumnEvent);
+    procedure SetOnFilterMenu(const Value: TS4YGridFilterMenuEvent);
     procedure SetOnGetFooterText(const Value: TS4YGridFooterTextEvent);
     procedure SetOnSort(const Value: TNotifyEvent);
     procedure SetSorting(const Value: TS4YGridSorting);
@@ -445,14 +539,34 @@ type
     procedure ClearFilters;
     /// <summary>Removes all the keys of the order, back to the order of the data; fires OnSort.</summary>
     procedure ClearSort;
-    /// <summary>Fires OnFilter: the application filters its data with the filter values.</summary>
+    /// <summary>Fires OnFilter: the application filters its data with the filters.</summary>
     procedure Filter;
-    /// <summary>Returns True when at least one column has a filter.</summary>
+    /// <summary>
+    /// Returns True when AValue, the value of a row in AColumn, passes the filter of the column, with its operator and
+    /// value; True when the column has no filter. For the application that filters its data in memory, in OnFilter.
+    /// </summary>
+    /// <remarks>
+    /// The texts are compared without difference between upper and lower case; the dates only by the day, the times
+    /// to the millisecond. A row without value passes only the operators not equal, does not contain and is empty. A
+    /// value that cannot be compared with the value of the filter, such as a text that is not a number in a number
+    /// column, passes the filter.
+    /// </remarks>
+    function FilterMatches(const AColumn: TColumn; const AValue: TValue): Boolean;
+    /// <summary>Returns True when at least one column has a filter that is applied.</summary>
     function IsFiltered: Boolean;
     /// <summary>Returns True when the rows are sorted by at least one column.</summary>
     function IsSorted: Boolean;
     /// <summary>Removes AColumn from the keys of the order; fires OnSort.</summary>
     procedure RemoveSort(const AColumn: TColumn);
+    /// <summary>
+    /// Sets the filter of AColumn to AOperator and AValue, writes its text in the editor and fires OnFilterChanged,
+    /// not OnFilter; gfoNone removes the filter.
+    /// </summary>
+    /// <remarks>
+    /// The text is written as the grid writes it: the operator, a space and the value, without the default operator of
+    /// the column, with double quotes when the value needs them.
+    /// </remarks>
+    procedure SetFilter(const AColumn: TColumn; const AOperator: TS4YGridFilterOperator; const AValue: TValue);
     /// <summary>Sorts the rows only by AColumn; fires OnSort.</summary>
     procedure SetSort(const AColumn: TColumn; const Descending: Boolean = False);
     /// <summary>Returns the position of AColumn among the keys of the order, -1 when it is not a key.</summary>
@@ -464,12 +578,34 @@ type
     procedure UpdateFooter;
 
     /// <summary>
-    /// The filter value of AColumn: an empty value when the column has no filter.
+    /// The operator of the filter of AColumn, read in its text: how the values of the rows are compared with
+    /// FilterValue. gfoNone when the column has no filter text.
     /// </summary>
     /// <remarks>
-    /// The value has the type of the column: a string for a text column, an Int64 for an integer column, a Double for
-    /// a decimal or currency column, a TDate for a date column, a Boolean for a check column. Setting it shows the
-    /// value in the editor and fires OnFilterChanged, not OnFilter.
+    /// A text without operator has the default operator of the column: gfoContains for a text column, gfoEqual for
+    /// the others. The operator is given also when the filter is not applied yet, as for "&gt;" alone: check
+    /// FilterState, or that FilterValue is not empty.
+    /// </remarks>
+    property FilterOperator[const AColumn: TColumn]: TS4YGridFilterOperator read GetFilterOperator;
+    /// <summary>
+    /// The state of the text of the filter of AColumn: empty, incomplete (an operator without value), valid (the
+    /// filter is applied) or invalid.
+    /// </summary>
+    property FilterState[const AColumn: TColumn]: TS4YGridFilterState read GetFilterState;
+    /// <summary>
+    /// The text of the filter of AColumn, as it is written in its editor; setting it reads it with the syntax of the
+    /// filters, shows it in the editor and fires OnFilterChanged, not OnFilter.
+    /// </summary>
+    property FilterText[const AColumn: TColumn]: string read GetFilterText write SetFilterText;
+    /// <summary>
+    /// The filter value of AColumn: an empty value when the filter is not applied, or when its operator is gfoEmpty or
+    /// gfoNotEmpty.
+    /// </summary>
+    /// <remarks>
+    /// The value has the type of the column: a string for a text column or a column with a list of values, an Int64
+    /// for an integer column, a Double for a decimal or currency column, a TDate for a date column or a column of date
+    /// and time, a TTime for a time column, a Boolean for a check column. Setting it sets the filter with the default
+    /// operator of the column, shows it in the editor and fires OnFilterChanged, not OnFilter.
     /// </remarks>
     property FilterValue[const AColumn: TColumn]: TValue read GetFilterValue write SetFilterValue;
     /// <summary>The model of the grid.</summary>
@@ -508,12 +644,20 @@ type
     property OnCreateFilterEditor: TS4YGridCreateFilterEditorEvent read GetOnCreateFilterEditor
       write SetOnCreateFilterEditor;
     /// <summary>
-    /// Fires when the application must filter its data with the filter values: Enter in an editor of the filter row,
-    /// a click on a check box of the filter row, or a call to Filter.
+    /// Fires when the application must filter its data with the filters of the columns: Enter in an editor of the
+    /// filter row, a click on a check box of the filter row, or a call to Filter.
     /// </summary>
+    /// <remarks>
+    /// For each column, FilterOperator and FilterValue tell how to filter; FilterMatches compares a value with them.
+    /// </remarks>
     property OnFilter: TNotifyEvent read GetOnFilter write SetOnFilter;
-    /// <summary>Fires when the filter value of a column changes, in its editor or by code.</summary>
+    /// <summary>Fires when the filter of a column changes, in its editor or by code.</summary>
     property OnFilterChanged: TS4YGridColumnEvent read GetOnFilterChanged write SetOnFilterChanged;
+    /// <summary>
+    /// Lets the application change the menu of the filter of a column before it is shown, for example to add an item
+    /// such as "This month"; the items gmaCustom fire their OnClick.
+    /// </summary>
+    property OnFilterMenu: TS4YGridFilterMenuEvent read GetOnFilterMenu write SetOnFilterMenu;
     /// <summary>
     /// Lets the application change the text of the footer under a column, for example to show the total of all its
     /// data and not only of the rows shown.
@@ -531,22 +675,57 @@ implementation
 uses
   System.SysUtils,
   System.Math,
+  System.DateUtils,
   Soft4You.FMX.Controls.Grid.Style;
 
-// Returns in ANumber the number in AValue: an integer, a float or a text that is a number.
-function TryValueToNumber(const AValue: TValue; out ANumber: Double): Boolean;
-begin
-  Result := True;
+resourcestring
+  S_FILTER_CONTAINS = 'Contains';
+  S_FILTER_NOT_CONTAINS = 'Does not contain';
+  S_FILTER_STARTS_WITH = 'Starts with';
+  S_FILTER_ENDS_WITH = 'Ends with';
+  S_FILTER_EQUAL = 'Equal to';
+  S_FILTER_NOT_EQUAL = 'Not equal to';
+  S_FILTER_LESS = 'Less than';
+  S_FILTER_LESS_OR_EQUAL = 'Less than or equal to';
+  S_FILTER_GREATER = 'Greater than';
+  S_FILTER_GREATER_OR_EQUAL = 'Greater than or equal to';
+  S_FILTER_EMPTY = 'Is empty';
+  S_FILTER_NOT_EMPTY = 'Is not empty';
+  S_FILTER_CALENDAR = 'Calendar...';
+  S_FILTER_TODAY = 'Today';
+  S_FILTER_CURRENT_TIME = 'Current time';
+  S_FILTER_CLEAR = 'Clear filter';
 
-  case AValue.Kind of
-    tkInteger, tkInt64:
-      ANumber := AValue.AsInt64;
-    tkFloat:
-      ANumber := AValue.AsExtended;
-    tkString, tkLString, tkWString, tkUString:
-      Result := TryStrToFloat(AValue.AsString, ANumber);
+// Returns the text of the item of the menu of AOperator.
+function OperatorText(const AOperator: TS4YGridFilterOperator): string;
+begin
+  case AOperator of
+    gfoContains:
+      Result := S_FILTER_CONTAINS;
+    gfoNotContains:
+      Result := S_FILTER_NOT_CONTAINS;
+    gfoStartsWith:
+      Result := S_FILTER_STARTS_WITH;
+    gfoEndsWith:
+      Result := S_FILTER_ENDS_WITH;
+    gfoEqual:
+      Result := S_FILTER_EQUAL;
+    gfoNotEqual:
+      Result := S_FILTER_NOT_EQUAL;
+    gfoLess:
+      Result := S_FILTER_LESS;
+    gfoLessOrEqual:
+      Result := S_FILTER_LESS_OR_EQUAL;
+    gfoGreater:
+      Result := S_FILTER_GREATER;
+    gfoGreaterOrEqual:
+      Result := S_FILTER_GREATER_OR_EQUAL;
+    gfoEmpty:
+      Result := S_FILTER_EMPTY;
+    gfoNotEmpty:
+      Result := S_FILTER_NOT_EMPTY;
   else
-    Result := False;
+    Result := '';
   end;
 end;
 
@@ -688,6 +867,7 @@ begin
   inherited;
 
   FFilterDelay := C_DEFAULT_FILTER_DELAY;
+  FShowMenuButton := True;
 end;
 
 procedure TS4YGridFilterRow.Assign(Source: TPersistent);
@@ -698,9 +878,13 @@ begin
   begin
     LSource := TS4YGridFilterRow(Source);
     FAutoFilter := LSource.AutoFilter;
+    FCheckBoxStyleLookup := LSource.CheckBoxStyleLookup;
     FClearOnHide := LSource.ClearOnHide;
+    FEditStyleLookup := LSource.EditStyleLookup;
     FFilterDelay := LSource.FilterDelay;
     FHeight := LSource.Height;
+    FMenuStyleLookup := LSource.MenuStyleLookup;
+    FShowMenuButton := LSource.ShowMenuButton;
     FVisible := LSource.Visible;
     Changed;
   end
@@ -723,12 +907,30 @@ begin
   Changed;
 end;
 
+procedure TS4YGridFilterRow.SetCheckBoxStyleLookup(const Value: string);
+begin
+  if FCheckBoxStyleLookup = Value then
+    Exit;
+
+  FCheckBoxStyleLookup := Value;
+  Changed;
+end;
+
 procedure TS4YGridFilterRow.SetClearOnHide(const Value: Boolean);
 begin
   if FClearOnHide = Value then
     Exit;
 
   FClearOnHide := Value;
+  Changed;
+end;
+
+procedure TS4YGridFilterRow.SetEditStyleLookup(const Value: string);
+begin
+  if FEditStyleLookup = Value then
+    Exit;
+
+  FEditStyleLookup := Value;
   Changed;
 end;
 
@@ -755,6 +957,24 @@ begin
   else
     FHeight := Value;
 
+  Changed;
+end;
+
+procedure TS4YGridFilterRow.SetMenuStyleLookup(const Value: string);
+begin
+  if FMenuStyleLookup = Value then
+    Exit;
+
+  FMenuStyleLookup := Value;
+  Changed;
+end;
+
+procedure TS4YGridFilterRow.SetShowMenuButton(const Value: Boolean);
+begin
+  if FShowMenuButton = Value then
+    Exit;
+
+  FShowMenuButton := Value;
   Changed;
 end;
 
@@ -797,6 +1017,7 @@ begin
     Column := LSource.Column;
     FFilterable := LSource.Filterable;
     FFilterItems.Assign(LSource.FilterItems);
+    FilterMenu := LSource.FilterMenu;
     FFooterAlignment := LSource.FooterAlignment;
     FFooterFormat := LSource.FooterFormat;
     FFooterKind := LSource.FooterKind;
@@ -847,6 +1068,24 @@ end;
 procedure TS4YGridColumnSetting.SetFilterItems(const Value: TStrings);
 begin
   FFilterItems.Assign(Value);
+end;
+
+procedure TS4YGridColumnSetting.SetFilterMenu(const Value: TPopupMenu);
+var
+  LOwner: TPersistent;
+begin
+  if FFilterMenu = Value then
+    Exit;
+
+  FFilterMenu := Value;
+
+  // The grid is told when the menu is freed, to forget it.
+  LOwner := TS4YGridColumnSettings(Collection).Owner;
+
+  if Assigned(FFilterMenu) and (LOwner is TComponent) then
+    FFilterMenu.FreeNotification(TComponent(LOwner));
+
+  Changed(False);
 end;
 
 procedure TS4YGridColumnSetting.SetFilterable(const Value: Boolean);
@@ -992,7 +1231,7 @@ constructor TS4YGridModel.Create(const AOwner: TComponent);
 begin
   inherited;
 
-  FFilterValues := TDictionary<TColumn, TValue>.Create;
+  FFilters := TDictionary<TColumn, TS4YGridFilter>.Create;
   FFilterRow := TS4YGridFilterRow.Create;
   FFilterRow.OnChange := FilterRowChange;
   FFooterRow := TS4YGridFooterRow.Create;
@@ -1014,7 +1253,7 @@ begin
   FColumnSettings.Free;
   FFilterRow.Free;
   FFooterRow.Free;
-  FFilterValues.Free;
+  FFilters.Free;
   FSorting.Free;
   FSortKeys.Free;
 
@@ -1045,6 +1284,67 @@ begin
   SortChanged;
 end;
 
+procedure TS4YGridModel.ApplyFilterMenuItem(const AItem: TS4YGridFilterMenuItem);
+var
+  LNow: TDateTime;
+begin
+  case AItem.Action of
+    gmaOperator:
+      ApplyFilterOperator(AItem.Column, AItem.FilterOperator);
+    gmaValue:
+      ApplyFilterValue(AItem.Column, AItem.Value);
+    gmaToday:
+      ApplyFilterValue(AItem.Column, TValue.From<TDate>(Date));
+    gmaCurrentTime:
+      begin
+        LNow := Now;
+        ApplyFilterValue(AItem.Column, TValue.From<TTime>(EncodeTime(HourOf(LNow), MinuteOf(LNow), 0, 0)));
+      end;
+    gmaClear:
+      SetFilterText(AItem.Column, '');
+    gmaCustom:
+      if Assigned(AItem.OnClick) then
+        AItem.OnClick(AItem);
+  end;
+end;
+
+procedure TS4YGridModel.ApplyFilterOperator(const AColumn: TColumn; const AOperator: TS4YGridFilterOperator);
+var
+  LFilter: TS4YGridFilter;
+  LValue: TValue;
+begin
+  if not Assigned(AColumn) then
+    Exit;
+
+  // The value already written stays, also when it cannot be read yet; empty and not empty have no value.
+  LFilter := GetFilter(AColumn);
+  LValue := TValue.Empty;
+
+  if not (LFilter.FilterOperator in [gfoEmpty, gfoNotEmpty]) and (LFilter.ValueText <> '') then
+    LValue := LFilter.ValueText;
+
+  SetFilterText(AColumn, TS4YGridFilter.FormatText(LFilter.Kind, AOperator, LValue, True));
+end;
+
+procedure TS4YGridModel.ApplyFilterValue(const AColumn: TColumn; const AValue: TValue);
+var
+  LFilter: TS4YGridFilter;
+  LOperator: TS4YGridFilterOperator;
+begin
+  if not Assigned(AColumn) then
+    Exit;
+
+  // The operator already written stays, in the form the grid writes; the default one stays not written.
+  LFilter := GetFilter(AColumn);
+  LOperator := LFilter.FilterOperator;
+
+  if (LOperator in [gfoNone, gfoEmpty, gfoNotEmpty]) or not TS4YGridFilter.IsOperatorAllowed(LFilter.Kind, LOperator) then
+    LOperator := TS4YGridFilter.DefaultOperator(LFilter.Kind);
+
+  SetFilterText(AColumn, TS4YGridFilter.FormatText(LFilter.Kind, LOperator, AValue,
+    LFilter.ExplicitOperator and (LOperator = LFilter.FilterOperator)));
+end;
+
 procedure TS4YGridModel.ClearSort;
 begin
   if FSortKeys.Count = 0 then
@@ -1059,14 +1359,28 @@ var
   LColumns: TArray<TColumn>;
 begin
   // The keys are copied: the dictionary changes while the filters are cleared.
-  LColumns := FFilterValues.Keys.ToArray;
+  LColumns := FFilters.Keys.ToArray;
 
   for var I := 0 to High(LColumns) do
-    SetFilterValue(LColumns[I], TValue.Empty);
+    SetFilterText(LColumns[I], '');
 end;
 
 procedure TS4YGridModel.ColumnSettingsChange(Sender: TObject);
+var
+  LColumns: TArray<TColumn>;
+  LFilter: TS4YGridFilter;
 begin
+  // A list of values added or removed changes the kind of value of a column: its text is read again.
+  LColumns := FFilters.Keys.ToArray;
+
+  for var I := 0 to High(LColumns) do
+  begin
+    LFilter := FFilters[LColumns[I]];
+
+    if LFilter.Kind <> GetFilterKind(LColumns[I]) then
+      FFilters[LColumns[I]] := TS4YGridFilter.Parse(LFilter.Text, GetFilterKind(LColumns[I]));
+  end;
+
   SendMessage(MM_S4Y_GRID_COLUMN_SETTINGS_CHANGED);
 end;
 
@@ -1074,7 +1388,7 @@ procedure TS4YGridModel.DoColumnRemoved(const Column: TColumn);
 var
   LIndex: Integer;
 begin
-  FFilterValues.Remove(Column);
+  FFilters.Remove(Column);
   // The key is forgotten without OnSort: the order of the data does not change.
   LIndex := SortIndexOf(Column);
 
@@ -1151,18 +1465,135 @@ begin
   end;
 
   // The value as the column writes its cells; an average of whole numbers keeps its decimals.
-  if AColumn is TDateColumn then
-    Result := AColumn.ValueToString(TValue.From<TDate>(AValue))
+  if AColumn is TDateTimeColumnBase then
+    Result := AColumn.ValueToString(TValue.From<TDateTime>(AValue))
   else if (AColumn is TCustomNumberColumn) and not (AIsAverage and (AColumn is TIntegerColumn)) then
     Result := AColumn.ValueToString(AValue)
   else
     Result := FormatFloat('0.##', AValue);
 end;
 
+function TS4YGridModel.FilterMatches(const AColumn: TColumn; const AValue: TValue): Boolean;
+begin
+  Result := GetFilter(AColumn).Matches(AValue);
+end;
+
+function TS4YGridModel.GetFilter(const AColumn: TColumn): TS4YGridFilter;
+begin
+  if not Assigned(AColumn) or not FFilters.TryGetValue(AColumn, Result) then
+    Result := TS4YGridFilter.Parse('', GetFilterKind(AColumn));
+end;
+
+function TS4YGridModel.GetFilterKind(const AColumn: TColumn): TS4YGridFilterValueKind;
+begin
+  // The list of values comes before the type of the column.
+  if Assigned(FColumnSettings.GetFilterItems(AColumn)) or (AColumn is TPopupColumn) then
+    Result := gvkList
+  else if AColumn is TIntegerColumn then
+    Result := gvkInteger
+  else if AColumn is TCustomNumberColumn then
+    Result := gvkFloat
+  else if (AColumn is TDateColumn) or (AColumn is TDateTimeColumn) then
+    Result := gvkDate
+  else if AColumn is TTimeColumn then
+    Result := gvkTime
+  else if AColumn is TCheckColumn then
+    Result := gvkBoolean
+  else
+    Result := gvkText;
+end;
+
+procedure TS4YGridModel.GetFilterMenu(const AColumn: TColumn; const AItems: TS4YGridFilterMenuItems);
+var
+  LFilter: TS4YGridFilter;
+  LOperators: TArray<TS4YGridFilterOperator>;
+  LCurrent: TS4YGridFilterOperator;
+  LItem: TS4YGridFilterMenuItem;
+  LValues: TStrings;
+begin
+  AItems.Clear;
+  AItems.Column := AColumn;
+  LFilter := GetFilter(AColumn);
+
+  case LFilter.Kind of
+    gvkText:
+      LOperators := [gfoContains, gfoNotContains, gfoStartsWith, gfoEndsWith, gfoEqual, gfoNotEqual];
+    gvkList, gvkBoolean:
+      LOperators := [gfoEqual, gfoNotEqual];
+  else
+    LOperators := [gfoEqual, gfoNotEqual, gfoLess, gfoLessOrEqual, gfoGreater, gfoGreaterOrEqual];
+  end;
+
+  LOperators := LOperators + [gfoEmpty, gfoNotEmpty];
+
+  // Without text, the default operator is the one the text will have.
+  LCurrent := LFilter.FilterOperator;
+
+  if LCurrent = gfoNone then
+    LCurrent := TS4YGridFilter.DefaultOperator(LFilter.Kind);
+
+  for var I := 0 to High(LOperators) do
+  begin
+    LItem := AItems.AddAction(gmaOperator, OperatorText(LOperators[I]));
+    LItem.FilterOperator := LOperators[I];
+    LItem.Checked := LOperators[I] = LCurrent;
+  end;
+
+  // The values of the list, the one written checked.
+  LValues := FColumnSettings.GetFilterItems(AColumn);
+
+  if not Assigned(LValues) and (AColumn is TPopupColumn) then
+    LValues := TPopupColumn(AColumn).Items;
+
+  if (LFilter.Kind = gvkList) and Assigned(LValues) and (LValues.Count > 0) then
+  begin
+    AItems.AddSeparator;
+
+    for var I := 0 to LValues.Count - 1 do
+    begin
+      LItem := AItems.AddAction(gmaValue, LValues[I]);
+      LItem.Value := LValues[I];
+      LItem.Checked := (LFilter.State = gfsValid) and AnsiSameText(LFilter.ValueText, LValues[I]);
+    end;
+  end;
+
+  if LFilter.Kind = gvkDate then
+  begin
+    AItems.AddSeparator;
+    AItems.AddAction(gmaCalendar, S_FILTER_CALENDAR);
+    AItems.AddAction(gmaToday, S_FILTER_TODAY);
+  end
+  else if LFilter.Kind = gvkTime then
+  begin
+    AItems.AddSeparator;
+    AItems.AddAction(gmaCurrentTime, S_FILTER_CURRENT_TIME);
+  end;
+
+  AItems.AddSeparator;
+  AItems.AddAction(gmaClear, S_FILTER_CLEAR);
+
+  if Assigned(FOnFilterMenu) then
+    FOnFilterMenu(Owner, AColumn, AItems);
+end;
+
+function TS4YGridModel.GetFilterOperator(const AColumn: TColumn): TS4YGridFilterOperator;
+begin
+  Result := GetFilter(AColumn).FilterOperator;
+end;
+
+function TS4YGridModel.GetFilterState(const AColumn: TColumn): TS4YGridFilterState;
+begin
+  Result := GetFilter(AColumn).State;
+end;
+
+function TS4YGridModel.GetFilterText(const AColumn: TColumn): string;
+begin
+  Result := GetFilter(AColumn).Text;
+end;
+
 function TS4YGridModel.GetFilterValue(const AColumn: TColumn): TValue;
 begin
-  if not FFilterValues.TryGetValue(AColumn, Result) then
-    Result := TValue.Empty;
+  Result := GetFilter(AColumn).Value;
 end;
 
 function TS4YGridModel.GetFooterText(const AColumn: TColumn): string;
@@ -1198,7 +1629,7 @@ begin
       begin
         Inc(LCount);
 
-        if TryValueToNumber(LValue, LNumber) then
+        if TS4YGridFilter.TryValueToNumber(LValue, LNumber) then
         begin
           if (LNumbers = 0) or (LNumber < LMin) then
             LMin := LNumber;
@@ -1249,7 +1680,11 @@ end;
 
 function TS4YGridModel.IsFiltered: Boolean;
 begin
-  Result := FFilterValues.Count > 0;
+  Result := False;
+
+  for var LFilter in FFilters.Values do
+    if LFilter.IsActive then
+      Result := True;
 end;
 
 function TS4YGridModel.IsSorted: Boolean;
@@ -1368,21 +1803,58 @@ begin
   SendMessage(MM_S4Y_GRID_FOOTER_CHANGED);
 end;
 
-procedure TS4YGridModel.SetFilterValue(const AColumn: TColumn; const AValue: TValue);
+procedure TS4YGridModel.SetFilter(const AColumn: TColumn; const AOperator: TS4YGridFilterOperator;
+  const AValue: TValue);
+var
+  LKind: TS4YGridFilterValueKind;
+  LFilter: TS4YGridFilter;
 begin
   if not Assigned(AColumn) then
     Exit;
 
-  // An empty value removes the filter; a column without filter that stays without filter changes nothing.
-  if AValue.IsEmpty then
+  LKind := GetFilterKind(AColumn);
+  LFilter := TS4YGridFilter.Parse(TS4YGridFilter.FormatText(LKind, AOperator, AValue, False), LKind);
+
+  // A value the text cannot hold, such as the one of an editor of the application, is kept as it is.
+  if (LFilter.State <> gfsValid) and not TS4YGridFilter.IsValueEmpty(AValue) and
+    not (AOperator in [gfoNone, gfoEmpty, gfoNotEmpty]) and TS4YGridFilter.IsOperatorAllowed(LKind, AOperator) then
   begin
-    if not FFilterValues.ContainsKey(AColumn) then
+    LFilter.FilterOperator := AOperator;
+    LFilter.State := gfsValid;
+    LFilter.Value := AValue;
+  end;
+
+  StoreFilter(AColumn, LFilter);
+end;
+
+procedure TS4YGridModel.SetFilterText(const AColumn: TColumn; const AText: string);
+begin
+  if not Assigned(AColumn) or (GetFilterText(AColumn) = AText) then
+    Exit;
+
+  StoreFilter(AColumn, TS4YGridFilter.Parse(AText, GetFilterKind(AColumn)));
+end;
+
+procedure TS4YGridModel.SetFilterValue(const AColumn: TColumn; const AValue: TValue);
+begin
+  if TS4YGridFilter.IsValueEmpty(AValue) then
+    SetFilter(AColumn, gfoNone, TValue.Empty)
+  else
+    SetFilter(AColumn, TS4YGridFilter.DefaultOperator(GetFilterKind(AColumn)), AValue);
+end;
+
+procedure TS4YGridModel.StoreFilter(const AColumn: TColumn; const AFilter: TS4YGridFilter);
+begin
+  // No text removes the filter; a column without filter that stays without filter changes nothing.
+  if AFilter.State = gfsEmpty then
+  begin
+    if not FFilters.ContainsKey(AColumn) then
       Exit;
 
-    FFilterValues.Remove(AColumn);
+    FFilters.Remove(AColumn);
   end
   else
-    FFilterValues.AddOrSetValue(AColumn, AValue);
+    FFilters.AddOrSetValue(AColumn, AFilter);
 
   SendMessage<TColumn>(MM_S4Y_GRID_FILTER_VALUE_CHANGED, AColumn);
   DoFilterChanged(AColumn);
@@ -1420,9 +1892,29 @@ begin
   Result := Model.ColumnSettings;
 end;
 
+function TS4YGrid.FilterMatches(const AColumn: TColumn; const AValue: TValue): Boolean;
+begin
+  Result := Model.FilterMatches(AColumn, AValue);
+end;
+
+function TS4YGrid.GetFilterOperator(const AColumn: TColumn): TS4YGridFilterOperator;
+begin
+  Result := Model.GetFilterOperator(AColumn);
+end;
+
 function TS4YGrid.GetFilterRow: TS4YGridFilterRow;
 begin
   Result := Model.FilterRow;
+end;
+
+function TS4YGrid.GetFilterState(const AColumn: TColumn): TS4YGridFilterState;
+begin
+  Result := Model.GetFilterState(AColumn);
+end;
+
+function TS4YGrid.GetFilterText(const AColumn: TColumn): string;
+begin
+  Result := Model.GetFilterText(AColumn);
 end;
 
 function TS4YGrid.GetFilterValue(const AColumn: TColumn): TValue;
@@ -1453,6 +1945,11 @@ end;
 function TS4YGrid.GetOnFilterChanged: TS4YGridColumnEvent;
 begin
   Result := Model.OnFilterChanged;
+end;
+
+function TS4YGrid.GetOnFilterMenu: TS4YGridFilterMenuEvent;
+begin
+  Result := Model.OnFilterMenu;
 end;
 
 function TS4YGrid.GetOnGetFooterText: TS4YGridFooterTextEvent;
@@ -1508,6 +2005,14 @@ begin
     if Assigned(LSetting) then
       LSetting.Column := nil;
   end;
+
+  // A menu of the application that is freed.
+  if (Operation = opRemove) and (AComponent is TPopupMenu) and Assigned(Model) then
+  begin
+    for var I := 0 to Model.ColumnSettings.Count - 1 do
+      if Model.ColumnSettings[I].FilterMenu = AComponent then
+        Model.ColumnSettings[I].FilterMenu := nil;
+  end;
 end;
 
 procedure TS4YGrid.SetColumnSettings(const Value: TS4YGridColumnSettings);
@@ -1518,6 +2023,16 @@ end;
 procedure TS4YGrid.SetFilterRow(const Value: TS4YGridFilterRow);
 begin
   Model.FilterRow := Value;
+end;
+
+procedure TS4YGrid.SetFilter(const AColumn: TColumn; const AOperator: TS4YGridFilterOperator; const AValue: TValue);
+begin
+  Model.SetFilter(AColumn, AOperator, AValue);
+end;
+
+procedure TS4YGrid.SetFilterText(const AColumn: TColumn; const Value: string);
+begin
+  Model.SetFilterText(AColumn, Value);
 end;
 
 procedure TS4YGrid.SetFilterValue(const AColumn: TColumn; const Value: TValue);
@@ -1548,6 +2063,11 @@ end;
 procedure TS4YGrid.SetOnFilterChanged(const Value: TS4YGridColumnEvent);
 begin
   Model.OnFilterChanged := Value;
+end;
+
+procedure TS4YGrid.SetOnFilterMenu(const Value: TS4YGridFilterMenuEvent);
+begin
+  Model.OnFilterMenu := Value;
 end;
 
 procedure TS4YGrid.SetOnGetFooterText(const Value: TS4YGridFooterTextEvent);

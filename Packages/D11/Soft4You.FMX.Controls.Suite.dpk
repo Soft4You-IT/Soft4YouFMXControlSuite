@@ -80,6 +80,7 @@ contains
   Soft4You.FMX.Controls.Charts.Bar in '..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Bar.pas',
   Soft4You.FMX.Controls.Charts.Line in '..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Line.pas',
   Soft4You.FMX.Controls.Grid.Types in '..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.Types.pas',
+  Soft4You.FMX.Controls.Grid.Filters in '..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.Filters.pas',
   Soft4You.FMX.Controls.Grid in '..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.pas',
   Soft4You.FMX.Controls.Grid.FilterEditors in '..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.FilterEditors.pas',
   Soft4You.FMX.Controls.Grid.Style in '..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.Style.pas';

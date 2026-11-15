@@ -21,19 +21,19 @@ object GridDemoForm: TGridDemoForm
     TabOrder = 0
     TabPosition = PlatformDefault
     Sizes = (
-        1100s
-        674s
-        1100s
-        674s
-        1100s
-        674s)
+      1100s
+      674s
+      1100s
+      674s
+      1100s
+      674s)
     object ObjectsTab: TTabItem
       CustomIcon = <
         item
         end>
       TextSettings.Trimming = None
       IsSelected = True
-      Size.Width = 90.000000000000000000
+      Size.Width = 60.000000000000000000
       Size.Height = 26.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
@@ -45,11 +45,11 @@ object GridDemoForm: TGridDemoForm
         Align = Left
         Padding.Bottom = 20.000000000000000000
         Size.Width = 270.000000000000000000
-        Size.Height = 640.000000000000000000
+        Size.Height = 674.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 1
-        Viewport.Width = 254.000000000000000000
-        Viewport.Height = 640.000000000000000000
+        Viewport.Width = 270.000000000000000000
+        Viewport.Height = 674.000000000000000000
         object FilterSettingsLabel: TLabel
           Align = Top
           StyledSettings = [Family, Size, FontColor]
@@ -58,12 +58,12 @@ object GridDemoForm: TGridDemoForm
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
           Position.Y = 16.000000000000000000
-          Size.Width = 240.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
-          TabOrder = 0
           TextSettings.Font.StyleExt = {00070000000000000004000000}
           Text = 'Filter row'
+          TabOrder = 0
         end
         object FilterVisibleCheckBox: TCheckBox
           Align = Top
@@ -73,7 +73,7 @@ object GridDemoForm: TGridDemoForm
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
           Position.Y = 40.000000000000000000
-          Size.Width = 240.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 1
@@ -82,13 +82,12 @@ object GridDemoForm: TGridDemoForm
         end
         object AutoFilterCheckBox: TCheckBox
           Align = Top
-          IsChecked = False
           Margins.Left = 12.000000000000000000
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
           Position.Y = 64.000000000000000000
-          Size.Width = 240.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 2
@@ -97,44 +96,43 @@ object GridDemoForm: TGridDemoForm
         end
         object FilterDelayLabel: TLabel
           Align = Top
-          Text = 'FilterDelay: 400 ms'
           Margins.Left = 12.000000000000000000
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
           Position.Y = 88.000000000000000000
-          Size.Width = 240.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
+          Text = 'FilterDelay: 400 ms'
           TabOrder = 3
         end
         object FilterDelayTrackBar: TTrackBar
           Align = Top
           CanParentFocus = True
+          Frequency = 50.000000000000000000
+          Max = 1500.000000000000000000
+          Orientation = Horizontal
           Margins.Left = 12.000000000000000000
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
           Position.Y = 112.000000000000000000
-          Size.Width = 240.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 19.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 4
-          Frequency = 50.000000000000000000
-          Max = 1500.000000000000000000
-          Orientation = Horizontal
           Value = 400.000000000000000000
           OnChange = FilterSettingsChange
         end
         object ClearOnHideCheckBox: TCheckBox
           Align = Top
-          IsChecked = False
           Margins.Left = 12.000000000000000000
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
           Position.Y = 135.000000000000000000
-          Size.Width = 240.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 5
@@ -143,16 +141,16 @@ object GridDemoForm: TGridDemoForm
         end
         object ClearFiltersButton: TButton
           Align = Top
-          Text = 'ClearFilters'
           Margins.Left = 12.000000000000000000
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
           Position.Y = 159.000000000000000000
-          Size.Width = 240.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 26.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 6
+          Text = 'ClearFilters'
           OnClick = ClearFiltersButtonClick
         end
         object FooterSettingsLabel: TLabel
@@ -163,12 +161,12 @@ object GridDemoForm: TGridDemoForm
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
           Position.Y = 201.000000000000000000
-          Size.Width = 240.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
-          TabOrder = 7
           TextSettings.Font.StyleExt = {00070000000000000004000000}
           Text = 'Footer'
+          TabOrder = 7
         end
         object FooterVisibleCheckBox: TCheckBox
           Align = Top
@@ -178,7 +176,7 @@ object GridDemoForm: TGridDemoForm
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
           Position.Y = 225.000000000000000000
-          Size.Width = 240.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 8
@@ -187,15 +185,15 @@ object GridDemoForm: TGridDemoForm
         end
         object AmountKindLabel: TLabel
           Align = Top
-          Text = 'FooterKind of Amount'
           Margins.Left = 12.000000000000000000
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
           Position.Y = 249.000000000000000000
-          Size.Width = 240.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
+          Text = 'FooterKind of Amount'
           TabOrder = 9
         end
         object AmountKindComboBox: TComboBox
@@ -206,7 +204,7 @@ object GridDemoForm: TGridDemoForm
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
           Position.Y = 273.000000000000000000
-          Size.Width = 240.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 22.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 10
@@ -249,13 +247,12 @@ object GridDemoForm: TGridDemoForm
         end
         object AllDataCheckBox: TCheckBox
           Align = Top
-          IsChecked = False
           Margins.Left = 12.000000000000000000
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
           Position.Y = 299.000000000000000000
-          Size.Width = 240.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 11
@@ -269,13 +266,13 @@ object GridDemoForm: TGridDemoForm
           Margins.Top = 16.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
-          Position.Y = 320.000000000000000000
-          Size.Width = 240.000000000000000000
+          Position.Y = 335.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
-          TabOrder = 15
           TextSettings.Font.StyleExt = {00070000000000000004000000}
           Text = 'Sorting'
+          TabOrder = 15
         end
         object SortingEnabledCheckBox: TCheckBox
           Align = Top
@@ -284,8 +281,8 @@ object GridDemoForm: TGridDemoForm
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
-          Position.Y = 321.000000000000000000
-          Size.Width = 240.000000000000000000
+          Position.Y = 359.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 16
@@ -299,8 +296,8 @@ object GridDemoForm: TGridDemoForm
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
-          Position.Y = 322.000000000000000000
-          Size.Width = 240.000000000000000000
+          Position.Y = 383.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 17
@@ -314,8 +311,8 @@ object GridDemoForm: TGridDemoForm
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
-          Position.Y = 323.000000000000000000
-          Size.Width = 240.000000000000000000
+          Position.Y = 407.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 18
@@ -329,8 +326,8 @@ object GridDemoForm: TGridDemoForm
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
-          Position.Y = 324.000000000000000000
-          Size.Width = 240.000000000000000000
+          Position.Y = 431.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 20
@@ -339,32 +336,32 @@ object GridDemoForm: TGridDemoForm
         end
         object OrderSpacingLabel: TLabel
           Align = Top
-          Text = 'OrderSpacing: 3 px'
           Margins.Left = 12.000000000000000000
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
-          Position.Y = 325.000000000000000000
-          Size.Width = 240.000000000000000000
+          Position.Y = 455.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
+          Text = 'OrderSpacing: 3 px'
           TabOrder = 21
         end
         object OrderSpacingTrackBar: TTrackBar
           Align = Top
           CanParentFocus = True
+          Frequency = 1.000000000000000000
+          Max = 10.000000000000000000
+          Orientation = Horizontal
           Margins.Left = 12.000000000000000000
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
-          Position.Y = 326.000000000000000000
-          Size.Width = 240.000000000000000000
+          Position.Y = 479.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 19.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 22
-          Frequency = 1.000000000000000000
-          Max = 10.000000000000000000
-          Orientation = Horizontal
           Value = 3.000000000000000000
           OnChange = SortingSettingsChange
         end
@@ -375,39 +372,39 @@ object GridDemoForm: TGridDemoForm
           Margins.Top = 16.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
-          Position.Y = 335.000000000000000000
-          Size.Width = 240.000000000000000000
+          Position.Y = 514.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
-          TabOrder = 12
           TextSettings.Font.StyleExt = {00070000000000000004000000}
           Text = 'Events'
+          TabOrder = 12
         end
         object LastChangeLabel: TLabel
           Align = Top
-          TextSettings.VertAlign = Leading
           Margins.Left = 12.000000000000000000
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
-          Position.Y = 359.000000000000000000
-          Size.Width = 240.000000000000000000
+          Position.Y = 538.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 40.000000000000000000
           Size.PlatformDefault = False
-          TabOrder = 13
+          TextSettings.VertAlign = Leading
           Text = 'OnFilterChanged: -'
+          TabOrder = 13
         end
         object RowsLabel: TLabel
           Align = Top
-          Text = 'Rows shown'
           Margins.Left = 12.000000000000000000
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
-          Position.Y = 403.000000000000000000
-          Size.Width = 240.000000000000000000
+          Position.Y = 582.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
+          Text = 'Rows shown'
           TabOrder = 14
         end
         object OrderLabel: TLabel
@@ -416,19 +413,19 @@ object GridDemoForm: TGridDemoForm
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
-          Position.Y = 430.000000000000000000
-          Size.Width = 240.000000000000000000
+          Position.Y = 606.000000000000000000
+          Size.Width = 246.000000000000000000
           Size.Height = 40.000000000000000000
           Size.PlatformDefault = False
-          TabOrder = 19
           TextSettings.VertAlign = Leading
           Text = 'OnSort: -'
+          TabOrder = 19
         end
       end
       object ObjectsLayout: TLayout
         Align = Client
         Size.Width = 830.000000000000000000
-        Size.Height = 640.000000000000000000
+        Size.Height = 674.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 0
         object ObjectsLabel: TLabel
@@ -436,18 +433,24 @@ object GridDemoForm: TGridDemoForm
           Margins.Left = 12.000000000000000000
           Margins.Top = 8.000000000000000000
           Margins.Right = 12.000000000000000000
-          Size.Width = 800.000000000000000000
-          Size.Height = 56.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 8.000000000000000000
+          Size.Width = 806.000000000000000000
+          Size.Height = 88.000000000000000000
           Size.PlatformDefault = False
           TextSettings.VertAlign = Leading
           Text = 
-            '200 customers in a list of objects, shown with OnGetValue. The a' +
-            'pplication filters them in OnFilter: "contains" for the name, "e' +
-            'qual" for the others. Type in the filter row and press Enter, Es' +
-            'c clears a filter; the footer shows the totals of the rows shown' +
-            '. A click on a header sorts in OnSort, Shift+click adds a column' +
-            ', Ctrl+click removes it, Alt+click goes back to the order of the' +
-            ' data.'
+            '200 customers in a list of objects, shown with OnGetValue. In On' +
+            'Filter the application keeps the customers that pass FilterMatch' +
+            'es, which applies the text of each filter: abc contains, = abc e' +
+            'qual, ! abc the opposite (does not contain, not equal), abc* sta' +
+            'rts with, *abc ends with, < <= > >= compare numbers, dates and t' +
+            'imes, = alone is empty, <> alone is not empty, "..." is text as ' +
+            'it is. The button of a filter opens its menu (the amount has an ' +
+            'item of the application). Enter filters, Esc clears a filter. A ' +
+            'click on a header sorts in OnSort, Shift+click adds a column, Ct' +
+            'rl+click removes it, Alt+click goes back to the order of the dat' +
+            'a.'
         end
         object ObjectsGrid: TS4YGrid
           Align = Client
@@ -457,11 +460,12 @@ object GridDemoForm: TGridDemoForm
           Margins.Top = 8.000000000000000000
           Margins.Right = 12.000000000000000000
           Margins.Bottom = 12.000000000000000000
-          Size.Width = 780.000000000000000000
-          Size.Height = 560.000000000000000000
+          Size.Width = 806.000000000000000000
+          Size.Height = 558.000000000000000000
           Size.PlatformDefault = False
           TabOrder = 1
           RowCount = 0
+          OnGetValue = ObjectsGridGetValue
           ColumnSettings = <
             item
               Column = NameColumn
@@ -489,44 +493,35 @@ object GridDemoForm: TGridDemoForm
           Sorting.Enabled = True
           OnFilter = ObjectsGridFilter
           OnFilterChanged = ObjectsGridFilterChanged
+          OnFilterMenu = ObjectsGridFilterMenu
           OnGetFooterText = ObjectsGridGetFooterText
           OnSort = ObjectsGridSort
-          OnGetValue = ObjectsGridGetValue
+          Viewport.Width = 802.000000000000000000
+          Viewport.Height = 484.000000000000000000
           object NameColumn: TStringColumn
             Header = 'Name'
             Size.Width = 170.000000000000000000
-            Size.Height = 300.000000000000000000
-            Size.PlatformDefault = False
           end
           object CityColumn: TStringColumn
             Header = 'City'
             Size.Width = 120.000000000000000000
-            Size.Height = 300.000000000000000000
-            Size.PlatformDefault = False
           end
           object OrdersColumn: TIntegerColumn
             Header = 'Orders'
             Size.Width = 80.000000000000000000
-            Size.Height = 300.000000000000000000
-            Size.PlatformDefault = False
           end
           object AmountColumn: TCurrencyColumn
             Header = 'Amount'
             Size.Width = 120.000000000000000000
-            Size.Height = 300.000000000000000000
-            Size.PlatformDefault = False
           end
           object LastOrderColumn: TDateColumn
             Header = 'Last order'
             Size.Width = 120.000000000000000000
-            Size.Height = 300.000000000000000000
-            Size.PlatformDefault = False
           end
           object ActiveColumn: TCheckColumn
+            HorzAlign = Center
             Header = 'Active'
             Size.Width = 70.000000000000000000
-            Size.Height = 300.000000000000000000
-            Size.PlatformDefault = False
           end
         end
       end
@@ -537,11 +532,11 @@ object GridDemoForm: TGridDemoForm
         end>
       TextSettings.Trimming = None
       IsSelected = False
-      Size.Width = 90.000000000000000000
+      Size.Width = 87.000000000000000000
       Size.Height = 26.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
-      TabOrder = 1
+      TabOrder = 0
       Text = 'LiveBindings'
       ExplicitSize.cx = 90.000000000000000000
       ExplicitSize.cy = 26.000000000000000000
@@ -550,17 +545,20 @@ object GridDemoForm: TGridDemoForm
         Margins.Left = 12.000000000000000000
         Margins.Top = 8.000000000000000000
         Margins.Right = 12.000000000000000000
-        Size.Width = 800.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 8.000000000000000000
+        Size.Width = 1076.000000000000000000
         Size.Height = 56.000000000000000000
         Size.PlatformDefault = False
         TextSettings.VertAlign = Leading
         Text = 
           'The same customers in a TFDMemTable, shown through the LiveBindi' +
           'ngs (TBindSourceDB and TLinkGridToDataSource). The data set filt' +
-          'ers itself in OnFilterRecord with the filter values of the name,' +
-          ' the city and the check box; the footer reads the rows through t' +
-          'he link. A click on a header sorts the data set with its IndexFi' +
-          'eldNames, Shift+click by more columns.'
+          'ers itself in OnFilterRecord: the grid compares each field with ' +
+          'the filter of its column with FilterMatches. The footer reads th' +
+          'e rows through the link. A click on a header sorts the data set ' +
+          'with its IndexFieldNames, Shift+click by more columns.'
+        TabOrder = 0
       end
       object BindingsGrid: TS4YGrid
         Align = Client
@@ -571,14 +569,17 @@ object GridDemoForm: TGridDemoForm
         Margins.Right = 12.000000000000000000
         Margins.Bottom = 12.000000000000000000
         Size.Width = 1076.000000000000000000
-        Size.Height = 580.000000000000000000
+        Size.Height = 590.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 1
+        ColumnSettings = <>
         FilterRow.Visible = True
         FooterRow.Visible = True
         Sorting.Enabled = True
         OnFilter = BindingsGridFilter
         OnSort = BindingsGridSort
+        Viewport.Width = 1072.000000000000000000
+        Viewport.Height = 516.000000000000000000
       end
     end
     object StyleBookTab: TTabItem
@@ -587,11 +588,11 @@ object GridDemoForm: TGridDemoForm
         end>
       TextSettings.Trimming = None
       IsSelected = False
-      Size.Width = 90.000000000000000000
+      Size.Width = 76.000000000000000000
       Size.Height = 26.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = ''
-      TabOrder = 2
+      TabOrder = 0
       Text = 'Style book'
       ExplicitSize.cx = 90.000000000000000000
       ExplicitSize.cy = 26.000000000000000000
@@ -600,14 +601,19 @@ object GridDemoForm: TGridDemoForm
         Margins.Left = 12.000000000000000000
         Margins.Top = 8.000000000000000000
         Margins.Right = 12.000000000000000000
-        Size.Width = 800.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 8.000000000000000000
+        Size.Width = 1076.000000000000000000
         Size.Height = 40.000000000000000000
         Size.PlatformDefault = False
         TextSettings.VertAlign = Leading
         Text = 
           'A style of the grid in the TStyleBook of the form, chosen with S' +
           'tyleLookup = DarkGridStyle: a dark background and lines, with th' +
-          'e parts filterrowbackground, footerbackground and footertext.'
+          'e parts filterrowbackground, footerbackground, footertext and fi' +
+          'lterinvalidtext (the color of a filter that cannot be read, such' +
+          ' as "> abc" on the orders).'
+        TabOrder = 0
       end
       object StyledGrid: TS4YGrid
         Align = Client
@@ -618,13 +624,14 @@ object GridDemoForm: TGridDemoForm
         Margins.Right = 12.000000000000000000
         Margins.Bottom = 12.000000000000000000
         Size.Width = 1076.000000000000000000
-        Size.Height = 580.000000000000000000
+        Size.Height = 606.000000000000000000
         Size.PlatformDefault = False
         StyleLookup = 'DarkGridStyle'
-        StyledSettings = [Family, Size, Style]
         TextSettings.FontColor = claWhite
+        StyledSettings = [Family, Size, Style]
         TabOrder = 1
         RowCount = 0
+        OnGetValue = StyledGridGetValue
         ColumnSettings = <
           item
             Column = StyledNameColumn
@@ -643,91 +650,32 @@ object GridDemoForm: TGridDemoForm
         FilterRow.Visible = True
         FooterRow.Visible = True
         OnFilter = StyledGridFilter
-        OnGetValue = StyledGridGetValue
+        Viewport.Width = 1074.000000000000000000
+        Viewport.Height = 534.000000000000000000
         object StyledNameColumn: TStringColumn
           Header = 'Name'
           Size.Width = 170.000000000000000000
-          Size.Height = 300.000000000000000000
-          Size.PlatformDefault = False
         end
         object StyledCityColumn: TStringColumn
           Header = 'City'
           Size.Width = 120.000000000000000000
-          Size.Height = 300.000000000000000000
-          Size.PlatformDefault = False
         end
         object StyledOrdersColumn: TIntegerColumn
           Header = 'Orders'
           Size.Width = 80.000000000000000000
-          Size.Height = 300.000000000000000000
-          Size.PlatformDefault = False
         end
         object StyledAmountColumn: TCurrencyColumn
           Header = 'Amount'
           Size.Width = 120.000000000000000000
-          Size.Height = 300.000000000000000000
-          Size.PlatformDefault = False
         end
       end
     end
   end
-  object CustomersTable: TFDMemTable
-    OnFilterRecord = CustomersTableFilterRecord
-    FetchOptions.AssignedValues = [evMode]
-    FetchOptions.Mode = fmAll
-    ResourceOptions.AssignedValues = [rvSilentMode]
-    ResourceOptions.SilentMode = True
-    UpdateOptions.AssignedValues = [uvCheckRequired, uvAutoCommitUpdates]
-    UpdateOptions.CheckRequired = False
-    UpdateOptions.AutoCommitUpdates = True
-    Left = 960
-    Top = 440
-    object CustomersTableName: TStringField
-      FieldName = 'Name'
-      Size = 40
-    end
-    object CustomersTableCity: TStringField
-      FieldName = 'City'
-      Size = 20
-    end
-    object CustomersTableOrders: TIntegerField
-      FieldName = 'Orders'
-    end
-    object CustomersTableAmount: TCurrencyField
-      FieldName = 'Amount'
-    end
-    object CustomersTableLastOrder: TDateField
-      FieldName = 'LastOrder'
-    end
-    object CustomersTableActive: TBooleanField
-      FieldName = 'Active'
-    end
-  end
-  object CustomersBindSource: TBindSourceDB
-    DataSet = CustomersTable
-    ScopeMappings = <>
-    Left = 960
-    Top = 496
-  end
-  object DemoBindingsList: TBindingsList
-    Methods = <>
-    OutputConverters = <>
-    Left = 1040
-    Top = 440
-    object LinkGridToDataSourceCustomers: TLinkGridToDataSource
-      Category = 'Quick Bindings'
-      DataSource = CustomersBindSource
-      GridControl = BindingsGrid
-      Columns = <>
-    end
-  end
   object GridStyleBook: TStyleBook
-    Left = 1040
-    Top = 496
     Styles = <
       item
         ResourcesBin = {
-          464D585F5354594C4520322E3501060D4461726B477269645374796C65039F0A
+          464D585F5354594C4520322E3501060D4461726B477269645374796C6503F90A
           005450463007544C61796F757400095374796C654E616D65060D4461726B4772
           69645374796C65000C5442727573684F626A65637400095374796C654E616D65
           0618416C7465726E6174696E67526F774261636B67726F756E640B4272757368
@@ -812,7 +760,61 @@ object GridDemoForm: TGridDemoForm
           737408165465787453657474696E67732E466F6E742E53697A65050000000000
           0000D002401A5465787453657474696E67732E466F6E742E5374796C65457874
           0A0D00000000070000000000000004000000165465787453657474696E67732E
-          466F6E74436F6C6F7207097846464646434132380756697369626C6508000000}
+          466F6E74436F6C6F7207097846464646434132380756697369626C6508000005
+          545465787400095374796C654E616D65061166696C746572696E76616C696474
+          657874074869745465737408165465787453657474696E67732E466F6E74436F
+          6C6F7207097846464646384138300756697369626C6508000000}
       end>
+    Left = 1040
+    Top = 496
+  end
+  object CustomersTable: TFDMemTable
+    OnFilterRecord = CustomersTableFilterRecord
+    FetchOptions.AssignedValues = [evMode]
+    FetchOptions.Mode = fmAll
+    ResourceOptions.AssignedValues = [rvSilentMode]
+    ResourceOptions.SilentMode = True
+    UpdateOptions.AssignedValues = [uvCheckRequired, uvAutoCommitUpdates]
+    UpdateOptions.CheckRequired = False
+    UpdateOptions.AutoCommitUpdates = True
+    Left = 960
+    Top = 440
+    object CustomersTableName: TStringField
+      FieldName = 'Name'
+      Size = 40
+    end
+    object CustomersTableCity: TStringField
+      FieldName = 'City'
+    end
+    object CustomersTableOrders: TIntegerField
+      FieldName = 'Orders'
+    end
+    object CustomersTableAmount: TCurrencyField
+      FieldName = 'Amount'
+    end
+    object CustomersTableLastOrder: TDateField
+      FieldName = 'LastOrder'
+    end
+    object CustomersTableActive: TBooleanField
+      FieldName = 'Active'
+    end
+  end
+  object CustomersBindSource: TBindSourceDB
+    DataSet = CustomersTable
+    ScopeMappings = <>
+    Left = 960
+    Top = 496
+  end
+  object DemoBindingsList: TBindingsList
+    Methods = <>
+    OutputConverters = <>
+    Left = 1040
+    Top = 440
+    object LinkGridToDataSourceCustomers: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = CustomersBindSource
+      GridControl = BindingsGrid
+      Columns = <>
+    end
   end
 end
