@@ -6,7 +6,9 @@ A grid with a **filter row** under the header: an editor for each column, where 
 
 Under the cells, a **footer** can show a total, an average, a count, the lowest or the highest value, or a text, under each column.
 
-`TS4YGrid` is a `TGrid`: the cells get their values from `OnGetValue` or from the LiveBindings, as in a `TGrid`, and every property, column and event of `TGrid` is there. The grid **does not filter the data itself**: it keeps the filter values and tells the application when to filter, with `OnFilter`; the application filters its own data, for example a list of objects or a `TDataSet`, and sets `RowCount` again.
+A click on the header of a column can **sort** the rows by that column, and Shift+click by more columns; the header shows the arrow of the direction and the position of each column in the order.
+
+`TS4YGrid` is a `TGrid`: the cells get their values from `OnGetValue` or from the LiveBindings, as in a `TGrid`, and every property, column and event of `TGrid` is there. The grid **does not filter or sort the data itself**: it keeps the filter values and the keys of the order and tells the application when to filter, with `OnFilter`, and when to sort, with `OnSort`; the application filters and sorts its own data, for example a list of objects or a `TDataSet`, and sets `RowCount` again.
 
 The filter row and the footer take the look of the style of the grid, from the platform or from a `TStyleBook`: they are added to that style, not drawn with a style of their own.
 
@@ -22,10 +24,10 @@ Add the folder `Sources\Grid` to the Delphi library path to compile your own pro
 
 | File | Content |
 |---|---|
-| `Sources\Grid\Soft4You.FMX.Controls.Grid.pas` | `TS4YGrid`, its model `TS4YGridModel`, the settings of the filter row (`TS4YGridFilterRow`), of the footer (`TS4YGridFooterRow`) and of the columns (`TS4YGridColumnSetting`, `TS4YGridColumnSettings`) |
-| `Sources\Grid\Soft4You.FMX.Controls.Grid.Style.pas` | `TS4YStyledGrid`, the presentation that adds the filter row and the footer to the style of the grid, and the rows themselves, `TS4YGridBand` and `TS4YGridFooterBand` |
+| `Sources\Grid\Soft4You.FMX.Controls.Grid.pas` | `TS4YGrid`, its model `TS4YGridModel`, the settings of the filter row (`TS4YGridFilterRow`), of the footer (`TS4YGridFooterRow`), of the order (`TS4YGridSorting`) and of the columns (`TS4YGridColumnSetting`, `TS4YGridColumnSettings`) |
+| `Sources\Grid\Soft4You.FMX.Controls.Grid.Style.pas` | `TS4YStyledGrid`, the presentation that adds the filter row and the footer to the style of the grid and draws the arrows of the order in the header, and the rows themselves, `TS4YGridBand` and `TS4YGridFooterBand` |
 | `Sources\Grid\Soft4You.FMX.Controls.Grid.FilterEditors.pas` | The editors of the filter row: `TS4YGridTextFilterEditor`, `TS4YGridNumberFilterEditor`, `TS4YGridDateFilterEditor`, `TS4YGridCheckFilterEditor`, `TS4YGridListFilterEditor` |
-| `Sources\Grid\Soft4You.FMX.Controls.Grid.Types.pas` | The interface of the editors `IS4YGridFilterEditor`, what the footer shows (`TS4YGridFooterKind`) and the event types |
+| `Sources\Grid\Soft4You.FMX.Controls.Grid.Types.pas` | The interface of the editors `IS4YGridFilterEditor`, what the footer shows (`TS4YGridFooterKind`), a key of the order (`TS4YGridSortKey`), the place of the position in the order (`TS4YGridSortOrderPosition`) and the event types |
 | `Sources\Grid\Soft4You.FMX.Controls.Grid.Register.pas` | Registration in the Tool Palette (design time) |
 | `Graphics\Grid\TS4YGrid.svg`, `TS4YGrid.bmp`, `GridDesign.rc` | Icon of the Tool Palette (vector master and 24x24 bitmap) and the resource script that links it |
 
@@ -71,6 +73,7 @@ To give a column an editor of your own, handle `OnCreateFilterEditor` and create
 | `FooterText` | empty | The text of the footer when `FooterKind` is `gfkText`, for example *Total* |
 | `FooterFormat` | empty | Format of the value of the footer, as for the `Format` function of Delphi, for example `'%.2f'`; empty writes it as the column writes its cells |
 | `FooterAlignment` | `Trailing` | Alignment of the text of the footer in the cell of the column |
+| `Sortable` | `True` | Lets the user sort the rows by the column with a click on its header (see [Sorting](#sorting)) |
 
 ## Filter values
 
@@ -118,6 +121,43 @@ The footer is calculated again when the number of rows changes, when a cell is e
 | `OnGetFooterText(Sender, AColumn, var AText)` | Fires for each visible column with the text calculated, which the application can change: for example the total of all its data and not only of the rows shown, or a calculation of its own |
 
 With the LiveBindings on a `TDataSet` (a `TLinkGridToDataSource`), the values of all the rows are read through the link: in the demo the footer of 200 rows of a `TFDMemTable` is calculated in a few milliseconds, and the current record of the data set does not move. On large data sets prefer `OnGetFooterText` with the totals calculated by the data set.
+
+## Sorting
+
+With `Sorting.Enabled`, a click on the header of a column chooses the order of the rows. The order can have more **keys**: the rows are sorted by the first column, then, where the values of the first column are the same, by the second, and so on.
+
+| Gesture | Effect |
+|---|---|
+| Click | Sorts only by the column; when the rows are already sorted only by it, inverts the direction |
+| Shift+click | Adds the column as the next key; when it is already a key, inverts its direction and leaves the other keys |
+| Ctrl+click (Cmd+click on macOS) | Removes the column from the order |
+| Alt+click | Removes all the keys: back to the order of the data |
+
+The header of each key shows an arrow, pointing up from the lowest value to the highest and down from the highest to the lowest; with more keys, also the position of the column in the order (1, 2, 3...), on the left of the arrow by default. The text of the header leaves the space for them. Moving a column by dragging its header does not change the order.
+
+| Property | Default | Meaning |
+|---|---|---|
+| `Sorting.Enabled` | `False` | Lets the user choose the order with a click on the header |
+| `Sorting.MultiColumn` | `True` | Lets Shift+click sort by more columns; `False` makes Shift+click a click |
+| `Sorting.ShowOrder` | `True` | Shows the position of each column in the order when there are more keys |
+| `Sorting.OrderPosition` | `gopBefore` | Where the position is shown: `gopBefore` on the left of the arrow, `gopAfter` on the right |
+| `Sorting.OrderSpacing` | 3 | Space between the position and the arrow, in pixels |
+
+The grid **does not sort the data itself**: as for the filters, it keeps the keys and fires `OnSort`, and the application sorts its data, for example a list of objects with a comparer that reads the keys, or a `TFDMemTable` with `IndexFieldNames` (`'City;Amount:D'`). With `OnGetValue`, call `Model.ClearCache` after sorting, as after a filter. The filters and the order are independent: an application that does both can filter its data and then sort them in one procedure, called by `OnFilter` and `OnSort`.
+
+| Member | Meaning |
+|---|---|
+| `SortCount` | The number of keys; 0 when the rows have the order of the data |
+| `SortColumn[I]`, `SortDescending[I]` | The column and the direction of each key, the first key first |
+| `SortIndexOf(AColumn)` | The position of a column among the keys, -1 when it is not a key |
+| `IsSorted` | True when there is at least one key |
+| `SetSort(AColumn, Descending)` | Sorts only by a column |
+| `AddSort(AColumn, Descending)` | Adds a column as the last key, or changes its direction when it is already a key |
+| `RemoveSort(AColumn)` | Removes a column from the keys |
+| `ClearSort` | Removes all the keys |
+| `OnSort(Sender)` | When the order changes, with a click or by code: the application sorts its data |
+
+The methods work also when `Sorting.Enabled` is `False`, and the header shows the order they set; `Sortable` and `Enabled` are only about the clicks. The key of a column removed from the grid is forgotten without `OnSort`: the LiveBindings create the columns again when the link changes, so sort again after such a change. The clicks need the option `HeaderClick` or `ColumnMove` in `Options`, as the `OnHeaderClick` of `TGrid`, which still fires.
 
 ## Demo
 
@@ -178,6 +218,7 @@ A style of the grid in a `TStyleBook` can add these parts, all optional:
 | `filterrowbackground` | Any control: the background of the filter row; its `Padding` is the space between the editors and the sides of their cells |
 | `footerbackground` | Any control: the background of the footer; its `Padding` is a space around the texts of all the cells, besides the `Padding` of the columns |
 | `footertext` | A `TText`: the font and the color of the texts of the footer |
+| `sortindicator` | A `TText`: the color of the arrows of the order and the font of the positions in the order; without it, the color of the text of the header and a smaller font |
 
 The texts of the footer are placed in their cells as the texts of the cells of the grid: in the cell less the `Padding` of the column (a published property of `TColumn`, 3 pixels on each side by default), so a total is aligned with the values above it. When a style has the part `filterrowbackground` or `footerbackground`, its `Padding` is always used, also when it is 0: a style that adds `filterrowbackground` sets its `Padding` too, for example 2 on each side. Without the part, as in the styles of the platform, the editors are 2 pixels from the sides of their cells, and the texts of the footer have only the `Padding` of the columns. The top and bottom padding of the parts are added to the automatic heights; a `Height` greater than 0 comes first, and the editors and the texts take the space left inside the padding.
 

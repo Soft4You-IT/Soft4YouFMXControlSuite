@@ -62,6 +62,28 @@ type
   );
 
   /// <summary>
+  /// Where the header shows the position of a column in the order, compared to the arrow of its direction.
+  /// </summary>
+  /// <remarks>
+  /// gopBefore: on the left of the arrow.
+  /// gopAfter: on the right of the arrow.
+  /// </remarks>
+  TS4YGridSortOrderPosition = (
+    gopBefore,
+    gopAfter
+  );
+
+  /// <summary>
+  /// A key of the order of the rows: a column and its direction.
+  /// </summary>
+  TS4YGridSortKey = record
+    /// <summary>The column the rows are sorted by.</summary>
+    Column: TColumn;
+    /// <summary>True sorts from the highest value to the lowest.</summary>
+    Descending: Boolean;
+  end;
+
+  /// <summary>
   /// An event about a column of the grid.
   /// </summary>
   TS4YGridColumnEvent = procedure(Sender: TObject; const AColumn: TColumn) of object;

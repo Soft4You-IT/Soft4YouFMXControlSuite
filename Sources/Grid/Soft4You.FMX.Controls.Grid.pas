@@ -31,9 +31,70 @@ const
   MM_S4Y_GRID_COLUMN_SETTINGS_CHANGED = MM_GRID_USER + 3;
   /// <summary>Message of the model to the presentation: the footer must be calculated and drawn again.</summary>
   MM_S4Y_GRID_FOOTER_CHANGED = MM_GRID_USER + 4;
+  /// <summary>Message of the model to the presentation: the order of the rows or its settings changed.</summary>
+  MM_S4Y_GRID_SORT_CHANGED = MM_GRID_USER + 5;
 
 type
   TS4YGridModel = class;
+
+  /// <summary>
+  /// The settings of the order of the rows of TS4YGrid, chosen with a click on the header of the columns.
+  /// </summary>
+  TS4YGridSorting = class(TPersistent)
+  public const
+    /// <summary>Default value of OrderPosition.</summary>
+    C_DEFAULT_ORDER_POSITION = gopBefore;
+    /// <summary>Default value of OrderSpacing, in pixels.</summary>
+    C_DEFAULT_ORDER_SPACING = 3;
+  private
+    FEnabled: Boolean;
+    FMultiColumn: Boolean;
+    FOrderPosition: TS4YGridSortOrderPosition;
+    FOrderSpacing: Single;
+    FShowOrder: Boolean;
+    FOnChange: TNotifyEvent;
+    procedure Changed;
+    function OrderSpacingStored: Boolean;
+    procedure SetEnabled(const Value: Boolean);
+    procedure SetMultiColumn(const Value: Boolean);
+    procedure SetOrderPosition(const Value: TS4YGridSortOrderPosition);
+    procedure SetOrderSpacing(const Value: Single);
+    procedure SetShowOrder(const Value: Boolean);
+  public
+    /// <summary>Creates the settings with the default values.</summary>
+    constructor Create;
+
+    /// <summary>Copies the settings from another one.</summary>
+    procedure Assign(Source: TPersistent); override;
+
+    /// <summary>Fires when a setting changes.</summary>
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+  published
+    /// <summary>
+    /// True lets the user choose the order of the rows with a click on the header of a column. The default is False.
+    /// </summary>
+    /// <remarks>
+    /// A click sorts by the column, or inverts the direction when the rows are sorted only by it; Shift+click adds the
+    /// column as the next key, or inverts its direction; Ctrl+click (Cmd+click on macOS) removes it; Alt+click goes
+    /// back to the order of the data. The order set by code is shown also when Enabled is False.
+    /// </remarks>
+    property Enabled: Boolean read FEnabled write SetEnabled default False;
+    /// <summary>True lets Shift+click sort by more than one column. The default is True.</summary>
+    property MultiColumn: Boolean read FMultiColumn write SetMultiColumn default True;
+    /// <summary>
+    /// Where the position of a column in the order is shown, compared to its arrow. The default is gopBefore, on the
+    /// left of the arrow.
+    /// </summary>
+    property OrderPosition: TS4YGridSortOrderPosition read FOrderPosition write SetOrderPosition
+      default C_DEFAULT_ORDER_POSITION;
+    /// <summary>Space between the position of a column in the order and its arrow, in pixels. The default is 3.</summary>
+    property OrderSpacing: Single read FOrderSpacing write SetOrderSpacing stored OrderSpacingStored;
+    /// <summary>
+    /// True shows the position of each column in the order next to its arrow, when the rows are sorted by more than
+    /// one column. The default is True.
+    /// </summary>
+    property ShowOrder: Boolean read FShowOrder write SetShowOrder default True;
+  end;
 
   /// <summary>
   /// The settings of the filter row of TS4YGrid, the row of editors under the header.
@@ -132,6 +193,8 @@ type
     C_DEFAULT_FILTERABLE = True;
     /// <summary>Default value of FooterAlignment.</summary>
     C_DEFAULT_FOOTER_ALIGNMENT = TTextAlign.Trailing;
+    /// <summary>Default value of Sortable.</summary>
+    C_DEFAULT_SORTABLE = True;
   private
     FColumn: TColumn;
     FFilterable: Boolean;
@@ -140,6 +203,7 @@ type
     FFooterFormat: string;
     FFooterKind: TS4YGridFooterKind;
     FFooterText: string;
+    FSortable: Boolean;
     procedure FilterItemsChange(Sender: TObject);
     function FilterItemsStored: Boolean;
     procedure SetColumn(const Value: TColumn);
@@ -149,6 +213,7 @@ type
     procedure SetFooterFormat(const Value: string);
     procedure SetFooterKind(const Value: TS4YGridFooterKind);
     procedure SetFooterText(const Value: string);
+    procedure SetSortable(const Value: Boolean);
   protected
     /// <summary>Returns the name of the column, for the editor of the collection.</summary>
     function GetDisplayName: string; override;
@@ -182,6 +247,11 @@ type
     property FooterKind: TS4YGridFooterKind read FFooterKind write SetFooterKind default gfkNone;
     /// <summary>The text of the footer under the column when FooterKind is gfkText, for example Total.</summary>
     property FooterText: string read FFooterText write SetFooterText;
+    /// <summary>
+    /// True lets the user sort the rows by the column with a click on its header, when Sorting.Enabled is True. The
+    /// default is True.
+    /// </summary>
+    property Sortable: Boolean read FSortable write SetSortable default C_DEFAULT_SORTABLE;
   end;
 
   /// <summary>
@@ -207,6 +277,8 @@ type
     function GetFilterItems(const AColumn: TColumn): TStrings;
     /// <summary>Returns True when the filter of AColumn is shown in the filter row.</summary>
     function IsFilterable(const AColumn: TColumn): Boolean;
+    /// <summary>Returns True when the user can sort the rows by AColumn.</summary>
+    function IsSortable(const AColumn: TColumn): Boolean;
 
     /// <summary>The settings, by position.</summary>
     property Items[const AIndex: Integer]: TS4YGridColumnSetting read GetItem write SetItem; default;
@@ -224,20 +296,28 @@ type
     FFilterRow: TS4YGridFilterRow;
     FFilterValues: TDictionary<TColumn, TValue>;
     FFooterRow: TS4YGridFooterRow;
+    FSorting: TS4YGridSorting;
+    FSortKeys: TList<TS4YGridSortKey>;
     FOnCreateFilterEditor: TS4YGridCreateFilterEditorEvent;
     FOnFilter: TNotifyEvent;
     FOnFilterChanged: TS4YGridColumnEvent;
     FOnGetFooterText: TS4YGridFooterTextEvent;
+    FOnSort: TNotifyEvent;
     procedure ColumnSettingsChange(Sender: TObject);
     function FormatFooterValue(const AColumn: TColumn; const ASetting: TS4YGridColumnSetting; const AValue: Double;
       const AIsAverage: Boolean): string;
     procedure FilterRowChange(Sender: TObject);
     procedure FooterRowChange(Sender: TObject);
+    function GetSortCount: Integer;
+    function GetSortKey(const AIndex: Integer): TS4YGridSortKey;
     procedure SetColumnSettings(const Value: TS4YGridColumnSettings);
     procedure SetFilterRow(const Value: TS4YGridFilterRow);
     procedure SetFooterRow(const Value: TS4YGridFooterRow);
+    procedure SetSorting(const Value: TS4YGridSorting);
+    procedure SortChanged;
+    procedure SortingChange(Sender: TObject);
   protected
-    /// <summary>Forgets the filter of a column removed from the grid.</summary>
+    /// <summary>Forgets the filter and the key of the order of a column removed from the grid.</summary>
     procedure DoColumnRemoved(const Column: TColumn); override;
     /// <summary>Fires OnFilterChanged.</summary>
     procedure DoFilterChanged(const AColumn: TColumn); virtual;
@@ -245,6 +325,8 @@ type
     procedure DoRowCountChanged(const OldValue, NewValue: Integer); override;
     /// <summary>Calculates the footer again when a cell is edited in the grid.</summary>
     procedure DoSetValue(Col, Row: Integer; const Value: TValue); override;
+    /// <summary>Fires OnSort.</summary>
+    procedure DoSort; virtual;
   public
     /// <summary>Creates the model of the grid AOwner.</summary>
     constructor Create(const AOwner: TComponent); override;
@@ -268,6 +350,25 @@ type
     function GetFooterText(const AColumn: TColumn): string;
     /// <summary>Calculates and draws the footer again, after a change of the data of the application.</summary>
     procedure UpdateFooter;
+    /// <summary>
+    /// Adds AColumn as the last key of the order, or changes its direction when it is already a key; fires OnSort.
+    /// </summary>
+    procedure AddSort(const AColumn: TColumn; const Descending: Boolean);
+    /// <summary>Removes all the keys of the order, back to the order of the data; fires OnSort.</summary>
+    procedure ClearSort;
+    /// <summary>Returns True when the rows are sorted by at least one column.</summary>
+    function IsSorted: Boolean;
+    /// <summary>Removes AColumn from the keys of the order; fires OnSort.</summary>
+    procedure RemoveSort(const AColumn: TColumn);
+    /// <summary>Sorts the rows only by AColumn; fires OnSort.</summary>
+    procedure SetSort(const AColumn: TColumn; const Descending: Boolean);
+    /// <summary>
+    /// Changes the order as a click on the header of AColumn with the keys AShift, when Sorting.Enabled is True: see
+    /// TS4YGridSorting.Enabled.
+    /// </summary>
+    procedure SortByHeaderClick(const AColumn: TColumn; const AShift: TShiftState);
+    /// <summary>Returns the position of AColumn among the keys of the order, -1 when it is not a key.</summary>
+    function SortIndexOf(const AColumn: TColumn): Integer;
 
     /// <summary>The settings of the columns.</summary>
     property ColumnSettings: TS4YGridColumnSettings read FColumnSettings write SetColumnSettings;
@@ -275,6 +376,12 @@ type
     property FilterRow: TS4YGridFilterRow read FFilterRow write SetFilterRow;
     /// <summary>The settings of the footer.</summary>
     property FooterRow: TS4YGridFooterRow read FFooterRow write SetFooterRow;
+    /// <summary>The number of keys of the order.</summary>
+    property SortCount: Integer read GetSortCount;
+    /// <summary>The keys of the order, the first one first.</summary>
+    property SortKeys[const AIndex: Integer]: TS4YGridSortKey read GetSortKey;
+    /// <summary>The settings of the order.</summary>
+    property Sorting: TS4YGridSorting read FSorting write SetSorting;
 
     /// <summary>Lets the application give the editor of the filter of a column.</summary>
     property OnCreateFilterEditor: TS4YGridCreateFilterEditorEvent read FOnCreateFilterEditor write FOnCreateFilterEditor;
@@ -284,6 +391,8 @@ type
     property OnFilterChanged: TS4YGridColumnEvent read FOnFilterChanged write FOnFilterChanged;
     /// <summary>Lets the application change the text of the footer under a column.</summary>
     property OnGetFooterText: TS4YGridFooterTextEvent read FOnGetFooterText write FOnGetFooterText;
+    /// <summary>Fires when the order of the rows changes: the application sorts its data with the keys.</summary>
+    property OnSort: TNotifyEvent read FOnSort write FOnSort;
   end;
 
   /// <summary>
@@ -293,8 +402,8 @@ type
   /// <remarks>
   /// TS4YGrid is a TGrid: the cells get their values from OnGetValue or from the LiveBindings. The grid does not
   /// filter the data itself: it keeps the filter values and fires OnFilter, and the application filters its data and
-  /// sets RowCount again. The filter row takes the look of the style of the grid, from the platform or from a
-  /// TStyleBook.
+  /// sets RowCount again. In the same way it keeps the order chosen with a click on the header and fires OnSort. The
+  /// filter row takes the look of the style of the grid, from the platform or from a TStyleBook.
   /// </remarks>
   TS4YGrid = class(TGrid)
   private
@@ -307,6 +416,11 @@ type
     function GetOnFilter: TNotifyEvent;
     function GetOnFilterChanged: TS4YGridColumnEvent;
     function GetOnGetFooterText: TS4YGridFooterTextEvent;
+    function GetOnSort: TNotifyEvent;
+    function GetSortColumn(const AIndex: Integer): TColumn;
+    function GetSortCount: Integer;
+    function GetSortDescending(const AIndex: Integer): Boolean;
+    function GetSorting: TS4YGridSorting;
     procedure SetColumnSettings(const Value: TS4YGridColumnSettings);
     procedure SetFilterRow(const Value: TS4YGridFilterRow);
     procedure SetFilterValue(const AColumn: TColumn; const Value: TValue);
@@ -315,18 +429,34 @@ type
     procedure SetOnFilter(const Value: TNotifyEvent);
     procedure SetOnFilterChanged(const Value: TS4YGridColumnEvent);
     procedure SetOnGetFooterText(const Value: TS4YGridFooterTextEvent);
+    procedure SetOnSort(const Value: TNotifyEvent);
+    procedure SetSorting(const Value: TS4YGridSorting);
   protected
     /// <summary>Returns the class of the model of the grid, TS4YGridModel.</summary>
     function DefineModelClass: TDataModelClass; override;
     /// <summary>Forgets the settings of a column that is freed.</summary>
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
+    /// <summary>
+    /// Adds AColumn as the last key of the order, or changes its direction when it is already a key; fires OnSort.
+    /// </summary>
+    procedure AddSort(const AColumn: TColumn; const Descending: Boolean = False);
     /// <summary>Clears the filters of all the columns, firing OnFilterChanged for each one that had a filter.</summary>
     procedure ClearFilters;
+    /// <summary>Removes all the keys of the order, back to the order of the data; fires OnSort.</summary>
+    procedure ClearSort;
     /// <summary>Fires OnFilter: the application filters its data with the filter values.</summary>
     procedure Filter;
     /// <summary>Returns True when at least one column has a filter.</summary>
     function IsFiltered: Boolean;
+    /// <summary>Returns True when the rows are sorted by at least one column.</summary>
+    function IsSorted: Boolean;
+    /// <summary>Removes AColumn from the keys of the order; fires OnSort.</summary>
+    procedure RemoveSort(const AColumn: TColumn);
+    /// <summary>Sorts the rows only by AColumn; fires OnSort.</summary>
+    procedure SetSort(const AColumn: TColumn; const Descending: Boolean = False);
+    /// <summary>Returns the position of AColumn among the keys of the order, -1 when it is not a key.</summary>
+    function SortIndexOf(const AColumn: TColumn): Integer;
     /// <summary>
     /// Calculates and draws the footer again. Call it after a change of the data of the application that the grid
     /// cannot see, such as a value changed in the list shown by OnGetValue.
@@ -344,6 +474,12 @@ type
     property FilterValue[const AColumn: TColumn]: TValue read GetFilterValue write SetFilterValue;
     /// <summary>The model of the grid.</summary>
     property Model: TS4YGridModel read GetModel;
+    /// <summary>The columns of the keys of the order, the first key first.</summary>
+    property SortColumn[const AIndex: Integer]: TColumn read GetSortColumn;
+    /// <summary>The number of keys of the order: 0 when the rows have the order of the data.</summary>
+    property SortCount: Integer read GetSortCount;
+    /// <summary>The directions of the keys of the order: True from the highest value to the lowest.</summary>
+    property SortDescending[const AIndex: Integer]: Boolean read GetSortDescending;
   published
     /// <summary>The settings of the columns, such as Filterable; a column without an item has the default settings.</summary>
     property ColumnSettings: TS4YGridColumnSettings read GetColumnSettings write SetColumnSettings;
@@ -356,6 +492,14 @@ type
     /// The values are calculated from the rows of the grid, the ones of RowCount: after a filter, the rows shown.
     /// </remarks>
     property FooterRow: TS4YGridFooterRow read GetFooterRow write SetFooterRow;
+    /// <summary>
+    /// The settings of the order of the rows, chosen with a click on the header of the columns.
+    /// </summary>
+    /// <remarks>
+    /// The grid does not sort the data itself: it keeps the keys of the order, shows them in the header and fires
+    /// OnSort, and the application sorts its data.
+    /// </remarks>
+    property Sorting: TS4YGridSorting read GetSorting write SetSorting;
 
     /// <summary>
     /// Lets the application give the editor of the filter of a column, instead of the one the grid creates from the
@@ -375,6 +519,11 @@ type
     /// data and not only of the rows shown.
     /// </summary>
     property OnGetFooterText: TS4YGridFooterTextEvent read GetOnGetFooterText write SetOnGetFooterText;
+    /// <summary>
+    /// Fires when the order of the rows changes, with a click on the header or by code: the application sorts its
+    /// data with SortCount, SortColumn and SortDescending.
+    /// </summary>
+    property OnSort: TNotifyEvent read GetOnSort write SetOnSort;
   end;
 
 implementation
@@ -399,6 +548,92 @@ begin
   else
     Result := False;
   end;
+end;
+
+{ TS4YGridSorting }
+
+constructor TS4YGridSorting.Create;
+begin
+  inherited;
+
+  FMultiColumn := True;
+  FOrderPosition := C_DEFAULT_ORDER_POSITION;
+  FOrderSpacing := C_DEFAULT_ORDER_SPACING;
+  FShowOrder := True;
+end;
+
+procedure TS4YGridSorting.Assign(Source: TPersistent);
+var
+  LSource: TS4YGridSorting;
+begin
+  if Source is TS4YGridSorting then
+  begin
+    LSource := TS4YGridSorting(Source);
+    FEnabled := LSource.Enabled;
+    FMultiColumn := LSource.MultiColumn;
+    FOrderPosition := LSource.OrderPosition;
+    FOrderSpacing := LSource.OrderSpacing;
+    FShowOrder := LSource.ShowOrder;
+    Changed;
+  end
+  else
+    inherited;
+end;
+
+procedure TS4YGridSorting.Changed;
+begin
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+function TS4YGridSorting.OrderSpacingStored: Boolean;
+begin
+  Result := not SameValue(FOrderSpacing, C_DEFAULT_ORDER_SPACING);
+end;
+
+procedure TS4YGridSorting.SetOrderPosition(const Value: TS4YGridSortOrderPosition);
+begin
+  if FOrderPosition = Value then
+    Exit;
+
+  FOrderPosition := Value;
+  Changed;
+end;
+
+procedure TS4YGridSorting.SetOrderSpacing(const Value: Single);
+begin
+  if SameValue(FOrderSpacing, Value) then
+    Exit;
+
+  FOrderSpacing := Max(0, Value);
+  Changed;
+end;
+
+procedure TS4YGridSorting.SetEnabled(const Value: Boolean);
+begin
+  if FEnabled = Value then
+    Exit;
+
+  FEnabled := Value;
+  Changed;
+end;
+
+procedure TS4YGridSorting.SetMultiColumn(const Value: Boolean);
+begin
+  if FMultiColumn = Value then
+    Exit;
+
+  FMultiColumn := Value;
+  Changed;
+end;
+
+procedure TS4YGridSorting.SetShowOrder(const Value: Boolean);
+begin
+  if FShowOrder = Value then
+    Exit;
+
+  FShowOrder := Value;
+  Changed;
 end;
 
 { TS4YGridFooterRow }
@@ -540,6 +775,7 @@ begin
 
   FFilterable := C_DEFAULT_FILTERABLE;
   FFooterAlignment := C_DEFAULT_FOOTER_ALIGNMENT;
+  FSortable := C_DEFAULT_SORTABLE;
   FFilterItems := TStringList.Create;
   TStringList(FFilterItems).OnChange := FilterItemsChange;
 end;
@@ -565,6 +801,7 @@ begin
     FFooterFormat := LSource.FooterFormat;
     FFooterKind := LSource.FooterKind;
     FFooterText := LSource.FooterText;
+    FSortable := LSource.Sortable;
     Changed(False);
   end
   else
@@ -657,6 +894,15 @@ begin
   Changed(False);
 end;
 
+procedure TS4YGridColumnSetting.SetSortable(const Value: Boolean);
+begin
+  if FSortable = Value then
+    Exit;
+
+  FSortable := Value;
+  Changed(False);
+end;
+
 { TS4YGridColumnSettings }
 
 constructor TS4YGridColumnSettings.Create(const AOwner: TPersistent);
@@ -715,6 +961,18 @@ begin
     Result := TS4YGridColumnSetting.C_DEFAULT_FILTERABLE;
 end;
 
+function TS4YGridColumnSettings.IsSortable(const AColumn: TColumn): Boolean;
+var
+  LSetting: TS4YGridColumnSetting;
+begin
+  LSetting := FindColumn(AColumn);
+
+  if Assigned(LSetting) then
+    Result := LSetting.Sortable
+  else
+    Result := TS4YGridColumnSetting.C_DEFAULT_SORTABLE;
+end;
+
 procedure TS4YGridColumnSettings.SetItem(const AIndex: Integer; const Value: TS4YGridColumnSetting);
 begin
   inherited Items[AIndex] := Value;
@@ -739,6 +997,9 @@ begin
   FFilterRow.OnChange := FilterRowChange;
   FFooterRow := TS4YGridFooterRow.Create;
   FFooterRow.OnChange := FooterRowChange;
+  FSortKeys := TList<TS4YGridSortKey>.Create;
+  FSorting := TS4YGridSorting.Create;
+  FSorting.OnChange := SortingChange;
   // The collection is owned by the grid, so that the Object Inspector and the form find it.
   FColumnSettings := TS4YGridColumnSettings.Create(AOwner);
   FColumnSettings.OnChange := ColumnSettingsChange;
@@ -749,12 +1010,48 @@ begin
   FColumnSettings.OnChange := nil;
   FFilterRow.OnChange := nil;
   FFooterRow.OnChange := nil;
+  FSorting.OnChange := nil;
   FColumnSettings.Free;
   FFilterRow.Free;
   FFooterRow.Free;
   FFilterValues.Free;
+  FSorting.Free;
+  FSortKeys.Free;
 
   inherited;
+end;
+
+procedure TS4YGridModel.AddSort(const AColumn: TColumn; const Descending: Boolean);
+var
+  LIndex: Integer;
+  LKey: TS4YGridSortKey;
+begin
+  if not Assigned(AColumn) then
+    Exit;
+
+  LIndex := SortIndexOf(AColumn);
+
+  if (LIndex >= 0) and (FSortKeys[LIndex].Descending = Descending) then
+    Exit;
+
+  LKey.Column := AColumn;
+  LKey.Descending := Descending;
+
+  if LIndex >= 0 then
+    FSortKeys[LIndex] := LKey
+  else
+    FSortKeys.Add(LKey);
+
+  SortChanged;
+end;
+
+procedure TS4YGridModel.ClearSort;
+begin
+  if FSortKeys.Count = 0 then
+    Exit;
+
+  FSortKeys.Clear;
+  SortChanged;
 end;
 
 procedure TS4YGridModel.ClearFilters;
@@ -774,12 +1071,20 @@ begin
 end;
 
 procedure TS4YGridModel.DoColumnRemoved(const Column: TColumn);
+var
+  LIndex: Integer;
 begin
   FFilterValues.Remove(Column);
+  // The key is forgotten without OnSort: the order of the data does not change.
+  LIndex := SortIndexOf(Column);
+
+  if LIndex >= 0 then
+    FSortKeys.Delete(LIndex);
 
   inherited;
 
   SendMessage(MM_S4Y_GRID_FILTER_ROW_CHANGED);
+  SendMessage(MM_S4Y_GRID_SORT_CHANGED);
 end;
 
 procedure TS4YGridModel.DoFilterChanged(const AColumn: TColumn);
@@ -800,6 +1105,12 @@ begin
   inherited;
 
   SendMessage(MM_S4Y_GRID_FOOTER_CHANGED);
+end;
+
+procedure TS4YGridModel.DoSort;
+begin
+  if Assigned(FOnSort) then
+    FOnSort(Owner);
 end;
 
 procedure TS4YGridModel.Filter;
@@ -926,9 +1237,115 @@ begin
     FOnGetFooterText(Owner, AColumn, Result);
 end;
 
+function TS4YGridModel.GetSortCount: Integer;
+begin
+  Result := FSortKeys.Count;
+end;
+
+function TS4YGridModel.GetSortKey(const AIndex: Integer): TS4YGridSortKey;
+begin
+  Result := FSortKeys[AIndex];
+end;
+
 function TS4YGridModel.IsFiltered: Boolean;
 begin
   Result := FFilterValues.Count > 0;
+end;
+
+function TS4YGridModel.IsSorted: Boolean;
+begin
+  Result := FSortKeys.Count > 0;
+end;
+
+procedure TS4YGridModel.RemoveSort(const AColumn: TColumn);
+var
+  LIndex: Integer;
+begin
+  LIndex := SortIndexOf(AColumn);
+
+  if LIndex < 0 then
+    Exit;
+
+  FSortKeys.Delete(LIndex);
+  SortChanged;
+end;
+
+procedure TS4YGridModel.SetSort(const AColumn: TColumn; const Descending: Boolean);
+var
+  LKey: TS4YGridSortKey;
+begin
+  if not Assigned(AColumn) then
+    Exit;
+
+  if (FSortKeys.Count = 1) and (FSortKeys[0].Column = AColumn) and (FSortKeys[0].Descending = Descending) then
+    Exit;
+
+  LKey.Column := AColumn;
+  LKey.Descending := Descending;
+  FSortKeys.Clear;
+  FSortKeys.Add(LKey);
+  SortChanged;
+end;
+
+procedure TS4YGridModel.SetSorting(const Value: TS4YGridSorting);
+begin
+  FSorting.Assign(Value);
+end;
+
+procedure TS4YGridModel.SortByHeaderClick(const AColumn: TColumn; const AShift: TShiftState);
+var
+  LIndex: Integer;
+begin
+  if not FSorting.Enabled or not Assigned(AColumn) then
+    Exit;
+
+  LIndex := SortIndexOf(AColumn);
+
+  // Alt goes back to the order of the data and Ctrl removes the column, also from a column that is not sortable.
+  if ssAlt in AShift then
+    ClearSort
+  else if [ssCtrl, ssCommand] * AShift <> [] then
+    RemoveSort(AColumn)
+  else if not FColumnSettings.IsSortable(AColumn) then
+    Exit
+  else if (ssShift in AShift) and FSorting.MultiColumn then
+  begin
+    if LIndex >= 0 then
+      AddSort(AColumn, not FSortKeys[LIndex].Descending)
+    else
+      AddSort(AColumn, False);
+  end
+  else if (FSortKeys.Count = 1) and (LIndex = 0) then
+    SetSort(AColumn, not FSortKeys[0].Descending)
+  else
+    SetSort(AColumn, False);
+end;
+
+procedure TS4YGridModel.SortChanged;
+begin
+  SendMessage(MM_S4Y_GRID_SORT_CHANGED);
+  DoSort;
+end;
+
+procedure TS4YGridModel.SortingChange(Sender: TObject);
+begin
+  SendMessage(MM_S4Y_GRID_SORT_CHANGED);
+end;
+
+function TS4YGridModel.SortIndexOf(const AColumn: TColumn): Integer;
+var
+  LIndex: Integer;
+begin
+  Result := -1;
+  LIndex := 0;
+
+  while (Result < 0) and (LIndex < FSortKeys.Count) do
+  begin
+    if Assigned(AColumn) and (FSortKeys[LIndex].Column = AColumn) then
+      Result := LIndex;
+
+    Inc(LIndex);
+  end;
 end;
 
 procedure TS4YGridModel.SetColumnSettings(const Value: TS4YGridColumnSettings);
@@ -973,9 +1390,19 @@ end;
 
 { TS4YGrid }
 
+procedure TS4YGrid.AddSort(const AColumn: TColumn; const Descending: Boolean);
+begin
+  Model.AddSort(AColumn, Descending);
+end;
+
 procedure TS4YGrid.ClearFilters;
 begin
   Model.ClearFilters;
+end;
+
+procedure TS4YGrid.ClearSort;
+begin
+  Model.ClearSort;
 end;
 
 function TS4YGrid.DefineModelClass: TDataModelClass;
@@ -1033,9 +1460,39 @@ begin
   Result := Model.OnGetFooterText;
 end;
 
+function TS4YGrid.GetOnSort: TNotifyEvent;
+begin
+  Result := Model.OnSort;
+end;
+
+function TS4YGrid.GetSortColumn(const AIndex: Integer): TColumn;
+begin
+  Result := Model.SortKeys[AIndex].Column;
+end;
+
+function TS4YGrid.GetSortCount: Integer;
+begin
+  Result := Model.SortCount;
+end;
+
+function TS4YGrid.GetSortDescending(const AIndex: Integer): Boolean;
+begin
+  Result := Model.SortKeys[AIndex].Descending;
+end;
+
+function TS4YGrid.GetSorting: TS4YGridSorting;
+begin
+  Result := Model.Sorting;
+end;
+
 function TS4YGrid.IsFiltered: Boolean;
 begin
   Result := Model.IsFiltered;
+end;
+
+function TS4YGrid.IsSorted: Boolean;
+begin
+  Result := Model.IsSorted;
 end;
 
 procedure TS4YGrid.Notification(AComponent: TComponent; Operation: TOperation);
@@ -1068,6 +1525,11 @@ begin
   Model.SetFilterValue(AColumn, Value);
 end;
 
+procedure TS4YGrid.RemoveSort(const AColumn: TColumn);
+begin
+  Model.RemoveSort(AColumn);
+end;
+
 procedure TS4YGrid.SetFooterRow(const Value: TS4YGridFooterRow);
 begin
   Model.FooterRow := Value;
@@ -1091,6 +1553,26 @@ end;
 procedure TS4YGrid.SetOnGetFooterText(const Value: TS4YGridFooterTextEvent);
 begin
   Model.OnGetFooterText := Value;
+end;
+
+procedure TS4YGrid.SetOnSort(const Value: TNotifyEvent);
+begin
+  Model.OnSort := Value;
+end;
+
+procedure TS4YGrid.SetSort(const AColumn: TColumn; const Descending: Boolean);
+begin
+  Model.SetSort(AColumn, Descending);
+end;
+
+procedure TS4YGrid.SetSorting(const Value: TS4YGridSorting);
+begin
+  Model.Sorting := Value;
+end;
+
+function TS4YGrid.SortIndexOf(const AColumn: TColumn): Integer;
+begin
+  Result := Model.SortIndexOf(AColumn);
 end;
 
 procedure TS4YGrid.UpdateFooter;
