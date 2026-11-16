@@ -436,7 +436,7 @@ object GridDemoForm: TGridDemoForm
           Position.X = 12.000000000000000000
           Position.Y = 8.000000000000000000
           Size.Width = 806.000000000000000000
-          Size.Height = 88.000000000000000000
+          Size.Height = 104.000000000000000000
           Size.PlatformDefault = False
           TextSettings.VertAlign = Leading
           Text = 
@@ -447,10 +447,12 @@ object GridDemoForm: TGridDemoForm
             'rts with, *abc ends with, < <= > >= compare numbers, dates and t' +
             'imes, = alone is empty, <> alone is not empty, "..." is text as ' +
             'it is. The button of a filter opens its menu (the amount has an ' +
-            'item of the application). Enter filters, Esc clears a filter. A ' +
-            'click on a header sorts in OnSort, Shift+click adds a column, Ct' +
-            'rl+click removes it, Alt+click goes back to the order of the dat' +
-            'a.'
+            'item of the application). Status is an integer column that shows' +
+            ' texts: its FilterItems are Text=Value lines (SetFilterEnum), so' +
+            ' its filter shows the texts and gives the values. Enter filters,' +
+            ' Esc clears a filter. A click on a header sorts in OnSort, Shift' +
+            '+click adds a column, Ctrl+click removes it, Alt+click goes back' +
+            ' to the order of the data.'
         end
         object ObjectsGrid: TS4YGrid
           Align = Client
@@ -522,6 +524,11 @@ object GridDemoForm: TGridDemoForm
             HorzAlign = Center
             Header = 'Active'
             Size.Width = 70.000000000000000000
+          end
+          object StatusColumn: TIntegerColumn
+            HorzAlign = Leading
+            Header = 'Status'
+            Size.Width = 90.000000000000000000
           end
         end
       end

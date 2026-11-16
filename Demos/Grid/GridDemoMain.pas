@@ -43,6 +43,13 @@ uses
   Soft4You.FMX.Controls.Grid;
 
 type
+  // The status of a customer: an integer column shows a text for each value.
+  TCustomerStatus = (
+    csNew,
+    csRegular,
+    csLost
+  );
+
   TCustomer = class
   public
     Active: Boolean;
@@ -53,6 +60,7 @@ type
     LastOrder: TDate;
     Name: string;
     Orders: Integer;
+    Status: TCustomerStatus;
   end;
 
   TGridDemoForm = class(TForm)
@@ -67,6 +75,7 @@ type
     AmountColumn: TCurrencyColumn;
     LastOrderColumn: TDateColumn;
     ActiveColumn: TCheckColumn;
+    StatusColumn: TIntegerColumn;
     SettingsScrollBox: TVertScrollBox;
     FilterSettingsLabel: TLabel;
     FilterVisibleCheckBox: TCheckBox;
@@ -145,6 +154,7 @@ type
     procedure AboveAverageClick(Sender: TObject);
     procedure SetUpBindingsGrid;
     procedure ShowObjects;
+    function StatusText(const AStatus: TCustomerStatus): string;
     procedure UpdateRowsLabel;
   end;
 
@@ -175,6 +185,9 @@ resourcestring
   S_ORDER_DESCENDING = '%s (descending)';
   S_ORDER_SPACING = 'OrderSpacing: %d px';
   S_ROWS = 'Rows shown: %d of %d';
+  S_STATUS_LOST = 'Lost';
+  S_STATUS_NEW = 'New';
+  S_STATUS_REGULAR = 'Regular';
   S_TOTAL = 'Total';
 
 const
@@ -268,6 +281,7 @@ begin
     LCustomer.Amount := RoundTo(LCustomer.Orders * (20 + Random * 180), -2);
     LCustomer.LastOrder := EncodeDate(2026, 1, 1) + Random(300);
     LCustomer.Active := Random(4) > 0;
+    LCustomer.Status := TCustomerStatus(I mod (Ord(High(TCustomerStatus)) + 1));
     FCustomers.Add(LCustomer);
   end;
 end;
@@ -292,6 +306,8 @@ begin
     Result := CompareDate(ALeft.LastOrder, ARight.LastOrder)
   else if AColumn = ActiveColumn then
     Result := CompareValue(Ord(ALeft.Active), Ord(ARight.Active))
+  else if AColumn = StatusColumn then
+    Result := CompareValue(Ord(ALeft.Status), Ord(ARight.Status))
   else
     Result := 0;
 end;
@@ -382,6 +398,9 @@ begin
     LCities.Free;
   end;
 
+  // The integer column of the status shows texts: its filter shows and accepts the texts, and gives the values.
+  ObjectsGrid.ColumnSettings.Add(StatusColumn).SetFilterEnum(TypeInfo(TCustomerStatus),
+    [S_STATUS_NEW, S_STATUS_REGULAR, S_STATUS_LOST]);
   FillCustomersTable;
   SetUpBindingsGrid;
   FilterSettingsChange(nil);
@@ -408,7 +427,8 @@ function TGridDemoForm.MatchesObjects(const ACustomer: TCustomer): Boolean;
 begin
   Result := Matches(ObjectsGrid, ACustomer, NameColumn, CityColumn, OrdersColumn, AmountColumn) and
     ObjectsGrid.FilterMatches(LastOrderColumn, TValue.From<TDate>(ACustomer.LastOrder)) and
-    ObjectsGrid.FilterMatches(ActiveColumn, ACustomer.Active);
+    ObjectsGrid.FilterMatches(ActiveColumn, ACustomer.Active) and
+    ObjectsGrid.FilterMatches(StatusColumn, Ord(ACustomer.Status));
 end;
 
 procedure TGridDemoForm.ObjectsGridFilter(Sender: TObject);
@@ -480,7 +500,9 @@ begin
   else if LColumn = LastOrderColumn then
     Value := TValue.From<TDate>(LCustomer.LastOrder)
   else if LColumn = ActiveColumn then
-    Value := LCustomer.Active;
+    Value := LCustomer.Active
+  else if LColumn = StatusColumn then
+    Value := StatusText(LCustomer.Status);
 end;
 
 procedure TGridDemoForm.SetUpBindingsGrid;
@@ -604,6 +626,18 @@ begin
 
   ObjectsGrid.Sorting.OrderSpacing := Round(OrderSpacingTrackBar.Value);
   OrderSpacingLabel.Text := Format(S_ORDER_SPACING, [Round(OrderSpacingTrackBar.Value)]);
+end;
+
+function TGridDemoForm.StatusText(const AStatus: TCustomerStatus): string;
+begin
+  case AStatus of
+    csRegular:
+      Result := S_STATUS_REGULAR;
+    csLost:
+      Result := S_STATUS_LOST;
+  else
+    Result := S_STATUS_NEW;
+  end;
 end;
 
 procedure TGridDemoForm.StyledGridFilter(Sender: TObject);

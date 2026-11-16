@@ -43,6 +43,8 @@ type
     procedure ApplyStyle; override;
     /// <summary>Returns ellipseseditbutton, the style of the button with the dots of TEdit.</summary>
     function GetDefaultStyleLookupName: string; override;
+    /// <summary>Keeps the button square: as wide as it is high, the height inside the field.</summary>
+    procedure Resize; override;
   public
     /// <summary>
     /// A control shown in the middle of the button in place of the dots, such as the part filtermenubutton of the
@@ -180,6 +182,7 @@ implementation
 
 uses
   System.SysUtils,
+  System.Math,
   System.Types,
   FMX.Graphics,
   FMX.Objects;
@@ -237,6 +240,14 @@ end;
 function TS4YGridFilterMenuButton.GetDefaultStyleLookupName: string;
 begin
   Result := 'ellipseseditbutton';
+end;
+
+procedure TS4YGridFilterMenuButton.Resize;
+begin
+  inherited;
+
+  if (Height > 0) and not SameValue(Width, Height) then
+    Width := Height;
 end;
 
 procedure TS4YGridFilterMenuButton.SetIcon(const Value: TControl);

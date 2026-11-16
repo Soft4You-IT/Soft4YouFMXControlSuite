@@ -53,7 +53,7 @@ The row follows the columns: an editor has the width of its column, moves with i
 | Type of the column | Editor | Kind of value | Value of the filter |
 |---|---|---|---|
 | `TCheckColumn` | Check box with three states: any row (shown faded), checked rows, unchecked rows; a click passes to the next state. The box is placed as the boxes of the cells, by the `HorzAlign` of the column | Boolean | `Boolean` |
-| `TPopupColumn`, or any column with `FilterItems` | Text field with the button of the menu, where the values of the list can be chosen | list | `string` |
+| `TPopupColumn`, or any column with `FilterItems` | Text field with the button of the menu, where the values of the list can be chosen | list | `string`; with lines `Text=Value`, the value of the type of the column (see [Lists of texts and values](#lists-of-texts-and-values)) |
 | `TIntegerColumn` | Text field with the button of the menu | integer | `Int64` |
 | `TFloatColumn`, `TCurrencyColumn` | Text field with the button of the menu | decimal | `Double` |
 | `TDateColumn`, `TDateTimeColumn` | Text field with the button of the menu, with the calendar and today | date | `TDate` |
@@ -68,6 +68,30 @@ A column of date and time is filtered by the day: its time is not compared.
 
 To give a column an editor of your own, handle `OnCreateFilterEditor` and create a `TControl` that implements `IS4YGridFilterEditor`, the interface of the unit `Soft4You.FMX.Controls.Grid.Types`: the grid becomes its parent and frees it. Its value becomes the filter of the column with the default operator of the column; a value the text of a filter cannot hold, such as a range of two dates, is kept as it is in `FilterValue`, and the application filters with it. The editors of the unit `Soft4You.FMX.Controls.Grid.FilterEditors` can be used as models, or as base classes.
 
+### Lists of texts and values
+
+The cells of a column can show a text for each value of the data, such as an integer column with the values of an enumerated type, shown as *Open*, *Closed*, *Suspended* by `OnGetValue` or by a `CustomFormat` of the LiveBindings. Its `FilterItems` can then have a line `Text=Value` for each value:
+
+```
+Open=0
+Closed=1
+Suspended=2
+```
+
+- the user sees the texts in the menu, and writes them in the field: `Open`, `! Closed`, `<> Suspended`, without difference between upper and lower case; a text that is not in the list, or the value itself, such as `1`, is invalid;
+- `FilterValue` is the value of the text, of the type of the column: an `Int64` for an integer column, a `string` for a text column with codes such as `Rome=RM`;
+- `FilterMatches` compares the value of a row with it: the application passes the value of its data, such as `Ord(Customer.Status)`; a row given as the text of an item, such as the text shown in the cell, counts as the value of that item;
+- `FilterValue`, `SetFilter` and the menu write the text of a value: `FilterValue[StatusColumn] := 2` writes *Suspended*;
+- a line without `=` is a text that is its own value; a list where no line has `=` is a list of texts, as before, and accepts any text.
+
+`ColumnSettings[].SetFilterEnum(TypeInfo(TStatus), ['Open', 'Closed', 'Suspended'])` fills `FilterItems` from an enumerated type: a line for each value, with the text of `ATexts` in the order of the values and the ordinal number as value. The texts are given by the application, so that they can be translated; an empty array uses the names of the values (`stOpen=0`).
+
+```pascal
+Grid.ColumnSettings.Add(StatusColumn).SetFilterEnum(TypeInfo(TStatus), [SOpen, SClosed, SSuspended]);
+...
+if Grid.FilterMatches(StatusColumn, Ord(LCustomer.Status)) then
+```
+
 ### Settings of the columns
 
 `ColumnSettings` is a collection, saved in the form, with the settings of the grid for some of its columns; a column without an item has the default settings.
@@ -76,7 +100,7 @@ To give a column an editor of your own, handle `OnCreateFilterEditor` and create
 |---|---|---|
 | `Column` | | The column of the grid the item is for |
 | `Filterable` | `True` | Shows the editor of the column in the filter row |
-| `FilterItems` | empty | The values the user can choose as filter of the column, in the menu of its filter: when there are some, the filter is a value of a list, whatever the type of the column |
+| `FilterItems` | empty | The values the user can choose as filter of the column, in the menu of its filter: when there are some, the filter is a value of a list, whatever the type of the column. Lines `Text=Value` show the texts and give the values (see [Lists of texts and values](#lists-of-texts-and-values)) |
 | `FilterMenu` | | A `TPopupMenu` of the application for the button of the editor of the column, instead of the menu of the grid (see [Filter menu](#filter-menu)) |
 | `FooterKind` | `gfkNone` | What the footer shows under the column (see [Footer](#footer)) |
 | `FooterText` | empty | The text of the footer when `FooterKind` is `gfkText`, for example *Total* |
@@ -101,7 +125,7 @@ The text of a filter is an **operator** and a **value**: the operator, when ther
 | `=` alone | Is empty: the rows without a value | all |
 | `<>` alone, `!=` alone | Is not empty: the rows with a value | all |
 
-The texts are compared without difference between upper and lower case. The numbers, the dates and the times are written as in the regional settings of the computer, such as `1,5` or `15/03/2026` in Italian. A column with a list of values accepts only equal to, not equal to, is empty and is not empty.
+The texts are compared without difference between upper and lower case. The numbers, the dates and the times are written as in the regional settings of the computer, such as `1,5` or `15/03/2026` in Italian. A column with a list of values accepts only equal to, not equal to, is empty and is not empty; when its list has texts and values, only the texts of the list.
 
 **The operators are read only at the start, and `*` only as the first or the last character.** Everything else is part of the value: `a*b` looks for *a\*b*, and `x=y` for *x=y*.
 
@@ -303,7 +327,7 @@ The methods work also when `Sorting.Enabled` is `False`, and the header shows th
 
 `Demos\Grid\S4YGridDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) has three tabs:
 
-- **Objects**: 200 customers in a list of objects, shown with `OnGetValue` and filtered by the application in `OnFilter` with `FilterMatches`, with the cities in the menu of their filter (`FilterItems`), an item of the application in the menu of the amount (`OnFilterMenu`) and a footer with a text, an average, a sum and a date; the panel on the left changes the filter row (`Visible`, `AutoFilter`, `FilterDelay`, `ClearOnHide`, `ClearFilters`) and the footer (`Visible`, the `FooterKind` of the amount, the sum of all the data with `OnGetFooterText`) and the order (`Sorting.Enabled`, `MultiColumn`, `ShowOrder`, `OrderPosition`, `OrderSpacing`), and shows the last `OnFilterChanged` with the text, the operator and the value read, the rows shown and the keys of the last `OnSort`; the application sorts the list with a comparer that reads the keys, after the filters;
+- **Objects**: 200 customers in a list of objects, shown with `OnGetValue` and filtered by the application in `OnFilter` with `FilterMatches`, with the cities in the menu of their filter (`FilterItems`), an item of the application in the menu of the amount (`OnFilterMenu`), an integer column of the status that shows texts, filtered with `SetFilterEnum` and a footer with a text, an average, a sum and a date; the panel on the left changes the filter row (`Visible`, `AutoFilter`, `FilterDelay`, `ClearOnHide`, `ClearFilters`) and the footer (`Visible`, the `FooterKind` of the amount, the sum of all the data with `OnGetFooterText`) and the order (`Sorting.Enabled`, `MultiColumn`, `ShowOrder`, `OrderPosition`, `OrderSpacing`), and shows the last `OnFilterChanged` with the text, the operator and the value read, the rows shown and the keys of the last `OnSort`; the application sorts the list with a comparer that reads the keys, after the filters;
 - **LiveBindings**: the same customers in a `TFDMemTable`, shown through a `TLinkGridToDataSource`, filtered by the data set in `OnFilterRecord`, which compares each field with `FilterMatches`, and sorted with its `IndexFieldNames` in `OnSort`, with the footer read through the link;
 - **Style book**: the grid with a dark style of the `TStyleBook` of the form, with the parts `filterrowbackground`, `footerbackground`, `footertext` and `filterinvalidtext`.
 
@@ -372,7 +396,7 @@ end;
 
 ## Styles
 
-The filter row is added to the style of the grid when the style is applied: to the part `background`, aligned to the top after the header, so the part `content` with the cells starts under it. The row draws a line on its bottom side with the brush `linefill` of the style, the brush of the lines of the grid, and its editors take the styles of the form, looked for in its style book and in the style of the platform: `editstyle`, the style of `TEdit`, for the text fields, and `checkcellstyle`, the style of the check boxes of the cells of the grid, for the check boxes, so that a check box of the row looks as the ones of the cells. `FilterRow.EditStyleLookup` and `FilterRow.CheckBoxStyleLookup` give the editors of the row styles of their own, different from the other controls of the application; a style that is not found leaves the style of `TEdit` or of `TCheckBox`. The button of the menu takes the style `ellipseseditbutton` of the buttons of `TEdit`, and draws its three dots with the color of the text of the style of `TEdit`.
+The filter row is added to the style of the grid when the style is applied: to the part `background`, aligned to the top after the header, so the part `content` with the cells starts under it. The row draws a line on its bottom side with the brush `linefill` of the style, the brush of the lines of the grid, and its editors take the styles of the form, looked for in its style book and in the style of the platform: `editstyle`, the style of `TEdit`, for the text fields, and `checkcellstyle`, the style of the check boxes of the cells of the grid, for the check boxes, so that a check box of the row looks as the ones of the cells. `FilterRow.EditStyleLookup` and `FilterRow.CheckBoxStyleLookup` give the editors of the row styles of their own, different from the other controls of the application; a style that is not found leaves the style of `TEdit` or of `TCheckBox`. The button of the menu is square, as high as the inside of the field; it takes the style `ellipseseditbutton` of the buttons of `TEdit`, and draws its three dots with the color of the text of the style of `TEdit`.
 
 The menu of a filter is a `TPopup`, which takes the style book of the form. `FilterRow.MenuStyleLookup` gives the popup a style of its own, for its background and its border, without changing the other popups of the application; the list of the items inside it then has no background of its own, so the background of the style is seen. When the popup finds no style, as with the styles of the platform of Windows, which have no `popupstyle`, or with a `MenuStyleLookup` that is not in the style book, the list keeps the background and the border of its own style. The items keep the style of the items of `TListBox`: with a dark background, give them a light text in that style.
 

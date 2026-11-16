@@ -15,6 +15,7 @@ interface
 uses
   System.Classes,
   System.Rtti,
+  System.TypInfo,
   System.Generics.Collections,
   FMX.Types,
   FMX.Controls,
@@ -258,15 +259,30 @@ type
 
     /// <summary>Copies the settings from another item.</summary>
     procedure Assign(Source: TPersistent); override;
+    /// <summary>
+    /// Fills FilterItems with the values of the enumerated type AEnumType: a line Text=Value for each value, the
+    /// text from ATexts in the order of the values and the value its ordinal number.
+    /// </summary>
+    /// <remarks>
+    /// ATexts has a text for each value of the type, so that the texts can be translated; an empty ATexts uses the
+    /// names of the values. For an integer column that keeps the ordinal numbers of the values, such as
+    /// Ord(TStatus).
+    /// </remarks>
+    procedure SetFilterEnum(const AEnumType: PTypeInfo; const ATexts: array of string);
   published
     /// <summary>The column of the grid these settings are for.</summary>
     property Column: TColumn read FColumn write SetColumn;
     /// <summary>True shows the editor of the filter of the column in the filter row. The default is True.</summary>
     property Filterable: Boolean read FFilterable write SetFilterable default C_DEFAULT_FILTERABLE;
     /// <summary>
-    /// The values the user can choose as filter of the column: when there are some, the editor of the column is a
-    /// drop-down list with them, whatever the type of the column. Empty by default.
+    /// The values the user can choose as filter of the column, in the menu of its filter: when there are some, the
+    /// filter is a value of the list, whatever the type of the column. Empty by default.
     /// </summary>
+    /// <remarks>
+    /// A line Text=Value, such as Open=1, shows and accepts the text and gives the value, of the type of the column:
+    /// for an integer column whose cells show texts for numbers, FilterValue is the number and FilterMatches compares
+    /// the numbers of the rows. See also SetFilterEnum.
+    /// </remarks>
     property FilterItems: TStrings read FFilterItems write SetFilterItems stored FilterItemsStored;
     /// <summary>
     /// A menu of the application for the button of the editor of the filter of the column, instead of the menu of the
@@ -356,6 +372,9 @@ type
     procedure SortChanged;
     procedure SortingChange(Sender: TObject);
     procedure StoreFilter(const AColumn: TColumn; const AFilter: TS4YGridFilter);
+    function CreateFilter(const AColumn: TColumn; const AText: string): TS4YGridFilter;
+    function GetColumnValueKind(const AColumn: TColumn): TS4YGridFilterValueKind;
+    function GetFilterItemValues(const AColumn: TColumn): TArray<TS4YGridFilterItem>;
   protected
     /// <summary>Forgets the filter and the key of the order of a column removed from the grid.</summary>
     procedure DoColumnRemoved(const Column: TColumn); override;
@@ -695,6 +714,8 @@ resourcestring
   S_FILTER_TODAY = 'Today';
   S_FILTER_CURRENT_TIME = 'Current time';
   S_FILTER_CLEAR = 'Clear filter';
+  S_FILTER_ENUM_TYPE = 'SetFilterEnum needs an enumerated type';
+  S_FILTER_ENUM_TEXTS = 'SetFilterEnum has %d texts for %d values';
 
 // Returns the text of the item of the menu of AOperator.
 function OperatorText(const AOperator: TS4YGridFilterOperator): string;
@@ -1070,6 +1091,35 @@ begin
   FFilterItems.Assign(Value);
 end;
 
+procedure TS4YGridColumnSetting.SetFilterEnum(const AEnumType: PTypeInfo; const ATexts: array of string);
+var
+  LData: PTypeData;
+  LItems: TStringList;
+begin
+  if not Assigned(AEnumType) or (AEnumType^.Kind <> tkEnumeration) then
+    raise EArgumentException.Create(S_FILTER_ENUM_TYPE);
+
+  LData := GetTypeData(AEnumType);
+
+  if (Length(ATexts) > 0) and (Length(ATexts) <> LData^.MaxValue - LData^.MinValue + 1) then
+    raise EArgumentException.CreateFmt(S_FILTER_ENUM_TEXTS, [Length(ATexts), LData^.MaxValue - LData^.MinValue + 1]);
+
+  LItems := TStringList.Create;
+  try
+    for var I := LData^.MinValue to LData^.MaxValue do
+    begin
+      if Length(ATexts) > 0 then
+        LItems.AddPair(ATexts[I - LData^.MinValue], IntToStr(I))
+      else
+        LItems.AddPair(GetEnumName(AEnumType, I), IntToStr(I));
+    end;
+
+    FilterItems := LItems;
+  finally
+    LItems.Free;
+  end;
+end;
+
 procedure TS4YGridColumnSetting.SetFilterMenu(const Value: TPopupMenu);
 var
   LOwner: TPersistent;
@@ -1323,7 +1373,7 @@ begin
   if not (LFilter.FilterOperator in [gfoEmpty, gfoNotEmpty]) and (LFilter.ValueText <> '') then
     LValue := LFilter.ValueText;
 
-  SetFilterText(AColumn, TS4YGridFilter.FormatText(LFilter.Kind, AOperator, LValue, True));
+  SetFilterText(AColumn, TS4YGridFilter.FormatText(LFilter.Kind, AOperator, LValue, True, LFilter.Items));
 end;
 
 procedure TS4YGridModel.ApplyFilterValue(const AColumn: TColumn; const AValue: TValue);
@@ -1342,7 +1392,7 @@ begin
     LOperator := TS4YGridFilter.DefaultOperator(LFilter.Kind);
 
   SetFilterText(AColumn, TS4YGridFilter.FormatText(LFilter.Kind, LOperator, AValue,
-    LFilter.ExplicitOperator and (LOperator = LFilter.FilterOperator)));
+    LFilter.ExplicitOperator and (LOperator = LFilter.FilterOperator), LFilter.Items));
 end;
 
 procedure TS4YGridModel.ClearSort;
@@ -1370,18 +1420,24 @@ var
   LColumns: TArray<TColumn>;
   LFilter: TS4YGridFilter;
 begin
-  // A list of values added or removed changes the kind of value of a column: its text is read again.
+  // A list of values added, changed or removed changes how the text of a filter is read: it is read again.
   LColumns := FFilters.Keys.ToArray;
 
   for var I := 0 to High(LColumns) do
   begin
     LFilter := FFilters[LColumns[I]];
 
-    if LFilter.Kind <> GetFilterKind(LColumns[I]) then
-      FFilters[LColumns[I]] := TS4YGridFilter.Parse(LFilter.Text, GetFilterKind(LColumns[I]));
+    if (LFilter.Kind <> GetFilterKind(LColumns[I])) or (LFilter.Kind = gvkList) then
+      FFilters[LColumns[I]] := CreateFilter(LColumns[I], LFilter.Text);
   end;
 
   SendMessage(MM_S4Y_GRID_COLUMN_SETTINGS_CHANGED);
+end;
+
+function TS4YGridModel.CreateFilter(const AColumn: TColumn; const AText: string): TS4YGridFilter;
+begin
+  Result := TS4YGridFilter.Parse(AText, GetFilterKind(AColumn), GetFilterItemValues(AColumn),
+    GetColumnValueKind(AColumn));
 end;
 
 procedure TS4YGridModel.DoColumnRemoved(const Column: TColumn);
@@ -1481,7 +1537,12 @@ end;
 function TS4YGridModel.GetFilter(const AColumn: TColumn): TS4YGridFilter;
 begin
   if not Assigned(AColumn) or not FFilters.TryGetValue(AColumn, Result) then
-    Result := TS4YGridFilter.Parse('', GetFilterKind(AColumn));
+    Result := CreateFilter(AColumn, '');
+end;
+
+function TS4YGridModel.GetFilterItemValues(const AColumn: TColumn): TArray<TS4YGridFilterItem>;
+begin
+  Result := TS4YGridFilter.CreateItems(FColumnSettings.GetFilterItems(AColumn), GetColumnValueKind(AColumn));
 end;
 
 function TS4YGridModel.GetFilterKind(const AColumn: TColumn): TS4YGridFilterValueKind;
@@ -1489,7 +1550,13 @@ begin
   // The list of values comes before the type of the column.
   if Assigned(FColumnSettings.GetFilterItems(AColumn)) or (AColumn is TPopupColumn) then
     Result := gvkList
-  else if AColumn is TIntegerColumn then
+  else
+    Result := GetColumnValueKind(AColumn);
+end;
+
+function TS4YGridModel.GetColumnValueKind(const AColumn: TColumn): TS4YGridFilterValueKind;
+begin
+  if AColumn is TIntegerColumn then
     Result := gvkInteger
   else if AColumn is TCustomNumberColumn then
     Result := gvkFloat
@@ -1510,6 +1577,7 @@ var
   LCurrent: TS4YGridFilterOperator;
   LItem: TS4YGridFilterMenuItem;
   LValues: TStrings;
+  LText: string;
 begin
   AItems.Clear;
   AItems.Column := AColumn;
@@ -1549,11 +1617,17 @@ begin
   begin
     AItems.AddSeparator;
 
+    // A list of texts and values shows the texts; a choice writes the text.
     for var I := 0 to LValues.Count - 1 do
     begin
-      LItem := AItems.AddAction(gmaValue, LValues[I]);
-      LItem.Value := LValues[I];
-      LItem.Checked := (LFilter.State = gfsValid) and AnsiSameText(LFilter.ValueText, LValues[I]);
+      if Length(LFilter.Items) > 0 then
+        LText := LFilter.Items[I].Text
+      else
+        LText := LValues[I];
+
+      LItem := AItems.AddAction(gmaValue, LText);
+      LItem.Value := LText;
+      LItem.Checked := (LFilter.State = gfsValid) and AnsiSameText(LFilter.ValueText, LText);
     end;
   end;
 
@@ -1813,7 +1887,8 @@ begin
     Exit;
 
   LKind := GetFilterKind(AColumn);
-  LFilter := TS4YGridFilter.Parse(TS4YGridFilter.FormatText(LKind, AOperator, AValue, False), LKind);
+  LFilter := CreateFilter(AColumn, TS4YGridFilter.FormatText(LKind, AOperator, AValue, False,
+    GetFilterItemValues(AColumn)));
 
   // A value the text cannot hold, such as the one of an editor of the application, is kept as it is.
   if (LFilter.State <> gfsValid) and not TS4YGridFilter.IsValueEmpty(AValue) and
@@ -1832,7 +1907,7 @@ begin
   if not Assigned(AColumn) or (GetFilterText(AColumn) = AText) then
     Exit;
 
-  StoreFilter(AColumn, TS4YGridFilter.Parse(AText, GetFilterKind(AColumn)));
+  StoreFilter(AColumn, CreateFilter(AColumn, AText));
 end;
 
 procedure TS4YGridModel.SetFilterValue(const AColumn: TColumn; const AValue: TValue);

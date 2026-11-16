@@ -34,6 +34,10 @@ type
   TS4YGridFilter = record
     /// <summary>True when the operator is written in the text; False when it is the default operator.</summary>
     ExplicitOperator: Boolean;
+    /// <summary>
+    /// The values of a list of texts and values, from the lines Text=Value of FilterItems; empty for a list of texts.
+    /// </summary>
+    Items: TArray<TS4YGridFilterItem>;
     /// <summary>The kind of value of the column.</summary>
     Kind: TS4YGridFilterValueKind;
     /// <summary>The operator read in the text; gfoNone without text.</summary>
@@ -46,7 +50,16 @@ type
     Value: TValue;
     /// <summary>The text of the value, without the operator and the double quotes, also when it cannot be read.</summary>
     ValueText: string;
+    /// <summary>The kind of the values of Items: the kind of value of the type of the column.</summary>
+    ValueKind: TS4YGridFilterValueKind;
 
+    /// <summary>Returns the operator of a text without operator for AKind: contains for text, equal otherwise.</summary>
+    /// <summary>
+    /// Returns the values of a list with lines Text=Value, such as Open=1, each value read for AValueKind; an empty
+    /// array when no line has the sign =, a list of texts. A line without = has its text as value.
+    /// </summary>
+    class function CreateItems(const AItems: TStrings; const AValueKind: TS4YGridFilterValueKind):
+      TArray<TS4YGridFilterItem>; static;
     /// <summary>Returns the operator of a text without operator for AKind: contains for text, equal otherwise.</summary>
     class function DefaultOperator(const AKind: TS4YGridFilterValueKind): TS4YGridFilterOperator; static;
     /// <summary>
@@ -55,17 +68,23 @@ type
     /// </summary>
     /// <remarks>
     /// Explicit False leaves out the default operator; True writes it too, as for a choice in the menu. An empty
-    /// AValue writes only the operator, so that the user writes the value after it.
+    /// AValue writes only the operator, so that the user writes the value after it. With AItems, the value is written
+    /// as the text of its item.
     /// </remarks>
     class function FormatText(const AKind: TS4YGridFilterValueKind; const AOperator: TS4YGridFilterOperator;
-      const AValue: TValue; const Explicit: Boolean): string; static;
+      const AValue: TValue; const Explicit: Boolean; const AItems: TArray<TS4YGridFilterItem> = nil): string; static;
     /// <summary>Returns True when AOperator can be used for AKind.</summary>
     class function IsOperatorAllowed(const AKind: TS4YGridFilterValueKind;
       const AOperator: TS4YGridFilterOperator): Boolean; static;
     /// <summary>Returns True when AValue is empty: no value, an empty text, a Null or Unassigned variant.</summary>
     class function IsValueEmpty(const AValue: TValue): Boolean; static;
-    /// <summary>Returns the filter written as AText in a column of AKind.</summary>
-    class function Parse(const AText: string; const AKind: TS4YGridFilterValueKind): TS4YGridFilter; static;
+    /// <summary>
+    /// Returns the filter written as AText in a column of AKind; with AItems, the value is the text of an item, and the
+    /// filter gets the value of the item, of AValueKind.
+    /// </summary>
+    class function Parse(const AText: string; const AKind: TS4YGridFilterValueKind;
+      const AItems: TArray<TS4YGridFilterItem> = nil; const AValueKind: TS4YGridFilterValueKind = gvkText):
+      TS4YGridFilter; static;
     /// <summary>Returns in ANumber the number in AValue: an integer, a float, a variant or a text that is a number.</summary>
     class function TryValueToNumber(const AValue: TValue; out ANumber: Double): Boolean; static;
 
@@ -75,6 +94,9 @@ type
     /// Returns True when the value of a row, AValue, passes the filter; always True when the filter is not applied, or
     /// when AValue cannot be compared with the value of the filter.
     /// </summary>
+    /// <remarks>
+    /// With Items, AValue is compared with the value of the item of the filter; a text of an item counts as its value.
+    /// </remarks>
     function Matches(const AValue: TValue): Boolean;
   end;
 
@@ -437,6 +459,49 @@ begin
     Result := C_QUOTE + Result.Replace(C_QUOTE, C_QUOTE + C_QUOTE) + C_QUOTE;
 end;
 
+// Returns the position of the item with the text AText, -1 when there is none.
+function IndexOfItemText(const AItems: TArray<TS4YGridFilterItem>; const AText: string): Integer;
+var
+  LIndex: Integer;
+begin
+  Result := -1;
+  LIndex := 0;
+
+  while (Result < 0) and (LIndex <= High(AItems)) do
+  begin
+    if AnsiSameText(AItems[LIndex].Text, AText) then
+      Result := LIndex;
+
+    Inc(LIndex);
+  end;
+end;
+
+// Returns the position of the item with the value AValue, or with the text AValue, -1 when there is none.
+function IndexOfItemValue(const AItems: TArray<TS4YGridFilterItem>; const AValue: TValue): Integer;
+var
+  LIndex: Integer;
+  LNumber: Double;
+  LItemNumber: Double;
+begin
+  Result := -1;
+
+  if AValue.Kind in [tkString, tkLString, tkWString, tkUString] then
+    Result := IndexOfItemText(AItems, AValue.AsString);
+
+  LIndex := 0;
+
+  while (Result < 0) and (LIndex <= High(AItems)) do
+  begin
+    if TS4YGridFilter.TryValueToNumber(AValue, LNumber) and
+      TS4YGridFilter.TryValueToNumber(AItems[LIndex].Value, LItemNumber) and SameValue(LNumber, LItemNumber) then
+      Result := LIndex
+    else if AnsiSameText(ValueToText(AValue), ValueToText(AItems[LIndex].Value)) then
+      Result := LIndex;
+
+    Inc(LIndex);
+  end;
+end;
+
 // Returns the result of the comparison of the value of a row with the value of the filter, ACompare as CompareValue.
 function CompareMatches(const AOperator: TS4YGridFilterOperator; const ACompare: Integer): Boolean;
 begin
@@ -460,6 +525,48 @@ end;
 
 { TS4YGridFilter }
 
+class function TS4YGridFilter.CreateItems(const AItems: TStrings;
+  const AValueKind: TS4YGridFilterValueKind): TArray<TS4YGridFilterItem>;
+var
+  LHasValues: Boolean;
+  LValue: TValue;
+begin
+  Result := nil;
+
+  if not Assigned(AItems) then
+    Exit;
+
+  LHasValues := False;
+
+  for var I := 0 to AItems.Count - 1 do
+    if AItems.Names[I] <> '' then
+      LHasValues := True;
+
+  // A list of texts: the texts are the values.
+  if not LHasValues then
+    Exit;
+
+  SetLength(Result, AItems.Count);
+
+  for var I := 0 to AItems.Count - 1 do
+  begin
+    if AItems.Names[I] <> '' then
+    begin
+      Result[I].Text := AItems.Names[I];
+      Result[I].Value := AItems.ValueFromIndex[I];
+    end
+    else
+    begin
+      Result[I].Text := AItems[I];
+      Result[I].Value := AItems[I];
+    end;
+
+    // A value that cannot be read for the column stays a text.
+    if TryTextToValue(Result[I].Value.AsString, AValueKind, LValue) then
+      Result[I].Value := LValue;
+  end;
+end;
+
 class function TS4YGridFilter.DefaultOperator(const AKind: TS4YGridFilterValueKind): TS4YGridFilterOperator;
 begin
   if AKind = gvkText then
@@ -469,9 +576,11 @@ begin
 end;
 
 class function TS4YGridFilter.FormatText(const AKind: TS4YGridFilterValueKind;
-  const AOperator: TS4YGridFilterOperator; const AValue: TValue; const Explicit: Boolean): string;
+  const AOperator: TS4YGridFilterOperator; const AValue: TValue; const Explicit: Boolean;
+  const AItems: TArray<TS4YGridFilterItem>): string;
 var
   LValue: string;
+  LIndex: Integer;
 begin
   case AOperator of
     gfoNone:
@@ -483,8 +592,15 @@ begin
   end;
 
   LValue := '';
+  LIndex := -1;
 
-  if not IsValueEmpty(AValue) then
+  // A value of a list of texts and values is written as the text of its item.
+  if not IsValueEmpty(AValue) and (Length(AItems) > 0) then
+    LIndex := IndexOfItemValue(AItems, AValue);
+
+  if LIndex >= 0 then
+    LValue := FormatValue(gvkText, AItems[LIndex].Text)
+  else if not IsValueEmpty(AValue) then
     LValue := FormatValue(AKind, AValue);
 
   // The default operator is written only when it is chosen.
@@ -567,6 +683,9 @@ var
   LRowBoolean: Boolean;
   LFilterBoolean: Boolean;
   LCompare: Integer;
+  LRowValue: TValue;
+  LIndex: Integer;
+  LFilter: TS4YGridFilter;
 begin
   if State <> gfsValid then
     Exit(True);
@@ -580,6 +699,24 @@ begin
   // A row without value is different from any value, and does not contain it.
   if IsValueEmpty(AValue) then
     Exit(FilterOperator in [gfoNotEqual, gfoNotContains]);
+
+  // A list of texts and values compares the values, as the column does; a text of an item counts as its value.
+  if (Kind = gvkList) and (Length(Items) > 0) then
+  begin
+    LRowValue := AValue;
+    LIndex := -1;
+
+    if AValue.Kind in [tkString, tkLString, tkWString, tkUString] then
+      LIndex := IndexOfItemText(Items, AValue.AsString);
+
+    if LIndex >= 0 then
+      LRowValue := Items[LIndex].Value;
+
+    LFilter := Self;
+    LFilter.Kind := ValueKind;
+    LFilter.Items := nil;
+    Exit(LFilter.Matches(LRowValue));
+  end;
 
   case Kind of
     gvkText, gvkList:
@@ -641,7 +778,8 @@ begin
   end;
 end;
 
-class function TS4YGridFilter.Parse(const AText: string; const AKind: TS4YGridFilterValueKind): TS4YGridFilter;
+class function TS4YGridFilter.Parse(const AText: string; const AKind: TS4YGridFilterValueKind;
+  const AItems: TArray<TS4YGridFilterItem>; const AValueKind: TS4YGridFilterValueKind): TS4YGridFilter;
 var
   LSymbol: string;
   LRest: string;
@@ -649,8 +787,11 @@ var
   LLeadingWildcard: Boolean;
   LTrailingWildcard: Boolean;
   LValue: TValue;
+  LIndex: Integer;
 begin
   Result.ExplicitOperator := False;
+  Result.Items := AItems;
+  Result.ValueKind := AValueKind;
   Result.Kind := AKind;
   Result.FilterOperator := gfoNone;
   Result.State := gfsEmpty;
@@ -712,6 +853,20 @@ begin
     Result.State := gfsInvalid
   else if LText = '' then
     Result.State := gfsIncomplete
+  else if (AKind = gvkList) and (Length(AItems) > 0) then
+  begin
+    // Only the texts of the items: the filter gets the value of the item.
+    LIndex := IndexOfItemText(AItems, LText);
+
+    if LIndex >= 0 then
+    begin
+      Result.ValueText := AItems[LIndex].Text;
+      Result.Value := AItems[LIndex].Value;
+      Result.State := gfsValid;
+    end
+    else
+      Result.State := gfsInvalid;
+  end
   else if TryTextToValue(LText, AKind, LValue) then
   begin
     Result.Value := LValue;
