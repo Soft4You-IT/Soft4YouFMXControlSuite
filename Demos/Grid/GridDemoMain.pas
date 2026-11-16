@@ -83,6 +83,7 @@ type
     FilterDelayLabel: TLabel;
     FilterDelayTrackBar: TTrackBar;
     ClearOnHideCheckBox: TCheckBox;
+    ShowButtonCheckBox: TCheckBox;
     ClearFiltersButton: TButton;
     FooterSettingsLabel: TLabel;
     FooterVisibleCheckBox: TCheckBox;
@@ -134,6 +135,7 @@ type
     procedure ObjectsGridFilter(Sender: TObject);
     procedure ObjectsGridFilterChanged(Sender: TObject; const AColumn: TColumn);
     procedure ObjectsGridFilterMenu(Sender: TObject; const AColumn: TColumn; const AItems: TS4YGridFilterMenuItems);
+    procedure ObjectsGridFilterRowToggle(Sender: TObject);
     procedure ObjectsGridGetFooterText(Sender: TObject; const AColumn: TColumn; var AText: string);
     procedure ObjectsGridGetValue(Sender: TObject; const ACol, ARow: Integer; var Value: TValue);
     procedure ObjectsGridSort(Sender: TObject);
@@ -355,10 +357,14 @@ end;
 
 procedure TGridDemoForm.FilterSettingsChange(Sender: TObject);
 begin
-  ObjectsGrid.FilterRow.Visible := FilterVisibleCheckBox.IsChecked;
+  // The row is also shown and hidden by the button of the header and by Ctrl+Shift+F, which update its box.
+  if (Sender = nil) or (Sender = FilterVisibleCheckBox) then
+    ObjectsGrid.FilterRow.Visible := FilterVisibleCheckBox.IsChecked;
+
   ObjectsGrid.FilterRow.AutoFilter := AutoFilterCheckBox.IsChecked;
   ObjectsGrid.FilterRow.FilterDelay := Round(FilterDelayTrackBar.Value);
   ObjectsGrid.FilterRow.ClearOnHide := ClearOnHideCheckBox.IsChecked;
+  ObjectsGrid.FilterRow.ShowButton := ShowButtonCheckBox.IsChecked;
   FilterDelayLabel.Text := Format(S_FILTER_DELAY, [ObjectsGrid.FilterRow.FilterDelay]);
 end;
 
@@ -462,6 +468,12 @@ begin
   // The menu of the amount has an item of the application, before the item that clears the filter.
   if AColumn = AmountColumn then
     AItems.Insert(AItems.IndexOfAction(gmaClear), S_ABOVE_AVERAGE, AboveAverageClick);
+end;
+
+procedure TGridDemoForm.ObjectsGridFilterRowToggle(Sender: TObject);
+begin
+  // The row shown or hidden by the button of the header or by Ctrl+Shift+F: its box shows it.
+  FilterVisibleCheckBox.IsChecked := ObjectsGrid.FilterRow.Visible;
 end;
 
 procedure TGridDemoForm.ObjectsGridGetFooterText(Sender: TObject; const AColumn: TColumn; var AText: string);
