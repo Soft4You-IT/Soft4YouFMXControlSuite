@@ -36,9 +36,11 @@ Add the folder `Sources\Grid` to the Delphi library path to compile your own pro
 
 | Property | Default | Meaning |
 |---|---|---|
-| `FilterRow.Visible` | `False` | Shows the filter row under the header |
+| `FilterRow.Visible` | `False` | Shows the filter row under the header; the filters apply only while it is shown (see [Showing and hiding the filter row](#showing-and-hiding-the-filter-row)) |
 | `FilterRow.Height` | 0 | Height of the row, in pixels; 0 is automatic: the height of the editors with the padding of the style (see [Styles](#styles)), at least the height of the rows of the grid |
-| `FilterRow.ClearOnHide` | `False` | Clears the filters when the row is hidden, and fires `OnFilter`, so the application shows all its data again; `False` keeps them, and shows them again with the row |
+| `FilterRow.ClearOnHide` | `False` | Clears the texts of the filters when the row is hidden; `False` keeps them, and they apply again when the row is shown again |
+| `FilterRow.ShowButton` | `False` | Shows a button on the right side of the header, which shows or hides the row |
+| `FilterRow.ShortCut` | Ctrl+Shift+F | The keys that show or hide the row, when the grid or an editor of the row has the focus; 0 has no keys |
 | `FilterRow.AutoFilter` | `False` | Fires `OnFilter` by itself when the user stops typing in an editor of text, number or date for `FilterDelay` milliseconds; `False` filters only with Enter |
 | `FilterRow.FilterDelay` | 400 | Milliseconds without typing after which `AutoFilter` fires `OnFilter`; 0 fires it at each change |
 | `FilterRow.ShowMenuButton` | `True` | Shows the button of the menu of the filter in the text fields (see [Filter menu](#filter-menu)) |
@@ -47,6 +49,19 @@ Add the folder `Sources\Grid` to the Delphi library path to compile your own pro
 | `FilterRow.MenuStyleLookup` | empty | The name of the style of the popup of the menu, looked for in the style book of the form and in the style of the platform; empty uses `popupstyle`, the style of `TPopup` |
 
 The row follows the columns: an editor has the width of its column, moves with it when the columns are moved or scrolled horizontally, and is hidden with it. The cells of the grid start under the row.
+
+### Showing and hiding the filter row
+
+The filters apply only while the filter row is shown. When it is hidden, the grid has no filter: `IsFiltered` is `False`, `FilterMatches` lets every row pass, and `FilterOperator`, `FilterValue` and `FilterState` give no filter, so the application shows all its data without checking whether the row is shown. `FilterText` keeps the texts written: when the row is shown again, they apply again. With `ClearOnHide`, hiding the row clears them. Showing or hiding the row fires `OnFilter` when there is at least one filter, so the application filters its data again. A filter set by code while the row is hidden applies only when the row is shown.
+
+The user shows and hides the row with:
+
+- the **button** on the right side of the header, with `FilterRow.ShowButton`: a funnel, pressed while the row is shown; it is square, as high as the header, which leaves the space for it, and it takes the style of the items of the header;
+- the **keys** of `FilterRow.ShortCut`, Ctrl+Shift+F by default, when the grid or an editor of its row has the focus: the other grids of the form do not react.
+
+Both call `ToggleFilterRow`, which an action of the application can call too, for example from a button of its tool bar. When it shows the row, the focus goes to the editor of the current column, or to the first editor shown; when it hides the row, the focus goes back to the cells.
+
+`OnFilterRowToggle` fires when the row is shown or hidden, whatever the way, also with `FilterRow.Visible` by code (not while the form is loaded): for example to show the state in a control of the application, as the demo does with its check box, or to save it. `FilterRow.Visible` can also be bound with the LiveBindings, for example to a check box with a `TLinkControlToProperty` whose `ComponentProperty` is `FilterRow.Visible`: the grid tells the LiveBindings when the row is shown or hidden, also by the user.
 
 ### Editors
 
@@ -202,7 +217,9 @@ end;
 | `FilterState[AColumn]` | The state of the text: `gfsEmpty`, `gfsIncomplete`, `gfsValid` (the filter is applied) or `gfsInvalid` |
 | `SetFilter(AColumn, AOperator, AValue)` | Sets the filter of a column, and writes its text; `gfoNone` removes it |
 | `FilterMatches(AColumn, AValue)` | True when a value of a row passes the filter of its column; True when the column has no filter applied |
-| `IsFiltered` | True when at least one column has a filter applied |
+| `IsFiltered` | True when at least one column has a filter applied; always `False` while the row is hidden |
+| `ToggleFilterRow` | Shows or hides the filter row, as the button of the header and `FilterRow.ShortCut` |
+| `Filtered` | The same as `IsFiltered`, as a public read-only property for the LiveBindings (see [LiveBindings](#livebindings)) |
 | `ClearFilters` | Clears the filters of all the columns |
 | `Filter` | Fires `OnFilter` |
 
@@ -220,8 +237,9 @@ Setting a filter by code shows it in the editor and fires `OnFilterChanged`, not
 | Event | Fires |
 |---|---|
 | `OnFilterChanged(Sender, AColumn)` | When the filter of a column changes, in its editor (at each key) or by code |
-| `OnFilter(Sender)` | When the application must filter its data: Enter or Esc in an editor, a choice in the menu, a click on a check box of the row, the pause in the typing with `AutoFilter`, a call to `Filter`, the row hidden with `ClearOnHide` |
+| `OnFilter(Sender)` | When the application must filter its data: Enter or Esc in an editor, a choice in the menu, a click on a check box of the row, the pause in the typing with `AutoFilter`, a call to `Filter`, the row shown or hidden while there are filters |
 | `OnFilterMenu(Sender, AColumn, AItems)` | Before the menu of the filter of a column is shown |
+| `OnFilterRowToggle(Sender)` | When the filter row is shown or hidden |
 | `OnCreateFilterEditor(Sender, AColumn, var AEditor)` | When the grid creates the editor of a column: an editor of your own instead of the one of the grid |
 
 Typing in an editor fires `OnFilterChanged` at each change, but `OnFilter` only with Enter, or with `AutoFilter` after a pause, so the data are not filtered again at each key; each key starts the pause again. A choice in the menu and a click on a check box are explicit, and filter at once.
@@ -315,6 +333,7 @@ The grid **does not sort the data itself**: as for the filters, it keeps the key
 | `SortColumn[I]`, `SortDescending[I]` | The column and the direction of each key, the first key first |
 | `SortIndexOf(AColumn)` | The position of a column among the keys, -1 when it is not a key |
 | `IsSorted` | True when there is at least one key |
+| `Sorted` | The same as `IsSorted`, as a public read-only property for the LiveBindings (see [LiveBindings](#livebindings)) |
 | `SetSort(AColumn, Descending)` | Sorts only by a column |
 | `AddSort(AColumn, Descending)` | Adds a column as the last key, or changes its direction when it is already a key |
 | `RemoveSort(AColumn)` | Removes a column from the keys |
@@ -327,7 +346,7 @@ The methods work also when `Sorting.Enabled` is `False`, and the header shows th
 
 `Demos\Grid\S4YGridDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) has three tabs:
 
-- **Objects**: 200 customers in a list of objects, shown with `OnGetValue` and filtered by the application in `OnFilter` with `FilterMatches`, with the cities in the menu of their filter (`FilterItems`), an item of the application in the menu of the amount (`OnFilterMenu`), an integer column of the status that shows texts, filtered with `SetFilterEnum` and a footer with a text, an average, a sum and a date; the panel on the left changes the filter row (`Visible`, `AutoFilter`, `FilterDelay`, `ClearOnHide`, `ClearFilters`) and the footer (`Visible`, the `FooterKind` of the amount, the sum of all the data with `OnGetFooterText`) and the order (`Sorting.Enabled`, `MultiColumn`, `ShowOrder`, `OrderPosition`, `OrderSpacing`), and shows the last `OnFilterChanged` with the text, the operator and the value read, the rows shown and the keys of the last `OnSort`; the application sorts the list with a comparer that reads the keys, after the filters;
+- **Objects**: 200 customers in a list of objects, shown with `OnGetValue` and filtered by the application in `OnFilter` with `FilterMatches`, with the cities in the menu of their filter (`FilterItems`), an item of the application in the menu of the amount (`OnFilterMenu`), an integer column of the status that shows texts, filtered with `SetFilterEnum` and a footer with a text, an average, a sum and a date; the panel on the left changes the filter row (`Visible`, `AutoFilter`, `FilterDelay`, `ClearOnHide`, `ShowButton`, `ClearFilters`; Ctrl+Shift+F shows and hides it) and the footer (`Visible`, the `FooterKind` of the amount, the sum of all the data with `OnGetFooterText`) and the order (`Sorting.Enabled`, `MultiColumn`, `ShowOrder`, `OrderPosition`, `OrderSpacing`), and shows the last `OnFilterChanged` with the text, the operator and the value read, the rows shown and the keys of the last `OnSort`; the application sorts the list with a comparer that reads the keys, after the filters;
 - **LiveBindings**: the same customers in a `TFDMemTable`, shown through a `TLinkGridToDataSource`, filtered by the data set in `OnFilterRecord`, which compares each field with `FilterMatches`, and sorted with its `IndexFieldNames` in `OnSort`, with the footer read through the link;
 - **Style book**: the grid with a dark style of the `TStyleBook` of the form, with the parts `filterrowbackground`, `footerbackground`, `footertext` and `filterinvalidtext`.
 
@@ -394,6 +413,8 @@ begin
 end;
 ```
 
+**The grid as a source of bindings.** The settings of the grid can be bound to the controls of the application, also in the direction from the grid to the controls: the grid tells the LiveBindings when `FilterRow`, `FooterRow` and `Sorting` change, also when the user shows or hides the filter row with the button of the header or with the keys, so a check box bound to `FilterRow.Visible` with a `TLinkControlToProperty` follows the row. The public read-only properties `Filtered` and `Sorted` tell whether the data are filtered and sorted, and the LiveBindings are told when they change, not at each key typed in a filter: for example, a `TBindExpression` with `SourceExpression` `Filtered` and `ControlExpression` `Enabled` enables a button that clears the filters. The filters and the keys of the order themselves are indexed by column, so they cannot be bound.
+
 ## Styles
 
 The filter row is added to the style of the grid when the style is applied: to the part `background`, aligned to the top after the header, so the part `content` with the cells starts under it. The row draws a line on its bottom side with the brush `linefill` of the style, the brush of the lines of the grid, and its editors take the styles of the form, looked for in its style book and in the style of the platform: `editstyle`, the style of `TEdit`, for the text fields, and `checkcellstyle`, the style of the check boxes of the cells of the grid, for the check boxes, so that a check box of the row looks as the ones of the cells. `FilterRow.EditStyleLookup` and `FilterRow.CheckBoxStyleLookup` give the editors of the row styles of their own, different from the other controls of the application; a style that is not found leaves the style of `TEdit` or of `TCheckBox`. The button of the menu is square, as high as the inside of the field; it takes the style `ellipseseditbutton` of the buttons of `TEdit`, and draws its three dots with the color of the text of the style of `TEdit`.
@@ -412,6 +433,7 @@ A style of the grid in a `TStyleBook` can add these parts, all optional:
 | `sortindicator` | A `TText`: the color of the arrows of the order and the font of the positions in the order; without it, the color of the text of the header and a smaller font |
 | `filterinvalidtext` | A `TText`: the color of the text of a filter that cannot be read; without it, red |
 | `filtermenubutton` | Any control, such as a `TPath`: shown in the middle of the button of the menu, in place of the three dots; each button shows a copy of it |
+| `filterbutton` | Any control, such as a `TPath`: shown in the middle of the button of the header, in place of the funnel |
 
 The texts of the footer are placed in their cells as the texts of the cells of the grid: in the cell less the `Padding` of the column (a published property of `TColumn`, 3 pixels on each side by default), so a total is aligned with the values above it. When a style has the part `filterrowbackground` or `footerbackground`, its `Padding` is always used, also when it is 0: a style that adds `filterrowbackground` sets its `Padding` too, for example 2 on each side. Without the part, as in the styles of the platform, the editors are 2 pixels from the sides of their cells, and the texts of the footer have only the `Padding` of the columns. The top and bottom padding of the parts are added to the automatic heights; a `Height` greater than 0 comes first, and the editors and the texts take the space left inside the padding.
 

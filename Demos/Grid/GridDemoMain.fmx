@@ -139,6 +139,21 @@ object GridDemoForm: TGridDemoForm
           Text = 'FilterRow.ClearOnHide'
           OnChange = FilterSettingsChange
         end
+        object ShowButtonCheckBox: TCheckBox
+          Align = Top
+          IsChecked = True
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 136.000000000000000000
+          Size.Width = 246.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 23
+          Text = 'FilterRow.ShowButton (Ctrl+Shift+F)'
+          OnChange = FilterSettingsChange
+        end
         object ClearFiltersButton: TButton
           Align = Top
           Margins.Left = 12.000000000000000000
@@ -436,7 +451,7 @@ object GridDemoForm: TGridDemoForm
           Position.X = 12.000000000000000000
           Position.Y = 8.000000000000000000
           Size.Width = 806.000000000000000000
-          Size.Height = 104.000000000000000000
+          Size.Height = 120.000000000000000000
           Size.PlatformDefault = False
           TextSettings.VertAlign = Leading
           Text = 
@@ -450,9 +465,11 @@ object GridDemoForm: TGridDemoForm
             'item of the application). Status is an integer column that shows' +
             ' texts: its FilterItems are Text=Value lines (SetFilterEnum), so' +
             ' its filter shows the texts and gives the values. Enter filters,' +
-            ' Esc clears a filter. A click on a header sorts in OnSort, Shift' +
-            '+click adds a column, Ctrl+click removes it, Alt+click goes back' +
-            ' to the order of the data.'
+            ' Esc clears a filter; the button on the right of the header or C' +
+            'trl+Shift+F shows or hides the filter row, and the filters apply' +
+            ' only while it is shown. A click on a header sorts in OnSort, Sh' +
+            'ift+click adds a column, Ctrl+click removes it, Alt+click goes b' +
+            'ack to the order of the data.'
         end
         object ObjectsGrid: TS4YGrid
           Align = Client
@@ -496,6 +513,7 @@ object GridDemoForm: TGridDemoForm
           OnFilter = ObjectsGridFilter
           OnFilterChanged = ObjectsGridFilterChanged
           OnFilterMenu = ObjectsGridFilterMenu
+          OnFilterRowToggle = ObjectsGridFilterRowToggle
           OnGetFooterText = ObjectsGridGetFooterText
           OnSort = ObjectsGridSort
           Viewport.Width = 802.000000000000000000

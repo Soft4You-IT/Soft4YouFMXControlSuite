@@ -36,6 +36,8 @@ const
   MM_S4Y_GRID_FOOTER_CHANGED = MM_GRID_USER + 4;
   /// <summary>Message of the model to the presentation: the order of the rows or its settings changed.</summary>
   MM_S4Y_GRID_SORT_CHANGED = MM_GRID_USER + 5;
+  /// <summary>Message of the model to the presentation: the filter row was shown or hidden by ToggleFilterRow.</summary>
+  MM_S4Y_GRID_FILTER_ROW_TOGGLED = MM_GRID_USER + 6;
 
 type
   TS4YGridModel = class;
@@ -108,6 +110,8 @@ type
     C_DEFAULT_FILTER_DELAY = 400;
     /// <summary>Default value of Height: automatic.</summary>
     C_DEFAULT_HEIGHT = 0;
+    /// <summary>Default value of ShortCut: Ctrl+Shift+F.</summary>
+    C_DEFAULT_SHORT_CUT = scCtrl or scShift or Ord('F');
   private
     FAutoFilter: Boolean;
     FCheckBoxStyleLookup: string;
@@ -116,6 +120,8 @@ type
     FFilterDelay: Integer;
     FHeight: Integer;
     FMenuStyleLookup: string;
+    FShortCut: TShortCut;
+    FShowButton: Boolean;
     FShowMenuButton: Boolean;
     FVisible: Boolean;
     FOnChange: TNotifyEvent;
@@ -127,6 +133,8 @@ type
     procedure SetFilterDelay(const Value: Integer);
     procedure SetHeight(const Value: Integer);
     procedure SetMenuStyleLookup(const Value: string);
+    procedure SetShortCut(const Value: TShortCut);
+    procedure SetShowButton(const Value: Boolean);
     procedure SetShowMenuButton(const Value: Boolean);
     procedure SetVisible(const Value: Boolean);
   public
@@ -155,8 +163,8 @@ type
     /// </summary>
     property CheckBoxStyleLookup: string read FCheckBoxStyleLookup write SetCheckBoxStyleLookup;
     /// <summary>
-    /// True clears the filters when the filter row is hidden, and asks the application to filter again with OnFilter.
-    /// The default is False: the filters stay, and are shown again with the row.
+    /// True clears the filters when the filter row is hidden. The default is False: the texts of the filters stay, and
+    /// apply again when the row is shown again.
     /// </summary>
     property ClearOnHide: Boolean read FClearOnHide write SetClearOnHide default False;
     /// <summary>
@@ -180,11 +188,27 @@ type
     /// </summary>
     property MenuStyleLookup: string read FMenuStyleLookup write SetMenuStyleLookup;
     /// <summary>
+    /// The keys that show or hide the filter row, when the grid or an editor of the row has the focus. The default is
+    /// Ctrl+Shift+F; 0 has no keys.
+    /// </summary>
+    property ShortCut: TShortCut read FShortCut write SetShortCut default C_DEFAULT_SHORT_CUT;
+    /// <summary>
+    /// True shows a button on the right side of the header, which shows or hides the filter row; it is square, as high
+    /// as the header. The default is False.
+    /// </summary>
+    property ShowButton: Boolean read FShowButton write SetShowButton default False;
+    /// <summary>
     /// True shows a button in the text fields of the filter row, which opens the menu of the filter: the operators,
     /// the values and the functions of the column. The default is True.
     /// </summary>
     property ShowMenuButton: Boolean read FShowMenuButton write SetShowMenuButton default True;
     /// <summary>True shows the filter row under the header. The default is False.</summary>
+    /// <remarks>
+    /// The filters apply only while the row is shown: when it is hidden, the grid has no filter, and showing or hiding
+    /// it fires OnFilter when there are filters, so that the application filters its data again. It can be bound with
+    /// the LiveBindings, as FilterRow.Visible of the grid, also when the user shows or hides the row; so can the other
+    /// settings of the row.
+    /// </remarks>
     property Visible: Boolean read FVisible write SetVisible default False;
   end;
 
@@ -348,7 +372,10 @@ type
   private
     FColumnSettings: TS4YGridColumnSettings;
     FFilterRow: TS4YGridFilterRow;
+    FFilterRowVisible: Boolean;
     FFilters: TDictionary<TColumn, TS4YGridFilter>;
+    FNotifiedFiltered: Boolean;
+    FNotifiedSorted: Boolean;
     FFooterRow: TS4YGridFooterRow;
     FSorting: TS4YGridSorting;
     FSortKeys: TList<TS4YGridSortKey>;
@@ -356,6 +383,7 @@ type
     FOnFilter: TNotifyEvent;
     FOnFilterChanged: TS4YGridColumnEvent;
     FOnFilterMenu: TS4YGridFilterMenuEvent;
+    FOnFilterRowToggle: TNotifyEvent;
     FOnGetFooterText: TS4YGridFooterTextEvent;
     FOnSort: TNotifyEvent;
     procedure ColumnSettingsChange(Sender: TObject);
@@ -375,6 +403,10 @@ type
     function CreateFilter(const AColumn: TColumn; const AText: string): TS4YGridFilter;
     function GetColumnValueKind(const AColumn: TColumn): TS4YGridFilterValueKind;
     function GetFilterItemValues(const AColumn: TColumn): TArray<TS4YGridFilterItem>;
+    function GetWrittenFilter(const AColumn: TColumn): TS4YGridFilter;
+    function HasWrittenFilters: Boolean;
+    procedure NotifyFiltered;
+    procedure NotifySorted;
   protected
     /// <summary>Forgets the filter and the key of the order of a column removed from the grid.</summary>
     procedure DoColumnRemoved(const Column: TColumn); override;
@@ -417,7 +449,9 @@ type
     /// has no filter.
     /// </summary>
     function FilterMatches(const AColumn: TColumn; const AValue: TValue): Boolean;
-    /// <summary>Returns the filter of AColumn: its text, operator, value and state.</summary>
+    /// <summary>
+    /// Returns the filter of AColumn: its text, operator, value and state; no filter while the filter row is hidden.
+    /// </summary>
     function GetFilter(const AColumn: TColumn): TS4YGridFilter;
     /// <summary>Returns the kind of value of the filter of AColumn, from the type of the column.</summary>
     function GetFilterKind(const AColumn: TColumn): TS4YGridFilterValueKind;
@@ -431,11 +465,11 @@ type
     function GetFilterOperator(const AColumn: TColumn): TS4YGridFilterOperator;
     /// <summary>Returns the state of the text of the filter of AColumn.</summary>
     function GetFilterState(const AColumn: TColumn): TS4YGridFilterState;
-    /// <summary>Returns the text of the filter of AColumn, as it is written.</summary>
+    /// <summary>Returns the text of the filter of AColumn, as it is written, also while the filter row is hidden.</summary>
     function GetFilterText(const AColumn: TColumn): string;
     /// <summary>Returns the filter value of AColumn: an empty value when the filter is not applied.</summary>
     function GetFilterValue(const AColumn: TColumn): TValue;
-    /// <summary>Returns True when at least one column has a filter that is applied.</summary>
+    /// <summary>Returns True when at least one column has a filter that is applied: never while the row is hidden.</summary>
     function IsFiltered: Boolean;
     /// <summary>
     /// Sets the filter of AColumn to AOperator and AValue and shows its text in the editor; gfoNone removes the filter.
@@ -453,6 +487,11 @@ type
     /// settings of the column, changed by OnGetFooterText.
     /// </summary>
     function GetFooterText(const AColumn: TColumn): string;
+    /// <summary>
+    /// Shows the filter row, with the focus in the editor of the current column, or hides it, with the focus back to
+    /// the cells; ClearOnHide works as for Visible.
+    /// </summary>
+    procedure ToggleFilterRow;
     /// <summary>Calculates and draws the footer again, after a change of the data of the application.</summary>
     procedure UpdateFooter;
     /// <summary>
@@ -496,6 +535,8 @@ type
     property OnFilterChanged: TS4YGridColumnEvent read FOnFilterChanged write FOnFilterChanged;
     /// <summary>Lets the application change the menu of the filter of a column before it is shown.</summary>
     property OnFilterMenu: TS4YGridFilterMenuEvent read FOnFilterMenu write FOnFilterMenu;
+    /// <summary>Fires when the filter row is shown or hidden.</summary>
+    property OnFilterRowToggle: TNotifyEvent read FOnFilterRowToggle write FOnFilterRowToggle;
     /// <summary>Lets the application change the text of the footer under a column.</summary>
     property OnGetFooterText: TS4YGridFooterTextEvent read FOnGetFooterText write FOnGetFooterText;
     /// <summary>Fires when the order of the rows changes: the application sorts its data with the keys.</summary>
@@ -520,17 +561,20 @@ type
     function GetFilterState(const AColumn: TColumn): TS4YGridFilterState;
     function GetFilterText(const AColumn: TColumn): string;
     function GetFilterValue(const AColumn: TColumn): TValue;
+    function GetFiltered: Boolean;
     function GetFooterRow: TS4YGridFooterRow;
     function GetModel: TS4YGridModel; overload;
     function GetOnCreateFilterEditor: TS4YGridCreateFilterEditorEvent;
     function GetOnFilter: TNotifyEvent;
     function GetOnFilterChanged: TS4YGridColumnEvent;
     function GetOnFilterMenu: TS4YGridFilterMenuEvent;
+    function GetOnFilterRowToggle: TNotifyEvent;
     function GetOnGetFooterText: TS4YGridFooterTextEvent;
     function GetOnSort: TNotifyEvent;
     function GetSortColumn(const AIndex: Integer): TColumn;
     function GetSortCount: Integer;
     function GetSortDescending(const AIndex: Integer): Boolean;
+    function GetSorted: Boolean;
     function GetSorting: TS4YGridSorting;
     procedure SetColumnSettings(const Value: TS4YGridColumnSettings);
     procedure SetFilterRow(const Value: TS4YGridFilterRow);
@@ -541,10 +585,13 @@ type
     procedure SetOnFilter(const Value: TNotifyEvent);
     procedure SetOnFilterChanged(const Value: TS4YGridColumnEvent);
     procedure SetOnFilterMenu(const Value: TS4YGridFilterMenuEvent);
+    procedure SetOnFilterRowToggle(const Value: TNotifyEvent);
     procedure SetOnGetFooterText(const Value: TS4YGridFooterTextEvent);
     procedure SetOnSort(const Value: TNotifyEvent);
     procedure SetSorting(const Value: TS4YGridSorting);
   protected
+    /// <summary>Shows or hides the filter row with FilterRow.ShortCut, when the focus is in the grid.</summary>
+    procedure DialogKey(var Key: Word; Shift: TShiftState); override;
     /// <summary>Returns the class of the model of the grid, TS4YGridModel.</summary>
     function DefineModelClass: TDataModelClass; override;
     /// <summary>Forgets the settings of a column that is freed.</summary>
@@ -591,6 +638,12 @@ type
     /// <summary>Returns the position of AColumn among the keys of the order, -1 when it is not a key.</summary>
     function SortIndexOf(const AColumn: TColumn): Integer;
     /// <summary>
+    /// Shows the filter row, with the focus in the editor of the current column, or hides it, with the focus back to
+    /// the cells. The button of the header and FilterRow.ShortCut call it; an action of the application can call it
+    /// too.
+    /// </summary>
+    procedure ToggleFilterRow;
+    /// <summary>
     /// Calculates and draws the footer again. Call it after a change of the data of the application that the grid
     /// cannot see, such as a value changed in the list shown by OnGetValue.
     /// </summary>
@@ -627,6 +680,11 @@ type
     /// operator of the column, shows it in the editor and fires OnFilterChanged, not OnFilter.
     /// </remarks>
     property FilterValue[const AColumn: TColumn]: TValue read GetFilterValue write SetFilterValue;
+    /// <summary>
+    /// True when at least one column has a filter that is applied, as IsFiltered; the LiveBindings are told when it
+    /// changes, for example to enable a button that clears the filters.
+    /// </summary>
+    property Filtered: Boolean read GetFiltered;
     /// <summary>The model of the grid.</summary>
     property Model: TS4YGridModel read GetModel;
     /// <summary>The columns of the keys of the order, the first key first.</summary>
@@ -635,6 +693,11 @@ type
     property SortCount: Integer read GetSortCount;
     /// <summary>The directions of the keys of the order: True from the highest value to the lowest.</summary>
     property SortDescending[const AIndex: Integer]: Boolean read GetSortDescending;
+    /// <summary>
+    /// True when the rows are sorted by at least one column, as IsSorted; the LiveBindings are told when it changes,
+    /// for example to enable a button that goes back to the order of the data.
+    /// </summary>
+    property Sorted: Boolean read GetSorted;
   published
     /// <summary>The settings of the columns, such as Filterable; a column without an item has the default settings.</summary>
     property ColumnSettings: TS4YGridColumnSettings read GetColumnSettings write SetColumnSettings;
@@ -678,6 +741,12 @@ type
     /// </summary>
     property OnFilterMenu: TS4YGridFilterMenuEvent read GetOnFilterMenu write SetOnFilterMenu;
     /// <summary>
+    /// Fires when the filter row is shown or hidden: with the button of the header, FilterRow.ShortCut,
+    /// ToggleFilterRow or FilterRow.Visible; for example to show the state in a control of the application, or to
+    /// save it.
+    /// </summary>
+    property OnFilterRowToggle: TNotifyEvent read GetOnFilterRowToggle write SetOnFilterRowToggle;
+    /// <summary>
     /// Lets the application change the text of the footer under a column, for example to show the total of all its
     /// data and not only of the rows shown.
     /// </summary>
@@ -695,7 +764,16 @@ uses
   System.SysUtils,
   System.Math,
   System.DateUtils,
+  System.Bindings.Helper,
   Soft4You.FMX.Controls.Grid.Style;
+
+const
+  // The members of the grid the LiveBindings are told about when they change.
+  C_BINDING_FILTER_ROW = 'FilterRow';
+  C_BINDING_FILTERED = 'Filtered';
+  C_BINDING_FOOTER_ROW = 'FooterRow';
+  C_BINDING_SORTED = 'Sorted';
+  C_BINDING_SORTING = 'Sorting';
 
 resourcestring
   S_FILTER_CONTAINS = 'Contains';
@@ -716,6 +794,24 @@ resourcestring
   S_FILTER_CLEAR = 'Clear filter';
   S_FILTER_ENUM_TYPE = 'SetFilterEnum needs an enumerated type';
   S_FILTER_ENUM_TEXTS = 'SetFilterEnum has %d texts for %d values';
+
+// Returns the shortcut of AKey with the keys AShift, as TShortCut writes it.
+function KeyToShortCut(const AKey: Word; const AShift: TShiftState): TShortCut;
+begin
+  Result := AKey;
+
+  if ssShift in AShift then
+    Result := Result or scShift;
+
+  if ssCtrl in AShift then
+    Result := Result or scCtrl;
+
+  if ssAlt in AShift then
+    Result := Result or scAlt;
+
+  if ssCommand in AShift then
+    Result := Result or scCommand;
+end;
 
 // Returns the text of the item of the menu of AOperator.
 function OperatorText(const AOperator: TS4YGridFilterOperator): string;
@@ -888,6 +984,7 @@ begin
   inherited;
 
   FFilterDelay := C_DEFAULT_FILTER_DELAY;
+  FShortCut := C_DEFAULT_SHORT_CUT;
   FShowMenuButton := True;
 end;
 
@@ -905,6 +1002,8 @@ begin
     FFilterDelay := LSource.FilterDelay;
     FHeight := LSource.Height;
     FMenuStyleLookup := LSource.MenuStyleLookup;
+    FShortCut := LSource.ShortCut;
+    FShowButton := LSource.ShowButton;
     FShowMenuButton := LSource.ShowMenuButton;
     FVisible := LSource.Visible;
     Changed;
@@ -987,6 +1086,24 @@ begin
     Exit;
 
   FMenuStyleLookup := Value;
+  Changed;
+end;
+
+procedure TS4YGridFilterRow.SetShortCut(const Value: TShortCut);
+begin
+  if FShortCut = Value then
+    Exit;
+
+  FShortCut := Value;
+  Changed;
+end;
+
+procedure TS4YGridFilterRow.SetShowButton(const Value: Boolean);
+begin
+  if FShowButton = Value then
+    Exit;
+
+  FShowButton := Value;
   Changed;
 end;
 
@@ -1432,6 +1549,7 @@ begin
   end;
 
   SendMessage(MM_S4Y_GRID_COLUMN_SETTINGS_CHANGED);
+  NotifyFiltered;
 end;
 
 function TS4YGridModel.CreateFilter(const AColumn: TColumn; const AText: string): TS4YGridFilter;
@@ -1455,6 +1573,8 @@ begin
 
   SendMessage(MM_S4Y_GRID_FILTER_ROW_CHANGED);
   SendMessage(MM_S4Y_GRID_SORT_CHANGED);
+  NotifyFiltered;
+  NotifySorted;
 end;
 
 procedure TS4YGridModel.DoFilterChanged(const AColumn: TColumn);
@@ -1483,6 +1603,25 @@ begin
     FOnSort(Owner);
 end;
 
+procedure TS4YGridModel.NotifyFiltered;
+begin
+  // Only when it changes, not at each key typed in a filter.
+  if IsFiltered = FNotifiedFiltered then
+    Exit;
+
+  FNotifiedFiltered := IsFiltered;
+  TBindings.Notify(Owner, C_BINDING_FILTERED);
+end;
+
+procedure TS4YGridModel.NotifySorted;
+begin
+  if IsSorted = FNotifiedSorted then
+    Exit;
+
+  FNotifiedSorted := IsSorted;
+  TBindings.Notify(Owner, C_BINDING_SORTED);
+end;
+
 procedure TS4YGridModel.Filter;
 begin
   if Assigned(FOnFilter) then
@@ -1490,20 +1629,42 @@ begin
 end;
 
 procedure TS4YGridModel.FilterRowChange(Sender: TObject);
+var
+  LFiltered: Boolean;
 begin
-  // A hidden row with ClearOnHide does not filter anymore: the application shows all the data again.
-  if not FFilterRow.Visible and FFilterRow.ClearOnHide and IsFiltered then
+  // The filters apply only while the row is shown: showing or hiding it filters the data again.
+  if FFilterRow.Visible <> FFilterRowVisible then
   begin
-    ClearFilters;
-    Filter;
+    FFilterRowVisible := FFilterRow.Visible;
+    LFiltered := HasWrittenFilters;
+
+    if not FFilterRowVisible and FFilterRow.ClearOnHide then
+      ClearFilters;
+
+    SendMessage(MM_S4Y_GRID_FILTER_ROW_CHANGED);
+
+    if LFiltered then
+      Filter;
+
+    // The LiveBindings that read a setting, such as FilterRow.Visible, follow the property FilterRow of the grid.
+    TBindings.Notify(Owner, C_BINDING_FILTER_ROW);
+    NotifyFiltered;
+
+    // Not while the form is loaded: the application is not ready yet.
+    if Assigned(FOnFilterRowToggle) and not (csLoading in Owner.ComponentState) then
+      FOnFilterRowToggle(Owner);
+
+    Exit;
   end;
 
   SendMessage(MM_S4Y_GRID_FILTER_ROW_CHANGED);
+  TBindings.Notify(Owner, C_BINDING_FILTER_ROW);
 end;
 
 procedure TS4YGridModel.FooterRowChange(Sender: TObject);
 begin
   SendMessage(MM_S4Y_GRID_FOOTER_CHANGED);
+  TBindings.Notify(Owner, C_BINDING_FOOTER_ROW);
 end;
 
 function TS4YGridModel.FormatFooterValue(const AColumn: TColumn; const ASetting: TS4YGridColumnSetting;
@@ -1536,7 +1697,10 @@ end;
 
 function TS4YGridModel.GetFilter(const AColumn: TColumn): TS4YGridFilter;
 begin
-  if not Assigned(AColumn) or not FFilters.TryGetValue(AColumn, Result) then
+  // A hidden row has no filter: its texts stay, for when it is shown again.
+  if FFilterRow.Visible then
+    Result := GetWrittenFilter(AColumn)
+  else
     Result := CreateFilter(AColumn, '');
 end;
 
@@ -1662,7 +1826,22 @@ end;
 
 function TS4YGridModel.GetFilterText(const AColumn: TColumn): string;
 begin
-  Result := GetFilter(AColumn).Text;
+  Result := GetWrittenFilter(AColumn).Text;
+end;
+
+function TS4YGridModel.GetWrittenFilter(const AColumn: TColumn): TS4YGridFilter;
+begin
+  if not Assigned(AColumn) or not FFilters.TryGetValue(AColumn, Result) then
+    Result := CreateFilter(AColumn, '');
+end;
+
+function TS4YGridModel.HasWrittenFilters: Boolean;
+begin
+  Result := False;
+
+  for var LFilter in FFilters.Values do
+    if LFilter.IsActive then
+      Result := True;
 end;
 
 function TS4YGridModel.GetFilterValue(const AColumn: TColumn): TValue;
@@ -1754,11 +1933,7 @@ end;
 
 function TS4YGridModel.IsFiltered: Boolean;
 begin
-  Result := False;
-
-  for var LFilter in FFilters.Values do
-    if LFilter.IsActive then
-      Result := True;
+  Result := FFilterRow.Visible and HasWrittenFilters;
 end;
 
 function TS4YGridModel.IsSorted: Boolean;
@@ -1834,11 +2009,13 @@ procedure TS4YGridModel.SortChanged;
 begin
   SendMessage(MM_S4Y_GRID_SORT_CHANGED);
   DoSort;
+  NotifySorted;
 end;
 
 procedure TS4YGridModel.SortingChange(Sender: TObject);
 begin
   SendMessage(MM_S4Y_GRID_SORT_CHANGED);
+  TBindings.Notify(Owner, C_BINDING_SORTING);
 end;
 
 function TS4YGridModel.SortIndexOf(const AColumn: TColumn): Integer;
@@ -1870,6 +2047,12 @@ end;
 procedure TS4YGridModel.SetFooterRow(const Value: TS4YGridFooterRow);
 begin
   FFooterRow.Assign(Value);
+end;
+
+procedure TS4YGridModel.ToggleFilterRow;
+begin
+  FFilterRow.Visible := not FFilterRow.Visible;
+  SendMessage(MM_S4Y_GRID_FILTER_ROW_TOGGLED);
 end;
 
 procedure TS4YGridModel.UpdateFooter;
@@ -1933,6 +2116,7 @@ begin
 
   SendMessage<TColumn>(MM_S4Y_GRID_FILTER_VALUE_CHANGED, AColumn);
   DoFilterChanged(AColumn);
+  NotifyFiltered;
 end;
 
 { TS4YGrid }
@@ -1997,6 +2181,11 @@ begin
   Result := Model.GetFilterValue(AColumn);
 end;
 
+function TS4YGrid.GetFiltered: Boolean;
+begin
+  Result := Model.IsFiltered;
+end;
+
 function TS4YGrid.GetFooterRow: TS4YGridFooterRow;
 begin
   Result := Model.FooterRow;
@@ -2027,6 +2216,11 @@ begin
   Result := Model.OnFilterMenu;
 end;
 
+function TS4YGrid.GetOnFilterRowToggle: TNotifyEvent;
+begin
+  Result := Model.OnFilterRowToggle;
+end;
+
 function TS4YGrid.GetOnGetFooterText: TS4YGridFooterTextEvent;
 begin
   Result := Model.OnGetFooterText;
@@ -2050,6 +2244,11 @@ end;
 function TS4YGrid.GetSortDescending(const AIndex: Integer): Boolean;
 begin
   Result := Model.SortKeys[AIndex].Descending;
+end;
+
+function TS4YGrid.GetSorted: Boolean;
+begin
+  Result := Model.IsSorted;
 end;
 
 function TS4YGrid.GetSorting: TS4YGridSorting;
@@ -2145,6 +2344,11 @@ begin
   Model.OnFilterMenu := Value;
 end;
 
+procedure TS4YGrid.SetOnFilterRowToggle(const Value: TNotifyEvent);
+begin
+  Model.OnFilterRowToggle := Value;
+end;
+
 procedure TS4YGrid.SetOnGetFooterText(const Value: TS4YGridFooterTextEvent);
 begin
   Model.OnGetFooterText := Value;
@@ -2168,6 +2372,36 @@ end;
 function TS4YGrid.SortIndexOf(const AColumn: TColumn): Integer;
 begin
   Result := Model.SortIndexOf(AColumn);
+end;
+
+procedure TS4YGrid.DialogKey(var Key: Word; Shift: TShiftState);
+var
+  LFocused: TFmxObject;
+begin
+  inherited;
+
+  if (Key = 0) or (FilterRow.ShortCut = 0) or (KeyToShortCut(Key, Shift) <> FilterRow.ShortCut) then
+    Exit;
+
+  // Only the grid with the focus, in its cells or in an editor of its filter row.
+  LFocused := nil;
+
+  if Assigned(Root) and Assigned(Root.Focused) then
+    LFocused := Root.Focused.GetObject;
+
+  while Assigned(LFocused) and (LFocused <> Self) do
+    LFocused := LFocused.Parent;
+
+  if LFocused = Self then
+  begin
+    Key := 0;
+    ToggleFilterRow;
+  end;
+end;
+
+procedure TS4YGrid.ToggleFilterRow;
+begin
+  Model.ToggleFilterRow;
 end;
 
 procedure TS4YGrid.UpdateFooter;
