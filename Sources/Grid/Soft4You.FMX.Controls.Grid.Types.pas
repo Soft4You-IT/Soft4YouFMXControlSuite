@@ -98,6 +98,16 @@ type
   );
 
   /// <summary>
+  /// A value of the list of the filter of a column, from a line Text=Value of its FilterItems.
+  /// </summary>
+  TS4YGridFilterItem = record
+    /// <summary>The text the user sees and writes, such as Open.</summary>
+    Text: string;
+    /// <summary>The value the application gets, of the type of the column, such as 1 for an integer column.</summary>
+    Value: TValue;
+  end;
+
+  /// <summary>
   /// The state of the text of the filter of a column.
   /// </summary>
   /// <remarks>
