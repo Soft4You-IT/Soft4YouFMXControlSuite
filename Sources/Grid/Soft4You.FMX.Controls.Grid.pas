@@ -38,6 +38,8 @@ const
   MM_S4Y_GRID_SORT_CHANGED = MM_GRID_USER + 5;
   /// <summary>Message of the model to the presentation: the filter row was shown or hidden by ToggleFilterRow.</summary>
   MM_S4Y_GRID_FILTER_ROW_TOGGLED = MM_GRID_USER + 6;
+  /// <summary>Message of the model to the presentation: the height of the header or where it comes from changed.</summary>
+  MM_S4Y_GRID_HEADER_CHANGED = MM_GRID_USER + 7;
 
 type
   TS4YGridModel = class;
@@ -377,6 +379,8 @@ type
     FNotifiedFiltered: Boolean;
     FNotifiedSorted: Boolean;
     FFooterRow: TS4YGridFooterRow;
+    FHeaderHeight: Single;
+    FHeaderHeightMode: TS4YGridHeaderHeightMode;
     FSorting: TS4YGridSorting;
     FSortKeys: TList<TS4YGridSortKey>;
     FOnCreateFilterEditor: TS4YGridCreateFilterEditorEvent;
@@ -396,6 +400,8 @@ type
     procedure SetColumnSettings(const Value: TS4YGridColumnSettings);
     procedure SetFilterRow(const Value: TS4YGridFilterRow);
     procedure SetFooterRow(const Value: TS4YGridFooterRow);
+    procedure SetHeaderHeight(const Value: Single);
+    procedure SetHeaderHeightMode(const Value: TS4YGridHeaderHeightMode);
     procedure SetSorting(const Value: TS4YGridSorting);
     procedure SortChanged;
     procedure SortingChange(Sender: TObject);
@@ -520,6 +526,10 @@ type
     property FilterRow: TS4YGridFilterRow read FFilterRow write SetFilterRow;
     /// <summary>The settings of the footer.</summary>
     property FooterRow: TS4YGridFooterRow read FFooterRow write SetFooterRow;
+    /// <summary>The height of the header with HeaderHeightMode ghmExplicit; 0 is the height of the style.</summary>
+    property HeaderHeight: Single read FHeaderHeight write SetHeaderHeight;
+    /// <summary>Where the height of the header comes from.</summary>
+    property HeaderHeightMode: TS4YGridHeaderHeightMode read FHeaderHeightMode write SetHeaderHeightMode;
     /// <summary>The number of keys of the order.</summary>
     property SortCount: Integer read GetSortCount;
     /// <summary>The keys of the order, the first one first.</summary>
@@ -563,6 +573,8 @@ type
     function GetFilterValue(const AColumn: TColumn): TValue;
     function GetFiltered: Boolean;
     function GetFooterRow: TS4YGridFooterRow;
+    function GetHeaderHeight: Single;
+    function GetHeaderHeightMode: TS4YGridHeaderHeightMode;
     function GetModel: TS4YGridModel; overload;
     function GetOnCreateFilterEditor: TS4YGridCreateFilterEditorEvent;
     function GetOnFilter: TNotifyEvent;
@@ -581,6 +593,8 @@ type
     procedure SetFilterText(const AColumn: TColumn; const Value: string);
     procedure SetFilterValue(const AColumn: TColumn; const Value: TValue);
     procedure SetFooterRow(const Value: TS4YGridFooterRow);
+    procedure SetHeaderHeight(const Value: Single);
+    procedure SetHeaderHeightMode(const Value: TS4YGridHeaderHeightMode);
     procedure SetOnCreateFilterEditor(const Value: TS4YGridCreateFilterEditorEvent);
     procedure SetOnFilter(const Value: TNotifyEvent);
     procedure SetOnFilterChanged(const Value: TS4YGridColumnEvent);
@@ -710,6 +724,18 @@ type
     /// The values are calculated from the rows of the grid, the ones of RowCount: after a filter, the rows shown.
     /// </remarks>
     property FooterRow: TS4YGridFooterRow read GetFooterRow write SetFooterRow;
+    /// <summary>
+    /// The height of the header, in logical pixels, when HeaderHeightMode is ghmExplicit; 0, the default, keeps the
+    /// height of the style.
+    /// </summary>
+    property HeaderHeight: Single read GetHeaderHeight write SetHeaderHeight;
+    /// <summary>
+    /// Where the height of the header comes from: the style of the grid (ghmStyle, the default), HeaderHeight
+    /// (ghmExplicit), or the height of the rows (ghmRowHeight), which follows RowHeight when it changes.
+    /// </summary>
+    /// <remarks>The height is applied again each time the style of the grid is loaded.</remarks>
+    property HeaderHeightMode: TS4YGridHeaderHeightMode read GetHeaderHeightMode write SetHeaderHeightMode
+      default ghmStyle;
     /// <summary>
     /// The settings of the order of the rows, chosen with a click on the header of the columns.
     /// </summary>
@@ -2049,6 +2075,24 @@ begin
   FFooterRow.Assign(Value);
 end;
 
+procedure TS4YGridModel.SetHeaderHeight(const Value: Single);
+begin
+  if SameValue(FHeaderHeight, Max(0, Value)) then
+    Exit;
+
+  FHeaderHeight := Max(0, Value);
+  SendMessage(MM_S4Y_GRID_HEADER_CHANGED);
+end;
+
+procedure TS4YGridModel.SetHeaderHeightMode(const Value: TS4YGridHeaderHeightMode);
+begin
+  if FHeaderHeightMode = Value then
+    Exit;
+
+  FHeaderHeightMode := Value;
+  SendMessage(MM_S4Y_GRID_HEADER_CHANGED);
+end;
+
 procedure TS4YGridModel.ToggleFilterRow;
 begin
   FFilterRow.Visible := not FFilterRow.Visible;
@@ -2191,6 +2235,16 @@ begin
   Result := Model.FooterRow;
 end;
 
+function TS4YGrid.GetHeaderHeight: Single;
+begin
+  Result := Model.HeaderHeight;
+end;
+
+function TS4YGrid.GetHeaderHeightMode: TS4YGridHeaderHeightMode;
+begin
+  Result := Model.HeaderHeightMode;
+end;
+
 function TS4YGrid.GetModel: TS4YGridModel;
 begin
   Result := GetModel<TS4YGridModel>;
@@ -2322,6 +2376,16 @@ end;
 procedure TS4YGrid.SetFooterRow(const Value: TS4YGridFooterRow);
 begin
   Model.FooterRow := Value;
+end;
+
+procedure TS4YGrid.SetHeaderHeight(const Value: Single);
+begin
+  Model.HeaderHeight := Value;
+end;
+
+procedure TS4YGrid.SetHeaderHeightMode(const Value: TS4YGridHeaderHeightMode);
+begin
+  Model.HeaderHeightMode := Value;
 end;
 
 procedure TS4YGrid.SetOnCreateFilterEditor(const Value: TS4YGridCreateFilterEditorEvent);

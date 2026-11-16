@@ -380,7 +380,7 @@ object GridDemoForm: TGridDemoForm
           Value = 3.000000000000000000
           OnChange = SortingSettingsChange
         end
-        object EventsSettingsLabel: TLabel
+        object HeaderSettingsLabel: TLabel
           Align = Top
           StyledSettings = [Family, Size, FontColor]
           Margins.Left = 12.000000000000000000
@@ -388,6 +388,120 @@ object GridDemoForm: TGridDemoForm
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
           Position.Y = 514.000000000000000000
+          Size.Width = 246.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TextSettings.Font.StyleExt = {00070000000000000004000000}
+          Text = 'Header'
+          TabOrder = 23
+        end
+        object HeaderHeightModeComboBox: TComboBox
+          Align = Top
+          ItemIndex = 0
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 538.000000000000000000
+          Size.Width = 246.000000000000000000
+          Size.Height = 22.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 24
+          OnChange = HeaderSettingsChange
+          object HeaderHeightModeItem1: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Text = 'ghmStyle'
+          end
+          object HeaderHeightModeItem2: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = 'ghmExplicit'
+          end
+          object HeaderHeightModeItem3: TListBoxItem
+            Size.Width = 19.000000000000000000
+            Size.Height = 19.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 2
+            Text = 'ghmRowHeight'
+          end
+        end
+        object HeaderHeightLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 564.000000000000000000
+          Size.Width = 246.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'HeaderHeight: 32 px'
+          TabOrder = 25
+        end
+        object HeaderHeightTrackBar: TTrackBar
+          Align = Top
+          CanParentFocus = True
+          Frequency = 1.000000000000000000
+          Max = 60.000000000000000000
+          Min = 16.000000000000000000
+          Orientation = Horizontal
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 588.000000000000000000
+          Size.Width = 246.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 26
+          Value = 32.000000000000000000
+          OnChange = HeaderSettingsChange
+        end
+        object RowHeightLabel: TLabel
+          Align = Top
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 611.000000000000000000
+          Size.Width = 246.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'RowHeight: 24 px'
+          TabOrder = 27
+        end
+        object RowHeightTrackBar: TTrackBar
+          Align = Top
+          CanParentFocus = True
+          Frequency = 1.000000000000000000
+          Max = 48.000000000000000000
+          Min = 16.000000000000000000
+          Orientation = Horizontal
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 635.000000000000000000
+          Size.Width = 246.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 28
+          Value = 24.000000000000000000
+          OnChange = HeaderSettingsChange
+        end
+        object EventsSettingsLabel: TLabel
+          Align = Top
+          StyledSettings = [Family, Size, FontColor]
+          Margins.Left = 12.000000000000000000
+          Margins.Top = 16.000000000000000000
+          Margins.Right = 12.000000000000000000
+          Position.X = 12.000000000000000000
+          Position.Y = 674.000000000000000000
           Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
@@ -401,7 +515,7 @@ object GridDemoForm: TGridDemoForm
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
-          Position.Y = 538.000000000000000000
+          Position.Y = 698.000000000000000000
           Size.Width = 246.000000000000000000
           Size.Height = 40.000000000000000000
           Size.PlatformDefault = False
@@ -415,7 +529,7 @@ object GridDemoForm: TGridDemoForm
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
-          Position.Y = 582.000000000000000000
+          Position.Y = 742.000000000000000000
           Size.Width = 246.000000000000000000
           Size.Height = 20.000000000000000000
           Size.PlatformDefault = False
@@ -428,7 +542,7 @@ object GridDemoForm: TGridDemoForm
           Margins.Top = 4.000000000000000000
           Margins.Right = 12.000000000000000000
           Position.X = 12.000000000000000000
-          Position.Y = 606.000000000000000000
+          Position.Y = 766.000000000000000000
           Size.Width = 246.000000000000000000
           Size.Height = 40.000000000000000000
           Size.PlatformDefault = False

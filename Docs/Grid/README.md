@@ -304,6 +304,23 @@ The footer is calculated again when the number of rows changes, when a cell is e
 
 With the LiveBindings on a `TDataSet` (a `TLinkGridToDataSource`), the values of all the rows are read through the link: in the demo the footer of 200 rows of a `TFDMemTable` is calculated in a few milliseconds, and the current record of the data set does not move. On large data sets prefer `OnGetFooterText` with the totals calculated by the data set.
 
+## Height of the header
+
+In a `TGrid` the height of the header comes only from the style: it is the height of the part `header` of `gridstyle`, the style of `TGrid` and of `TStringGrid` too. Changing it means copying the whole style of the grid into a style book, for all the grids that use it. `TS4YGrid` sets it for each grid:
+
+| Property | Default | Meaning |
+|---|---|---|
+| `HeaderHeightMode` | `ghmStyle` | Where the height comes from: `ghmStyle` the style of the grid, `ghmExplicit` `HeaderHeight`, `ghmRowHeight` the height of the rows |
+| `HeaderHeight` | 0 | The height of the header, in pixels, with `ghmExplicit`; 0 keeps the height of the style |
+
+With `ghmRowHeight` the header is as high as the rows, and follows `RowHeight` when it changes; `HeaderHeight` is ignored, but keeps its value for when the mode goes back to `ghmExplicit`. The height is applied again each time the style of the grid is loaded, for example when the style book of the form changes, and is seen in the form designer too. The filter row and the cells are placed under the header, and the button of the filter row stays square, as high as the header.
+
+```delphi
+// The header as high as the rows, also when RowHeight changes later.
+Grid.HeaderHeightMode := ghmRowHeight;
+Grid.RowHeight := 30;
+```
+
 ## Sorting
 
 With `Sorting.Enabled`, a click on the header of a column chooses the order of the rows. The order can have more **keys**: the rows are sorted by the first column, then, where the values of the first column are the same, by the second, and so on.
@@ -346,7 +363,7 @@ The methods work also when `Sorting.Enabled` is `False`, and the header shows th
 
 `Demos\Grid\S4YGridDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) has three tabs:
 
-- **Objects**: 200 customers in a list of objects, shown with `OnGetValue` and filtered by the application in `OnFilter` with `FilterMatches`, with the cities in the menu of their filter (`FilterItems`), an item of the application in the menu of the amount (`OnFilterMenu`), an integer column of the status that shows texts, filtered with `SetFilterEnum` and a footer with a text, an average, a sum and a date; the panel on the left changes the filter row (`Visible`, `AutoFilter`, `FilterDelay`, `ClearOnHide`, `ShowButton`, `ClearFilters`; Ctrl+Shift+F shows and hides it) and the footer (`Visible`, the `FooterKind` of the amount, the sum of all the data with `OnGetFooterText`) and the order (`Sorting.Enabled`, `MultiColumn`, `ShowOrder`, `OrderPosition`, `OrderSpacing`), and shows the last `OnFilterChanged` with the text, the operator and the value read, the rows shown and the keys of the last `OnSort`; the application sorts the list with a comparer that reads the keys, after the filters;
+- **Objects**: 200 customers in a list of objects, shown with `OnGetValue` and filtered by the application in `OnFilter` with `FilterMatches`, with the cities in the menu of their filter (`FilterItems`), an item of the application in the menu of the amount (`OnFilterMenu`), an integer column of the status that shows texts, filtered with `SetFilterEnum` and a footer with a text, an average, a sum and a date; the panel on the left changes the filter row (`Visible`, `AutoFilter`, `FilterDelay`, `ClearOnHide`, `ShowButton`, `ClearFilters`; Ctrl+Shift+F shows and hides it) and the footer (`Visible`, the `FooterKind` of the amount, the sum of all the data with `OnGetFooterText`), the order (`Sorting.Enabled`, `MultiColumn`, `ShowOrder`, `OrderPosition`, `OrderSpacing`) and the height of the header (`HeaderHeightMode`, `HeaderHeight`, `RowHeight`), and shows the last `OnFilterChanged` with the text, the operator and the value read, the rows shown and the keys of the last `OnSort`; the application sorts the list with a comparer that reads the keys, after the filters;
 - **LiveBindings**: the same customers in a `TFDMemTable`, shown through a `TLinkGridToDataSource`, filtered by the data set in `OnFilterRecord`, which compares each field with `FilterMatches`, and sorted with its `IndexFieldNames` in `OnSort`, with the footer read through the link;
 - **Style book**: the grid with a dark style of the `TStyleBook` of the form, with the parts `filterrowbackground`, `footerbackground`, `footertext` and `filterinvalidtext`.
 

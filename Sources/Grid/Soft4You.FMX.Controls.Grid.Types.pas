@@ -182,6 +182,18 @@ type
     gopAfter
   );
 
+  /// <summary>Where the height of the header of the grid comes from.</summary>
+  /// <remarks>
+  /// ghmStyle: the height of the part header of the style of the grid.
+  /// ghmExplicit: HeaderHeight; the height of the style when HeaderHeight is 0.
+  /// ghmRowHeight: the height of the rows, also when RowHeight changes.
+  /// </remarks>
+  TS4YGridHeaderHeightMode = (
+    ghmStyle,
+    ghmExplicit,
+    ghmRowHeight
+  );
+
   /// <summary>
   /// A key of the order of the rows: a column and its direction.
   /// </summary>

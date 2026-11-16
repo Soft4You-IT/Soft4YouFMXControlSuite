@@ -122,6 +122,12 @@ type
     OrderSpacingLabel: TLabel;
     OrderSpacingTrackBar: TTrackBar;
     OrderLabel: TLabel;
+    HeaderSettingsLabel: TLabel;
+    HeaderHeightModeComboBox: TComboBox;
+    HeaderHeightLabel: TLabel;
+    HeaderHeightTrackBar: TTrackBar;
+    RowHeightLabel: TLabel;
+    RowHeightTrackBar: TTrackBar;
     procedure AllDataCheckBoxChange(Sender: TObject);
     procedure AmountKindComboBoxChange(Sender: TObject);
     procedure BindingsGridFilter(Sender: TObject);
@@ -132,6 +138,7 @@ type
     procedure FooterVisibleCheckBoxChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure HeaderSettingsChange(Sender: TObject);
     procedure ObjectsGridFilter(Sender: TObject);
     procedure ObjectsGridFilterChanged(Sender: TObject; const AColumn: TColumn);
     procedure ObjectsGridFilterMenu(Sender: TObject; const AColumn: TColumn; const AItems: TS4YGridFilterMenuItems);
@@ -182,10 +189,12 @@ resourcestring
   S_FILTER_INVALID = 'cannot be read, no filter';
   S_FILTER_VALID = 'operator %s, value %s';
   S_FILTER_DELAY = 'FilterDelay: %d ms';
+  S_HEADER_HEIGHT = 'HeaderHeight: %d px';
   S_NO_ORDER = '(order of the data)';
   S_ORDER = 'OnSort: %s';
   S_ORDER_DESCENDING = '%s (descending)';
   S_ORDER_SPACING = 'OrderSpacing: %d px';
+  S_ROW_HEIGHT = 'RowHeight: %d px';
   S_ROWS = 'Rows shown: %d of %d';
   S_STATUS_LOST = 'Lost';
   S_STATUS_NEW = 'New';
@@ -410,6 +419,7 @@ begin
   FillCustomersTable;
   SetUpBindingsGrid;
   FilterSettingsChange(nil);
+  HeaderSettingsChange(nil);
   UpdateRowsLabel;
 end;
 
@@ -435,6 +445,16 @@ begin
     ObjectsGrid.FilterMatches(LastOrderColumn, TValue.From<TDate>(ACustomer.LastOrder)) and
     ObjectsGrid.FilterMatches(ActiveColumn, ACustomer.Active) and
     ObjectsGrid.FilterMatches(StatusColumn, Ord(ACustomer.Status));
+end;
+
+procedure TGridDemoForm.HeaderSettingsChange(Sender: TObject);
+begin
+  // With ghmRowHeight the header follows RowHeight; HeaderHeight is used only with ghmExplicit.
+  ObjectsGrid.HeaderHeightMode := TS4YGridHeaderHeightMode(Max(0, HeaderHeightModeComboBox.ItemIndex));
+  ObjectsGrid.HeaderHeight := Round(HeaderHeightTrackBar.Value);
+  ObjectsGrid.RowHeight := Round(RowHeightTrackBar.Value);
+  HeaderHeightLabel.Text := Format(S_HEADER_HEIGHT, [Round(HeaderHeightTrackBar.Value)]);
+  RowHeightLabel.Text := Format(S_ROW_HEIGHT, [Round(RowHeightTrackBar.Value)]);
 end;
 
 procedure TGridDemoForm.ObjectsGridFilter(Sender: TObject);

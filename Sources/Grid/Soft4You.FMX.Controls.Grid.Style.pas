@@ -167,6 +167,7 @@ type
     FFooterTextsValid: Boolean;
     FHeader: THeader;
     FHeaderClickShift: TShiftState;
+    FHeaderStyleHeight: Single;
     FHorizontalScrollBar: TControl;
     FInvalidFontColor: TAlphaColor;
     FLineFill: TBrushObject;
@@ -217,6 +218,7 @@ type
       message MM_S4Y_GRID_FILTER_VALUE_CHANGED;
     procedure MMFooterChanged(var Message: TDispatchMessage); message MM_S4Y_GRID_FOOTER_CHANGED;
     procedure MMFilterRowToggled(var Message: TDispatchMessage); message MM_S4Y_GRID_FILTER_ROW_TOGGLED;
+    procedure MMHeaderChanged(var Message: TDispatchMessage); message MM_S4Y_GRID_HEADER_CHANGED;
     procedure InvalidateFooter;
     procedure RemoveOldEditors;
     procedure ShowEditorFilter(const AColumn: TColumn; const AEditor: TControl);
@@ -227,6 +229,7 @@ type
     procedure UpdateFilterRow;
     procedure UpdateFilterRowCells;
     procedure UpdateFooter;
+    procedure UpdateHeaderHeight;
   protected
     /// <summary>Inserts the filter row in the style of the grid.</summary>
     procedure ApplyStyle; override;
@@ -526,6 +529,9 @@ begin
     FPreviousHeaderDrawItem := FHeader.OnDrawItem;
     FHeader.OnDrawItem := HeaderDrawItem;
     FHeader.OnItemClick := HeaderItemClick;
+    // The height of the style, for ghmStyle and HeaderHeight 0, before the header gets the height of the grid.
+    FHeaderStyleHeight := FHeader.Height;
+    UpdateHeaderHeight;
   end;
 
   FSortStyled := FindStyleResource<TText>(C_STYLE_SORT_INDICATOR, LSortIndicator);
@@ -1185,6 +1191,8 @@ procedure TS4YStyledGrid.MMContentChanged(var Message: TDispatchMessage);
 begin
   inherited;
 
+  // A change of RowHeight comes here too.
+  UpdateHeaderHeight;
   UpdateFilterRow;
   UpdateFooter;
 end;
@@ -1223,6 +1231,11 @@ begin
     FocusFilterRow
   else if PresentedControl.CanFocus then
     PresentedControl.SetFocus;
+end;
+
+procedure TS4YStyledGrid.MMHeaderChanged(var Message: TDispatchMessage);
+begin
+  UpdateHeaderHeight;
 end;
 
 procedure TS4YStyledGrid.MMFooterChanged(var Message: TDispatchMessage);
@@ -1428,6 +1441,32 @@ begin
   for LPair in FEditors do
     if LPair.Value is TS4YGridCheckFilterEditor then
       TS4YGridCheckFilterEditor(LPair.Value).HorzAlign := LPair.Key.HorzAlign;
+end;
+
+procedure TS4YStyledGrid.UpdateHeaderHeight;
+var
+  LHeight: Single;
+begin
+  if not Assigned(FHeader) then
+    Exit;
+
+  LHeight := FHeaderStyleHeight;
+
+  case Model.HeaderHeightMode of
+    ghmExplicit:
+      if Model.HeaderHeight > 0 then
+        LHeight := Model.HeaderHeight;
+    ghmRowHeight:
+      LHeight := RowHeight;
+  end;
+
+  if SameValue(FHeader.Height, LHeight) then
+    Exit;
+
+  // The cells and the filter row are placed again under the header; the button of the filter row stays square.
+  FHeader.Height := LHeight;
+  RealignContent;
+  UpdateFilterButton;
 end;
 
 procedure TS4YStyledGrid.UpdateFilterButton;
