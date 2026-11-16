@@ -26,6 +26,7 @@ uses
   FMX.Header,
   FMX.ListBox,
   FMX.Calendar,
+  FMX.StdCtrls,
   FMX.Grid,
   FMX.Grid.Style,
   Soft4You.FMX.Controls.Grid,
@@ -102,6 +103,30 @@ type
   end;
 
   /// <summary>
+  /// The button on the right side of the header that shows or hides the filter row: a funnel on the style of the
+  /// items of the header, pressed while the row is shown.
+  /// </summary>
+  TS4YGridFilterButton = class(TCustomButton)
+  private
+    FIcon: TControl;
+    procedure SetIcon(const Value: TControl);
+  protected
+    /// <summary>Draws the funnel over the background of the style, when there is no Icon.</summary>
+    procedure AfterPaint; override;
+    /// <summary>Returns headeritemstyle, the style of the items of the header.</summary>
+    function GetDefaultStyleLookupName: string; override;
+  public
+    /// <summary>Creates the button.</summary>
+    constructor Create(AOwner: TComponent); override;
+
+    /// <summary>
+    /// A control shown in the middle of the button in place of the funnel, such as the part filterbutton of the style
+    /// of the grid; the button becomes its owner and frees it.
+    /// </summary>
+    property Icon: TControl read FIcon write SetIcon;
+  end;
+
+  /// <summary>
   /// The styled presentation of TS4YGrid: the presentation of TGrid, with the filter row inserted under the header of
   /// the style of the grid.
   /// </summary>
@@ -122,7 +147,8 @@ type
   /// FilterRow.CheckBoxStyleLookup, by default checkcellstyle, the style of the check boxes of the cells.
   /// A part filterinvalidtext, a TText, gives the color of the text of a filter that cannot be read; without it, red.
   /// The button of a text field opens the menu of the filter in a TPopup, with the style book of the form of the grid
-  /// and the style FilterRow.MenuStyleLookup; when the popup finds no style, its list keeps the background of its own
+  /// and the style FilterRow.MenuStyleLookup; with FilterRow.ShowButton, a button on the right side of the header shows
+  /// or hides the row, with a part filterbutton of the style as its icon; when the popup finds no style, its list keeps the background of its own
   /// style. A part filtermenubutton is shown in the button in place of its three
   /// dots.
   /// </remarks>
@@ -133,6 +159,8 @@ type
     FContentPart: TControl;
     FEditorPadding: TRectF;
     FEditors: TDictionary<TColumn, TControl>;
+    FFilterButton: TS4YGridFilterButton;
+    FFilterButtonIcon: TControl;
     FFilterRow: TS4YGridBand;
     FFooter: TS4YGridFooterBand;
     FFooterTexts: TDictionary<TColumn, string>;
@@ -173,6 +201,8 @@ type
     procedure EditorFilterSubmit(Sender: TObject);
     procedure EditorFilterValueChange(Sender: TObject);
     procedure EditorMenuButtonClick(Sender: TObject);
+    procedure FilterButtonClick(Sender: TObject);
+    procedure FocusFilterRow;
     procedure FilterMenuDone(const AColumn: TColumn; const AOldText: string);
     procedure MenuCalendarDateSelected(Sender: TObject);
     procedure MenuListItemClick(const Sender: TCustomListBox; const Item: TListBoxItem);
@@ -186,12 +216,14 @@ type
     procedure MMFilterValueChanged(var Message: TDispatchMessageWithValue<TColumn>);
       message MM_S4Y_GRID_FILTER_VALUE_CHANGED;
     procedure MMFooterChanged(var Message: TDispatchMessage); message MM_S4Y_GRID_FOOTER_CHANGED;
+    procedure MMFilterRowToggled(var Message: TDispatchMessage); message MM_S4Y_GRID_FILTER_ROW_TOGGLED;
     procedure InvalidateFooter;
     procedure RemoveOldEditors;
     procedure ShowEditorFilter(const AColumn: TColumn; const AEditor: TControl);
     procedure ShowFilterCalendar;
     procedure ShowFilterMenu(const AColumn: TColumn; const AEditor: TControl);
     procedure UpdateCheckAlignment;
+    procedure UpdateFilterButton;
     procedure UpdateFilterRow;
     procedure UpdateFilterRowCells;
     procedure UpdateFooter;
@@ -241,6 +273,7 @@ const
   C_STYLE_BACKGROUND = 'background';
   C_STYLE_CONTENT = 'content';
   C_STYLE_CHECK_CELL = 'checkcellstyle';
+  C_STYLE_FILTER_BUTTON = 'filterbutton';
   C_STYLE_FILTER_INVALID_TEXT = 'filterinvalidtext';
   C_STYLE_FILTER_MENU_BUTTON = 'filtermenubutton';
   C_STYLE_FILTER_ROW_BACKGROUND = 'filterrowbackground';
@@ -275,6 +308,10 @@ const
   C_CALENDAR_WIDTH = 240;
   C_CALENDAR_HEIGHT = 220;
   C_SEPARATOR_OPACITY = 0.3;
+
+  // The funnel of the button of the header: its size compared to the button, and the width of its stem.
+  C_FUNNEL_SCALE = 0.5;
+  C_FUNNEL_STEM = 0.25;
   // The list of the menu without background of its own, over a popup with a style.
   C_STYLE_MENU_LIST_TRANSPARENT = 'transparentlistboxstyle';
 
@@ -290,6 +327,76 @@ type
 function TS4YGridMenuPopup.HasStyle: Boolean;
 begin
   Result := Assigned(ResourceControl);
+end;
+
+{ TS4YGridFilterButton }
+
+constructor TS4YGridFilterButton.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  StaysPressed := True;
+  CanFocus := False;
+end;
+
+procedure TS4YGridFilterButton.AfterPaint;
+var
+  LTextSettings: ITextSettings;
+  LColor: TAlphaColor;
+  LSize: Single;
+  LLeft: Single;
+  LTop: Single;
+  LFunnel: TPolygon;
+begin
+  inherited;
+
+  if Assigned(FIcon) then
+    Exit;
+
+  // The color of the text of the header.
+  LColor := TAlphaColors.Black;
+
+  if Supports(Self, ITextSettings, LTextSettings) then
+    LColor := LTextSettings.ResultingTextSettings.FontColor;
+
+  LSize := Min(Width, Height) * C_FUNNEL_SCALE;
+  LLeft := (Width - LSize) / 2;
+  LTop := (Height - LSize) / 2;
+  SetLength(LFunnel, 6);
+  LFunnel[0] := TPointF.Create(LLeft, LTop);
+  LFunnel[1] := TPointF.Create(LLeft + LSize, LTop);
+  LFunnel[2] := TPointF.Create(LLeft + LSize * (0.5 + C_FUNNEL_STEM / 2), LTop + LSize * 0.5);
+  LFunnel[3] := TPointF.Create(LLeft + LSize * (0.5 + C_FUNNEL_STEM / 2), LTop + LSize);
+  LFunnel[4] := TPointF.Create(LLeft + LSize * (0.5 - C_FUNNEL_STEM / 2), LTop + LSize * 0.85);
+  LFunnel[5] := TPointF.Create(LLeft + LSize * (0.5 - C_FUNNEL_STEM / 2), LTop + LSize * 0.5);
+  Canvas.Fill.Kind := TBrushKind.Solid;
+  Canvas.Fill.Color := LColor;
+  Canvas.FillPolygon(LFunnel, AbsoluteOpacity);
+end;
+
+function TS4YGridFilterButton.GetDefaultStyleLookupName: string;
+begin
+  Result := 'headeritemstyle';
+end;
+
+procedure TS4YGridFilterButton.SetIcon(const Value: TControl);
+begin
+  if FIcon = Value then
+    Exit;
+
+  FIcon.Free;
+  FIcon := Value;
+
+  if Assigned(FIcon) then
+  begin
+    FIcon.Stored := False;
+    FIcon.Align := TAlignLayout.Center;
+    FIcon.HitTest := False;
+    FIcon.Visible := True;
+    FIcon.Parent := Self;
+  end;
+
+  Repaint;
 end;
 
 { TS4YGridBand }
@@ -432,6 +539,10 @@ begin
 
   FInvalidFontColor := TS4YGridTextFilterEditor.C_DEFAULT_INVALID_FONT_COLOR;
 
+  // The icon of the button of the header: the button shows a copy of it.
+  if FindStyleResource<TControl>(C_STYLE_FILTER_BUTTON, FFilterButtonIcon) then
+    FFilterButtonIcon.Visible := False;
+
   // The icon of the button of the menu: each button shows a copy of it.
   if FindStyleResource<TControl>(C_STYLE_FILTER_MENU_BUTTON, FMenuButtonIcon) then
     FMenuButtonIcon.Visible := False;
@@ -510,6 +621,16 @@ begin
     FFooter.Font.Assign(LTextSettings.ResultingTextSettings.Font);
     FFooter.FontColor := LTextSettings.ResultingTextSettings.FontColor;
   end;
+
+  // The button over the right side of the header, which leaves the space for it.
+  FFilterButton := TS4YGridFilterButton.Create(nil);
+  FFilterButton.Stored := False;
+  FFilterButton.Locked := True;
+  FFilterButton.OnClick := FilterButtonClick;
+  FFilterButton.Parent := FBackground;
+
+  if Assigned(FFilterButtonIcon) then
+    FFilterButton.Icon := TControl(FFilterButtonIcon.Clone(nil));
 
   UpdateFilterRow;
   UpdateFooter;
@@ -631,6 +752,8 @@ end;
 procedure TS4YStyledGrid.DoRealign;
 begin
   inherited;
+
+  UpdateFilterButton;
 
   // The controls aligned to the bottom are placed in the order of their position: a scroll bar that appears may
   // keep a position over the footer. Moved over the bar, the footer stays there; the cells are placed again.
@@ -791,6 +914,11 @@ begin
     ShowFilterMenu(LColumn, TControl(Sender));
 end;
 
+procedure TS4YStyledGrid.FilterButtonClick(Sender: TObject);
+begin
+  Model.ToggleFilterRow;
+end;
+
 procedure TS4YStyledGrid.FilterMenuDone(const AColumn: TColumn; const AOldText: string);
 var
   LEditor: TControl;
@@ -893,6 +1021,8 @@ begin
   FHeader := nil;
   FPreviousHeaderDrawItem := nil;
   FHorizontalScrollBar := nil;
+  FFilterButton := nil;
+  FFilterButtonIcon := nil;
   FMenuButtonIcon := nil;
   FBackground := nil;
   FContentPart := nil;
@@ -1062,6 +1192,37 @@ end;
 procedure TS4YStyledGrid.MMFilterRowChanged(var Message: TDispatchMessage);
 begin
   UpdateFilterRow;
+  UpdateFilterButton;
+end;
+
+procedure TS4YStyledGrid.FocusFilterRow;
+var
+  LEditor: TControl;
+  LColumnIndex: Integer;
+begin
+  // The editor of the current column, or the first editor shown.
+  LEditor := nil;
+  LColumnIndex := TCustomGrid(PresentedControl).ColumnIndex;
+
+  if (LColumnIndex >= 0) and (LColumnIndex < ColumnCount) and FEditors.TryGetValue(Columns[LColumnIndex], LEditor) and
+    not LEditor.Visible then
+    LEditor := nil;
+
+  for var I := 0 to ColumnCount - 1 do
+    if not Assigned(LEditor) and FEditors.ContainsKey(Columns[I]) and FEditors[Columns[I]].Visible then
+      LEditor := FEditors[Columns[I]];
+
+  if Assigned(LEditor) and LEditor.CanFocus then
+    LEditor.SetFocus;
+end;
+
+procedure TS4YStyledGrid.MMFilterRowToggled(var Message: TDispatchMessage);
+begin
+  // Shown: the focus in the row, to write a filter; hidden: the focus back to the cells.
+  if Model.FilterRow.Visible then
+    FocusFilterRow
+  else if PresentedControl.CanFocus then
+    PresentedControl.SetFocus;
 end;
 
 procedure TS4YStyledGrid.MMFooterChanged(var Message: TDispatchMessage);
@@ -1269,11 +1430,41 @@ begin
       TS4YGridCheckFilterEditor(LPair.Value).HorzAlign := LPair.Key.HorzAlign;
 end;
 
+procedure TS4YStyledGrid.UpdateFilterButton;
+var
+  LShown: Boolean;
+  LSize: Single;
+begin
+  if not Assigned(FFilterButton) or not Assigned(FHeader) then
+    Exit;
+
+  // Square, as high as the header, on its right side: the header leaves the space for it.
+  LShown := Model.FilterRow.ShowButton and FHeader.Visible;
+  LSize := FHeader.Height;
+  FFilterButton.Visible := LShown;
+
+  if LShown then
+    FHeader.Margins.Right := LSize
+  else
+    FHeader.Margins.Right := 0;
+
+  if not LShown then
+    Exit;
+
+  FFilterButton.SetBounds(FHeader.Position.X + FHeader.Width, FHeader.Position.Y, LSize, LSize);
+  FFilterButton.IsPressed := Model.FilterRow.Visible;
+  FFilterButton.BringToFront;
+end;
+
 procedure TS4YStyledGrid.UpdateFilterRow;
+var
+  LShowing: Boolean;
+  LPair: TPair<TColumn, TControl>;
 begin
   if not Assigned(FFilterRow) then
     Exit;
 
+  LShowing := not FFilterRow.Visible and Model.FilterRow.Visible;
   FFilterRow.Visible := Model.FilterRow.Visible;
   FFilterRow.Height := GetFilterRowHeight;
 
@@ -1289,6 +1480,11 @@ begin
   RealignContent;
   RemoveOldEditors;
   UpdateFilterRowCells;
+
+  // Shown again: the editors show their filters, which did not apply while the row was hidden.
+  if LShowing then
+    for LPair in FEditors do
+      ShowEditorFilter(LPair.Key, LPair.Value);
 end;
 
 procedure TS4YStyledGrid.UpdateFilterRowCells;
