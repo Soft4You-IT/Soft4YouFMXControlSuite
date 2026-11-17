@@ -144,6 +144,8 @@ type
     function GetStyleObject: TFmxObject; override;
     /// <summary>Returns the text of the value drawn: ValueFormat applied to it, then OnGetValueText. Empty when ShowValue is False.</summary>
     function GetValueText: string;
+    /// <summary>Hides the parts of the style, the objects with a StyleName, so that a style can show them in the style designer: called by the gauges that draw copies of the parts or read them, not by the skin gauges, which show their parts.</summary>
+    procedure HideStyleParts;
     /// <summary>Brings Min, Max and Value back into a coherent range after loading.</summary>
     procedure Loaded; override;
     /// <summary>Returns the width and the height of AText written with the font of ATemplate, or with the default font and ADefaultColor when ATemplate is nil.</summary>
@@ -533,6 +535,33 @@ begin
 
   Result := FormatValue(FDisplayedValue);
   DoGetValueText(FDisplayedValue, Result);
+end;
+
+procedure TS4YCustomGauge.HideStyleParts;
+
+  procedure HideParts(const AObject: TFmxObject);
+  var
+    LChild: TFmxObject;
+  begin
+    for var I := 0 to AObject.ChildrenCount - 1 do
+    begin
+      LChild := AObject.Children[I];
+
+      // Every object with a name is a part; the objects without a name can group the parts.
+      if LChild.StyleName = '' then
+      begin
+        HideParts(LChild);
+      end
+      else if LChild is TControl then
+      begin
+        TControl(LChild).Visible := False;
+      end;
+    end;
+  end;
+
+begin
+  if Assigned(ResourceLink) then
+    HideParts(ResourceLink);
 end;
 
 function TS4YCustomGauge.IsAnimating: Boolean;

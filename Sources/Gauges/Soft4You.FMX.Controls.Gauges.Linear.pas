@@ -45,6 +45,8 @@ type
     procedure SetOrientation(const Value: TOrientation);
     procedure SetTextPosition(const Value: TS4YGaugeTextPosition);
   protected
+    /// <summary>Hides the parts of the style, which the gauge draws itself.</summary>
+    procedure ApplyStyle; override;
     /// <summary>Returns the position along ABarRect of the point at AFraction of the range, from 0 to 1: an X for a horizontal bar, filled from the left, a Y for a vertical one, filled from the bottom.</summary>
     function BarPosition(const ABarRect: TRectF; const AFraction: Single): Single;
     /// <summary>Returns the part of ABarRect from AStartFraction to AEndFraction of the range.</summary>
@@ -145,6 +147,15 @@ begin
 
   FOrientation := C_DEFAULT_ORIENTATION;
   FTextPosition := C_DEFAULT_TEXT_POSITION;
+end;
+
+procedure TS4YLinearGauge.ApplyStyle;
+begin
+  inherited;
+
+  // The parts can be visible in the style, so that they are seen in the style designer: they would
+  // be painted over the gauge.
+  HideStyleParts;
 end;
 
 function TS4YLinearGauge.BarPosition(const ABarRect: TRectF; const AFraction: Single): Single;
