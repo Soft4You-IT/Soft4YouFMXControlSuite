@@ -153,6 +153,7 @@ type
     function CanAnimate: Boolean;
     procedure DrawLegend(const AEntries: TArray<TRectF>);
     function FormatValue(const AValue: Single): string;
+    procedure HideStyleParts(const AObject: TFmxObject);
     procedure LegendChanged(Sender: TObject);
     procedure PrepareTextLayout(const ATemplate: TText; const ADefaultColor: TAlphaColor; const AText: string;
       const ARect: TRectF; const AHorizontalAlign, AVerticalAlign: TTextAlign);
@@ -447,6 +448,11 @@ var
 begin
   inherited;
 
+  // The parts can be visible in the style, so that they are seen in the style designer: the chart
+  // only reads their colors, borders and fonts, and the parts would be painted over it.
+  if Assigned(ResourceLink) then
+    HideStyleParts(ResourceLink);
+
   FindStyleResource<TText>(C_STYLE_LEGEND_TEXT, FStyleLegendText);
   FStylePalette := nil;
 
@@ -714,6 +720,26 @@ function TS4YCustomChart.GetValueText(const ASeriesIndex, AItemIndex: Integer; c
 begin
   Result := FormatValue(AValue);
   DoGetValueText(ASeriesIndex, AItemIndex, AValue, Result);
+end;
+
+procedure TS4YCustomChart.HideStyleParts(const AObject: TFmxObject);
+var
+  LChild: TFmxObject;
+begin
+  for var I := 0 to AObject.ChildrenCount - 1 do
+  begin
+    LChild := AObject.Children[I];
+
+    // Every object with a name is a part; the objects without a name can group the parts.
+    if LChild.StyleName = '' then
+    begin
+      HideStyleParts(LChild);
+    end
+    else if LChild is TControl then
+    begin
+      TControl(LChild).Visible := False;
+    end;
+  end;
 end;
 
 procedure TS4YCustomChart.LegendChanged(Sender: TObject);
