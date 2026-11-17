@@ -362,7 +362,7 @@ To make a gauge of your own, add to a `TStyleBook` a `TLayout` with `StyleName =
 
 ## Styles
 
-The look of `TS4YLinearGauge` comes from a style named `S4YLinearGaugeStyle`, the look of `TS4YCircularGauge` from a style named `S4YCircularGaugeStyle`. Each style is a container of invisible parts with the same names. The styles of the meters are described in [Style of the meters](#style-of-the-meters), the one of `TS4YSkinCircularGauge` in [Style of the skin gauge](#style-of-the-skin-gauge), the one of `TS4YSkinLinearGauge` in [Style of the skin linear gauge](#style-of-the-skin-linear-gauge).
+The look of `TS4YLinearGauge` comes from a style named `S4YLinearGaugeStyle`, the look of `TS4YCircularGauge` from a style named `S4YCircularGaugeStyle`. Each style is a container of parts with the same names, which the gauge reads and hides when the style is applied, and draws itself. In the default styles the parts are visible and laid out as a small gauge, so that each part is seen and can be changed in the style designer: their position, their size (except the size of `needlecap` and `pointer` of the meters, see [Style of the meters](#style-of-the-meters)), the angles of the `TArc` parts and the text of the `TText` parts do not matter. The parts can also be hidden (`Visible = False`). The styles of the meters are described in [Style of the meters](#style-of-the-meters), the one of `TS4YSkinCircularGauge` in [Style of the skin gauge](#style-of-the-skin-gauge), the one of `TS4YSkinLinearGauge` in [Style of the skin linear gauge](#style-of-the-skin-linear-gauge).
 
 ### Style of the linear gauge
 
@@ -380,7 +380,7 @@ When a part is a shape, `FillBrush` and `TrackBrush` can replace its fill: chang
 
 The style linked into the package is used when no other style defines `S4YLinearGaugeStyle`. To change the look of all the linear gauges of an application:
 
-1. In the style of a `TStyleBook`, add a `TLayout` with `StyleName = 'S4YLinearGaugeStyle'` and, inside it, the parts listed above. The default style, `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Win.style`, is a text file with all of them and can be used as a model.
+1. Select a linear gauge in the form designer and choose Edit Custom Style in its menu: the IDE copies the style of the gauge, with all its parts, into the `TStyleBook` of the form. Rename the copy `S4YLinearGaugeStyle` and clear the `StyleLookup` of the gauge, or keep the name and the `StyleLookup` for a style of that gauge only. The default style, `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Win.style`, is also a text file that can be loaded into the style designer.
 2. Change the parts: their colors and fonts, or replace a shape with another object.
 
 A style with another name is used by the gauges whose `StyleLookup` is set to that name; when no style has that name, they use `S4YLinearGaugeStyle` as the others. The style of the parent class of the gauges is never used. A part missing from a style is replaced by a rectangle with the brush of the property, and a missing text by the default font and colors.
@@ -398,7 +398,7 @@ The gauge does not draw a copy of the parts: it draws the arc itself, with `Star
 
 A part that is not a `TArc` gives nothing: the arc is drawn with the brush of the property and flat ends. A missing part is replaced by an arc with the brush of the property and round ends.
 
-To change the look of all the circular gauges, add to a `TStyleBook` a `TLayout` with `StyleName = 'S4YCircularGaugeStyle'`; the default style, `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.Win.style`, can be used as a model.
+To change the look of all the circular gauges, copy the style of a circular gauge with Edit Custom Style, as for the linear gauge, and rename the copy `S4YCircularGaugeStyle`; the default style, `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.Win.style`, can also be loaded into the style designer. The meters work in the same way, with `S4YLinearMeterStyle` and `S4YCircularMeterStyle`.
 
 ## Example
 
