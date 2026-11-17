@@ -442,6 +442,8 @@ The menu of a filter is a `TPopup`, which takes the style book of the form. `Fil
 
 The footer is added in the same way, aligned to the bottom over the horizontal scroll bar, with a line on its top side; its texts have the font and the color of the text of the grid.
 
+The style of the grid is `S4YGridStyle` when the style book of the form has it, otherwise `gridstyle`, the style of `TGrid`. A style named `S4YGridStyle` therefore changes all the grids of the form without setting their `StyleLookup`, and leaves the `TGrid` and `TStringGrid` controls as they are; `StyleLookup` still gives a grid a style of its own.
+
 A style of the grid in a `TStyleBook` can add these parts, all optional:
 
 | Part | Use |
@@ -453,6 +455,8 @@ A style of the grid in a `TStyleBook` can add these parts, all optional:
 | `filterinvalidtext` | A `TText`: the color of the text of a filter that cannot be read; without it, red |
 | `filtermenubutton` | Any control, such as a `TPath`: shown in the middle of the button of the menu, in place of the three dots; each button shows a copy of it |
 | `filterbutton` | Any control, such as a `TPath`: shown in the middle of the button of the header, in place of the funnel |
+
+Edit Custom Style, in the menu of the grid in the form designer, copies the style of the grid into the style book together with the parts `filterrowbackground`, `footerbackground` and `filterinvalidtext`, with the values that the grid uses without them: transparent backgrounds, 2 pixels around the editors, none around the texts of the footer, and red for the text that cannot be read. They are hidden in the style designer, and the grid shows the two backgrounds in their places, so a change to their fill, stroke or padding is seen in the grid. The other parts of the table are not copied, because a style that has them changes the grid, for example `footertext` takes the place of the font of the grid in the footer: add them to the copy by hand.
 
 The texts of the footer are placed in their cells as the texts of the cells of the grid: in the cell less the `Padding` of the column (a published property of `TColumn`, 3 pixels on each side by default), so a total is aligned with the values above it. When a style has the part `filterrowbackground` or `footerbackground`, its `Padding` is always used, also when it is 0: a style that adds `filterrowbackground` sets its `Padding` too, for example 2 on each side. Without the part, as in the styles of the platform, the editors are 2 pixels from the sides of their cells, and the texts of the footer have only the `Padding` of the columns. The top and bottom padding of the parts are added to the automatic heights; a `Height` greater than 0 comes first, and the editors and the texts take the space left inside the padding.
 
