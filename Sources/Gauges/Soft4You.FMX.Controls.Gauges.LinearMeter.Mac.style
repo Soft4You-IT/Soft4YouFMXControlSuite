@@ -2,78 +2,117 @@ object TLayout
   StyleName = 'S4YLinearMeterStyle'
   Align = Contents
   HitTest = False
+  Size.Width = 220.000000000000000000
+  Size.Height = 80.000000000000000000
+  Size.PlatformDefault = False
+  object TText
+    StyleName = 'captiontext'
+    Position.X = 10.000000000000000000
+    Position.Y = 4.000000000000000000
+    Size.Width = 60.000000000000000000
+    Size.Height = 18.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Caption'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.FontColor = xFF616161
+  end
+  object TText
+    StyleName = 'valuetext'
+    Position.X = 170.000000000000000000
+    Position.Y = 4.000000000000000000
+    Size.Width = 40.000000000000000000
+    Size.Height = 18.000000000000000000
+    Size.PlatformDefault = False
+    Text = '30'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.Font.Style = [fsBold]
+    TextSettings.FontColor = xFF212121
+  end
+  object TPath
+    StyleName = 'pointer'
+    Position.X = 155.000000000000000000
+    Position.Y = 22.000000000000000000
+    Size.Width = 10.000000000000000000
+    Size.Height = 8.000000000000000000
+    Size.PlatformDefault = False
+    Data.Data = 'M0,0 L10,0 L5,8 Z'
+    Fill.Color = xFF424242
+    HitTest = False
+    Stroke.Kind = None
+  end
   object TRectangle
     StyleName = 'track'
+    Position.X = 10.000000000000000000
+    Position.Y = 32.000000000000000000
+    Size.Width = 200.000000000000000000
+    Size.Height = 10.000000000000000000
+    Size.PlatformDefault = False
     Fill.Color = xFFE0E0E0
     HitTest = False
     Stroke.Kind = None
-    Visible = False
     XRadius = 4.000000000000000000
     YRadius = 4.000000000000000000
   end
   object TRectangle
     StyleName = 'fill'
+    Position.X = 10.000000000000000000
+    Position.Y = 32.000000000000000000
+    Size.Width = 60.000000000000000000
+    Size.Height = 10.000000000000000000
+    Size.PlatformDefault = False
     Fill.Color = xFF1E88E5
     HitTest = False
     Stroke.Kind = None
-    Visible = False
     XRadius = 4.000000000000000000
     YRadius = 4.000000000000000000
   end
-  object TText
-    StyleName = 'valuetext'
+  object TLine
+    StyleName = 'target'
+    Position.X = 160.000000000000000000
+    Position.Y = 28.000000000000000000
+    Size.Width = 3.000000000000000000
+    Size.Height = 18.000000000000000000
+    Size.PlatformDefault = False
+    LineType = Left
     HitTest = False
-    TextSettings.Font.Size = 12.000000000000000000
-    TextSettings.Font.Style = [fsBold]
-    TextSettings.FontColor = xFF212121
-    Visible = False
-  end
-  object TText
-    StyleName = 'captiontext'
-    HitTest = False
-    TextSettings.Font.Size = 12.000000000000000000
-    TextSettings.FontColor = xFF616161
-    Visible = False
+    Stroke.Color = xFF212121
+    Stroke.Thickness = 3.000000000000000000
   end
   object TLine
     StyleName = 'majortick'
+    Position.X = 10.000000000000000000
+    Position.Y = 46.000000000000000000
+    Size.Width = 2.000000000000000000
+    Size.Height = 8.000000000000000000
+    Size.PlatformDefault = False
+    LineType = Left
     HitTest = False
-    LineType = Top
     Stroke.Color = xFF757575
     Stroke.Thickness = 1.500000000000000000
-    Visible = False
   end
   object TLine
     StyleName = 'minortick'
-    HitTest = False
-    LineType = Top
-    Stroke.Color = xFFBDBDBD
-    Visible = False
-  end
-  object TLine
-    StyleName = 'target'
-    HitTest = False
-    LineType = Top
-    Stroke.Color = xFF212121
-    Stroke.Thickness = 3.000000000000000000
-    Visible = False
-  end
-  object TPath
-    StyleName = 'pointer'
-    Data.Data = 'M0,0 L10,0 L5,8 Z'
-    Fill.Color = xFF424242
-    HitTest = False
-    Size.Width = 10.000000000000000000
-    Size.Height = 8.000000000000000000
+    Position.X = 30.000000000000000000
+    Position.Y = 46.000000000000000000
+    Size.Width = 2.000000000000000000
+    Size.Height = 5.000000000000000000
     Size.PlatformDefault = False
-    Stroke.Kind = None
-    Visible = False
+    LineType = Left
+    HitTest = False
+    Stroke.Color = xFFBDBDBD
   end
   object TText
     StyleName = 'scaletext'
+    Position.X = 0.000000000000000000
+    Position.Y = 56.000000000000000000
+    Size.Width = 20.000000000000000000
+    Size.Height = 14.000000000000000000
+    Size.PlatformDefault = False
+    Text = '0'
     HitTest = False
     TextSettings.Font.Size = 11.000000000000000000
     TextSettings.FontColor = xFF616161
-    Visible = False
   end
 end

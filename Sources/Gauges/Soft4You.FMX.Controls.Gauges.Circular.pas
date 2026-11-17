@@ -59,6 +59,8 @@ type
     function AngleOfFraction(const AFraction: Single): Single;
     /// <summary>Gives ABrush to the border of an arc, which draws the track and the fill.</summary>
     procedure ApplyPartBrush(const APart: TControl; const ABrush: TBrush); override;
+    /// <summary>Hides the parts of the style, which the gauge draws itself.</summary>
+    procedure ApplyStyle; override;
     /// <summary>Creates the part drawn when the style has no track or no fill: an arc with round ends.</summary>
     function CreateDefaultPart: TControl; override;
     /// <summary>Draws an arc with the look of APart, or with ABrush when APart is not a TArc, from AStartFraction to AEndFraction of the range.</summary>
@@ -218,6 +220,15 @@ begin
     TArc(APart).Stroke.Assign(ABrush)
   else
     inherited;
+end;
+
+procedure TS4YCircularGauge.ApplyStyle;
+begin
+  inherited;
+
+  // The parts can be visible in the style, so that they are seen in the style designer: they would
+  // be painted over the gauge.
+  HideStyleParts;
 end;
 
 function TS4YCircularGauge.CalculateUnitArcBounds: TRectF;
