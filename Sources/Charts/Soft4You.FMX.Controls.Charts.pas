@@ -165,6 +165,8 @@ type
     procedure StartAnimation(const AStartValues: TArray<Single>);
     function ValueFormatStored: Boolean;
   protected
+    /// <summary>Adds the sample data of a chart just placed in the form designer.</summary>
+    procedure AddSampleData; virtual; abstract;
     /// <summary>Reads the palette and the texts of the style.</summary>
     procedure ApplyStyle; override;
     { IS4YChartBinding }
@@ -235,6 +237,9 @@ type
     /// <summary>Creates the chart with the default settings.</summary>
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    /// <summary>Adds sample data to a chart placed in the form designer, so that it is not empty: they are stored with the form as the data added by the user, who can change them or delete them. A chart read from the form file or created in code has no sample data.</summary>
+    procedure AfterConstruction; override;
 
     /// <summary>
     /// Duration in seconds of the movement of the data when the chart is shown for the first time and when its data change. With 0 the changes are immediate. The default is 0.3.
@@ -434,6 +439,16 @@ begin
   FreeAndNil(FPalette);
 
   inherited;
+end;
+
+procedure TS4YCustomChart.AfterConstruction;
+begin
+  inherited;
+
+  // Placed in the form designer: the owner of a chart read from the form file is loading, and the owner
+  // of a chart created in code is not being designed.
+  if (csDesigning in ComponentState) and Assigned(Owner) and not (csLoading in Owner.ComponentState) then
+    AddSampleData;
 end;
 
 function TS4YCustomChart.AnimationDurationStored: Boolean;

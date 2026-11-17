@@ -310,6 +310,8 @@ type
     procedure SetSeries(const Value: TS4YChartSeriesList);
     procedure SetValueAxis(const Value: TS4YChartValueAxis);
   protected
+    /// <summary>Adds two series, Series 1 and Series 2, and four categories, Q1 to Q4.</summary>
+    procedure AddSampleData; override;
     /// <summary>Reads the lines and the texts of the style.</summary>
     procedure ApplyStyle; override;
     function BindingAddLinkColumn(const ACaption: string): Integer; override;
@@ -389,9 +391,13 @@ implementation
 
 uses
   System.SysUtils,
-  System.Math;
+  System.Math,
+  Soft4You.FMX.Controls.Charts.Strings;
 
 const
+  // Values of the categories of a chart placed in the form designer, one column for each series.
+  C_SAMPLE_VALUES: array[0..3, 0..1] of Single = ((12, 8), (18, 11), (15, 16), (22, 14));
+
   C_STYLE_AXIS = 'axis';
   C_STYLE_GRIDLINE = 'gridline';
   C_STYLE_AXIS_TEXT = 'axistext';
@@ -798,6 +804,15 @@ begin
   FreeAndNil(FBoundCategories);
   FreeAndNil(FSeries);
   FreeAndNil(FCategories);
+end;
+
+procedure TS4YCustomCategoryChart.AddSampleData;
+begin
+  for var I := Low(C_SAMPLE_VALUES[0]) to High(C_SAMPLE_VALUES[0]) do
+    FSeries.Add(Format(S_CHART_SAMPLE_SERIES_CAPTION, [I + 1]));
+
+  for var I := Low(C_SAMPLE_VALUES) to High(C_SAMPLE_VALUES) do
+    FCategories.Add(Format(S_CHART_SAMPLE_CATEGORY_CAPTION, [I + 1]), C_SAMPLE_VALUES[I]);
 end;
 
 procedure TS4YCustomCategoryChart.ApplyStyle;
