@@ -57,6 +57,8 @@ Add the folder `Sources\Charts` to the Delphi library path to compile your own p
 
 These properties and events are public in the base class `TS4YCustomChart`, so that code can work on any chart through it. The usual `TControl` properties (`Align`, `Anchors`, `Position`, `Size`, `Margins`, `Padding`, `Opacity`, `Visible`, `Enabled`, `HitTest`, `Cursor`, `RotationAngle`, `Scale`, `PopupMenu`, `StyleLookup`) are published too.
 
+**Sample data.** A chart placed on a form in the form designer is not empty: the pie chart has four slices, `Item 1` to `Item 4`, the bar and line charts two series, `Series 1` and `Series 2`, on four categories, `Q1` to `Q4`. They are stored in the form as if the user had added them: change them or delete them in the editors of `Slices`, `Categories` and `Series`; the lists left empty stay empty when the form is opened again. A chart filled by the LiveBindings draws the data of the link in place of the stored ones. A chart created in code is empty, and so is a chart read from a form file; a chart pasted in the form designer has the data of the chart copied, or the sample data when that chart had none.
+
 ### Colors
 
 A slice or a series takes its own `Color` when it has one; with `claNull`, the default, it takes the color of the palette for its position: the first element the first color, and so on, starting again from the first color after the last one. The palette is `Palette` when it has colors, else the parts `color1` to `color8` of the style.

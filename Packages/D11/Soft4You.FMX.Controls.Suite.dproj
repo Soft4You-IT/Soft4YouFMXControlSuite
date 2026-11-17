@@ -231,6 +231,7 @@
         <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinCircular.pas"/>
         <DCCReference Include="..\..\Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinLinear.pas"/>
         <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Types.pas"/>
+        <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Strings.pas"/>
         <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.pas"/>
         <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Bindings.pas"/>
         <DCCReference Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Pie.pas"/>

@@ -162,6 +162,8 @@ type
     procedure SlicesChanged;
     function StartAngleStored: Boolean;
   protected
+    /// <summary>Adds four slices, Item 1 to Item 4.</summary>
+    procedure AddSampleData; override;
     /// <summary>Reads the border of the slices and the texts of the style.</summary>
     procedure ApplyStyle; override;
     function BindingAddLinkColumn(const ACaption: string): Integer; override;
@@ -264,7 +266,8 @@ implementation
 uses
   System.SysUtils,
   System.Math,
-  Soft4You.FMX.Controls.Charts.Bindings;
+  Soft4You.FMX.Controls.Charts.Bindings,
+  Soft4You.FMX.Controls.Charts.Strings;
 
 {$IFDEF MACOS}
 {$R *.mac.res}
@@ -289,6 +292,8 @@ const
   // Size of a new chart.
   C_DEFAULT_WIDTH = 300;
   C_DEFAULT_HEIGHT = 200;
+  // Values of the slices of a chart placed in the form designer.
+  C_SAMPLE_SLICE_VALUES: array[0..3] of Single = (40, 30, 20, 10);
   // Angle of FMX for the top of the circle: FMX measures the angles from the right side.
   C_FMX_TOP_ANGLE = -90;
   // Distance of a label inside a pie from the center, as a fraction of the radius.
@@ -443,6 +448,12 @@ begin
   FreeAndNil(FSliceStroke);
   FreeAndNil(FBoundSlices);
   FreeAndNil(FSlices);
+end;
+
+procedure TS4YPieChart.AddSampleData;
+begin
+  for var I := Low(C_SAMPLE_SLICE_VALUES) to High(C_SAMPLE_SLICE_VALUES) do
+    FSlices.Add(Format(S_CHART_SAMPLE_SLICE_CAPTION, [I + 1]), C_SAMPLE_SLICE_VALUES[I]);
 end;
 
 procedure TS4YPieChart.ApplyStyle;
