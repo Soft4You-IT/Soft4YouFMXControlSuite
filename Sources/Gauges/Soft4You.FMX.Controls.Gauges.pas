@@ -122,6 +122,8 @@ type
     /// <summary>Called when what the gauge shows changes: the value drawn, also at each step of the animation, its text or the caption; also after a style is applied and after loading. Nothing here.</summary>
     /// <remarks>A descendant that shows the value with the parts of its style, instead of drawing it, updates them here.</remarks>
     procedure DisplayChanged; virtual;
+    /// <summary>Adds AObject, and keeps the TScaledLayout objects of a style scaling their content in the form designer, as the skin gauges need.</summary>
+    procedure DoAddObject(const AObject: TFmxObject); override;
     /// <summary>Fires OnGetValueText.</summary>
     procedure DoGetValueText(const AValue: Single; var AText: string); virtual;
     /// <summary>Draws the track, the fill and the texts in the area of the content.</summary>
@@ -231,6 +233,8 @@ implementation
 uses
   System.SysUtils,
   System.Math,
+  System.Generics.Collections,
+  FMX.Layouts,
   FMX.Styles;
 
 type
@@ -439,6 +443,54 @@ end;
 procedure TS4YCustomGauge.DisplayChanged;
 begin
   // Nothing: the gauges draw the value and the texts when they paint.
+end;
+
+procedure TS4YCustomGauge.DoAddObject(const AObject: TFmxObject);
+var
+  LSizes: TDictionary<TScaledLayout, TSizeF>;
+
+  procedure FindScaledLayouts(const AParent: TFmxObject);
+  var
+    LChild: TFmxObject;
+  begin
+    for var I := 0 to AParent.ChildrenCount - 1 do
+    begin
+      LChild := AParent.Children[I];
+
+      if LChild is TScaledLayout then
+        LSizes.Add(TScaledLayout(LChild), TSizeF.Create(TScaledLayout(LChild).OriginalWidth,
+          TScaledLayout(LChild).OriginalHeight));
+
+      FindScaledLayouts(LChild);
+    end;
+  end;
+
+begin
+  // Only the style added in the form designer: elsewhere the TScaledLayout objects scale their content.
+  if not (csDesigning in ComponentState) or (AObject <> ResourceLink) then
+  begin
+    inherited;
+    Exit;
+  end;
+
+  LSizes := TDictionary<TScaledLayout, TSizeF>.Create;
+  try
+    FindScaledLayouts(AObject);
+
+    // FMX marks the objects added to a control in the form designer as designed, and a TScaledLayout being
+    // designed takes its size as its original size, so that it no longer scales its content: the style is
+    // drawn at its own size whatever the size of the gauge. The layouts go back to the size of the style.
+    inherited;
+
+    for var LPair in LSizes do
+    begin
+      LPair.Key.SetDesign(False, False);
+      LPair.Key.OriginalWidth := LPair.Value.Width;
+      LPair.Key.OriginalHeight := LPair.Value.Height;
+    end;
+  finally
+    LSizes.Free;
+  end;
 end;
 
 procedure TS4YCustomGauge.DoGetValueText(const AValue: Single; var AText: string);
