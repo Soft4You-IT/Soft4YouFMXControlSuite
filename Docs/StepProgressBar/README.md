@@ -235,7 +235,7 @@ end;
 
 ## Styles
 
-The look of the control comes from a style named `S4YStepProgressBarStyle`. The style is a container of invisible parts:
+The look of the control comes from a style named `S4YStepProgressBarStyle`. The style is a container of parts, which the control reads and hides when the style is applied, and paints itself:
 
 | Part (`StyleName`) | In the default style | Use |
 |---|---|---|
@@ -254,13 +254,13 @@ A style can have other parts and texts, with names of its own, for the steps tha
 
 The graphic parts (line, markers, focus frame and halo) can be **any graphic object**: a `TCircle`, a `TRectangle` with rounded corners, a `TPath` with a shape of its own, a `TLine` with a dashed border, a `TImage`, or a `TLayout` with several objects inside, for example a square with a check mark. The control draws a copy of the part as it is, resized to the area of the marker (the size of its state, see [Markers](#markers)), of the stretch of line (`LineThickness` thick, as long as described in [Layout](#layout)) or of the focus frame and the halo; the objects inside the part follow their `Align`, `Margins` and `Anchors`. The number or the image of `Content` is drawn over the marker.
 
-The size of the parts in the style does not matter: the geometry is given by the properties of the control. A part keeps the proportions only if its class does: in markers wider than tall, a `TEllipse` (the default) becomes an oval that fills the area, while a `TCircle` stays a circle as large as the shorter side, centered in the area. With `smpCenter` the line stops at the edges of the area of the markers, so a marker with a transparent center does not show the line through it, unless `LineSpacing` is negative.
+The size and the position of the parts in the style do not matter, and neither does the text of the `TText` parts: the geometry is given by the properties of the control, and the texts by the steps. In the default style the parts are visible and laid out as a small bar, with a marker of each state, its number and its caption, the two stretches of line, the focus frame, the halo and the markers of the first and the last step, so that each part is seen and can be changed in the style designer. The parts can also be hidden (`Visible = False`): the control shows their copies anyway. A part keeps the proportions only if its class does: in markers wider than tall, a `TEllipse` (the default) becomes an oval that fills the area, while a `TCircle` stays a circle as large as the shorter side, centered in the area. With `smpCenter` the line stops at the edges of the area of the markers, so a marker with a transparent center does not show the line through it, unless `LineSpacing` is negative.
 
 A stretch of line is horizontal or vertical according to `Orientation`. A part that works in one direction only, such as a `TLine` with `LineType = Top`, needs a style of its own (`StyleLookup`) for the bars of the other direction; a `TRectangle` works in both.
 
 The style linked into the package is used when no other style defines `S4YStepProgressBarStyle`. To change the look of all the step bars of an application:
 
-1. In the style of a `TStyleBook`, add a `TLayout` with `StyleName = 'S4YStepProgressBarStyle'` and, inside it, the parts listed above. The default style, `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Win.style`, is a text file with all of them and can be used as a model.
+1. Select a step bar in the form designer and choose Edit Custom Style in its menu: the IDE copies the style of the control, with all its parts, into the `TStyleBook` of the form. Rename the copy `S4YStepProgressBarStyle` and clear the `StyleLookup` of the control, or keep the name and the `StyleLookup` for a style of that control only. The default style, `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Win.style`, is also a text file that can be loaded into the style designer.
 2. Change the parts: their colors and fonts, or replace a shape with another object.
 
 A style with another name is used by the controls whose `StyleLookup` is set to that name; when no style has that name, they use `S4YStepProgressBarStyle` as the others. The style of the parent class of the control is never used. A part missing from a style is replaced by an ellipse (markers, focus frame and halo) or a bar (line) with the brushes of the properties, and a missing text by the default font and colors.

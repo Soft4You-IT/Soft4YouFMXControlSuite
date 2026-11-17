@@ -454,6 +454,7 @@ type
     function GetStepMarkerSettings(const AStepIndex: Integer): TS4YStepMarkerSettings;
     function GetStepState(const AStepIndex: Integer): TS4YStepState;
     function HasOwnLook(const AStepIndex: Integer; const AState: TS4YStepState): Boolean;
+    procedure HideStyleParts(const AObject: TFmxObject);
     function InflateFrame(const AMarkerRect, APadding: TRectF): TRectF;
     function IsAnimating: Boolean;
     function IsProgressHighlighted: Boolean;
@@ -1554,6 +1555,11 @@ procedure TS4YStepProgressBar.ApplyStyle;
 begin
   inherited;
 
+  // The parts can be visible in the style, so that they are seen in the style designer: the control
+  // paints copies of them, and the parts themselves would be painted over the steps.
+  if Assigned(ResourceLink) then
+    HideStyleParts(ResourceLink);
+
   FindStyleResource<TText>(C_STYLE_DESCRIPTION, FStyleDescription);
   FFocusFramePadding := ReadFramePadding(C_STYLE_FOCUS_FRAME, C_DEFAULT_FOCUS_FRAME_SPACING);
   FHoverFramePadding := ReadFramePadding(C_STYLE_HOVER_FRAME, C_DEFAULT_HOVER_FRAME_SPACING);
@@ -2458,6 +2464,27 @@ end;
 function TS4YStepProgressBar.HasOwnLook(const AStepIndex: Integer; const AState: TS4YStepState): Boolean;
 begin
   Result := AState in FSteps[AStepIndex].MarkerStates;
+end;
+
+procedure TS4YStepProgressBar.HideStyleParts(const AObject: TFmxObject);
+var
+  LChild: TFmxObject;
+begin
+  for var I := 0 to AObject.ChildrenCount - 1 do
+  begin
+    LChild := AObject.Children[I];
+
+    // Every object with a name is a part, also the ones named by the steps; the objects without a
+    // name can group the parts.
+    if LChild.StyleName = '' then
+    begin
+      HideStyleParts(LChild);
+    end
+    else if LChild is TControl then
+    begin
+      TControl(LChild).Visible := False;
+    end;
+  end;
 end;
 
 function TS4YStepProgressBar.InflateFrame(const AMarkerRect, APadding: TRectF): TRectF;
