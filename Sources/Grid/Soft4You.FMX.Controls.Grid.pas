@@ -116,11 +116,13 @@ type
     C_DEFAULT_SHORT_CUT = scCtrl or scShift or Ord('F');
   private
     FAutoFilter: Boolean;
+    FCalendarStyleLookup: string;
     FCheckBoxStyleLookup: string;
     FClearOnHide: Boolean;
     FEditStyleLookup: string;
     FFilterDelay: Integer;
     FHeight: Integer;
+    FMenuItemStyleLookup: string;
     FMenuStyleLookup: string;
     FShortCut: TShortCut;
     FShowButton: Boolean;
@@ -129,11 +131,13 @@ type
     FOnChange: TNotifyEvent;
     procedure Changed;
     procedure SetAutoFilter(const Value: Boolean);
+    procedure SetCalendarStyleLookup(const Value: string);
     procedure SetCheckBoxStyleLookup(const Value: string);
     procedure SetClearOnHide(const Value: Boolean);
     procedure SetEditStyleLookup(const Value: string);
     procedure SetFilterDelay(const Value: Integer);
     procedure SetHeight(const Value: Integer);
+    procedure SetMenuItemStyleLookup(const Value: string);
     procedure SetMenuStyleLookup(const Value: string);
     procedure SetShortCut(const Value: TShortCut);
     procedure SetShowButton(const Value: Boolean);
@@ -158,6 +162,11 @@ type
     /// filter and a click on a check box filter at once, also when AutoFilter is False.
     /// </remarks>
     property AutoFilter: Boolean read FAutoFilter write SetAutoFilter default False;
+    /// <summary>
+    /// The name of the style of the calendar of the menu of a date filter, looked for in the style book of the form
+    /// and in the style of the platform. Empty by default: calendarstyle, the style of TCalendar.
+    /// </summary>
+    property CalendarStyleLookup: string read FCalendarStyleLookup write SetCalendarStyleLookup;
     /// <summary>
     /// The name of the style of the check boxes of the filter row, looked for in the style book of the form and in the
     /// style of the platform. Empty by default: checkcellstyle, the style of the check boxes of the cells of the grid,
@@ -184,6 +193,12 @@ type
     /// height of the rows of the grid.
     /// </summary>
     property Height: Integer read FHeight write SetHeight default C_DEFAULT_HEIGHT;
+    /// <summary>
+    /// The name of the style of the items of the menu of the filter, looked for in the style book of the form and in
+    /// the style of the platform. Empty by default: listboxitemstyle, the style of the items of TListBox. The lines
+    /// between the groups of items take the color of the text of this style.
+    /// </summary>
+    property MenuItemStyleLookup: string read FMenuItemStyleLookup write SetMenuItemStyleLookup;
     /// <summary>
     /// The name of the style of the popup of the menu of the filter, its background and border, looked for in the
     /// style book of the form and in the style of the platform. Empty by default: popupstyle, the style of TPopup.
@@ -1022,11 +1037,13 @@ begin
   begin
     LSource := TS4YGridFilterRow(Source);
     FAutoFilter := LSource.AutoFilter;
+    FCalendarStyleLookup := LSource.CalendarStyleLookup;
     FCheckBoxStyleLookup := LSource.CheckBoxStyleLookup;
     FClearOnHide := LSource.ClearOnHide;
     FEditStyleLookup := LSource.EditStyleLookup;
     FFilterDelay := LSource.FilterDelay;
     FHeight := LSource.Height;
+    FMenuItemStyleLookup := LSource.MenuItemStyleLookup;
     FMenuStyleLookup := LSource.MenuStyleLookup;
     FShortCut := LSource.ShortCut;
     FShowButton := LSource.ShowButton;
@@ -1050,6 +1067,15 @@ begin
     Exit;
 
   FAutoFilter := Value;
+  Changed;
+end;
+
+procedure TS4YGridFilterRow.SetCalendarStyleLookup(const Value: string);
+begin
+  if FCalendarStyleLookup = Value then
+    Exit;
+
+  FCalendarStyleLookup := Value;
   Changed;
 end;
 
@@ -1103,6 +1129,15 @@ begin
   else
     FHeight := Value;
 
+  Changed;
+end;
+
+procedure TS4YGridFilterRow.SetMenuItemStyleLookup(const Value: string);
+begin
+  if FMenuItemStyleLookup = Value then
+    Exit;
+
+  FMenuItemStyleLookup := Value;
   Changed;
 end;
 
