@@ -1339,6 +1339,8 @@ begin
     FMenuCalendar.Date := Date;
 
   FMenuList.Visible := False;
+  // A style that is not found gives the style of TCalendar.
+  FMenuCalendar.StyleLookup := Model.FilterRow.CalendarStyleLookup;
   FMenuCalendar.Visible := True;
   FMenuPopup.Width := C_CALENDAR_WIDTH;
   FMenuPopup.Height := C_CALENDAR_HEIGHT;
@@ -1383,17 +1385,23 @@ begin
       LItem := TListBoxItem.Create(FMenuList);
       LItem.Stored := False;
       LItem.Tag := I;
+      // A style that is not found gives the style of the items of TListBox.
+      LItem.StyleLookup := Model.FilterRow.MenuItemStyleLookup;
+      LItem.Parent := FMenuList;
 
+      // The line takes the color of the text of the items, so that it is seen also on a dark background.
       if FMenuItems[I].Action = gmaSeparator then
       begin
         LItem.Height := C_MENU_SEPARATOR_HEIGHT;
         LItem.Selectable := False;
         LItem.HitTest := False;
+        LItem.ApplyStyleLookup;
         LLine := TLine.Create(LItem);
         LLine.Stored := False;
         LLine.LineType := TLineType.Top;
         LLine.Align := TAlignLayout.VertCenter;
         LLine.Height := 1;
+        LLine.Stroke.Color := LItem.ResultingTextSettings.FontColor;
         LLine.Opacity := C_SEPARATOR_OPACITY;
         LLine.HitTest := False;
         LLine.Parent := LItem;
@@ -1401,7 +1409,6 @@ begin
       else
         LItem.Text := FMenuItems[I].Text;
 
-      LItem.Parent := FMenuList;
       LItem.IsSelected := FMenuItems[I].Checked;
       LHeight := LHeight + LItem.Height;
     end;
