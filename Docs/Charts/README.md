@@ -198,7 +198,7 @@ SalesLink.Active := True;
 
 ## Styles
 
-The look of `TS4YPieChart` comes from a style named `S4YPieChartStyle`, a container of invisible parts:
+The look of `TS4YPieChart` comes from a style named `S4YPieChartStyle`, a container of parts, which the chart reads and hides when the style is applied:
 
 | Part (`StyleName`) | In the default style | Use |
 |---|---|---|
@@ -210,7 +210,9 @@ The look of `TS4YPieChart` comes from a style named `S4YPieChartStyle`, a contai
 | `centertext` | `TText`, bold, size 22 | Font and color of the total in the middle of a ring |
 | `centercaptiontext` | `TText` | Font and color of `CenterCaption` |
 
-The style linked into the package is used when no other style defines `S4YPieChartStyle`. To change the look of all the pie charts, add to a `TStyleBook` a `TLayout` with `StyleName = 'S4YPieChartStyle'` and the parts above; the default style, `Sources\Charts\Soft4You.FMX.Controls.Charts.Pie.Win.style`, is a text file with all of them and can be used as a model. A style with another name is used by the charts whose `StyleLookup` is set to that name; when no style has that name, they use `S4YPieChartStyle` as the others. The style of the parent class is never used. A missing text uses the default font and colors, a missing palette a palette of eight colors of its own.
+The style linked into the package is used when no other style defines `S4YPieChartStyle`. To change the look of all the pie charts, select a pie chart in the form designer and choose Edit Custom Style in its menu: the IDE copies the style of the chart, with all its parts, into the `TStyleBook` of the form; rename the copy `S4YPieChartStyle` and clear the `StyleLookup` of the chart, or keep the name and the `StyleLookup` for a style of that chart only. The default style, `Sources\Charts\Soft4You.FMX.Controls.Charts.Pie.Win.style`, is also a text file that can be loaded into the style designer. The bar and line charts work in the same way.
+
+In the default styles the parts are visible and laid out as a small chart, so that each part is seen and can be changed in the style designer: the palette in a row, the axis, a grid line, a bar or an area with a point, the texts with an example. Only the properties listed in the tables are read: the position, the size and the text of the parts do not matter, and neither does the fill of `bar`, `point` and `area`, which shows them in the style designer but is replaced by the colors of the series. The parts can also be hidden (`Visible = False`). A style with another name is used by the charts whose `StyleLookup` is set to that name; when no style has that name, they use `S4YPieChartStyle` as the others. The style of the parent class is never used. A missing text uses the default font and colors, a missing palette a palette of eight colors of its own.
 
 ### Style of the bar chart
 
