@@ -247,6 +247,13 @@ type
     /// <summary>Places the cells of the filter row again after a change of size.</summary>
     procedure Resize; override;
   public
+    /// <summary>
+    /// Adds to AStyle, a copy of the style of a grid, the parts filterrowbackground, footerbackground and
+    /// filterinvalidtext that it does not have, with the values that the grid uses without them, so that a copy of the
+    /// style shows them and they can be changed.
+    /// </summary>
+    class procedure AddDefaultStyleParts(const AStyle: TFmxObject);
+
     /// <summary>Creates the presentation.</summary>
     constructor Create(AOwner: TComponent); override;
     /// <summary>Destroys the presentation.</summary>
@@ -502,6 +509,43 @@ begin
   FEditors.Free;
 
   inherited;
+end;
+
+class procedure TS4YStyledGrid.AddDefaultStyleParts(const AStyle: TFmxObject);
+
+  function CreateBackground(const AStyleName: string; const APadding: Single): TRectangle;
+  begin
+    Result := TRectangle.Create(nil);
+    Result.StyleName := AStyleName;
+    Result.Fill.Kind := TBrushKind.None;
+    Result.Stroke.Kind := TBrushKind.None;
+    Result.Padding.Rect := TRectF.Create(APadding, APadding, APadding, APadding);
+    Result.HitTest := False;
+    Result.Visible := False;
+  end;
+
+var
+  LInvalidText: TText;
+begin
+  if not Assigned(AStyle) then
+    Exit;
+
+  // Transparent, with the space of the grid without the part: 2 pixels around the editors, none around the texts.
+  if not Assigned(AStyle.FindStyleResource(C_STYLE_FILTER_ROW_BACKGROUND)) then
+    AStyle.AddObject(CreateBackground(C_STYLE_FILTER_ROW_BACKGROUND, C_DEFAULT_EDITOR_PADDING));
+
+  if not Assigned(AStyle.FindStyleResource(C_STYLE_FOOTER_BACKGROUND)) then
+    AStyle.AddObject(CreateBackground(C_STYLE_FOOTER_BACKGROUND, 0));
+
+  if not Assigned(AStyle.FindStyleResource(C_STYLE_FILTER_INVALID_TEXT)) then
+  begin
+    LInvalidText := TText.Create(nil);
+    LInvalidText.StyleName := C_STYLE_FILTER_INVALID_TEXT;
+    LInvalidText.TextSettings.FontColor := TS4YGridTextFilterEditor.C_DEFAULT_INVALID_FONT_COLOR;
+    LInvalidText.HitTest := False;
+    LInvalidText.Visible := False;
+    AStyle.AddObject(LInvalidText);
+  end;
 end;
 
 procedure TS4YStyledGrid.ApplyStyle;

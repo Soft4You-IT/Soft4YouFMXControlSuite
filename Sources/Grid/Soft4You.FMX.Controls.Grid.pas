@@ -623,6 +623,15 @@ type
     procedure DialogKey(var Key: Word; Shift: TShiftState); override;
     /// <summary>Returns the class of the model of the grid, TS4YGridModel.</summary>
     function DefineModelClass: TDataModelClass; override;
+    /// <summary>Returns s4ygridstyle: a style S4YGridStyle is the style of all the grids of the form.</summary>
+    function GetDefaultStyleLookupName: string; override;
+    /// <summary>Returns gridstyle, the style of TGrid, used when there is no style S4YGridStyle.</summary>
+    function GetParentClassStyleLookupName: string; override;
+    /// <summary>
+    /// Returns the style of the grid, with the parts of the filter row and of the footer that it does not have, so that
+    /// a copy of the style shows them.
+    /// </summary>
+    function GetStyleObject(const Clone: Boolean): TFmxObject; override;
     /// <summary>Forgets the settings of a column that is freed.</summary>
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -815,6 +824,10 @@ const
   C_BINDING_FOOTER_ROW = 'FooterRow';
   C_BINDING_SORTED = 'Sorted';
   C_BINDING_SORTING = 'Sorting';
+
+  // The style of the grid, looked for first, and the style of TGrid, used without it.
+  C_STYLE_GRID = 's4ygridstyle';
+  C_STYLE_PARENT_GRID = 'gridstyle';
 
 resourcestring
   S_FILTER_CONTAINS = 'Contains';
@@ -2218,6 +2231,25 @@ end;
 function TS4YGrid.DefineModelClass: TDataModelClass;
 begin
   Result := TS4YGridModel;
+end;
+
+function TS4YGrid.GetDefaultStyleLookupName: string;
+begin
+  Result := C_STYLE_GRID;
+end;
+
+function TS4YGrid.GetParentClassStyleLookupName: string;
+begin
+  Result := C_STYLE_PARENT_GRID;
+end;
+
+function TS4YGrid.GetStyleObject(const Clone: Boolean): TFmxObject;
+begin
+  Result := inherited;
+
+  // Only a copy: the object of the style itself is shared by all the controls.
+  if Clone then
+    TS4YStyledGrid.AddDefaultStyleParts(Result);
 end;
 
 procedure TS4YGrid.Filter;
