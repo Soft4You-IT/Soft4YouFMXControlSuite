@@ -55,6 +55,8 @@ uses
   FMX.Menus,
   FMX.Forms,
   FMX.Text,
+  FMX.InertialMovement,
+  FMX.Objects,
   System.NetEncoding,
   System.Net.HttpClient,
   System.Bindings.Helper,
@@ -77,6 +79,8 @@ const
   C_EDITOR_SCROLL_STEP = 40.0;
   C_COLUMN_BORDER_TOLERANCE = 3.0;  // px from a column border where the mouse grabs it
   C_AUTO_SCROLL_ZONE = 40.0; // px from top/bottom edge that triggers auto-scroll on drag
+  C_TOUCH_SCROLL_DISTANCE = 8.0; // px a finger moves before its touch scrolls instead of being a tap
+  C_SELECTION_HANDLE_SIZE = 10.0; // px radius of the handles of a selection made with a finger
 
   // Context popup menu items constants
   C_CONTEXT_POPUP_ITEM_UNDO = 0;
@@ -463,10 +467,11 @@ type
   /// Use it from the main thread only. Setting the content (HTML, FullHTML, LoadFromFile) clears the undo history and does not fire OnChange.
   /// See Docs/DeveloperGuide.md for how events behave and what to be careful about.
   /// On Android and iOS the editor works with the virtual keyboard of the platform: a tap shows it, and the text it
-  /// writes, corrections and suggestions included, goes into the document.
+  /// writes, corrections and suggestions included, goes into the document. A finger scrolls the document, a long press
+  /// or a double tap selects a word, with handles and the Cut, Copy and Paste menu of the platform.
   /// </remarks>
   TS4YHTMLEditor = class(TStyledControl{$IF DEFINED(ANDROID) or DEFINED(IOS)}, ITextInput, IReadOnly,
-    IVirtualKeyboardControl{$ENDIF})
+    IVirtualKeyboardControl, ITextActions{$ENDIF})
   private
     FDocument: TS4YHTMLDocument;
     FLayoutEngine: TS4YLayoutEngine;
@@ -535,6 +540,16 @@ type
     FTextServiceParagraphCount: Integer;
     FTextServiceText: string;
     FApplyingTextInput: Boolean;
+    // A finger on a phone scrolls the document, with inertia; a tap without a move is a click at its release
+    FAniCalculations: TAniCalculations;
+    FTouchPressed: Boolean;
+    FTouchScrolling: Boolean;
+    FTouchPressPoint: TPointF;
+    FTouchLongPress: Boolean;
+    // The handles under the start and the end of a selection made with a finger
+    FTouchSelection: Boolean;
+    FStartHandle: TSelectionPoint;
+    FEndHandle: TSelectionPoint;
     FShowBorder: Boolean;
     FBackgroundColor: TAlphaColor;
     FFontColor: TAlphaColor;
@@ -713,9 +728,24 @@ type
     function EnsureValidDocument: Boolean;
 
     // Text service of the platform (virtual keyboard)
+    procedure AniCalculationsChanged(Sender: TObject);
     procedure ApplyTextInput;
+    procedure DisableKeyboardOnTouch;
+    procedure EnsureSelectionHandles;
+    procedure HideTouchMenu;
+    function EndTouch(AX, AY: Single): Boolean;
+    function IsTouchInput(Shift: TShiftState): Boolean;
+    procedure MoveTouch(AX, AY: Single);
+    procedure PointerDown(Button: TMouseButton; Shift: TShiftState; X, Y: Single);
+    procedure SelectionHandleChange(Sender: TObject);
+    procedure SelectionHandleMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
+    function SelectionHandlePoint(const APosition: TS4YDocumentPosition; out APoint: TPointF): Boolean;
+    procedure SelectionHandleTrack(Sender: TObject; var X, Y: Single);
+    procedure ShowTouchMenu;
     procedure ShowVirtualKeyboard;
+    procedure StartTouch(AX, AY: Single);
     procedure SyncTextService;
+    procedure UpdateSelectionHandles;
     function TextServiceOffsetOf(const APosition: TS4YDocumentPosition): Integer;
     function TextServicePositionOf(AOffset: Integer): TS4YDocumentPosition;
     function TextServiceTextOf(AFirstParagraph, ALastParagraph: Integer): string;
@@ -781,7 +811,22 @@ type
     function IsPassword: Boolean;
     procedure SetKeyboardType(Value: TVirtualKeyboardType);
     procedure SetReturnKeyType(Value: TReturnKeyType);
+    // ITextActions, for the Cut, Copy, Paste and Select all menu of Android and iOS
+    procedure DeleteSelectionText;
+    procedure GoToTextBegin;
+    procedure GoToTextEnd;
+    procedure Replace(const AStartPos: Integer; const ALength: Integer; const AStr: string);
+    procedure SelectWordAtCaret;
+    {$IF DEFINED(ANDROID) or DEFINED(IOS)}
+    procedure ITextActions.CopyToClipboard = Copy;
+    procedure ITextActions.CutToClipboard = Cut;
+    procedure ITextActions.DeleteSelection = DeleteSelectionText;
+    procedure ITextActions.PasteFromClipboard = Paste;
+    procedure ITextActions.ResetSelection = ClearSelection;
+    procedure ITextActions.SelectWord = SelectWordAtCaret;
+    {$ENDIF}
 
+    procedure CMGesture(var EventInfo: TGestureEventInfo); override;
     procedure Paint; override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Single); override;
     procedure MouseMove(Shift: TShiftState; X, Y: Single); override;
@@ -1446,6 +1491,11 @@ uses
   System.IOUtils,
   System.Generics.Defaults,
   FMX.VirtualKeyboard,
+  {$IFDEF ANDROID}
+  Androidapi.JNI.Embarcadero,
+  FMX.Platform.Android,
+  FMX.Platform.UI.Android,
+  {$ENDIF}
   Soft4You.FMX.Controls.HTMLEditor.Strings;
 
 // -----------------------------------------------------------------------------
@@ -2705,6 +2755,9 @@ begin
   FLayoutEngine := TS4YLayoutEngine.Create;
   FTextServiceFirstParagraph := -1;
   FTextServiceLastParagraph := -1;
+  {$IF DEFINED(ANDROID) or DEFINED(IOS)}
+  Touch.InteractiveGestures := Touch.InteractiveGestures + [TInteractiveGesture.LongTap];
+  {$ENDIF}
   FLineSpacing := C_EDITOR_LINE_SPACING;
   FParagraphSpacing := C_EDITOR_PARA_SPACING;
   FImageCache := TObjectDictionary<string, TBitmap>.Create([doOwnsValues]);
@@ -2780,6 +2833,7 @@ end;
 
 destructor TS4YHTMLEditor.Destroy;
 begin
+  FAniCalculations.Free;
   FTextService.Free;
   FCaretTimer.Free;
   FRenderCache.Free;
@@ -2808,6 +2862,7 @@ begin
   FCaretOn := True;
   FCaretTimer.Enabled := True;
   Repaint;
+  DisableKeyboardOnTouch;
 end;
 
 procedure TS4YHTMLEditor.DoExit;
@@ -2820,6 +2875,7 @@ begin
   FCaretTimer.Enabled := False;
   FCaretOn := False;
   Repaint;
+  UpdateSelectionHandles;
 end;
 
 procedure TS4YHTMLEditor.Resize;
@@ -4290,9 +4346,205 @@ begin
     ScrollTo(LDocumentY + LHeight - LViewHeight);
 end;
 
+procedure TS4YHTMLEditor.AniCalculationsChanged(Sender: TObject);
+begin
+  ScrollTo(FAniCalculations.ViewportPosition.Y);
+end;
+
+function TS4YHTMLEditor.EndTouch(AX, AY: Single): Boolean;
+begin
+  // The document goes on scrolling and slows down, when the finger has left it while moving
+  FTouchPressed := False;
+  FAniCalculations.MouseUp(AX, AY);
+  Result := not FTouchScrolling;
+end;
+
+function TS4YHTMLEditor.IsTouchInput(Shift: TShiftState): Boolean;
+begin
+  // On Windows and macOS the touch screens keep the behavior of the mouse
+  {$IF DEFINED(ANDROID) or DEFINED(IOS)}
+  Result := ssTouch in Shift;
+  {$ELSE}
+  Result := False;
+  {$ENDIF}
+end;
+
+procedure TS4YHTMLEditor.MoveTouch(AX, AY: Single);
+begin
+  // Under C_TOUCH_SCROLL_DISTANCE the finger can still make a tap
+  if not FTouchScrolling and (FTouchPressPoint.Distance(TPointF.Create(AX, AY)) > C_TOUCH_SCROLL_DISTANCE) then
+    FTouchScrolling := True;
+
+  FAniCalculations.MouseMove(AX, AY);
+end;
+
+procedure TS4YHTMLEditor.StartTouch(AX, AY: Single);
+var
+  LTargets: array[0..1] of TAniCalculations.TTarget;
+begin
+  HideTouchMenu;
+  if FAniCalculations = nil then
+  begin
+    FAniCalculations := TAniCalculations.Create(Self);
+    FAniCalculations.Animation := True;
+    FAniCalculations.Averaging := True;
+    FAniCalculations.BoundsAnimation := False;
+    FAniCalculations.TouchTracking := [ttVertical];
+    FAniCalculations.OnChanged := AniCalculationsChanged;
+  end;
+
+  // The document can be scrolled from its start to where its end reaches the bottom of the editor. A finger on the
+  // editor stops the document that is still moving.
+  LTargets[0].TargetType := TAniCalculations.TTargetType.Min;
+  LTargets[0].Point := TPointD.Create(0, 0);
+  LTargets[1].TargetType := TAniCalculations.TTargetType.Max;
+  LTargets[1].Point := TPointD.Create(0, FScrollBarMaximum);
+  FAniCalculations.SetTargets(LTargets);
+  FAniCalculations.ViewportPosition := TPointD.Create(0, FScrollY);
+  FAniCalculations.MouseDown(AX, AY);
+  FTouchPressed := True;
+  FTouchScrolling := False;
+  FTouchPressPoint := TPointF.Create(AX, AY);
+end;
+
+procedure TS4YHTMLEditor.EnsureSelectionHandles;
+
+  function CreateHandle: TSelectionPoint;
+  begin
+    Result := TSelectionPoint.Create(Self);
+    Result.Stored := False;
+    Result.Locked := True;
+    Result.Visible := False;
+    Result.GripSize := C_SELECTION_HANDLE_SIZE;
+    Result.OnTrack := SelectionHandleTrack;
+    Result.OnMouseDown := SelectionHandleMouseDown;
+    Result.OnChange := SelectionHandleChange;
+    Result.Parent := Self;
+  end;
+
+begin
+  if FStartHandle <> nil then
+    Exit;
+
+  FStartHandle := CreateHandle;
+  FEndHandle := CreateHandle;
+end;
+
+procedure TS4YHTMLEditor.SelectionHandleChange(Sender: TObject);
+begin
+  // The handle has been left: the menu comes back beside the new selection
+  ShowTouchMenu;
+end;
+
+procedure TS4YHTMLEditor.SelectionHandleMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
+  X, Y: Single);
+begin
+  HideTouchMenu;
+end;
+
+function TS4YHTMLEditor.SelectionHandlePoint(const APosition: TS4YDocumentPosition; out APoint: TPointF): Boolean;
+var
+  LX, LY, LHeight: Single;
+begin
+  // Under the line of the position, while the line is in sight
+  Result := DocumentPositionToXY(APosition, LX, LY, LHeight) and (LY + LHeight >= 0) and (LY + LHeight <= Height);
+
+  if Result then
+    APoint := TPointF.Create(LX, LY + LHeight)
+  else
+    APoint := TPointF.Zero;
+end;
+
+procedure TS4YHTMLEditor.SelectionHandleTrack(Sender: TObject; var X, Y: Single);
+var
+  LStartPosition: TS4YDocumentPosition;
+  LEndPosition: TS4YDocumentPosition;
+  LHitPosition: TS4YDocumentPosition;
+  LPoint: TPointF;
+begin
+  // Near the top and the bottom of the editor the document scrolls under the handle
+  if Y < C_AUTO_SCROLL_ZONE then
+    ScrollTo(FScrollY - C_EDITOR_SCROLL_STEP / 4)
+  else if Y > Height - C_AUTO_SCROLL_ZONE then
+    ScrollTo(FScrollY + C_EDITOR_SCROLL_STEP / 4);
+
+  // The handle is under the line: the position is the one of the text above it. A handle does not pass the other
+  // one, so the selection is never empty.
+  LHitPosition := HitTest(X, Y - C_SELECTION_HANDLE_SIZE - FCaretScreenH / 2);
+  GetSelectionRange(LStartPosition, LEndPosition);
+
+  if Sender = FStartHandle then
+  begin
+    if PositionCompare(LHitPosition, LEndPosition) < 0 then
+      LStartPosition := LHitPosition;
+
+    FCaretPosition := LStartPosition;
+  end
+  else
+  begin
+    if PositionCompare(LHitPosition, LStartPosition) > 0 then
+      LEndPosition := LHitPosition;
+
+    FCaretPosition := LEndPosition;
+  end;
+
+  FSelectionStart := LStartPosition;
+  FSelectionEnd := LEndPosition;
+  FHasSelection := True;
+  FInsertStyleSet := False;
+  UpdateCaretXY;
+  InvalidateRender;
+  DoNotifyState;
+
+  // The handle stays under the position it has chosen
+  if SelectionHandlePoint(FCaretPosition, LPoint) then
+  begin
+    X := LPoint.X;
+    Y := LPoint.Y;
+  end;
+end;
+
+procedure TS4YHTMLEditor.UpdateSelectionHandles;
+var
+  LStartPosition: TS4YDocumentPosition;
+  LEndPosition: TS4YDocumentPosition;
+  LPoint: TPointF;
+  LVisible: Boolean;
+begin
+  // The handles are created with the first selection made with a finger, on Android and iOS only
+  LVisible := FTouchSelection and FHasSelection and IsFocused;
+
+  if FStartHandle = nil then
+  begin
+    if not LVisible then
+      Exit;
+
+    EnsureSelectionHandles;
+  end;
+
+  if not LVisible then
+  begin
+    FStartHandle.Visible := False;
+    FEndHandle.Visible := False;
+    Exit;
+  end;
+
+  GetSelectionRange(LStartPosition, LEndPosition);
+  FStartHandle.Visible := SelectionHandlePoint(LStartPosition, LPoint);
+
+  if FStartHandle.Visible then
+    FStartHandle.Position.Point := LPoint;
+
+  FEndHandle.Visible := SelectionHandlePoint(LEndPosition, LPoint);
+
+  if FEndHandle.Visible then
+    FEndHandle.Position.Point := LPoint;
+end;
+
 procedure TS4YHTMLEditor.ScrollTo(AY: Single);
 begin
   FScrollY := Max(0, Min(AY, FScrollBarMaximum));
+  UpdateSelectionHandles;
 
   if (FScrollBar <> nil) and FScrollBar.Visible then
   begin
@@ -5324,13 +5576,7 @@ end;
 
 procedure TS4YHTMLEditor.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Single);
 var
-  LHitPosition: TS4YDocumentPosition;
-  LElapsedMs: Int64;
-  LDist2: Single;
   LSavedScrollY: Single;
-  LClickParagraph: TS4YHTMLParagraph;
-  LBorderTableID: Integer;
-  LBorderBoundary: Integer;
 begin
   // Save scroll as the VERY FIRST operation: TControl.MouseDown (inherited) calls
   // SetFocusedControl -> DoEnter -> DoLayout -> EnsureCaretVisible and resets
@@ -5346,6 +5592,27 @@ begin
 
   ScrollTo(LSavedScrollY);
   FCaretAtImageRight := False;
+
+  // A finger does not select: it scrolls the document, and a tap without a move is a click at its release
+  if IsTouchInput(Shift) then
+  begin
+    StartTouch(X, Y);
+    Exit;
+  end;
+
+  PointerDown(Button, Shift, X, Y);
+end;
+
+procedure TS4YHTMLEditor.PointerDown(Button: TMouseButton; Shift: TShiftState; X, Y: Single);
+var
+  LHitPosition: TS4YDocumentPosition;
+  LElapsedMs: Int64;
+  LDist2: Single;
+  LClickParagraph: TS4YHTMLParagraph;
+  LBorderTableID: Integer;
+  LBorderBoundary: Integer;
+begin
+  FTouchSelection := False;
 
   // A click on the border between two columns grabs it instead of moving the caret
   if (Button = TMouseButton.mbLeft) and not FReadOnly and
@@ -5722,6 +5989,12 @@ var
 begin
   inherited;
 
+  if FTouchPressed then
+  begin
+    MoveTouch(X, Y);
+    Exit;
+  end;
+
   if FIsResizingColumn then
   begin
     if ssLeft in Shift then
@@ -5804,6 +6077,28 @@ end;
 procedure TS4YHTMLEditor.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Single);
 begin
   inherited;
+
+  // A long press has selected and shows the menu at its end
+  if FTouchLongPress then
+  begin
+    FTouchLongPress := False;
+    Exit;
+  end;
+
+  // A finger that has scrolled the document is not a click; a tap is the click of a mouse, at its release, and the
+  // word or the paragraph that a double or a triple tap selects gets the menu
+  if FTouchPressed then
+  begin
+    if not EndTouch(X, Y) then
+      Exit;
+
+    PointerDown(Button, Shift, X, Y);
+    FTouchSelection := FHasSelection;
+    UpdateSelectionHandles;
+
+    if FHasSelection then
+      ShowTouchMenu;
+  end;
 
   if FIsResizingColumn then
   begin
@@ -11130,6 +11425,99 @@ begin
   DoNotifyState;
 end;
 
+procedure TS4YHTMLEditor.CMGesture(var EventInfo: TGestureEventInfo);
+var
+  LLocalPoint: TPointF;
+  LHitPosition: TS4YDocumentPosition;
+begin
+  if EventInfo.GestureID <> igiLongTap then
+  begin
+    inherited;
+    Exit;
+  end;
+
+  LLocalPoint := AbsoluteToLocal(EventInfo.Location);
+
+  // The finger that stays selects the word under it, or puts the caret there: the touch is not a scroll and its
+  // release is not a tap. At the end the menu of the platform appears.
+  if TInteractiveGestureFlag.gfBegin in EventInfo.Flags then
+  begin
+    if FTouchPressed then
+      EndTouch(LLocalPoint.X, LLocalPoint.Y);
+
+    FTouchLongPress := True;
+
+    if Length(FFrags) = 0 then
+      DoLayout;
+
+    LHitPosition := HitTest(LLocalPoint.X, LLocalPoint.Y);
+    FTouchSelection := True;
+    SelectWordAt(LHitPosition);
+
+    if not FHasSelection then
+      SetCaretPosition(LHitPosition, False);
+
+    UpdateSelectionHandles;
+  end;
+
+  if TInteractiveGestureFlag.gfEnd in EventInfo.Flags then
+    ShowTouchMenu;
+end;
+
+procedure TS4YHTMLEditor.DeleteSelectionText;
+begin
+  if not FHasSelection then
+    Exit;
+
+  SaveUndo;
+  DeleteSelection;
+end;
+
+procedure TS4YHTMLEditor.DisableKeyboardOnTouch;
+{$IFDEF ANDROID}
+var
+  LEditText: JFMXEditText;
+{$ENDIF}
+begin
+  // On Android the hidden native field of the text service lies over the editor and shows the keyboard at each touch,
+  // also when the finger scrolls the document: the editor shows it itself, at a tap. The text service sets the field
+  // when the editor gets the focus, just before DoEnter.
+  {$IFDEF ANDROID}
+  if (FTextService = nil) or (PlatformAndroid = nil) or (PlatformAndroid.TextInputManager = nil) then
+    Exit;
+
+  LEditText := PlatformAndroid.TextInputManager.GetEditText;
+
+  if LEditText <> nil then
+    LEditText.setNeededToShowSoftKeyboardOnTouch(False);
+  {$ENDIF}
+end;
+
+procedure TS4YHTMLEditor.GoToTextBegin;
+begin
+  SetCaretPosition(DocumentStart, False);
+  EnsureCaretVisible;
+end;
+
+procedure TS4YHTMLEditor.GoToTextEnd;
+begin
+  SetCaretPosition(DocumentEnd, False);
+  EnsureCaretVisible;
+end;
+
+procedure TS4YHTMLEditor.HideTouchMenu;
+begin
+  // A new touch closes the menu of a selection. The text service closes it when a selection begins; the end of the
+  // selection of the window service, unlike the one of the text service, does not show it again.
+  {$IFDEF ANDROID}
+  if (FTextService = nil) or (PlatformAndroid = nil) or (PlatformAndroid.WindowService = nil) then
+    Exit;
+
+  FTextService.BeginSelection;
+  PlatformAndroid.WindowService.EndSelection;
+  {$ENDIF}
+end;
+
 procedure TS4YHTMLEditor.EndIMEInput;
 begin
   // Nothing to do: the text of the keyboard is applied by IMEStateUpdated, at each change.
@@ -11184,8 +11572,32 @@ begin
 end;
 
 function TS4YHTMLEditor.GetSelectionRect: TRectF;
+var
+  LStartPosition: TS4YDocumentPosition;
+  LEndPosition: TS4YDocumentPosition;
+  LStartX, LStartY, LStartHeight: Single;
+  LEndX, LEndY, LEndHeight: Single;
+  LRect: TRectF;
 begin
-  Result := TRectF.Create(FCaretScreenX, FCaretScreenY, FCaretScreenX, FCaretScreenY + FCaretScreenH);
+  // In the coordinates of the form: the menu of the platform appears beside it. A selection on more lines takes the
+  // whole width of the text.
+  LRect := TRectF.Create(FCaretScreenX, FCaretScreenY, FCaretScreenX, FCaretScreenY + FCaretScreenH);
+
+  if FHasSelection then
+  begin
+    GetSelectionRange(LStartPosition, LEndPosition);
+
+    if DocumentPositionToXY(LStartPosition, LStartX, LStartY, LStartHeight) and
+      DocumentPositionToXY(LEndPosition, LEndX, LEndY, LEndHeight) then
+    begin
+      if SameValue(LStartY, LEndY) then
+        LRect := TRectF.Create(Min(LStartX, LEndX), LStartY, Max(LStartX, LEndX), LStartY + LStartHeight)
+      else
+        LRect := TRectF.Create(ContentLeft, LStartY, ContentLeft + AvailableWidth, LEndY + LEndHeight);
+    end;
+  end;
+
+  Result := TRectF.Create(LocalToAbsolute(LRect.TopLeft), LocalToAbsolute(LRect.BottomRight));
 end;
 
 function TS4YHTMLEditor.GetTargetClausePointF: TPointF;
@@ -11222,6 +11634,29 @@ begin
   Result := False;
 end;
 
+procedure TS4YHTMLEditor.Replace(const AStartPos: Integer; const ALength: Integer; const AStr: string);
+begin
+  // The offsets are the ones of the text of the text service, as for a correction of the spelling
+  if (FTextService = nil) or FReadOnly then
+    Exit;
+
+  SaveUndo;
+  FSelectionStart := TextServicePositionOf(AStartPos);
+  FSelectionEnd := TextServicePositionOf(AStartPos + ALength);
+  FCaretPosition := FSelectionStart;
+  FHasSelection := PositionCompare(FSelectionStart, FSelectionEnd) <> 0;
+  DeleteSelection;
+  ResetSelection;
+
+  if AStr <> '' then
+    InsertString(AStr);
+end;
+
+procedure TS4YHTMLEditor.SelectWordAtCaret;
+begin
+  SelectWordAt(FCaretPosition);
+end;
+
 procedure TS4YHTMLEditor.SetKeyboardType(Value: TVirtualKeyboardType);
 begin
   FKeyboardType := Value;
@@ -11230,6 +11665,19 @@ end;
 procedure TS4YHTMLEditor.SetReturnKeyType(Value: TReturnKeyType);
 begin
   FReturnKeyType := Value;
+end;
+
+procedure TS4YHTMLEditor.ShowTouchMenu;
+begin
+  // The menu of the platform with Cut, Copy, Paste and Select all, beside the selection; its items call ITextActions
+  {$IF DEFINED(ANDROID) or DEFINED(IOS)}
+  if FTextService = nil then
+    Exit;
+
+  SyncTextService;
+  FTextService.BeginSelection;
+  FTextService.EndSelection;
+  {$ENDIF}
 end;
 
 procedure TS4YHTMLEditor.ShowVirtualKeyboard;
@@ -11353,6 +11801,7 @@ end;
 procedure TS4YHTMLEditor.DoNotifyState;
 begin
   SyncTextService;
+  UpdateSelectionHandles;
 
   if Assigned(FOnStateChange) then
     FOnStateChange(Self, GetState);
