@@ -33,8 +33,8 @@ Add the folder `Sources\StepProgressBar` to the Delphi library path to compile y
 | `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Strings.pas` | Texts of the control and of its editor: captions of the first steps, error messages |
 | `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Design.pas` | Editor of the steps in the IDE (design time) |
 | `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Register.pas` | Registration in the Tool Palette and of the editor of the steps (design time) |
-| `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Win.rc` / `.Mac.rc` | Resource scripts that link the style as the resource `S4YStepProgressBarStyle` |
-| `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Win.style` / `.Mac.style` | Default style of the control (the two are identical) |
+| `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Win.rc` / `.Mac.rc` / `.Android.rc` / `.iOS.rc` | Resource scripts that link the style as the resource `S4YStepProgressBarStyle` |
+| `Sources\StepProgressBar\Soft4You.FMX.Controls.StepProgressBar.Win.style` / `.Mac.style` / `.Android.style` / `.iOS.style` | Default style of the control (the four are identical) |
 | `Graphics\StepProgressBar\TS4YStepProgressBar.svg` | Vector master of the icon of the Tool Palette |
 | `Graphics\StepProgressBar\TS4YStepProgressBar.bmp`, `StepProgressBarDesign.rc` | Icon of the Tool Palette (24x24 bitmap) and the resource script that links it |
 

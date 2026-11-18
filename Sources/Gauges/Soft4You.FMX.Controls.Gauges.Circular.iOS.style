@@ -1,0 +1,63 @@
+object TLayout
+  StyleName = 'S4YCircularGaugeStyle'
+  Align = Contents
+  HitTest = False
+  Size.Width = 160.000000000000000000
+  Size.Height = 160.000000000000000000
+  Size.PlatformDefault = False
+  object TArc
+    StyleName = 'track'
+    Position.X = 20.000000000000000000
+    Position.Y = 20.000000000000000000
+    Size.Width = 120.000000000000000000
+    Size.Height = 120.000000000000000000
+    Size.PlatformDefault = False
+    StartAngle = 0.000000000000000000
+    EndAngle = 360.000000000000000000
+    Fill.Kind = None
+    HitTest = False
+    Stroke.Cap = Round
+    Stroke.Color = xFFE0E0E0
+    Stroke.Thickness = 12.000000000000000000
+  end
+  object TArc
+    StyleName = 'fill'
+    Position.X = 20.000000000000000000
+    Position.Y = 20.000000000000000000
+    Size.Width = 120.000000000000000000
+    Size.Height = 120.000000000000000000
+    Size.PlatformDefault = False
+    StartAngle = -90.000000000000000000
+    EndAngle = 270.000000000000000000
+    Fill.Kind = None
+    HitTest = False
+    Stroke.Cap = Round
+    Stroke.Color = xFF1E88E5
+    Stroke.Thickness = 12.000000000000000000
+  end
+  object TText
+    StyleName = 'valuetext'
+    Position.X = 30.000000000000000000
+    Position.Y = 62.000000000000000000
+    Size.Width = 100.000000000000000000
+    Size.Height = 30.000000000000000000
+    Size.PlatformDefault = False
+    Text = '75'
+    HitTest = False
+    TextSettings.Font.Size = 24.000000000000000000
+    TextSettings.Font.Style = [fsBold]
+    TextSettings.FontColor = xFF212121
+  end
+  object TText
+    StyleName = 'captiontext'
+    Position.X = 30.000000000000000000
+    Position.Y = 92.000000000000000000
+    Size.Width = 100.000000000000000000
+    Size.Height = 18.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Caption'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.FontColor = xFF616161
+  end
+end

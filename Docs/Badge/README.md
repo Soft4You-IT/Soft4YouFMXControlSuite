@@ -23,8 +23,8 @@ Add the folder `Sources\Badge` to the Delphi library path to compile your own pr
 |---|---|
 | `Sources\Badge\Soft4You.FMX.Controls.Badge.pas` | The control |
 | `Sources\Badge\Soft4You.FMX.Controls.Badge.Register.pas` | Registration in the Tool Palette (design time) |
-| `Sources\Badge\Soft4You.FMX.Controls.Badge.Win.rc` / `.Mac.rc` | Resource scripts that link the style as the resource `S4YBadgeStyle` |
-| `Sources\Badge\Soft4You.FMX.Controls.Badge.Win.style` / `.Mac.style` | Default style of the badge (the two are identical) |
+| `Sources\Badge\Soft4You.FMX.Controls.Badge.Win.rc` / `.Mac.rc` / `.Android.rc` / `.iOS.rc` | Resource scripts that link the style as the resource `S4YBadgeStyle` |
+| `Sources\Badge\Soft4You.FMX.Controls.Badge.Win.style` / `.Mac.style` / `.Android.style` / `.iOS.style` | Default style of the badge (the four are identical) |
 | `Graphics\Badge\TS4YBadge.svg` | Vector master of the icon of the Tool Palette |
 | `Graphics\Badge\TS4YBadge.bmp`, `BadgeDesign.rc` | Icon of the Tool Palette (24x24 bitmap) and the resource script that links it |
 
