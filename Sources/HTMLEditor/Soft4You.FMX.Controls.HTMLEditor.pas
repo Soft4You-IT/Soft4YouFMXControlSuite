@@ -98,6 +98,7 @@ const
 
   // Default colors constants
   C_DEFAULT_SELECTION_COLOR = $ff95cbff; //$FF316AC5;
+  C_SELECTED_TABLE_OPACITY = 0.35; // a table selected by Backspace or Delete shows its content through the color
   C_DEFAULT_HR_TAG_STROKE_COLOR = $FFB0B0B0;
   C_DEFAULT_HR_THICKNESS = 1.0;
   C_DEFAULT_TABLE_CELL_PADDING = 4.0;
@@ -550,6 +551,8 @@ type
     FTouchSelection: Boolean;
     FStartHandle: TSelectionPoint;
     FEndHandle: TSelectionPoint;
+    // The table selected by Backspace after it or Delete before it: a second Backspace or Delete deletes it
+    FSelectedTableID: Integer;
     FShowBorder: Boolean;
     FBackgroundColor: TAlphaColor;
     FFontColor: TAlphaColor;
@@ -592,6 +595,7 @@ type
     procedure PaintHorizontalRule(ACanvas: TCanvas; AY, AWidth, AX: Single; AParagraph: TS4YHTMLParagraph);
     procedure PaintImage(ACanvas: TCanvas; const AFragment: TS4YLayoutFragment; AParagraph: TS4YHTMLParagraph);
     procedure PaintImageRun(ACanvas: TCanvas; const AFragment: TS4YLayoutFragment; ARun: TS4YHTMLRun);
+    procedure PaintSelectedTable(ACanvas: TCanvas);
     procedure PaintSelection(ACanvas: TCanvas);
     procedure GetRenderCullLimits(out ACullTop, ACullBottom: Single);
     procedure PaintTableCellBackgrounds(ACanvas: TCanvas);
@@ -791,6 +795,10 @@ type
     function InSameTableCell(AFirstIndex, ASecondIndex: Integer): Boolean;
     function TableHasNesting(ATableID: Integer): Boolean;
     function GetTableTarget(out ATableID: Integer; out ACells: TArray<TS4YTableCellReference>): Boolean;
+    function AdjacentTableID(ATableParagraphIndex, AParagraphIndex: Integer): Integer;
+    procedure ClearSelectedTable;
+    procedure DeleteTableByID(ATableID: Integer);
+    function SelectAdjacentTable(Forward: Boolean): Boolean;
     procedure FinishTableStyleChange;
     function TableHasSpans(ATableID: Integer): Boolean;
 
@@ -1003,6 +1011,15 @@ type
     /// It does nothing when ReadOnly is True.
     /// </remarks>
     procedure DeleteTableColumn;
+    /// <summary>
+    /// Deletes a whole table: the one selected with Backspace or Delete next to it, otherwise the one that contains
+    /// the caret.
+    /// </summary>
+    /// <remarks>
+    /// The caret goes to the paragraph that follows the table. A table inside a cell of another table is deleted
+    /// together with the table that contains it. It does nothing when ReadOnly is True.
+    /// </remarks>
+    procedure DeleteTable;
     /// <summary>
     /// Sets where the table that contains the caret sits when it is narrower than its space.
     /// </summary>
@@ -3066,6 +3083,7 @@ var
       end;
 
       PaintSelection(ACanvas);
+      PaintSelectedTable(ACanvas);
 
       // First fragment of every paragraph, found in a single pass (list markers hang from it)
       SetLength(LFirstFragmentOfParagraph, FDocument.Paragraphs.Count);
@@ -3780,6 +3798,47 @@ procedure TS4YHTMLEditor.GetRenderCullLimits(out ACullTop, ACullBottom: Single);
 begin
   ACullTop := -C_RENDER_CULL_MARGIN - ContentTop;
   ACullBottom := Height + C_RENDER_CULL_MARGIN - ContentTop;
+end;
+
+procedure TS4YHTMLEditor.PaintSelectedTable(ACanvas: TCanvas);
+var
+  LRectangle: TRectF;
+  LFound: Boolean;
+begin
+  if FSelectedTableID = 0 then
+    Exit;
+
+  // The cells of the table cover it; the cells of the tables inside it are within them
+  LFound := False;
+  LRectangle := TRectF.Empty;
+
+  for var I := 0 to High(FCells) do
+  begin
+    if FCells[I].TableID = FSelectedTableID then
+    begin
+      if LFound then
+        LRectangle := TRectF.Union(LRectangle, TRectF.Create(FCells[I].X, FCells[I].Y, FCells[I].X + FCells[I].Width,
+          FCells[I].Y + FCells[I].Height))
+      else
+        LRectangle := TRectF.Create(FCells[I].X, FCells[I].Y, FCells[I].X + FCells[I].Width,
+          FCells[I].Y + FCells[I].Height);
+
+      LFound := True;
+    end;
+  end;
+
+  if not LFound then
+    Exit;
+
+  LRectangle.Offset(ContentLeft, ContentTop);
+  ACanvas.Fill.Kind := TBrushKind.Solid;
+  ACanvas.Fill.Color := C_DEFAULT_SELECTION_COLOR;
+  ACanvas.FillRect(LRectangle, 0, 0, AllCorners, AbsoluteOpacity * C_SELECTED_TABLE_OPACITY);
+  ACanvas.Stroke.Kind := TBrushKind.Solid;
+  ACanvas.Stroke.Color := C_DEFAULT_SELECTION_COLOR;
+  ACanvas.Stroke.Thickness := 2;
+  ACanvas.Stroke.Dash := TStrokeDash.Solid;
+  ACanvas.DrawRect(LRectangle, 0, 0, AllCorners, AbsoluteOpacity);
 end;
 
 procedure TS4YHTMLEditor.PaintSelection(ACanvas: TCanvas);
@@ -5613,6 +5672,7 @@ var
   LBorderBoundary: Integer;
 begin
   FTouchSelection := False;
+  ClearSelectedTable;
 
   // A click on the border between two columns grabs it instead of moving the caret
   if (Button = TMouseButton.mbLeft) and not FReadOnly and
@@ -6624,6 +6684,33 @@ var
 begin
   inherited;
   LExtend := ssShift in Shift;
+
+  // A table selected by the previous key is deleted by Backspace or Delete; any other key leaves it
+  if FSelectedTableID <> 0 then
+  begin
+    if (Key = vkBack) or (Key = vkDelete) then
+    begin
+      DeleteTableByID(FSelectedTableID);
+      Key := 0;
+      Exit;
+    end;
+
+    ClearSelectedTable;
+  end;
+
+  // Backspace at the start of the paragraph after a table, or Delete at the end of the paragraph before it, does not
+  // join the paragraph to a cell: it selects the table
+  if (Key = vkBack) and (Shift * [ssCtrl, ssAlt, ssShift] = []) and SelectAdjacentTable(False) then
+  begin
+    Key := 0;
+    Exit;
+  end;
+
+  if (Key = vkDelete) and (Shift * [ssCtrl, ssAlt, ssShift] = []) and SelectAdjacentTable(True) then
+  begin
+    Key := 0;
+    Exit;
+  end;
 
   // Escape removes the selection; without one the key is left to the form (for example a cancel button)
   if Key = vkEscape then
@@ -9427,6 +9514,161 @@ begin
   SetCaretPosition(TS4YDocumentPosition.At(LFirstCellIndex, 0, 0), False);
 end;
 
+function TS4YHTMLEditor.AdjacentTableID(ATableParagraphIndex, AParagraphIndex: Integer): Integer;
+var
+  LTableParagraph: TS4YHTMLParagraph;
+  LTableID: Integer;
+begin
+  // The outermost table of the first paragraph, when the second paragraph is not inside it; 0 otherwise. A table
+  // inside a cell is not selected alone: its cell could stay without paragraphs.
+  Result := 0;
+
+  if (ATableParagraphIndex < 0) or (ATableParagraphIndex >= FDocument.Paragraphs.Count) or (AParagraphIndex < 0) or
+    (AParagraphIndex >= FDocument.Paragraphs.Count) then
+    Exit;
+
+  LTableParagraph := FDocument.Paragraphs[ATableParagraphIndex];
+
+  if not LTableParagraph.IsTableCell then
+    Exit;
+
+  if LTableParagraph.IsNestedTableCell then
+    LTableID := LTableParagraph.TableContainers[0].TableID
+  else
+    LTableID := LTableParagraph.TableID;
+
+  if not FDocument.Paragraphs[AParagraphIndex].BelongsToTable(LTableID) then
+    Result := LTableID;
+end;
+
+procedure TS4YHTMLEditor.ClearSelectedTable;
+begin
+  if FSelectedTableID = 0 then
+    Exit;
+
+  FSelectedTableID := 0;
+  InvalidateRender;
+end;
+
+procedure TS4YHTMLEditor.DeleteTable;
+var
+  LParagraph: TS4YHTMLParagraph;
+begin
+  if FSelectedTableID <> 0 then
+  begin
+    DeleteTableByID(FSelectedTableID);
+    Exit;
+  end;
+
+  if not FCaretPosition.IsValid or (FCaretPosition.ParagraphIndex >= FDocument.Paragraphs.Count) then
+    Exit;
+
+  // The outermost table of the caret: a table inside a cell goes with the table that contains it
+  LParagraph := FDocument.Paragraphs[FCaretPosition.ParagraphIndex];
+
+  if not LParagraph.IsTableCell then
+    Exit;
+
+  if LParagraph.IsNestedTableCell then
+    DeleteTableByID(LParagraph.TableContainers[0].TableID)
+  else
+    DeleteTableByID(LParagraph.TableID);
+end;
+
+procedure TS4YHTMLEditor.DeleteTableByID(ATableID: Integer);
+var
+  LFirstIndex: Integer;
+  LLastIndex: Integer;
+  LParagraph: TS4YHTMLParagraph;
+  LKeepCaret: Boolean;
+begin
+  if FReadOnly then
+    Exit;
+
+  // The paragraphs of the table, also the ones of the tables inside its cells, follow each other
+  LFirstIndex := -1;
+  LLastIndex := -1;
+
+  for var I := 0 to FDocument.Paragraphs.Count - 1 do
+  begin
+    if FDocument.Paragraphs[I].BelongsToTable(ATableID) then
+    begin
+      if LFirstIndex < 0 then
+        LFirstIndex := I;
+
+      LLastIndex := I;
+    end;
+  end;
+
+  if LFirstIndex < 0 then
+    Exit;
+
+  SaveUndo;
+  FSelectedTableID := 0;
+  LKeepCaret := FCaretPosition.IsValid and (FCaretPosition.ParagraphIndex < LFirstIndex);
+
+  for var I := LLastIndex downto LFirstIndex do
+    FDocument.Paragraphs.Delete(I);
+
+  // A caret before the table, as with Delete, stays where it is. Otherwise it goes to the paragraph after the table;
+  // at the end of the document, or before another table, a new empty paragraph takes the place of the table.
+  if not LKeepCaret and ((LFirstIndex >= FDocument.Paragraphs.Count) or
+    FDocument.Paragraphs[LFirstIndex].IsTableCell) then
+  begin
+    LParagraph := TS4YHTMLParagraph.Create;
+    LParagraph.BlockType := btParagraph;
+    FDocument.Paragraphs.Insert(LFirstIndex, LParagraph);
+  end;
+
+  ResetSelection;
+  DoLayout;
+  DoChanged;
+
+  if LKeepCaret then
+    SetCaretPosition(FCaretPosition, False)
+  else
+    SetCaretPosition(TS4YDocumentPosition.At(LFirstIndex, 0, 0), False);
+
+  EnsureCaretVisible;
+end;
+
+function TS4YHTMLEditor.SelectAdjacentTable(Forward: Boolean): Boolean;
+var
+  LParagraphIndex: Integer;
+  LTableID: Integer;
+begin
+  // Backspace at the start of a paragraph selects the table before it, Delete at its end the table after it
+  Result := False;
+
+  if FReadOnly or FHasSelection or not FCaretPosition.IsValid or
+    (FCaretPosition.ParagraphIndex >= FDocument.Paragraphs.Count) then
+    Exit;
+
+  LParagraphIndex := FCaretPosition.ParagraphIndex;
+
+  if Forward then
+  begin
+    if DocumentPositionToAbsChar(FCaretPosition) < TextServiceTextOf(LParagraphIndex, LParagraphIndex).Length then
+      Exit;
+
+    LTableID := AdjacentTableID(LParagraphIndex + 1, LParagraphIndex);
+  end
+  else
+  begin
+    if DocumentPositionToAbsChar(FCaretPosition) > 0 then
+      Exit;
+
+    LTableID := AdjacentTableID(LParagraphIndex - 1, LParagraphIndex);
+  end;
+
+  if LTableID = 0 then
+    Exit;
+
+  FSelectedTableID := LTableID;
+  InvalidateRender;
+  Result := True;
+end;
+
 procedure TS4YHTMLEditor.GetTableBounds(ATableID: Integer; out AFirstIndex, ALastIndex: Integer);
 var
   LParagraphIndex: Integer;
@@ -11800,6 +12042,7 @@ end;
 
 procedure TS4YHTMLEditor.DoNotifyState;
 begin
+  ClearSelectedTable;
   SyncTextService;
   UpdateSelectionHandles;
 
