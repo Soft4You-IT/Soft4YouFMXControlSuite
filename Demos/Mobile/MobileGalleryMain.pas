@@ -201,6 +201,7 @@ type
     FTrackingPause: Integer;
     FVisibleCustomers: TList<TGalleryCustomer>;
 
+    function BuildDocument: string;
     procedure BuildCustomers;
     function CompareCustomers(const ALeft, ARight: TGalleryCustomer; const AColumn: TColumn): Integer;
     procedure CreateDots;
@@ -230,7 +231,23 @@ const
     '<ul><li>A list with bullets</li><li>Second item</li></ul>' +
     '<ol><li>A numbered list</li><li>Second item</li></ol>' +
     '<table border="1" cellpadding="6"><tr><td>A1</td><td>B1</td></tr><tr><td>A2</td><td>B2</td></tr></table>' +
-    '<p>End of the document.</p>';
+    '<h3>A longer text</h3>' +
+    '<p>Drag the document with a finger to scroll it: a quick move goes on and slows down, a finger on the ' +
+    'editor stops it. A tap puts the caret where the finger is, a double tap selects a word.</p>' +
+    '<p>The editor keeps the formatting of the text around the caret: write inside <b>this bold part</b> or ' +
+    'inside <i>this italic part</i> and the new letters take the same style.</p>' +
+    '<blockquote>A quotation, indented from the text around it.</blockquote>' +
+    '<p>Paragraphs, lists and tables can be mixed freely. Enter in the middle of a word splits the paragraph, ' +
+    'Backspace at its start joins it to the previous one.</p>' +
+    '<ul><li>Bold, italic and underline</li><li>Lists with bullets and numbers</li><li>Tables, also nested</li>' +
+    '<li>Images and links</li><li>Undo and redo</li></ul>' +
+    '<p>The suggestions and the corrections of the keyboard replace the word before the caret, and go into the ' +
+    'document as if they had been typed.</p>';
+  C_DOCUMENT_END = '<p>End of the document.</p>';
+  C_LONG_PARAGRAPH =
+    '<p><b>Paragraph %d.</b> A paragraph of the long part of the document, so that there is something to ' +
+    'scroll: drag it up and down with a finger, or give it a quick move and let it slow down.</p>';
+  C_LONG_PARAGRAPH_COUNT = 30;
   C_CUSTOMER_COUNT = 60;
   C_FIRST_NAMES: array[0..9] of string = ('Anna', 'Bruno', 'Carla', 'Dario', 'Elena', 'Franco', 'Giulia', 'Luca',
     'Marta', 'Paolo');
@@ -255,6 +272,23 @@ const
 procedure TMobileGalleryForm.BoldButtonClick(Sender: TObject);
 begin
   HTMLEditor.ToggleBold;
+end;
+
+function TMobileGalleryForm.BuildDocument: string;
+var
+  LBuilder: TStringBuilder;
+begin
+  // A document longer than the screen, to try the scrolling with a finger
+  LBuilder := TStringBuilder.Create(C_DOCUMENT);
+  try
+    for var I := 1 to C_LONG_PARAGRAPH_COUNT do
+      LBuilder.Append(Format(C_LONG_PARAGRAPH, [I]));
+
+    LBuilder.Append(C_DOCUMENT_END);
+    Result := LBuilder.ToString;
+  finally
+    LBuilder.Free;
+  end;
 end;
 
 procedure TMobileGalleryForm.BuildCustomers;
@@ -366,7 +400,7 @@ var
 begin
   // The gallery always opens on the first page, whichever page was selected when the form was saved.
   GalleryTabControl.TabIndex := 0;
-  HTMLEditor.HTML := C_DOCUMENT;
+  HTMLEditor.HTML := BuildDocument;
   HistoryExpander.IsExpanded := False;
   FCustomers := TObjectList<TGalleryCustomer>.Create;
   FVisibleCustomers := TList<TGalleryCustomer>.Create;
