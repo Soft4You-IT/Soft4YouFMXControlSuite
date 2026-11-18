@@ -55,6 +55,7 @@ uses
   FMX.Menus,
   FMX.Forms,
   FMX.Text,
+  FMX.InertialMovement,
   System.NetEncoding,
   System.Net.HttpClient,
   System.Bindings.Helper,
@@ -77,6 +78,7 @@ const
   C_EDITOR_SCROLL_STEP = 40.0;
   C_COLUMN_BORDER_TOLERANCE = 3.0;  // px from a column border where the mouse grabs it
   C_AUTO_SCROLL_ZONE = 40.0; // px from top/bottom edge that triggers auto-scroll on drag
+  C_TOUCH_SCROLL_DISTANCE = 8.0; // px a finger moves before its touch scrolls instead of being a tap
 
   // Context popup menu items constants
   C_CONTEXT_POPUP_ITEM_UNDO = 0;
@@ -535,6 +537,11 @@ type
     FTextServiceParagraphCount: Integer;
     FTextServiceText: string;
     FApplyingTextInput: Boolean;
+    // A finger on a phone scrolls the document, with inertia; a tap without a move is a click at its release
+    FAniCalculations: TAniCalculations;
+    FTouchPressed: Boolean;
+    FTouchScrolling: Boolean;
+    FTouchPressPoint: TPointF;
     FShowBorder: Boolean;
     FBackgroundColor: TAlphaColor;
     FFontColor: TAlphaColor;
@@ -713,8 +720,15 @@ type
     function EnsureValidDocument: Boolean;
 
     // Text service of the platform (virtual keyboard)
+    procedure AniCalculationsChanged(Sender: TObject);
     procedure ApplyTextInput;
+    procedure DisableKeyboardOnTouch;
+    function EndTouch(AX, AY: Single): Boolean;
+    function IsTouchInput(Shift: TShiftState): Boolean;
+    procedure MoveTouch(AX, AY: Single);
+    procedure PointerDown(Button: TMouseButton; Shift: TShiftState; X, Y: Single);
     procedure ShowVirtualKeyboard;
+    procedure StartTouch(AX, AY: Single);
     procedure SyncTextService;
     function TextServiceOffsetOf(const APosition: TS4YDocumentPosition): Integer;
     function TextServicePositionOf(AOffset: Integer): TS4YDocumentPosition;
@@ -1446,6 +1460,11 @@ uses
   System.IOUtils,
   System.Generics.Defaults,
   FMX.VirtualKeyboard,
+  {$IFDEF ANDROID}
+  Androidapi.JNI.Embarcadero,
+  FMX.Platform.Android,
+  FMX.Platform.UI.Android,
+  {$ENDIF}
   Soft4You.FMX.Controls.HTMLEditor.Strings;
 
 // -----------------------------------------------------------------------------
@@ -2780,6 +2799,7 @@ end;
 
 destructor TS4YHTMLEditor.Destroy;
 begin
+  FAniCalculations.Free;
   FTextService.Free;
   FCaretTimer.Free;
   FRenderCache.Free;
@@ -2808,6 +2828,7 @@ begin
   FCaretOn := True;
   FCaretTimer.Enabled := True;
   Repaint;
+  DisableKeyboardOnTouch;
 end;
 
 procedure TS4YHTMLEditor.DoExit;
@@ -4290,6 +4311,66 @@ begin
     ScrollTo(LDocumentY + LHeight - LViewHeight);
 end;
 
+procedure TS4YHTMLEditor.AniCalculationsChanged(Sender: TObject);
+begin
+  ScrollTo(FAniCalculations.ViewportPosition.Y);
+end;
+
+function TS4YHTMLEditor.EndTouch(AX, AY: Single): Boolean;
+begin
+  // The document goes on scrolling and slows down, when the finger has left it while moving
+  FTouchPressed := False;
+  FAniCalculations.MouseUp(AX, AY);
+  Result := not FTouchScrolling;
+end;
+
+function TS4YHTMLEditor.IsTouchInput(Shift: TShiftState): Boolean;
+begin
+  // On Windows and macOS the touch screens keep the behavior of the mouse
+  {$IF DEFINED(ANDROID) or DEFINED(IOS)}
+  Result := ssTouch in Shift;
+  {$ELSE}
+  Result := False;
+  {$ENDIF}
+end;
+
+procedure TS4YHTMLEditor.MoveTouch(AX, AY: Single);
+begin
+  // Under C_TOUCH_SCROLL_DISTANCE the finger can still make a tap
+  if not FTouchScrolling and (FTouchPressPoint.Distance(TPointF.Create(AX, AY)) > C_TOUCH_SCROLL_DISTANCE) then
+    FTouchScrolling := True;
+
+  FAniCalculations.MouseMove(AX, AY);
+end;
+
+procedure TS4YHTMLEditor.StartTouch(AX, AY: Single);
+var
+  LTargets: array[0..1] of TAniCalculations.TTarget;
+begin
+  if FAniCalculations = nil then
+  begin
+    FAniCalculations := TAniCalculations.Create(Self);
+    FAniCalculations.Animation := True;
+    FAniCalculations.Averaging := True;
+    FAniCalculations.BoundsAnimation := False;
+    FAniCalculations.TouchTracking := [ttVertical];
+    FAniCalculations.OnChanged := AniCalculationsChanged;
+  end;
+
+  // The document can be scrolled from its start to where its end reaches the bottom of the editor. A finger on the
+  // editor stops the document that is still moving.
+  LTargets[0].TargetType := TAniCalculations.TTargetType.Min;
+  LTargets[0].Point := TPointD.Create(0, 0);
+  LTargets[1].TargetType := TAniCalculations.TTargetType.Max;
+  LTargets[1].Point := TPointD.Create(0, FScrollBarMaximum);
+  FAniCalculations.SetTargets(LTargets);
+  FAniCalculations.ViewportPosition := TPointD.Create(0, FScrollY);
+  FAniCalculations.MouseDown(AX, AY);
+  FTouchPressed := True;
+  FTouchScrolling := False;
+  FTouchPressPoint := TPointF.Create(AX, AY);
+end;
+
 procedure TS4YHTMLEditor.ScrollTo(AY: Single);
 begin
   FScrollY := Max(0, Min(AY, FScrollBarMaximum));
@@ -5324,13 +5405,7 @@ end;
 
 procedure TS4YHTMLEditor.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Single);
 var
-  LHitPosition: TS4YDocumentPosition;
-  LElapsedMs: Int64;
-  LDist2: Single;
   LSavedScrollY: Single;
-  LClickParagraph: TS4YHTMLParagraph;
-  LBorderTableID: Integer;
-  LBorderBoundary: Integer;
 begin
   // Save scroll as the VERY FIRST operation: TControl.MouseDown (inherited) calls
   // SetFocusedControl -> DoEnter -> DoLayout -> EnsureCaretVisible and resets
@@ -5347,6 +5422,25 @@ begin
   ScrollTo(LSavedScrollY);
   FCaretAtImageRight := False;
 
+  // A finger does not select: it scrolls the document, and a tap without a move is a click at its release
+  if IsTouchInput(Shift) then
+  begin
+    StartTouch(X, Y);
+    Exit;
+  end;
+
+  PointerDown(Button, Shift, X, Y);
+end;
+
+procedure TS4YHTMLEditor.PointerDown(Button: TMouseButton; Shift: TShiftState; X, Y: Single);
+var
+  LHitPosition: TS4YDocumentPosition;
+  LElapsedMs: Int64;
+  LDist2: Single;
+  LClickParagraph: TS4YHTMLParagraph;
+  LBorderTableID: Integer;
+  LBorderBoundary: Integer;
+begin
   // A click on the border between two columns grabs it instead of moving the caret
   if (Button = TMouseButton.mbLeft) and not FReadOnly and
      FindColumnBorderAt(X - ContentLeft, Y - ContentTop, LBorderTableID, LBorderBoundary) then
@@ -5722,6 +5816,12 @@ var
 begin
   inherited;
 
+  if FTouchPressed then
+  begin
+    MoveTouch(X, Y);
+    Exit;
+  end;
+
   if FIsResizingColumn then
   begin
     if ssLeft in Shift then
@@ -5804,6 +5904,15 @@ end;
 procedure TS4YHTMLEditor.MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Single);
 begin
   inherited;
+
+  // A finger that has scrolled the document is not a click; a tap is the click of a mouse, at its release
+  if FTouchPressed then
+  begin
+    if not EndTouch(X, Y) then
+      Exit;
+
+    PointerDown(Button, Shift, X, Y);
+  end;
 
   if FIsResizingColumn then
   begin
@@ -11128,6 +11237,26 @@ begin
   EnsureCaretVisible;
   InvalidateRender;
   DoNotifyState;
+end;
+
+procedure TS4YHTMLEditor.DisableKeyboardOnTouch;
+{$IFDEF ANDROID}
+var
+  LEditText: JFMXEditText;
+{$ENDIF}
+begin
+  // On Android the hidden native field of the text service lies over the editor and shows the keyboard at each touch,
+  // also when the finger scrolls the document: the editor shows it itself, at a tap. The text service sets the field
+  // when the editor gets the focus, just before DoEnter.
+  {$IFDEF ANDROID}
+  if (FTextService = nil) or (PlatformAndroid = nil) or (PlatformAndroid.TextInputManager = nil) then
+    Exit;
+
+  LEditText := PlatformAndroid.TextInputManager.GetEditText;
+
+  if LEditText <> nil then
+    LEditText.setNeededToShowSoftKeyboardOnTouch(False);
+  {$ENDIF}
 end;
 
 procedure TS4YHTMLEditor.EndIMEInput;
