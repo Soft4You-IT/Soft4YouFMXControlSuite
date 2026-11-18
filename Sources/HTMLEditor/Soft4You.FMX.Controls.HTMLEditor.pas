@@ -56,6 +56,7 @@ uses
   FMX.Forms,
   FMX.Text,
   FMX.InertialMovement,
+  FMX.Objects,
   System.NetEncoding,
   System.Net.HttpClient,
   System.Bindings.Helper,
@@ -79,6 +80,7 @@ const
   C_COLUMN_BORDER_TOLERANCE = 3.0;  // px from a column border where the mouse grabs it
   C_AUTO_SCROLL_ZONE = 40.0; // px from top/bottom edge that triggers auto-scroll on drag
   C_TOUCH_SCROLL_DISTANCE = 8.0; // px a finger moves before its touch scrolls instead of being a tap
+  C_SELECTION_HANDLE_SIZE = 10.0; // px radius of the handles of a selection made with a finger
 
   // Context popup menu items constants
   C_CONTEXT_POPUP_ITEM_UNDO = 0;
@@ -465,7 +467,8 @@ type
   /// Use it from the main thread only. Setting the content (HTML, FullHTML, LoadFromFile) clears the undo history and does not fire OnChange.
   /// See Docs/DeveloperGuide.md for how events behave and what to be careful about.
   /// On Android and iOS the editor works with the virtual keyboard of the platform: a tap shows it, and the text it
-  /// writes, corrections and suggestions included, goes into the document.
+  /// writes, corrections and suggestions included, goes into the document. A finger scrolls the document, a long press
+  /// or a double tap selects a word, with handles and the Cut, Copy and Paste menu of the platform.
   /// </remarks>
   TS4YHTMLEditor = class(TStyledControl{$IF DEFINED(ANDROID) or DEFINED(IOS)}, ITextInput, IReadOnly,
     IVirtualKeyboardControl, ITextActions{$ENDIF})
@@ -543,6 +546,10 @@ type
     FTouchScrolling: Boolean;
     FTouchPressPoint: TPointF;
     FTouchLongPress: Boolean;
+    // The handles under the start and the end of a selection made with a finger
+    FTouchSelection: Boolean;
+    FStartHandle: TSelectionPoint;
+    FEndHandle: TSelectionPoint;
     FShowBorder: Boolean;
     FBackgroundColor: TAlphaColor;
     FFontColor: TAlphaColor;
@@ -724,15 +731,21 @@ type
     procedure AniCalculationsChanged(Sender: TObject);
     procedure ApplyTextInput;
     procedure DisableKeyboardOnTouch;
+    procedure EnsureSelectionHandles;
     procedure HideTouchMenu;
     function EndTouch(AX, AY: Single): Boolean;
     function IsTouchInput(Shift: TShiftState): Boolean;
     procedure MoveTouch(AX, AY: Single);
     procedure PointerDown(Button: TMouseButton; Shift: TShiftState; X, Y: Single);
+    procedure SelectionHandleChange(Sender: TObject);
+    procedure SelectionHandleMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
+    function SelectionHandlePoint(const APosition: TS4YDocumentPosition; out APoint: TPointF): Boolean;
+    procedure SelectionHandleTrack(Sender: TObject; var X, Y: Single);
     procedure ShowTouchMenu;
     procedure ShowVirtualKeyboard;
     procedure StartTouch(AX, AY: Single);
     procedure SyncTextService;
+    procedure UpdateSelectionHandles;
     function TextServiceOffsetOf(const APosition: TS4YDocumentPosition): Integer;
     function TextServicePositionOf(AOffset: Integer): TS4YDocumentPosition;
     function TextServiceTextOf(AFirstParagraph, ALastParagraph: Integer): string;
@@ -2862,6 +2875,7 @@ begin
   FCaretTimer.Enabled := False;
   FCaretOn := False;
   Repaint;
+  UpdateSelectionHandles;
 end;
 
 procedure TS4YHTMLEditor.Resize;
@@ -4393,9 +4407,144 @@ begin
   FTouchPressPoint := TPointF.Create(AX, AY);
 end;
 
+procedure TS4YHTMLEditor.EnsureSelectionHandles;
+
+  function CreateHandle: TSelectionPoint;
+  begin
+    Result := TSelectionPoint.Create(Self);
+    Result.Stored := False;
+    Result.Locked := True;
+    Result.Visible := False;
+    Result.GripSize := C_SELECTION_HANDLE_SIZE;
+    Result.OnTrack := SelectionHandleTrack;
+    Result.OnMouseDown := SelectionHandleMouseDown;
+    Result.OnChange := SelectionHandleChange;
+    Result.Parent := Self;
+  end;
+
+begin
+  if FStartHandle <> nil then
+    Exit;
+
+  FStartHandle := CreateHandle;
+  FEndHandle := CreateHandle;
+end;
+
+procedure TS4YHTMLEditor.SelectionHandleChange(Sender: TObject);
+begin
+  // The handle has been left: the menu comes back beside the new selection
+  ShowTouchMenu;
+end;
+
+procedure TS4YHTMLEditor.SelectionHandleMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState;
+  X, Y: Single);
+begin
+  HideTouchMenu;
+end;
+
+function TS4YHTMLEditor.SelectionHandlePoint(const APosition: TS4YDocumentPosition; out APoint: TPointF): Boolean;
+var
+  LX, LY, LHeight: Single;
+begin
+  // Under the line of the position, while the line is in sight
+  Result := DocumentPositionToXY(APosition, LX, LY, LHeight) and (LY + LHeight >= 0) and (LY + LHeight <= Height);
+
+  if Result then
+    APoint := TPointF.Create(LX, LY + LHeight)
+  else
+    APoint := TPointF.Zero;
+end;
+
+procedure TS4YHTMLEditor.SelectionHandleTrack(Sender: TObject; var X, Y: Single);
+var
+  LStartPosition: TS4YDocumentPosition;
+  LEndPosition: TS4YDocumentPosition;
+  LHitPosition: TS4YDocumentPosition;
+  LPoint: TPointF;
+begin
+  // Near the top and the bottom of the editor the document scrolls under the handle
+  if Y < C_AUTO_SCROLL_ZONE then
+    ScrollTo(FScrollY - C_EDITOR_SCROLL_STEP / 4)
+  else if Y > Height - C_AUTO_SCROLL_ZONE then
+    ScrollTo(FScrollY + C_EDITOR_SCROLL_STEP / 4);
+
+  // The handle is under the line: the position is the one of the text above it. A handle does not pass the other
+  // one, so the selection is never empty.
+  LHitPosition := HitTest(X, Y - C_SELECTION_HANDLE_SIZE - FCaretScreenH / 2);
+  GetSelectionRange(LStartPosition, LEndPosition);
+
+  if Sender = FStartHandle then
+  begin
+    if PositionCompare(LHitPosition, LEndPosition) < 0 then
+      LStartPosition := LHitPosition;
+
+    FCaretPosition := LStartPosition;
+  end
+  else
+  begin
+    if PositionCompare(LHitPosition, LStartPosition) > 0 then
+      LEndPosition := LHitPosition;
+
+    FCaretPosition := LEndPosition;
+  end;
+
+  FSelectionStart := LStartPosition;
+  FSelectionEnd := LEndPosition;
+  FHasSelection := True;
+  FInsertStyleSet := False;
+  UpdateCaretXY;
+  InvalidateRender;
+  DoNotifyState;
+
+  // The handle stays under the position it has chosen
+  if SelectionHandlePoint(FCaretPosition, LPoint) then
+  begin
+    X := LPoint.X;
+    Y := LPoint.Y;
+  end;
+end;
+
+procedure TS4YHTMLEditor.UpdateSelectionHandles;
+var
+  LStartPosition: TS4YDocumentPosition;
+  LEndPosition: TS4YDocumentPosition;
+  LPoint: TPointF;
+  LVisible: Boolean;
+begin
+  // The handles are created with the first selection made with a finger, on Android and iOS only
+  LVisible := FTouchSelection and FHasSelection and IsFocused;
+
+  if FStartHandle = nil then
+  begin
+    if not LVisible then
+      Exit;
+
+    EnsureSelectionHandles;
+  end;
+
+  if not LVisible then
+  begin
+    FStartHandle.Visible := False;
+    FEndHandle.Visible := False;
+    Exit;
+  end;
+
+  GetSelectionRange(LStartPosition, LEndPosition);
+  FStartHandle.Visible := SelectionHandlePoint(LStartPosition, LPoint);
+
+  if FStartHandle.Visible then
+    FStartHandle.Position.Point := LPoint;
+
+  FEndHandle.Visible := SelectionHandlePoint(LEndPosition, LPoint);
+
+  if FEndHandle.Visible then
+    FEndHandle.Position.Point := LPoint;
+end;
+
 procedure TS4YHTMLEditor.ScrollTo(AY: Single);
 begin
   FScrollY := Max(0, Min(AY, FScrollBarMaximum));
+  UpdateSelectionHandles;
 
   if (FScrollBar <> nil) and FScrollBar.Visible then
   begin
@@ -5463,6 +5612,8 @@ var
   LBorderTableID: Integer;
   LBorderBoundary: Integer;
 begin
+  FTouchSelection := False;
+
   // A click on the border between two columns grabs it instead of moving the caret
   if (Button = TMouseButton.mbLeft) and not FReadOnly and
      FindColumnBorderAt(X - ContentLeft, Y - ContentTop, LBorderTableID, LBorderBoundary) then
@@ -5942,6 +6093,8 @@ begin
       Exit;
 
     PointerDown(Button, Shift, X, Y);
+    FTouchSelection := FHasSelection;
+    UpdateSelectionHandles;
 
     if FHasSelection then
       ShowTouchMenu;
@@ -11298,10 +11451,13 @@ begin
       DoLayout;
 
     LHitPosition := HitTest(LLocalPoint.X, LLocalPoint.Y);
+    FTouchSelection := True;
     SelectWordAt(LHitPosition);
 
     if not FHasSelection then
       SetCaretPosition(LHitPosition, False);
+
+    UpdateSelectionHandles;
   end;
 
   if TInteractiveGestureFlag.gfEnd in EventInfo.Flags then
@@ -11645,6 +11801,7 @@ end;
 procedure TS4YHTMLEditor.DoNotifyState;
 begin
   SyncTextService;
+  UpdateSelectionHandles;
 
   if Assigned(FOnStateChange) then
     FOnStateChange(Self, GetState);
