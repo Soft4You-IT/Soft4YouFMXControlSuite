@@ -39,14 +39,14 @@ Add the folder `Sources\Gauges` to the Delphi library path to compile your own p
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Scales.pas` | The graduation of the meters (`TS4YMeterGraduation`, `TS4YLinearMeterGraduation`, `TS4YCircularMeterGraduation`) their ranges (`TS4YMeterRange`, `TS4YMeterRanges`), the needle of the circular meter (`TS4YCircularMeterNeedle`) and the pointer of the linear one (`TS4YLinearMeterPointer`) |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Types.pas` | Enumerations, sets and event types |
 | `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Register.pas` | Registration in the Tool Palette (design time) |
-| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Win.rc` / `.Mac.rc` | Resource scripts that link the style of `TS4YLinearGauge` as the resource `S4YLinearGaugeStyle` |
-| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Win.style` / `.Mac.style` | Default style of `TS4YLinearGauge` (the two are identical) |
-| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.Win.rc` / `.Mac.rc` | Resource scripts that link the style of `TS4YCircularGauge` as the resource `S4YCircularGaugeStyle` |
-| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.Win.style` / `.Mac.style` | Default style of `TS4YCircularGauge` (the two are identical) |
-| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.LinearMeter.Win.rc` / `.Mac.rc`, `.Win.style` / `.Mac.style` | Resource scripts and default style of `TS4YLinearMeter`, the resource `S4YLinearMeterStyle` |
-| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.CircularMeter.Win.rc` / `.Mac.rc`, `.Win.style` / `.Mac.style` | Resource scripts and default style of `TS4YCircularMeter`, the resource `S4YCircularMeterStyle` |
-| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinCircular.Win.rc` / `.Mac.rc`, `.Win.style` / `.Mac.style` | Resource scripts and default style of `TS4YSkinCircularGauge`, the resource `S4YSkinCircularGaugeStyle` |
-| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinLinear.Win.rc` / `.Mac.rc`, `.Win.style` / `.Mac.style` | Resource scripts and default style of `TS4YSkinLinearGauge`, the resource `S4YSkinLinearGaugeStyle` |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Win.rc` / `.Mac.rc` / `.Android.rc` / `.iOS.rc` | Resource scripts that link the style of `TS4YLinearGauge` as the resource `S4YLinearGaugeStyle` |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Linear.Win.style` / `.Mac.style` / `.Android.style` / `.iOS.style` | Default style of `TS4YLinearGauge` (the four are identical) |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.Win.rc` / `.Mac.rc` / `.Android.rc` / `.iOS.rc` | Resource scripts that link the style of `TS4YCircularGauge` as the resource `S4YCircularGaugeStyle` |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.Circular.Win.style` / `.Mac.style` / `.Android.style` / `.iOS.style` | Default style of `TS4YCircularGauge` (the four are identical) |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.LinearMeter.Win.rc` / `.Mac.rc` / `.Android.rc` / `.iOS.rc`, `.Win.style` / `.Mac.style` / `.Android.style` / `.iOS.style` | Resource scripts and default style of `TS4YLinearMeter`, the resource `S4YLinearMeterStyle` |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.CircularMeter.Win.rc` / `.Mac.rc` / `.Android.rc` / `.iOS.rc`, `.Win.style` / `.Mac.style` / `.Android.style` / `.iOS.style` | Resource scripts and default style of `TS4YCircularMeter`, the resource `S4YCircularMeterStyle` |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinCircular.Win.rc` / `.Mac.rc` / `.Android.rc` / `.iOS.rc`, `.Win.style` / `.Mac.style` / `.Android.style` / `.iOS.style` | Resource scripts and default style of `TS4YSkinCircularGauge`, the resource `S4YSkinCircularGaugeStyle` |
+| `Sources\Gauges\Soft4You.FMX.Controls.Gauges.SkinLinear.Win.rc` / `.Mac.rc` / `.Android.rc` / `.iOS.rc`, `.Win.style` / `.Mac.style` / `.Android.style` / `.iOS.style` | Resource scripts and default style of `TS4YSkinLinearGauge`, the resource `S4YSkinLinearGaugeStyle` |
 | `Graphics\Gauges\TS4YLinearGauge.svg`, `TS4YCircularGauge.svg`, `TS4YLinearMeter.svg`, `TS4YCircularMeter.svg`, `TS4YSkinCircularGauge.svg`, `TS4YSkinLinearGauge.svg` | Vector masters of the icons of the Tool Palette |
 | `Graphics\Gauges\TS4YLinearGauge.bmp`, `TS4YCircularGauge.bmp`, `TS4YLinearMeter.bmp`, `TS4YCircularMeter.bmp`, `TS4YSkinCircularGauge.bmp`, `TS4YSkinLinearGauge.bmp`, `GaugesDesign.rc` | Icons of the Tool Palette (24x24 bitmaps) and the resource script that links them |
 

@@ -1,0 +1,59 @@
+object TLayout
+  StyleName = 'S4YLinearGaugeStyle'
+  Align = Contents
+  HitTest = False
+  Size.Width = 220.000000000000000000
+  Size.Height = 44.000000000000000000
+  Size.PlatformDefault = False
+  object TText
+    StyleName = 'captiontext'
+    Position.X = 10.000000000000000000
+    Position.Y = 4.000000000000000000
+    Size.Width = 60.000000000000000000
+    Size.Height = 18.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Caption'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.FontColor = xFF616161
+  end
+  object TText
+    StyleName = 'valuetext'
+    Position.X = 170.000000000000000000
+    Position.Y = 4.000000000000000000
+    Size.Width = 40.000000000000000000
+    Size.Height = 18.000000000000000000
+    Size.PlatformDefault = False
+    Text = '40'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.Font.Style = [fsBold]
+    TextSettings.FontColor = xFF212121
+  end
+  object TRectangle
+    StyleName = 'track'
+    Position.X = 10.000000000000000000
+    Position.Y = 26.000000000000000000
+    Size.Width = 200.000000000000000000
+    Size.Height = 10.000000000000000000
+    Size.PlatformDefault = False
+    Fill.Color = xFFE0E0E0
+    HitTest = False
+    Stroke.Kind = None
+    XRadius = 4.000000000000000000
+    YRadius = 4.000000000000000000
+  end
+  object TRectangle
+    StyleName = 'fill'
+    Position.X = 10.000000000000000000
+    Position.Y = 26.000000000000000000
+    Size.Width = 80.000000000000000000
+    Size.Height = 10.000000000000000000
+    Size.PlatformDefault = False
+    Fill.Color = xFF1E88E5
+    HitTest = False
+    Stroke.Kind = None
+    XRadius = 4.000000000000000000
+    YRadius = 4.000000000000000000
+  end
+end

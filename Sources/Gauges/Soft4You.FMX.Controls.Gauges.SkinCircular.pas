@@ -250,10 +250,13 @@ uses
   System.SysUtils,
   System.Math;
 
-{$IFDEF MACOS}
+{$IF DEFINED(IOS)}
+{$R *.ios.res}
+{$ELSEIF DEFINED(MACOS)}
 {$R *.mac.res}
-{$ENDIF}
-{$IFDEF MSWINDOWS}
+{$ELSEIF DEFINED(ANDROID)}
+{$R *.android.res}
+{$ELSEIF DEFINED(MSWINDOWS)}
 {$R *.win.res}
 {$ENDIF}
 
