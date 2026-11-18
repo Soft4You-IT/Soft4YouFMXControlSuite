@@ -1,0 +1,134 @@
+object TLayout
+  StyleName = 'S4YCircularMeterStyle'
+  Align = Contents
+  HitTest = False
+  Size.Width = 200.000000000000000000
+  Size.Height = 190.000000000000000000
+  Size.PlatformDefault = False
+  object TArc
+    StyleName = 'track'
+    Position.X = 30.000000000000000000
+    Position.Y = 30.000000000000000000
+    Size.Width = 140.000000000000000000
+    Size.Height = 140.000000000000000000
+    Size.PlatformDefault = False
+    StartAngle = 135.000000000000000000
+    EndAngle = 270.000000000000000000
+    Fill.Kind = None
+    HitTest = False
+    Stroke.Cap = Round
+    Stroke.Color = xFFE0E0E0
+    Stroke.Thickness = 12.000000000000000000
+  end
+  object TArc
+    StyleName = 'fill'
+    Position.X = 30.000000000000000000
+    Position.Y = 30.000000000000000000
+    Size.Width = 140.000000000000000000
+    Size.Height = 140.000000000000000000
+    Size.PlatformDefault = False
+    StartAngle = 135.000000000000000000
+    EndAngle = 45.000000000000000000
+    Fill.Kind = None
+    HitTest = False
+    Stroke.Cap = Round
+    Stroke.Color = xFF1E88E5
+    Stroke.Thickness = 12.000000000000000000
+  end
+  object TLine
+    StyleName = 'majortick'
+    Position.X = 14.000000000000000000
+    Position.Y = 100.000000000000000000
+    Size.Width = 12.000000000000000000
+    Size.Height = 1.000000000000000000
+    Size.PlatformDefault = False
+    HitTest = False
+    LineType = Top
+    Stroke.Color = xFF757575
+    Stroke.Thickness = 1.500000000000000000
+  end
+  object TLine
+    StyleName = 'minortick'
+    Position.X = 176.000000000000000000
+    Position.Y = 100.000000000000000000
+    Size.Width = 8.000000000000000000
+    Size.Height = 1.000000000000000000
+    Size.PlatformDefault = False
+    HitTest = False
+    LineType = Top
+    Stroke.Color = xFFBDBDBD
+  end
+  object TLine
+    StyleName = 'target'
+    Position.X = 154.000000000000000000
+    Position.Y = 100.000000000000000000
+    Size.Width = 20.000000000000000000
+    Size.Height = 1.000000000000000000
+    Size.PlatformDefault = False
+    HitTest = False
+    LineType = Top
+    Stroke.Color = xFF212121
+    Stroke.Thickness = 3.000000000000000000
+  end
+  object TText
+    StyleName = 'scaletext'
+    Position.X = 85.000000000000000000
+    Position.Y = 46.000000000000000000
+    Size.Width = 30.000000000000000000
+    Size.Height = 14.000000000000000000
+    Size.PlatformDefault = False
+    Text = '50'
+    HitTest = False
+    TextSettings.Font.Size = 11.000000000000000000
+    TextSettings.FontColor = xFF616161
+  end
+  object TLine
+    StyleName = 'needle'
+    Position.X = 50.000000000000000000
+    Position.Y = 100.000000000000000000
+    Size.Width = 50.000000000000000000
+    Size.Height = 1.000000000000000000
+    Size.PlatformDefault = False
+    HitTest = False
+    LineType = Top
+    Stroke.Cap = Round
+    Stroke.Color = xFFC62828
+    Stroke.Thickness = 3.000000000000000000
+  end
+  object TCircle
+    StyleName = 'needlecap'
+    Position.X = 94.000000000000000000
+    Position.Y = 94.000000000000000000
+    Size.Width = 12.000000000000000000
+    Size.Height = 12.000000000000000000
+    Size.PlatformDefault = False
+    Fill.Color = xFF424242
+    HitTest = False
+    Stroke.Kind = None
+  end
+  object TText
+    StyleName = 'valuetext'
+    Position.X = 50.000000000000000000
+    Position.Y = 118.000000000000000000
+    Size.Width = 100.000000000000000000
+    Size.Height = 30.000000000000000000
+    Size.PlatformDefault = False
+    Text = '25'
+    HitTest = False
+    TextSettings.Font.Size = 24.000000000000000000
+    TextSettings.Font.Style = [fsBold]
+    TextSettings.FontColor = xFF212121
+  end
+  object TText
+    StyleName = 'captiontext'
+    Position.X = 50.000000000000000000
+    Position.Y = 148.000000000000000000
+    Size.Width = 100.000000000000000000
+    Size.Height = 18.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Caption'
+    HitTest = False
+    TextSettings.Font.Size = 12.000000000000000000
+    TextSettings.FontColor = xFF616161
+  end
+end

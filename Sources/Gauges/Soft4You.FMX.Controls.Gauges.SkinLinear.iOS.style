@@ -1,0 +1,94 @@
+object TLayout
+  StyleName = 'S4YSkinLinearGaugeStyle'
+  Align = Client
+  HitTest = False
+  object TScaledLayout
+    Align = Fit
+    HitTest = False
+    OriginalWidth = 200.000000000000000000
+    OriginalHeight = 60.000000000000000000
+    Size.Width = 200.000000000000000000
+    Size.Height = 60.000000000000000000
+    Size.PlatformDefault = False
+    object TRectangle
+      StyleName = 'track'
+      Position.X = 10.000000000000000000
+      Position.Y = 22.000000000000000000
+      Size.Width = 180.000000000000000000
+      Size.Height = 12.000000000000000000
+      Size.PlatformDefault = False
+      Fill.Color = xFFE0E0E0
+      HitTest = False
+      Stroke.Kind = None
+      XRadius = 6.000000000000000000
+      YRadius = 6.000000000000000000
+    end
+    object TLayout
+      StyleName = 'reveal'
+      ClipChildren = True
+      Position.X = 10.000000000000000000
+      Position.Y = 22.000000000000000000
+      Size.Width = 180.000000000000000000
+      Size.Height = 12.000000000000000000
+      Size.PlatformDefault = False
+      HitTest = False
+      object TRectangle
+        StyleName = 'bar'
+        Size.Width = 180.000000000000000000
+        Size.Height = 12.000000000000000000
+        Size.PlatformDefault = False
+        Fill.Color = xFF1E88E5
+        HitTest = False
+        Stroke.Kind = None
+        XRadius = 6.000000000000000000
+        YRadius = 6.000000000000000000
+      end
+    end
+    object TLayout
+      StyleName = 'scale'
+      Position.X = 10.000000000000000000
+      Position.Y = 22.000000000000000000
+      Size.Width = 180.000000000000000000
+      Size.Height = 12.000000000000000000
+      Size.PlatformDefault = False
+      HitTest = False
+      Visible = False
+    end
+    object TPath
+      StyleName = 'pointer'
+      Data.Data = 'M0,0 L12,0 L6,10 Z'
+      Position.X = 4.000000000000000000
+      Position.Y = 8.000000000000000000
+      Size.Width = 12.000000000000000000
+      Size.Height = 10.000000000000000000
+      Size.PlatformDefault = False
+      Fill.Color = xFF424242
+      HitTest = False
+      Stroke.Kind = None
+    end
+    object TText
+      StyleName = 'captiontext'
+      Position.X = 10.000000000000000000
+      Position.Y = 38.000000000000000000
+      Size.Width = 110.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      HitTest = False
+      TextSettings.FontColor = xFF616161
+      TextSettings.HorzAlign = Leading
+    end
+    object TText
+      StyleName = 'valuetext'
+      Position.X = 110.000000000000000000
+      Position.Y = 38.000000000000000000
+      Size.Width = 80.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      HitTest = False
+      TextSettings.Font.Size = 14.000000000000000000
+      TextSettings.Font.Style = [fsBold]
+      TextSettings.FontColor = xFF212121
+      TextSettings.HorzAlign = Trailing
+    end
+  end
+end

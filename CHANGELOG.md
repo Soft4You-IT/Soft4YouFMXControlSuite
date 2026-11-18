@@ -20,6 +20,7 @@ The changes of each release of the Soft4You FMX Control Suite, the newest first.
 ### Fixed
 
 - `TS4YBadge` and `TS4YExpander` use a style named `S4YBadgeStyle` or `S4YExpanderStyle` in the style book of the form or in the active style, instead of always the style linked into the package. A `StyleLookup` that names no style makes them use their own style: before, they were left without one.
+- On Android `TS4YBadge` and `TS4YExpander` had no style linked into the application and could not be drawn. Every control with a style of its own now links a style for each platform, Windows, macOS, Android and iOS: the four are identical, and the one of a platform can be changed without touching the others.
 
 ## 1.0.0 - 2026-10-29
 

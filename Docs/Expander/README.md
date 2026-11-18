@@ -18,8 +18,8 @@ Add the folder `Sources\Expander` (and `Sources\Badge`) to the Delphi library pa
 |---|---|
 | `Sources\Expander\Soft4You.FMX.Controls.Expander.pas` | The control |
 | `Sources\Expander\Soft4You.FMX.Controls.Expander.Register.pas` | Registration in the Tool Palette (design time) |
-| `Sources\Expander\Soft4You.FMX.Controls.Expander.Win.rc` / `.Mac.rc` | Resource scripts that link the style as the resource `S4YExpanderStyle` |
-| `Sources\Expander\Soft4You.FMX.Controls.Expander.Win.style` / `.Mac.style` | Default style of the expander (the two are identical) |
+| `Sources\Expander\Soft4You.FMX.Controls.Expander.Win.rc` / `.Mac.rc` / `.Android.rc` / `.iOS.rc` | Resource scripts that link the style as the resource `S4YExpanderStyle` |
+| `Sources\Expander\Soft4You.FMX.Controls.Expander.Win.style` / `.Mac.style` / `.Android.style` / `.iOS.style` | Default style of the expander (the four are identical) |
 | `Graphics\Expander\TS4YExpander.svg` | Vector master of the icon of the Tool Palette |
 | `Graphics\Expander\TS4YExpander.bmp`, `ExpanderDesign.rc` | Icon of the Tool Palette (24x24 bitmap) and the resource script that links it |
 

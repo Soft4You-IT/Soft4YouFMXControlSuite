@@ -31,12 +31,12 @@ Add the folder `Sources\Charts` to the Delphi library path to compile your own p
 | `Sources\Charts\Soft4You.FMX.Controls.Charts.Bindings.pas` | Support of `TLinkGridToDataSource`: grid editor and column manager of the charts |
 | `Sources\Charts\Soft4You.FMX.Controls.Charts.Types.pas` | Enumerations and event types |
 | `Sources\Charts\Soft4You.FMX.Controls.Charts.Register.pas` | Registration in the Tool Palette (design time) |
-| `Sources\Charts\Soft4You.FMX.Controls.Charts.Pie.Win.rc` / `.Mac.rc` | Resource scripts that link the style of `TS4YPieChart` as the resource `S4YPieChartStyle` |
-| `Sources\Charts\Soft4You.FMX.Controls.Charts.Pie.Win.style` / `.Mac.style` | Default style of `TS4YPieChart` (the two are identical) |
-| `Sources\Charts\Soft4You.FMX.Controls.Charts.Bar.Win.rc` / `.Mac.rc` | Resource scripts that link the style of `TS4YBarChart` as the resource `S4YBarChartStyle` |
-| `Sources\Charts\Soft4You.FMX.Controls.Charts.Bar.Win.style` / `.Mac.style` | Default style of `TS4YBarChart` (the two are identical) |
-| `Sources\Charts\Soft4You.FMX.Controls.Charts.Line.Win.rc` / `.Mac.rc` | Resource scripts that link the style of `TS4YLineChart` as the resource `S4YLineChartStyle` |
-| `Sources\Charts\Soft4You.FMX.Controls.Charts.Line.Win.style` / `.Mac.style` | Default style of `TS4YLineChart` (the two are identical) |
+| `Sources\Charts\Soft4You.FMX.Controls.Charts.Pie.Win.rc` / `.Mac.rc` / `.Android.rc` / `.iOS.rc` | Resource scripts that link the style of `TS4YPieChart` as the resource `S4YPieChartStyle` |
+| `Sources\Charts\Soft4You.FMX.Controls.Charts.Pie.Win.style` / `.Mac.style` / `.Android.style` / `.iOS.style` | Default style of `TS4YPieChart` (the four are identical) |
+| `Sources\Charts\Soft4You.FMX.Controls.Charts.Bar.Win.rc` / `.Mac.rc` / `.Android.rc` / `.iOS.rc` | Resource scripts that link the style of `TS4YBarChart` as the resource `S4YBarChartStyle` |
+| `Sources\Charts\Soft4You.FMX.Controls.Charts.Bar.Win.style` / `.Mac.style` / `.Android.style` / `.iOS.style` | Default style of `TS4YBarChart` (the four are identical) |
+| `Sources\Charts\Soft4You.FMX.Controls.Charts.Line.Win.rc` / `.Mac.rc` / `.Android.rc` / `.iOS.rc` | Resource scripts that link the style of `TS4YLineChart` as the resource `S4YLineChartStyle` |
+| `Sources\Charts\Soft4You.FMX.Controls.Charts.Line.Win.style` / `.Mac.style` / `.Android.style` / `.iOS.style` | Default style of `TS4YLineChart` (the four are identical) |
 | `Graphics\Charts\TS4YPieChart.svg`, `TS4YBarChart.svg`, `TS4YLineChart.svg` | Vector masters of the icons of the Tool Palette |
 | `Graphics\Charts\TS4YPieChart.bmp`, `TS4YBarChart.bmp`, `TS4YLineChart.bmp`, `ChartsDesign.rc` | Icons of the Tool Palette (24x24 bitmaps) and the resource script that links them |
 
