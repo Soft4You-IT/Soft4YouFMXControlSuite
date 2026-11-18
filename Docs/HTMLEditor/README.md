@@ -121,6 +121,7 @@ end;
 | `Font` | `TFont` | platform default | Default font for new text |
 | `FontColor` | `TAlphaColor` | `claBlack` | Default text color, used where a run has no color of its own |
 | `ImagePathMode` | `TS4YImagePathMode` | `ipmApplication` | How relative local image paths are resolved: `ipmApplication` (process working directory) or `ipmDocument` (relative to `DocumentPath`) |
+| `KeyboardType` | `TVirtualKeyboardType` | `Default` | Virtual keyboard shown on Android and iOS (letters, numbers, e-mail address, ...) |
 | `Language` | `string` | `''` | Document language attribute (used in `FullHTML` export) |
 | `LineSpacing` | `Single` | `1.0` | Line-height multiplier (1.0 = natural height, 1.5 = 1.5× line spacing) |
 | `LocalImageAccess` | `TS4YLocalImageAccess` | `liaAnywhere` | Which local files images may be read from: `liaAnywhere` (any readable file) or `liaDocumentFolder` (only inside `DocumentPath`); see [Images and files](#images-and-files) |
@@ -130,6 +131,7 @@ end;
 | `PlaceholderSuffix` | `string` | `''` | Suffix that identifies a placeholder run in raw text |
 | `PrettyHTML` | `Boolean` | `False` | Emit indented HTML from the generator |
 | `ReadOnly` | `Boolean` | `False` | Blocks the user's typing, deleting, paste and the editing shortcuts; selection, copy and link clicks still work. It does not block the editing methods called from code; see the [Developer Guide](DeveloperGuide.md#4-read-only-mode) |
+| `ReturnKeyType` | `TReturnKeyType` | `Default` | Label of the key of the virtual keyboard of Android and iOS that ends a line (Enter, Go, Next, Done, ...); whatever its label, it starts a new paragraph |
 | `ShowBorder` | `Boolean` | `True` | Draws a 1px border around the control |
 | `Title` | `string` | `''` | Document title (used in `FullHTML` export) |
 
