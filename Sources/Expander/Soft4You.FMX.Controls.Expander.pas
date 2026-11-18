@@ -117,7 +117,7 @@ type
   /// The badge is configured with BadgeSettings; its look comes from the style.
   /// A custom style can provide the parts named header (the area that reacts to the click), icon and badge.
   /// </remarks>
-  TS4YExpander = class(TExpander, IGlyph)
+  TS4YExpander = class(TExpander, IGlyph, IFreeNotification)
   private
     FBadge: TS4YBadge;
     FBadgeSettings: TS4YExpanderBadgeSettings;
@@ -148,10 +148,13 @@ type
     procedure AnimateToHeight(const AStartHeight, ATargetHeight: Single);
     procedure BadgeSettingsChangedHandler(Sender: TObject);
     procedure HeightAnimationFinished(Sender: TObject);
+    procedure StyleResourceFreed(AObject: TObject);
     procedure UpdateIcon;
     { IGlyph }
     function IGlyph.GetImages = GetImageList;
     procedure IGlyph.SetImages = SetImageList;
+    { IFreeNotification }
+    procedure IFreeNotification.FreeNotification = StyleResourceFreed;
   protected
     /// <summary>Applies the settings of the expander (icon, click on the header, badge) to the parts of the style named icon, header and badge.</summary>
     procedure ApplyStyle; override;
@@ -250,7 +253,11 @@ begin
   // Optional icon declared by the style: UpdateIcon keeps it hidden unless
   // ShowIcon is set and the image list / image index point to a real image.
   if FindStyleResource<TGlyph>('icon', FGlyph) then
+  begin
+    // The parts of the style tell when they are freed: a reference to a freed part never stays
+    FGlyph.AddFreeNotify(Self);
     UpdateIcon;
+  end;
 
   LHeader := FindStyleResource('header');
 
@@ -270,6 +277,7 @@ begin
 
   if FindStyleResource<TS4YBadge>('badge', FBadge) then
   begin
+    FBadge.AddFreeNotify(Self);
     // Mirrors the base TExpander.ApplyStyle handling of FButton: a nested custom
     // TStyledControl found this way does not reliably get its own ApplyStyleLookup
     // triggered by the generic paint-driven mechanism (Painting/PrepareForPaint/
@@ -414,12 +422,17 @@ procedure TS4YExpander.FreeStyle;
 begin
   if FGlyph <> nil then
   begin
+    FGlyph.RemoveFreeNotify(Self);
     FGlyph.ImageIndex := -1;
     FGlyph.Images := nil;
     FGlyph := nil;
   end;
 
-  FBadge := nil;
+  if FBadge <> nil then
+  begin
+    FBadge.RemoveFreeNotify(Self);
+    FBadge := nil;
+  end;
 
   inherited;
 end;
@@ -477,6 +490,16 @@ begin
 
   FShowIcon := Value;
   UpdateIcon;
+end;
+
+procedure TS4YExpander.StyleResourceFreed(AObject: TObject);
+begin
+  // Reached only when a part of the style is freed outside FreeStyle: a breakpoint here shows who frees it
+  if AObject = FGlyph then
+    FGlyph := nil;
+
+  if AObject = FBadge then
+    FBadge := nil;
 end;
 
 procedure TS4YExpander.UpdateIcon;
