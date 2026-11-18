@@ -156,7 +156,8 @@ Rules of thumb:
 ## 9. Design time and platforms
 
 - At design time the control shows its content but does not blink the caret and does not create the scrollbar.
-- Supported platforms: Windows, macOS, iOS, Android. Developed and tested on Windows.
+- Supported platforms: Windows, macOS, iOS, Android. Developed and tested on Windows; the virtual keyboard has been tested on Android.
+- Virtual keyboard (Android, iOS): a tap on the editor shows it, and what it writes goes into the document: letters, the suggestions and the corrections of the keyboard, Backspace and Enter, which starts a new paragraph. `KeyboardType` and `ReturnKeyType` choose the keyboard and the label of its Enter key; with `ReadOnly` the keyboard is not shown. On Windows and macOS the editor works with the physical keyboard as before. Selecting text with the finger and the Copy and Paste menu of the platform are not available yet.
 - Clipboard: on Windows the control exchanges `CF_HTML` and plain text. On the other platforms the HTML fragment is placed on the clipboard as plain text, and pasting it back into the same editor restores the formatting.
 - The keyboard shortcuts test the `Ctrl` key only; the control does not map them to `Cmd` on macOS.
 
