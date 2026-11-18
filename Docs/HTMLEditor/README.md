@@ -234,6 +234,7 @@ end;
 | `DeleteTableRow` | Delete the row containing the caret (does nothing in a table with merged cells) |
 | `InsertTableColumn` | Insert a new column after the column containing the caret (does nothing in a table with merged cells) |
 | `DeleteTableColumn` | Delete the column containing the caret (does nothing in a table with merged cells) |
+| `DeleteTable` | Delete a whole table: the one selected with `Backspace` or `Delete` next to it, otherwise the one containing the caret; a table inside a cell goes with the table that contains it |
 | `SetTableCellBackgroundColor(Color)` | Background color of the cell at the caret, or of every cell that the selection touches (`claNull` removes it) |
 | `SetTableCellBorder(Sides, Border)` | Border of some sides of the cell(s): `Sides` is a set of `tsTop`, `tsRight`, `tsBottom`, `tsLeft`, `Border` a `TS4YTableBorderSide` (`.Solid(Width, Color)`, `.Default` or `.None`); the other sides keep theirs |
 | `SetTableCellPadding(Padding)` | Padding of the cell(s), a `TS4YTablePadding` (`TS4YTablePadding.Default` goes back to the default) |
@@ -493,7 +494,7 @@ A refused image is not read; `OnLoadImage` still fires with a `nil` bitmap so a 
 | `Tab` / `Shift+Tab` | In a table: next / previous cell (`Tab` in the last cell appends a row). Elsewhere: normal focus change |
 | `Enter` | Insert paragraph break (inside a table cell: a new paragraph of the cell) |
 | `Shift+Enter` | Insert line break (`<br>`) |
-| `Backspace` / `Delete` | Delete character or selection |
+| `Backspace` / `Delete` | Delete character or selection. At the start of the paragraph after a table (`Backspace`) or at the end of the paragraph before it (`Delete`) the first press selects the table and the second deletes it |
 | `Ctrl+Backspace` | Delete word left |
 
 The keys the editor does not use (function keys, `Ctrl` + letter combinations it does not define, modifier keys alone) are left to the form, which receives them in its `OnKeyDown` event, and the `ShortCut` of an action of the application, such as `Ctrl+S`, works while the editor has the focus. The function keys F1-F11 are the exception for the actions in Delphi 11 only (10.4, 12 and 13 are not affected): FMX does not match them with the `ShortCut` of an action, so handle them in the `OnKeyDown` of the form (the demo does so for `F3` and `Shift+F3`).
