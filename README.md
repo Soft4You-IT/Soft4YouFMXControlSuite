@@ -50,7 +50,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Packages\D11`, `D12`, `D13` | Runtime and design-time packages and their project group, one folder for each Delphi version (11, 12, 13) |
 | `Resources` | Resources compiled by the packages from the `.rc` files (styles of the Badge, the Expander, the StepProgressBar, the gauges and the charts, Tool Palette icons, version information); created when the packages are built, not in the repository |
 | `Graphics` | Source artwork: one folder for each control with its Tool Palette icon (24x24 bitmap, its SVG master and the resource script `XxxDesign.rc` compiled into the design-time package); `Soft4YouFMXControlSuite.svg` is the master of the icon of the suite, shown in the IDE splash screen and About box (`S4YSplash.bmp` and `S4YAbout.bmp`, 24x24), compiled with `Soft4You.FMX.Controls.SuiteD.rc` into `Soft4You.FMX.Controls.SuiteD.dcr` of each `Packages` folder |
-| `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Mobile` (mobile test app, work in progress), `Test` (HTML test files), `Icons` (toolbar icons of the desktop demo) |
+| `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Test` (HTML test files), `Icons` (toolbar icons of the desktop demo) |
 | `Demos\FlexBox` | Sample FMX dashboard built with `TS4YFlexBox` |
 | `Demos\BlockScrollBox` | Sample FMX application with `TS4YBlockScrollBox`: a page of blocks with a flexbox of cards, and the settings to make them overflow, add blocks and change their order |
 | `Demos\Badge` | Sample FMX application with `TS4YBadge`: a counter and a text badge, and the settings to change them |
@@ -58,6 +58,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Demos\StepProgressBar` | Sample FMX application with two `TS4YStepProgressBar`: the steps of an installation, moved by buttons, and the steps of a wizard, chosen with a click |
 | `Demos\Gauges` | Sample FMX applications with `TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter` and `TS4YCircularMeter`: the settings of the gauges and of the meters, and a gallery of examples |
 | `Demos\Charts` | Sample FMX applications with `TS4YPieChart`, `TS4YBarChart` and `TS4YLineChart`: the settings of the charts, and a gallery of examples with a tab for the LiveBindings |
+| `Demos\Mobile` | Gallery of all the controls for the phones (Android, and Windows to try it on the computer): one page for each family of controls, changed with a swipe, with the HTML editor and the virtual keyboard, the filters of the grid and the expanders to use by hand, and gauges, charts and steps moved by timers |
 | `Demos\Grid` | Sample FMX application with `TS4YGrid`: a list of objects filtered by the application with the operators of the filters, with the settings of the filter row, of the footer and of the order, a `TFDMemTable` filtered and sorted through the LiveBindings, and a dark style of a style book |
 | `Docs\HTMLEditor` | Documentation of the HTML editor: [`README.md`](Docs/HTMLEditor/README.md) (installation, properties, methods, events), [`DeveloperGuide.md`](Docs/HTMLEditor/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals) |
 | `Docs\FlexBox` | Documentation of the FlexBox control: [`README.md`](Docs/FlexBox/README.md) (installation, properties, examples) |
@@ -103,7 +104,7 @@ The compiled units and the demo executables are written in `Bin`; the `.bpl` and
 
 ## Demos and tests
 
-Each control has a sample application in `Demos\<Control>`. Install the packages first. The HTML editor also has a mobile test app (`Demos\HTMLEditor\Mobile`, work in progress). The layout engine of `TS4YFlexBox` is covered by DUnitX tests (`Tests\FlexBox`), and so is the block flow of `TS4YBlockScrollBox` (`Tests\BlockScrollBox`).
+Each control has a sample application in `Demos\<Control>`. Install the packages first. `Demos\Mobile` shows all the controls together on a phone. The layout engine of `TS4YFlexBox` is covered by DUnitX tests (`Tests\FlexBox`), and so is the block flow of `TS4YBlockScrollBox` (`Tests\BlockScrollBox`).
 
 ---
 

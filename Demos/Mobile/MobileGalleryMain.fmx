@@ -1,0 +1,1135 @@
+object MobileGalleryForm: TMobileGalleryForm
+  Left = 0
+  Top = 0
+  Caption = 'Mobile gallery'
+  ClientHeight = 760
+  ClientWidth = 400
+  Position = ScreenCenter
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  Touch.GestureManager = GalleryGestureManager
+  OnGesture = FormGesture
+  DesignerMasterStyle = 0
+  object ContentLayout: TLayout
+    Align = Client
+    Size.Width = 400
+    Size.Height = 760
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object HeaderLayout: TLayout
+      Align = Top
+      HitTest = True
+      Padding.Left = 16
+      Padding.Top = 8
+      Padding.Right = 16
+      Padding.Bottom = 4
+      Size.Width = 400
+      Size.Height = 76
+      Size.PlatformDefault = False
+      TabOrder = 0
+      OnMouseDown = HeaderLayoutMouseDown
+      OnMouseUp = HeaderLayoutMouseUp
+      object PageTitleLabel: TLabel
+        Align = Top
+        StyledSettings = [Family, FontColor]
+        Size.Width = 368
+        Size.Height = 30
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 20
+        TextSettings.Font.StyleExt = {00070000000000000004000000}
+        TextSettings.HorzAlign = Center
+        Text = 'Editor  1 / 8'
+      end
+      object SwipeHintLabel: TLabel
+        Align = Top
+        StyledSettings = [Family, Style]
+        Size.Width = 368
+        Size.Height = 18
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 12
+        TextSettings.FontColor = xFF78909C
+        TextSettings.HorzAlign = Center
+        Text = 'Swipe left or right to change page'
+      end
+      object DotsLayout: TLayout
+        Align = Top
+        Margins.Top = 4
+        Size.Width = 368
+        Size.Height = 12
+        Size.PlatformDefault = False
+        TabOrder = 0
+        object DotsCenterLayout: TLayout
+          Align = Center
+          Size.Width = 120
+          Size.Height = 12
+          Size.PlatformDefault = False
+          TabOrder = 0
+        end
+      end
+    end
+    object GalleryTabControl: TTabControl
+      Align = Client
+      Size.Width = 400
+      Size.Height = 684
+      Size.PlatformDefault = False
+      TabIndex = 0
+      TabOrder = 1
+      TabPosition = None
+      OnChange = GalleryTabControlChange
+      object EditorTab: TTabItem
+        IsSelected = True
+        Text = 'Editor'
+        object EditorButtonsLayout: TFlowLayout
+          Align = Top
+          Padding.Left = 8
+          Padding.Top = 4
+          Padding.Right = 8
+          Padding.Bottom = 4
+          Size.Width = 400
+          Size.Height = 96
+          Size.PlatformDefault = False
+          TabOrder = 0
+          Justify = Center
+          JustifyLastLine = Center
+          FlowDirection = LeftToRight
+          HorizontalGap = 4
+          VerticalGap = 4
+          object BoldButton: TButton
+            Size.Width = 88
+            Size.Height = 40
+            Size.PlatformDefault = False
+            TabOrder = 0
+            Text = 'Bold'
+            OnClick = BoldButtonClick
+          end
+          object ItalicButton: TButton
+            Size.Width = 88
+            Size.Height = 40
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = 'Italic'
+            OnClick = ItalicButtonClick
+          end
+          object UnderlineButton: TButton
+            Size.Width = 88
+            Size.Height = 40
+            Size.PlatformDefault = False
+            TabOrder = 2
+            Text = 'Underline'
+            OnClick = UnderlineButtonClick
+          end
+          object BulletsButton: TButton
+            Size.Width = 88
+            Size.Height = 40
+            Size.PlatformDefault = False
+            TabOrder = 3
+            Text = 'Bullets'
+            OnClick = BulletsButtonClick
+          end
+          object NumbersButton: TButton
+            Size.Width = 88
+            Size.Height = 40
+            Size.PlatformDefault = False
+            TabOrder = 4
+            Text = 'Numbers'
+            OnClick = NumbersButtonClick
+          end
+          object TableButton: TButton
+            Size.Width = 88
+            Size.Height = 40
+            Size.PlatformDefault = False
+            TabOrder = 5
+            Text = 'Table'
+            OnClick = TableButtonClick
+          end
+        end
+        object HTMLEditor: TS4YHTMLEditor
+          Align = Client
+          Margins.Left = 8
+          Margins.Right = 8
+          Margins.Bottom = 8
+          LineSpacing = 1
+          ParagraphSpacing = 6
+          Size.Width = 384
+          Size.Height = 580
+          Size.PlatformDefault = False
+        end
+      end
+      object LayoutTab: TTabItem
+        IsSelected = False
+        Text = 'Layout'
+        object LayoutScrollBox: TS4YBlockScrollBox
+          Align = Client
+          Padding.Left = 16
+          Padding.Top = 8
+          Padding.Right = 16
+          Padding.Bottom = 16
+          Size.Width = 400
+          Size.Height = 684
+          Size.PlatformDefault = False
+          TabOrder = 0
+          object LayoutTitleLabel: TLabel
+            Align = Top
+            StyledSettings = [Family, FontColor]
+            Size.Width = 368
+            Size.Height = 28
+            Size.PlatformDefault = False
+            TextSettings.Font.Size = 16
+            TextSettings.Font.StyleExt = {00070000000000000004000000}
+            Text = 'TS4YBlockScrollBox and TS4YFlexBox'
+          end
+          object LayoutIntroLabel: TLabel
+            Align = Top
+            AutoSize = True
+            Margins.Top = 4
+            Size.Width = 368
+            Size.Height = 48
+            Size.PlatformDefault = False
+            Text =
+              'The blocks of this page are stacked from the top, as the blocks ' +
+              'of a web page. The cards below are in a flex box that wraps them' +
+              ' on more lines: turn the phone and they fill the new width.'
+          end
+          object CardsFlexBox: TS4YFlexBox
+            Anchors = [akTop]
+            ColumnGap = 12
+            Margins.Top = 12
+            RowGap = 12
+            Wrap = fwWrap
+            JustifyContent = jcCenter
+            Size.Width = 368
+            Size.Height = 300
+            Size.PlatformDefault = False
+            object Card1Item: TS4YFlexItem
+              Size.Width = 160
+              Size.Height = 90
+              Size.PlatformDefault = False
+              object Card1Rectangle: TRectangle
+                Align = Client
+                Fill.Color = xFFDBEAFE
+                Size.Width = 160
+                Size.Height = 90
+                Size.PlatformDefault = False
+                Stroke.Color = xFFCBD5E1
+                XRadius = 8
+                YRadius = 8
+                object Card1Label: TLabel
+                  Align = Client
+                  StyledSettings = [Family, Size, Style]
+                  Size.Width = 160
+                  Size.Height = 90
+                  Size.PlatformDefault = False
+                  TextSettings.FontColor = xFF1E293B
+                  TextSettings.HorzAlign = Center
+                  Text = 'Card 1'
+                end
+              end
+            end
+            object Card2Item: TS4YFlexItem
+              Size.Width = 160
+              Size.Height = 90
+              Size.PlatformDefault = False
+              object Card2Rectangle: TRectangle
+                Align = Client
+                Fill.Color = xFFDCFCE7
+                Size.Width = 160
+                Size.Height = 90
+                Size.PlatformDefault = False
+                Stroke.Color = xFFCBD5E1
+                XRadius = 8
+                YRadius = 8
+                object Card2Label: TLabel
+                  Align = Client
+                  StyledSettings = [Family, Size, Style]
+                  Size.Width = 160
+                  Size.Height = 90
+                  Size.PlatformDefault = False
+                  TextSettings.FontColor = xFF1E293B
+                  TextSettings.HorzAlign = Center
+                  Text = 'Card 2'
+                end
+              end
+            end
+            object Card3Item: TS4YFlexItem
+              Size.Width = 160
+              Size.Height = 90
+              Size.PlatformDefault = False
+              object Card3Rectangle: TRectangle
+                Align = Client
+                Fill.Color = xFFFEE2E2
+                Size.Width = 160
+                Size.Height = 90
+                Size.PlatformDefault = False
+                Stroke.Color = xFFCBD5E1
+                XRadius = 8
+                YRadius = 8
+                object Card3Label: TLabel
+                  Align = Client
+                  StyledSettings = [Family, Size, Style]
+                  Size.Width = 160
+                  Size.Height = 90
+                  Size.PlatformDefault = False
+                  TextSettings.FontColor = xFF1E293B
+                  TextSettings.HorzAlign = Center
+                  Text = 'Card 3'
+                end
+              end
+            end
+            object Card4Item: TS4YFlexItem
+              Size.Width = 160
+              Size.Height = 90
+              Size.PlatformDefault = False
+              object Card4Rectangle: TRectangle
+                Align = Client
+                Fill.Color = xFFF3E8FF
+                Size.Width = 160
+                Size.Height = 90
+                Size.PlatformDefault = False
+                Stroke.Color = xFFCBD5E1
+                XRadius = 8
+                YRadius = 8
+                object Card4Label: TLabel
+                  Align = Client
+                  StyledSettings = [Family, Size, Style]
+                  Size.Width = 160
+                  Size.Height = 90
+                  Size.PlatformDefault = False
+                  TextSettings.FontColor = xFF1E293B
+                  TextSettings.HorzAlign = Center
+                  Text = 'Card 4'
+                end
+              end
+            end
+            object Card5Item: TS4YFlexItem
+              Size.Width = 160
+              Size.Height = 90
+              Size.PlatformDefault = False
+              object Card5Rectangle: TRectangle
+                Align = Client
+                Fill.Color = xFFFEF9C3
+                Size.Width = 160
+                Size.Height = 90
+                Size.PlatformDefault = False
+                Stroke.Color = xFFCBD5E1
+                XRadius = 8
+                YRadius = 8
+                object Card5Label: TLabel
+                  Align = Client
+                  StyledSettings = [Family, Size, Style]
+                  Size.Width = 160
+                  Size.Height = 90
+                  Size.PlatformDefault = False
+                  TextSettings.FontColor = xFF1E293B
+                  TextSettings.HorzAlign = Center
+                  Text = 'Card 5'
+                end
+              end
+            end
+            object Card6Item: TS4YFlexItem
+              Size.Width = 160
+              Size.Height = 90
+              Size.PlatformDefault = False
+              object Card6Rectangle: TRectangle
+                Align = Client
+                Fill.Color = xFFE0F2FE
+                Size.Width = 160
+                Size.Height = 90
+                Size.PlatformDefault = False
+                Stroke.Color = xFFCBD5E1
+                XRadius = 8
+                YRadius = 8
+                object Card6Label: TLabel
+                  Align = Client
+                  StyledSettings = [Family, Size, Style]
+                  Size.Width = 160
+                  Size.Height = 90
+                  Size.PlatformDefault = False
+                  TextSettings.FontColor = xFF1E293B
+                  TextSettings.HorzAlign = Center
+                  Text = 'Card 6'
+                end
+              end
+            end
+          end
+          object LayoutFooterLabel: TLabel
+            Align = Top
+            Margins.Top = 12
+            Size.Width = 368
+            Size.Height = 20
+            Size.PlatformDefault = False
+            Text = 'The footer of the page follows the cards.'
+          end
+        end
+      end
+      object BadgeTab: TTabItem
+        IsSelected = False
+        Text = 'Badge and Expander'
+        object BadgeScrollBox: TVertScrollBox
+          Align = Client
+          Padding.Left = 16
+          Padding.Top = 8
+          Padding.Right = 16
+          Padding.Bottom = 16
+          Size.Width = 400
+          Size.Height = 684
+          Size.PlatformDefault = False
+          TabOrder = 0
+          object BadgeTitleLabel: TLabel
+            Align = Top
+            StyledSettings = [Family, FontColor]
+            Size.Width = 368
+            Size.Height = 28
+            Size.PlatformDefault = False
+            TextSettings.Font.Size = 16
+            TextSettings.Font.StyleExt = {00070000000000000004000000}
+            Text = 'TS4YBadge'
+          end
+          object BadgeButtonsLayout: TLayout
+            Align = Top
+            Margins.Top = 4
+            Size.Width = 368
+            Size.Height = 110
+            Size.PlatformDefault = False
+            TabOrder = 0
+            object MessagesButton: TButton
+              Position.X = 8
+              Position.Y = 16
+              Size.Width = 140
+              Size.Height = 44
+              Size.PlatformDefault = False
+              TabOrder = 0
+              Text = 'Messages'
+              object MessagesBadge: TS4YBadge
+                AutoPosition.AutoPosition = bdgpUpRight
+                CurrentValue = 3
+                Position.X = 130
+                Position.Y = -10
+                Size.Width = 20
+                Size.Height = 20
+                Size.PlatformDefault = False
+              end
+            end
+            object CartButton: TButton
+              Position.X = 188
+              Position.Y = 16
+              Size.Width = 140
+              Size.Height = 44
+              Size.PlatformDefault = False
+              TabOrder = 1
+              Text = 'Cart'
+              object CartBadge: TS4YBadge
+                AutoPosition.AutoPosition = bdgpUpRight
+                CurrentValue = 120
+                Fill.Color = xFF1E88E5
+                Position.X = 130
+                Position.Y = -10
+                Size.Width = 20
+                Size.Height = 20
+                Size.PlatformDefault = False
+              end
+            end
+            object ReleaseNotesLabel: TLabel
+              Position.X = 8
+              Position.Y = 78
+              Size.Width = 110
+              Size.Height = 24
+              Size.PlatformDefault = False
+              Text = 'Release notes'
+              TabOrder = 2
+              object ReleaseNotesBadge: TS4YBadge
+                AutoPosition.AutoPosition = bdgpCenterRight
+                AutoPosition.OffsetX = bdpoOuter
+                BadgeStyle = bdgsText
+                BlinkSettings.Enabled = True
+                Fill.Color = xFF4CAF50
+                Position.X = 112
+                Position.Y = 2
+                Size.Width = 20
+                Size.Height = 20
+                Size.PlatformDefault = False
+                Text = 'NEW'
+              end
+            end
+          end
+          object ExpanderTitleLabel: TLabel
+            Align = Top
+            StyledSettings = [Family, FontColor]
+            Margins.Top = 12
+            Size.Width = 368
+            Size.Height = 28
+            Size.PlatformDefault = False
+            TextSettings.Font.Size = 16
+            TextSettings.Font.StyleExt = {00070000000000000004000000}
+            Text = 'TS4YExpander'
+          end
+          object OrdersExpander: TS4YExpander
+            Align = Top
+            BadgeSettings.CurrentValue = 12
+            BadgeSettings.Visible = True
+            Margins.Top = 4
+            Margins.Bottom = 12
+            Size.Width = 368
+            Size.Height = 110
+            Size.PlatformDefault = False
+            TabOrder = 1
+            Text = 'Orders'
+            ShowCheck = False
+            Animated = True
+            AnimationDuration = 0.4
+            object PendingOrdersLabel: TLabel
+              Align = Top
+              Margins.Left = 12
+              Margins.Top = 8
+              Margins.Right = 12
+              Size.Width = 344
+              Size.Height = 20
+              Size.PlatformDefault = False
+              Text = 'The counter on the header shows the orders to process.'
+              TabOrder = 0
+            end
+            object ShippedOrdersLabel: TLabel
+              Align = Top
+              Margins.Left = 12
+              Margins.Top = 4
+              Margins.Right = 12
+              Size.Width = 344
+              Size.Height = 20
+              Size.PlatformDefault = False
+              Text = 'Tap the header to close and open the panel.'
+              TabOrder = 1
+            end
+          end
+          object ShippingExpander: TS4YExpander
+            Align = Top
+            Margins.Bottom = 12
+            Size.Width = 368
+            Size.Height = 110
+            Size.PlatformDefault = False
+            TabOrder = 2
+            Text = 'Shipping'
+            ShowCheck = False
+            Animated = True
+            AnimationDuration = 0.4
+            object CarrierLabel: TLabel
+              Align = Top
+              Margins.Left = 12
+              Margins.Top = 8
+              Margins.Right = 12
+              Size.Width = 344
+              Size.Height = 20
+              Size.PlatformDefault = False
+              Text = 'Carrier: Express'
+              TabOrder = 0
+            end
+            object DeliveryLabel: TLabel
+              Align = Top
+              Margins.Left = 12
+              Margins.Top = 4
+              Margins.Right = 12
+              Size.Width = 344
+              Size.Height = 20
+              Size.PlatformDefault = False
+              Text = 'Delivery in 2 working days'
+              TabOrder = 1
+            end
+          end
+          object HistoryExpander: TS4YExpander
+            Align = Top
+            Size.Width = 368
+            Size.Height = 90
+            Size.PlatformDefault = False
+            TabOrder = 3
+            Text = 'History'
+            Animated = True
+            AnimationDuration = 0.4
+            object HistoryLabel: TLabel
+              Align = Top
+              Margins.Left = 12
+              Margins.Top = 8
+              Margins.Right = 12
+              Size.Width = 344
+              Size.Height = 20
+              Size.PlatformDefault = False
+              Text = 'Starts collapsed: tap the header to open it.'
+              TabOrder = 0
+            end
+          end
+        end
+      end
+      object StepsTab: TTabItem
+        IsSelected = False
+        Text = 'Steps'
+        object StepsScrollBox: TVertScrollBox
+          Align = Client
+          Padding.Left = 16
+          Padding.Top = 8
+          Padding.Right = 16
+          Padding.Bottom = 16
+          Size.Width = 400
+          Size.Height = 684
+          Size.PlatformDefault = False
+          TabOrder = 0
+          object HorizontalStepsLabel: TLabel
+            Align = Top
+            StyledSettings = [Family, FontColor]
+            Size.Width = 368
+            Size.Height = 28
+            Size.PlatformDefault = False
+            TextSettings.Font.Size = 16
+            TextSettings.Font.StyleExt = {00070000000000000004000000}
+            Text = 'TS4YStepProgressBar'
+          end
+          object AnimationBar: TS4YStepProgressBar
+            Align = Top
+            AnimationDuration = 0.8
+            Margins.Top = 8
+            Size.Width = 368
+            Size.Height = 90
+            Size.PlatformDefault = False
+            TabOrder = 0
+            StepItems = <
+              item
+                Caption = 'Upload'
+              end
+              item
+                Caption = 'Scan'
+              end
+              item
+                Caption = 'Convert'
+              end
+              item
+                Caption = 'Done'
+              end>
+          end
+          object VerticalStepsLabel: TLabel
+            Align = Top
+            Margins.Top = 16
+            Size.Width = 368
+            Size.Height = 20
+            Size.PlatformDefault = False
+            Text = 'Vertical, with the progress towards the next step:'
+          end
+          object TrackingBar: TS4YStepProgressBar
+            Align = Top
+            CompletedMarker.Content = smcNone
+            CurrentMarker.Content = smcNone
+            FailedMarker.Content = smcNone
+            LabelSpacing = 12
+            LineSpacing = 6
+            LineThickness = 2
+            Margins.Top = 8
+            MarkerPosition = smpBefore
+            MarkerSize.Height = 14
+            MarkerSize.Width = 14
+            Orientation = Vertical
+            PendingMarker.Content = smcNone
+            Size.Width = 368
+            Size.Height = 340
+            Size.PlatformDefault = False
+            TabOrder = 1
+            StepItems = <
+              item
+                Caption = 'Order placed'
+                Description = 'November 10, 09:14'
+              end
+              item
+                Caption = 'Shipped'
+                Description = 'November 10, 17:40'
+              end
+              item
+                Caption = 'In transit'
+                Description = 'Sorting center'
+              end
+              item
+                Caption = 'Out for delivery'
+              end
+              item
+                Caption = 'Delivered'
+              end>
+          end
+        end
+      end
+      object GaugesTab: TTabItem
+        IsSelected = False
+        Text = 'Gauges'
+        object GaugesScrollBox: TVertScrollBox
+          Align = Client
+          Padding.Left = 16
+          Padding.Top = 8
+          Padding.Right = 16
+          Padding.Bottom = 16
+          Size.Width = 400
+          Size.Height = 684
+          Size.PlatformDefault = False
+          TabOrder = 0
+          object GaugesTitleLabel: TLabel
+            Align = Top
+            StyledSettings = [Family, FontColor]
+            Size.Width = 368
+            Size.Height = 28
+            Size.PlatformDefault = False
+            TextSettings.Font.Size = 16
+            TextSettings.Font.StyleExt = {00070000000000000004000000}
+            Text = 'Gauges'
+          end
+          object CircularGaugesLayout: TLayout
+            Align = Top
+            Margins.Top = 4
+            Size.Width = 368
+            Size.Height = 170
+            Size.PlatformDefault = False
+            TabOrder = 0
+            object CpuGauge: TS4YCircularGauge
+              Align = Left
+              Caption = 'CPU'
+              Size.Width = 170
+              Size.Height = 170
+              Size.PlatformDefault = False
+              Value = 30
+              ValueFormat = '%.0f %%'
+            end
+            object SpeedGauge: TS4YCircularGauge
+              Align = Client
+              Caption = 'km/h'
+              Max = 200
+              Size.Width = 198
+              Size.Height = 170
+              Size.PlatformDefault = False
+              StartAngle = -135
+              SweepAngle = 270
+              Value = 120
+            end
+          end
+          object StorageGauge: TS4YLinearGauge
+            Align = Top
+            Caption = 'Storage'
+            Margins.Top = 12
+            Size.Width = 368
+            Size.Height = 40
+            Size.PlatformDefault = False
+            Value = 25
+          end
+          object BatteryGauge: TS4YLinearGauge
+            Align = Top
+            Caption = 'Battery'
+            Margins.Top = 8
+            Size.Width = 368
+            Size.Height = 40
+            Size.PlatformDefault = False
+            Value = 90
+            ValueFormat = '%.0f %%'
+          end
+          object MetersTitleLabel: TLabel
+            Align = Top
+            StyledSettings = [Family, FontColor]
+            Margins.Top = 16
+            Size.Width = 368
+            Size.Height = 28
+            Size.PlatformDefault = False
+            TextSettings.Font.Size = 16
+            TextSettings.Font.StyleExt = {00070000000000000004000000}
+            Text = 'Meters'
+          end
+          object SpeedometerMeter: TS4YCircularMeter
+            Align = Top
+            Caption = 'km/h'
+            Graduation.MajorStep = 40
+            Graduation.Position = gasOutside
+            Margins.Top = 4
+            Max = 240
+            Ranges = <
+              item
+                Color = xFFFDD835
+                EndValue = 200
+                StartValue = 160
+              end
+              item
+                Color = xFFE53935
+                EndValue = 240
+                StartValue = 200
+              end>
+            Size.Width = 368
+            Size.Height = 240
+            Size.PlatformDefault = False
+            Value = 90
+          end
+          object TunerMeter: TS4YLinearMeter
+            Align = Top
+            Caption = 'Tuner'
+            Graduation.MajorStep = 10
+            Margins.Top = 12
+            Max = 50
+            Min = -50
+            Pointer.Visible = True
+            Ranges = <
+              item
+                Color = xFF43A047
+                EndValue = 5
+                StartValue = -5
+              end>
+            ShowFill = False
+            Size.Width = 368
+            Size.Height = 100
+            Size.PlatformDefault = False
+            Value = 12
+            ValueFormat = '%.0f cents'
+          end
+          object SkinsTitleLabel: TLabel
+            Align = Top
+            StyledSettings = [Family, FontColor]
+            Margins.Top = 16
+            Size.Width = 368
+            Size.Height = 28
+            Size.PlatformDefault = False
+            TextSettings.Font.Size = 16
+            TextSettings.Font.StyleExt = {00070000000000000004000000}
+            Text = 'Skin gauges'
+          end
+          object SkinCircularGauge: TS4YSkinCircularGauge
+            Align = Top
+            Caption = 'Speed'
+            Value = 60
+            Margins.Top = 4
+            Size.Width = 368
+            Size.Height = 200
+            Size.PlatformDefault = False
+          end
+          object SkinLinearGauge: TS4YSkinLinearGauge
+            Align = Top
+            Caption = 'Tank'
+            Value = 70
+            ValueFormat = '%.0f %%'
+            Margins.Top = 12
+            Size.Width = 368
+            Size.Height = 84
+            Size.PlatformDefault = False
+          end
+        end
+      end
+      object ChartsTab: TTabItem
+        IsSelected = False
+        Text = 'Charts'
+        object ChartsScrollBox: TVertScrollBox
+          Align = Client
+          Padding.Left = 16
+          Padding.Top = 8
+          Padding.Right = 16
+          Padding.Bottom = 16
+          Size.Width = 400
+          Size.Height = 684
+          Size.PlatformDefault = False
+          TabOrder = 0
+          object PieTitleLabel: TLabel
+            Align = Top
+            StyledSettings = [Family, FontColor]
+            Size.Width = 368
+            Size.Height = 28
+            Size.PlatformDefault = False
+            TextSettings.Font.Size = 16
+            TextSettings.Font.StyleExt = {00070000000000000004000000}
+            Text = 'TS4YPieChart'
+          end
+          object RingPie: TS4YPieChart
+            Align = Top
+            Margins.Top = 4
+            Size.Width = 368
+            Size.Height = 260
+            Size.PlatformDefault = False
+            InnerRadius = 60
+            ShowTotal = True
+            CenterCaption = 'orders'
+            LabelContent = plcValue
+            Slices = <
+              item
+                Caption = 'Online'
+                Value = 120
+              end
+              item
+                Caption = 'Shops'
+                Value = 80
+              end
+              item
+                Caption = 'Phone'
+                Value = 45
+              end
+              item
+                Caption = 'Partners'
+                Value = 30
+              end>
+          end
+          object BarTitleLabel: TLabel
+            Align = Top
+            StyledSettings = [Family, FontColor]
+            Margins.Top = 16
+            Size.Width = 368
+            Size.Height = 28
+            Size.PlatformDefault = False
+            TextSettings.Font.Size = 16
+            TextSettings.Font.StyleExt = {00070000000000000004000000}
+            Text = 'TS4YBarChart'
+          end
+          object SalesBar: TS4YBarChart
+            Align = Top
+            Margins.Top = 4
+            Size.Width = 368
+            Size.Height = 260
+            Size.PlatformDefault = False
+            Legend.Position = clpTop
+            ShowValues = True
+            Series = <
+              item
+                Caption = '2026'
+              end
+              item
+                Caption = '2025'
+              end>
+            Categories = <
+              item
+                Caption = 'Jan'
+                Values = '42;30'
+              end
+              item
+                Caption = 'Feb'
+                Values = '55;41'
+              end
+              item
+                Caption = 'Mar'
+                Values = '48;52'
+              end
+              item
+                Caption = 'Apr'
+                Values = '70;49'
+              end>
+          end
+          object LineTitleLabel: TLabel
+            Align = Top
+            StyledSettings = [Family, FontColor]
+            Margins.Top = 16
+            Size.Width = 368
+            Size.Height = 28
+            Size.PlatformDefault = False
+            TextSettings.Font.Size = 16
+            TextSettings.Font.StyleExt = {00070000000000000004000000}
+            Text = 'TS4YLineChart'
+          end
+          object VisitsLine: TS4YLineChart
+            Align = Top
+            Margins.Top = 4
+            Size.Width = 368
+            Size.Height = 240
+            Size.PlatformDefault = False
+            Legend.Position = clpNone
+            FillArea = True
+            LineThickness = 3
+            Series = <
+              item
+                Caption = 'Visits'
+              end>
+            Categories = <
+              item
+                Caption = 'Mon'
+                Values = '120'
+              end
+              item
+                Caption = 'Tue'
+                Values = '180'
+              end
+              item
+                Caption = 'Wed'
+                Values = '150'
+              end
+              item
+                Caption = 'Thu'
+                Values = '210'
+              end
+              item
+                Caption = 'Fri'
+                Values = '190'
+              end
+              item
+                Caption = 'Sat'
+                Values = '110'
+              end
+              item
+                Caption = 'Sun'
+                Values = '90'
+              end>
+          end
+        end
+      end
+      object GridTab: TTabItem
+        IsSelected = False
+        Text = 'Grid'
+        object GridHintLabel: TLabel
+          Align = Top
+          AutoSize = True
+          Margins.Left = 16
+          Margins.Top = 8
+          Margins.Right = 16
+          Size.Width = 368
+          Size.Height = 32
+          Size.PlatformDefault = False
+          Text =
+            'Write in the row of the filters, or open the menu of a filter; t' +
+            'ap a header to sort.'
+        end
+        object CustomersGrid: TS4YGrid
+          Align = Client
+          CanFocus = True
+          ClipChildren = True
+          Margins.Left = 8
+          Margins.Top = 8
+          Margins.Right = 8
+          Margins.Bottom = 8
+          Size.Width = 384
+          Size.Height = 620
+          Size.PlatformDefault = False
+          TabOrder = 0
+          RowCount = 0
+          OnGetValue = CustomersGridGetValue
+          ColumnSettings = <
+            item
+              Column = NameColumn
+              FooterAlignment = Leading
+              FooterKind = gfkText
+              FooterText = 'Total'
+            end
+            item
+              Column = CityColumn
+            end
+            item
+              Column = OrdersColumn
+              FooterKind = gfkSum
+            end
+            item
+              Column = AmountColumn
+              FooterKind = gfkSum
+            end>
+          FilterRow.Visible = True
+          FooterRow.Visible = True
+          Sorting.Enabled = True
+          OnFilter = CustomersGridFilter
+          OnSort = CustomersGridSort
+          object NameColumn: TStringColumn
+            Header = 'Name'
+            Size.Width = 125
+          end
+          object CityColumn: TStringColumn
+            Header = 'City'
+            Size.Width = 90
+          end
+          object OrdersColumn: TIntegerColumn
+            Header = 'Orders'
+            Size.Width = 60
+          end
+          object AmountColumn: TCurrencyColumn
+            Header = 'Amount'
+            Size.Width = 90
+          end
+        end
+      end
+      object ColorsTab: TTabItem
+        IsSelected = False
+        Text = 'Colors'
+        object ColorsScrollBox: TVertScrollBox
+          Align = Client
+          Padding.Left = 16
+          Padding.Top = 8
+          Padding.Right = 16
+          Padding.Bottom = 16
+          Size.Width = 400
+          Size.Height = 684
+          Size.PlatformDefault = False
+          TabOrder = 0
+          object ColorsTitleLabel: TLabel
+            Align = Top
+            StyledSettings = [Family, FontColor]
+            Size.Width = 368
+            Size.Height = 28
+            Size.PlatformDefault = False
+            TextSettings.Font.Size = 16
+            TextSettings.Font.StyleExt = {00070000000000000004000000}
+            Text = 'TS4YColorSelector'
+          end
+          object ColorsLayout: TLayout
+            Align = Top
+            Margins.Top = 12
+            Size.Width = 368
+            Size.Height = 96
+            Size.PlatformDefault = False
+            TabOrder = 0
+            object DefaultColorSelector: TS4YColorSelector
+              Position.X = 8
+              Size.Width = 96
+              Size.Height = 96
+              Size.PlatformDefault = False
+            end
+            object WarmColorSelector: TS4YColorSelector
+              BackgroundColor = xFFFFE0B2
+              ForegroundColor = xFFE53935
+              Position.X = 136
+              Size.Width = 96
+              Size.Height = 96
+              Size.PlatformDefault = False
+            end
+            object CoolColorSelector: TS4YColorSelector
+              BackgroundColor = xFFB3E5FC
+              ForegroundColor = xFF1E88E5
+              Position.X = 264
+              Size.Width = 96
+              Size.Height = 96
+              Size.PlatformDefault = False
+            end
+          end
+        end
+      end
+    end
+  end
+  object StepsTimer: TTimer
+    Enabled = False
+    Interval = 1200
+    OnTimer = StepsTimerTimer
+    Left = 320
+    Top = 680
+  end
+  object TrackingTimer: TTimer
+    Enabled = False
+    Interval = 100
+    OnTimer = TrackingTimerTimer
+    Left = 320
+    Top = 680
+  end
+  object GaugesTimer: TTimer
+    Enabled = False
+    Interval = 1500
+    OnTimer = GaugesTimerTimer
+    Left = 320
+    Top = 680
+  end
+  object ChartsTimer: TTimer
+    Enabled = False
+    Interval = 2500
+    OnTimer = ChartsTimerTimer
+    Left = 320
+    Top = 680
+  end
+  object GalleryGestureManager: TGestureManager
+    Sensitivity = 80
+    Left = 320
+    Top = 680
+    GestureData = <
+      item
+        Control = Owner
+        Collection = <
+          item
+            GestureID = sgiLeft
+          end
+          item
+            GestureID = sgiRight
+          end>
+      end>
+  end
+end
