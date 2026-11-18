@@ -54,6 +54,7 @@ uses
   FMX.StdCtrls,
   FMX.Menus,
   FMX.Forms,
+  FMX.Text,
   System.NetEncoding,
   System.Net.HttpClient,
   System.Bindings.Helper,
@@ -461,8 +462,11 @@ type
   /// The content is a document of paragraphs and runs, built from HTML and exported back to HTML. The control draws it into an off-screen cache, so the cost of a repaint follows the size of the window and not the length of the document.
   /// Use it from the main thread only. Setting the content (HTML, FullHTML, LoadFromFile) clears the undo history and does not fire OnChange.
   /// See Docs/DeveloperGuide.md for how events behave and what to be careful about.
+  /// On Android and iOS the editor works with the virtual keyboard of the platform: a tap shows it, and the text it
+  /// writes, corrections and suggestions included, goes into the document.
   /// </remarks>
-  TS4YHTMLEditor = class(TStyledControl)
+  TS4YHTMLEditor = class(TStyledControl{$IF DEFINED(ANDROID) or DEFINED(IOS)}, ITextInput, IReadOnly,
+    IVirtualKeyboardControl{$ENDIF})
   private
     FDocument: TS4YHTMLDocument;
     FLayoutEngine: TS4YLayoutEngine;
@@ -519,6 +523,18 @@ type
     FImagePathMode: TS4YImagePathMode;
     FLocalImageAccess: TS4YLocalImageAccess;
     FReadOnly: Boolean;
+    FKeyboardType: TVirtualKeyboardType;
+    FReturnKeyType: TReturnKeyType;
+    // The text service of the platform, for the virtual keyboard: it holds the text of the paragraphs from
+    // FTextServiceFirstParagraph to FTextServiceLastParagraph, the one of the caret and the ones Enter has made from
+    // it, as plain text with a line break between them, where each image, line break and placeholder of a paragraph
+    // is a C_TEXT_SERVICE_OBJECT_CHAR.
+    FTextService: TTextService;
+    FTextServiceFirstParagraph: Integer;
+    FTextServiceLastParagraph: Integer;
+    FTextServiceParagraphCount: Integer;
+    FTextServiceText: string;
+    FApplyingTextInput: Boolean;
     FShowBorder: Boolean;
     FBackgroundColor: TAlphaColor;
     FFontColor: TAlphaColor;
@@ -696,6 +712,14 @@ type
     // Misc
     function EnsureValidDocument: Boolean;
 
+    // Text service of the platform (virtual keyboard)
+    procedure ApplyTextInput;
+    procedure ShowVirtualKeyboard;
+    procedure SyncTextService;
+    function TextServiceOffsetOf(const APosition: TS4YDocumentPosition): Integer;
+    function TextServicePositionOf(AOffset: Integer): TS4YDocumentPosition;
+    function TextServiceTextOf(AFirstParagraph, ALastParagraph: Integer): string;
+
   protected
     procedure DoChanged;
     procedure DoNotifyState;
@@ -739,6 +763,24 @@ type
     function GetTableTarget(out ATableID: Integer; out ACells: TArray<TS4YTableCellReference>): Boolean;
     procedure FinishTableStyleChange;
     function TableHasSpans(ATableID: Integer): Boolean;
+
+    // Virtual keyboard of Android and iOS: ITextInput, IReadOnly, IVirtualKeyboardControl
+    function GetTextService: TTextService;
+    function GetTargetClausePointF: TPointF;
+    procedure StartIMEInput;
+    procedure EndIMEInput;
+    procedure IMEStateUpdated;
+    function GetSelection: string;
+    function GetSelectionRect: TRectF;
+    function GetSelectionBounds: TRect;
+    function GetSelectionPointSize: TSizeF;
+    function HasText: Boolean;
+    function GetReadOnly: Boolean;
+    function GetKeyboardType: TVirtualKeyboardType;
+    function GetReturnKeyType: TReturnKeyType;
+    function IsPassword: Boolean;
+    procedure SetKeyboardType(Value: TVirtualKeyboardType);
+    procedure SetReturnKeyType(Value: TReturnKeyType);
 
     procedure Paint; override;
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Single); override;
@@ -1269,6 +1311,9 @@ type
     /// Changing it reloads the images.
     /// </remarks>
     property ImagePathMode: TS4YImagePathMode read FImagePathMode write SetImagePathMode default ipmApplication;
+    /// <summary>The virtual keyboard shown on Android and iOS: letters, numbers, e-mail address and the others.</summary>
+    property KeyboardType: TVirtualKeyboardType read FKeyboardType write FKeyboardType
+      default TVirtualKeyboardType.Default;
     /// <summary>Language of the document, written as the lang attribute of FullHTML.</summary>
     property Language: string read FLanguage write FLanguage;
     /// <summary>Line height multiplier: 1.0 is the natural height. Changing it lays the document out again.</summary>
@@ -1312,6 +1357,9 @@ type
     /// It does not block the methods called from code: InsertText, ToggleBold, Undo and the others still change the document.
     /// </remarks>
     property ReadOnly: Boolean read FReadOnly write SetReadOnly default False;
+    /// <summary>The key of the virtual keyboard of Android and iOS that ends a line: Enter, Go, Next, Done and the others.</summary>
+    /// <remarks>Whatever its label, the key starts a new paragraph.</remarks>
+    property ReturnKeyType: TReturnKeyType read FReturnKeyType write FReturnKeyType default TReturnKeyType.Default;
     /// <summary>Draw a one-pixel border around the control.</summary>
     property ShowBorder: Boolean read FShowBorder write FShowBorder default True;
     property Size;
@@ -1397,6 +1445,7 @@ implementation
 uses
   System.IOUtils,
   System.Generics.Defaults,
+  FMX.VirtualKeyboard,
   Soft4You.FMX.Controls.HTMLEditor.Strings;
 
 // -----------------------------------------------------------------------------
@@ -2654,6 +2703,8 @@ begin
   Cursor := crIBeam; // text-cursor pointer when hovering
   FDocument := TS4YHTMLDocument.Create;
   FLayoutEngine := TS4YLayoutEngine.Create;
+  FTextServiceFirstParagraph := -1;
+  FTextServiceLastParagraph := -1;
   FLineSpacing := C_EDITOR_LINE_SPACING;
   FParagraphSpacing := C_EDITOR_PARA_SPACING;
   FImageCache := TObjectDictionary<string, TBitmap>.Create([doOwnsValues]);
@@ -2729,6 +2780,7 @@ end;
 
 destructor TS4YHTMLEditor.Destroy;
 begin
+  FTextService.Free;
   FCaretTimer.Free;
   FRenderCache.Free;
   FLayoutEngine.Free;
@@ -5770,6 +5822,11 @@ begin
   FClickedLinkText := '';
   FDragging := False;
   Repaint;
+
+  // The platform shows the keyboard only when the hidden field of the text service is touched, from the second tap:
+  // the editor asks for it at the first one.
+  if (Button = TMouseButton.mbLeft) and not FReadOnly and IsFocused then
+    ShowVirtualKeyboard;
 end;
 
 procedure TS4YHTMLEditor.MouseWheel(Shift: TShiftState; WheelDelta: Integer; var Handled: Boolean);
@@ -10981,8 +11038,312 @@ begin
   Result := True;
 end;
 
+// -- Text service of the platform (virtual keyboard of Android and iOS) --------
+
+const
+  // An image, a line break or a placeholder in the text of the text service: the offsets of the text stay the ones
+  // of DocumentPositionToAbsChar, and the keyboard does not take them for letters of a word.
+  C_TEXT_SERVICE_OBJECT_CHAR = #$FFFC;
+
+procedure TS4YHTMLEditor.ApplyTextInput;
+var
+  LOldText: string;
+  LNewText: string;
+  LInsertedText: string;
+  LDeletedText: string;
+  LPrefixLength: Integer;
+  LSuffixLength: Integer;
+  LCaretOffset: Integer;
+begin
+  if (FTextService = nil) or FReadOnly or (FTextServiceFirstParagraph < 0) or
+    (FTextServiceLastParagraph >= FDocument.Paragraphs.Count) then
+    Exit;
+
+  // The keyboard gives the whole text after its change: a letter, a word chosen among the suggestions, a correction
+  // that rewrites the word before the caret, a line break for Enter. The part that changed is what is between the
+  // text that is the same at the start and the one that is the same at the end.
+  LOldText := FTextServiceText;
+  LNewText := FTextService.Text;
+  FApplyingTextInput := True;
+  try
+    if LNewText <> LOldText then
+    begin
+      LPrefixLength := 0;
+
+      while (LPrefixLength < LOldText.Length) and (LPrefixLength < LNewText.Length) and
+        (LOldText.Chars[LPrefixLength] = LNewText.Chars[LPrefixLength]) do
+        Inc(LPrefixLength);
+
+      LSuffixLength := 0;
+
+      while (LSuffixLength < LOldText.Length - LPrefixLength) and (LSuffixLength < LNewText.Length - LPrefixLength) and
+        (LOldText.Chars[LOldText.Length - 1 - LSuffixLength] = LNewText.Chars[LNewText.Length - 1 - LSuffixLength]) do
+        Inc(LSuffixLength);
+
+      LDeletedText := LOldText.Substring(LPrefixLength, LOldText.Length - LPrefixLength - LSuffixLength);
+      LInsertedText := LNewText.Substring(LPrefixLength, LNewText.Length - LPrefixLength - LSuffixLength);
+      LInsertedText := LInsertedText.Replace(C_TEXT_SERVICE_OBJECT_CHAR, '');
+      SaveUndo;
+      FCaretPosition := TextServicePositionOf(LPrefixLength);
+
+      // A line break deleted joins two paragraphs, one inserted starts a new paragraph: the paragraphs of the text
+      // service change with them, its text stays the one of the keyboard
+      if LDeletedText <> '' then
+      begin
+        FSelectionStart := FCaretPosition;
+        FSelectionEnd := TextServicePositionOf(LOldText.Length - LSuffixLength);
+        FHasSelection := True;
+        DeleteSelection;
+        Dec(FTextServiceLastParagraph, LDeletedText.CountChar(#10));
+      end
+      else
+        ResetSelection;
+
+      FInsertStyleSet := False;
+
+      if LInsertedText <> '' then
+      begin
+        InsertString(LInsertedText);
+        Inc(FTextServiceLastParagraph, LInsertedText.CountChar(#10));
+      end
+      else
+      begin
+        DoLayout;
+        DoChanged;
+      end;
+
+      FTextServiceParagraphCount := FDocument.Paragraphs.Count;
+      FTextServiceText := TextServiceTextOf(FTextServiceFirstParagraph, FTextServiceLastParagraph);
+    end;
+
+    // The caret where the keyboard put it
+    LCaretOffset := EnsureRange(FTextService.CaretPosition.X, 0, FTextServiceText.Length);
+    FCaretPosition := TextServicePositionOf(LCaretOffset);
+    ResetSelection;
+  finally
+    FApplyingTextInput := False;
+  end;
+
+  UpdateCaretXY;
+  EnsureCaretVisible;
+  InvalidateRender;
+  DoNotifyState;
+end;
+
+procedure TS4YHTMLEditor.EndIMEInput;
+begin
+  // Nothing to do: the text of the keyboard is applied by IMEStateUpdated, at each change.
+end;
+
+function TS4YHTMLEditor.GetKeyboardType: TVirtualKeyboardType;
+begin
+  Result := FKeyboardType;
+end;
+
+function TS4YHTMLEditor.GetReadOnly: Boolean;
+begin
+  Result := FReadOnly;
+end;
+
+function TS4YHTMLEditor.GetReturnKeyType: TReturnKeyType;
+begin
+  Result := FReturnKeyType;
+end;
+
+function TS4YHTMLEditor.GetSelection: string;
+begin
+  Result := GetSelectionText;
+end;
+
+function TS4YHTMLEditor.GetSelectionBounds: TRect;
+var
+  LStartPosition: TS4YDocumentPosition;
+  LEndPosition: TS4YDocumentPosition;
+  LCaretOffset: Integer;
+begin
+  // Offsets in the text of the text service, which holds only some paragraphs
+  if FHasSelection then
+  begin
+    GetSelectionRange(LStartPosition, LEndPosition);
+
+    if (LStartPosition.ParagraphIndex >= FTextServiceFirstParagraph) and
+      (LEndPosition.ParagraphIndex <= FTextServiceLastParagraph) then
+    begin
+      Result := TRect.Create(TextServiceOffsetOf(LStartPosition), 0, TextServiceOffsetOf(LEndPosition), 0);
+      Exit;
+    end;
+  end;
+
+  LCaretOffset := TextServiceOffsetOf(FCaretPosition);
+  Result := TRect.Create(LCaretOffset, 0, LCaretOffset, 0);
+end;
+
+function TS4YHTMLEditor.GetSelectionPointSize: TSizeF;
+begin
+  Result := TSizeF.Create(0, FCaretScreenH);
+end;
+
+function TS4YHTMLEditor.GetSelectionRect: TRectF;
+begin
+  Result := TRectF.Create(FCaretScreenX, FCaretScreenY, FCaretScreenX, FCaretScreenY + FCaretScreenH);
+end;
+
+function TS4YHTMLEditor.GetTargetClausePointF: TPointF;
+begin
+  Result := LocalToAbsolute(TPointF.Create(FCaretScreenX, FCaretScreenY + FCaretScreenH));
+end;
+
+function TS4YHTMLEditor.GetTextService: TTextService;
+var
+  LService: IFMXTextService;
+begin
+  if (FTextService = nil) and not (csDesigning in ComponentState) and
+    TPlatformServices.Current.SupportsPlatformService(IFMXTextService, LService) then
+  begin
+    FTextService := LService.GetTextServiceClass.Create(Self, True);
+    SyncTextService;
+  end;
+
+  Result := FTextService;
+end;
+
+function TS4YHTMLEditor.HasText: Boolean;
+begin
+  Result := FDocument.Paragraphs.Count > 0;
+end;
+
+procedure TS4YHTMLEditor.IMEStateUpdated;
+begin
+  ApplyTextInput;
+end;
+
+function TS4YHTMLEditor.IsPassword: Boolean;
+begin
+  Result := False;
+end;
+
+procedure TS4YHTMLEditor.SetKeyboardType(Value: TVirtualKeyboardType);
+begin
+  FKeyboardType := Value;
+end;
+
+procedure TS4YHTMLEditor.SetReturnKeyType(Value: TReturnKeyType);
+begin
+  FReturnKeyType := Value;
+end;
+
+procedure TS4YHTMLEditor.ShowVirtualKeyboard;
+{$IF DEFINED(ANDROID) or DEFINED(IOS)}
+var
+  LKeyboardService: IFMXVirtualKeyboardService;
+{$ENDIF}
+begin
+  {$IF DEFINED(ANDROID) or DEFINED(IOS)}
+  if TPlatformServices.Current.SupportsPlatformService(IFMXVirtualKeyboardService, LKeyboardService) then
+    LKeyboardService.ShowVirtualKeyboard(Self);
+  {$ENDIF}
+end;
+
+procedure TS4YHTMLEditor.StartIMEInput;
+begin
+  // Nothing to do: the text of the keyboard is applied by IMEStateUpdated, at each change.
+end;
+
+procedure TS4YHTMLEditor.SyncTextService;
+var
+  LParagraphIndex: Integer;
+begin
+  // While the text of the keyboard is applied, the text service already has the new text
+  if (FTextService = nil) or FApplyingTextInput then
+    Exit;
+
+  // The paragraphs of the text service stay the same while the caret is in them and the editor has not added or
+  // removed paragraphs; otherwise the text service gets the paragraph of the caret only
+  LParagraphIndex := FCaretPosition.ParagraphIndex;
+
+  if (LParagraphIndex < FTextServiceFirstParagraph) or (LParagraphIndex > FTextServiceLastParagraph) or
+    (FTextServiceParagraphCount <> FDocument.Paragraphs.Count) then
+  begin
+    FTextServiceFirstParagraph := LParagraphIndex;
+    FTextServiceLastParagraph := LParagraphIndex;
+    FTextServiceParagraphCount := FDocument.Paragraphs.Count;
+  end;
+
+  FTextServiceText := TextServiceTextOf(FTextServiceFirstParagraph, FTextServiceLastParagraph);
+  FTextService.Text := FTextServiceText;
+  FTextService.CaretPosition := TPoint.Create(TextServiceOffsetOf(FCaretPosition), 0);
+end;
+
+function TS4YHTMLEditor.TextServiceOffsetOf(const APosition: TS4YDocumentPosition): Integer;
+begin
+  // The paragraphs before the one of the position, each one followed by its line break
+  Result := 0;
+
+  if not APosition.IsValid or (APosition.ParagraphIndex < FTextServiceFirstParagraph) then
+    Exit;
+
+  for var LParagraphIndex := FTextServiceFirstParagraph to Min(APosition.ParagraphIndex, FTextServiceLastParagraph + 1) - 1 do
+    Inc(Result, TextServiceTextOf(LParagraphIndex, LParagraphIndex).Length + 1);
+
+  Inc(Result, DocumentPositionToAbsChar(APosition));
+end;
+
+function TS4YHTMLEditor.TextServicePositionOf(AOffset: Integer): TS4YDocumentPosition;
+var
+  LParagraphIndex: Integer;
+  LRemaining: Integer;
+  LLength: Integer;
+begin
+  // The paragraph where the offset falls, and the offset inside it; past the end, the end of the last paragraph
+  LParagraphIndex := FTextServiceFirstParagraph;
+  LRemaining := Max(0, AOffset);
+  LLength := TextServiceTextOf(LParagraphIndex, LParagraphIndex).Length;
+
+  while (LRemaining > LLength) and (LParagraphIndex < FTextServiceLastParagraph) do
+  begin
+    Dec(LRemaining, LLength + 1);
+    Inc(LParagraphIndex);
+    LLength := TextServiceTextOf(LParagraphIndex, LParagraphIndex).Length;
+  end;
+
+  Result := AbsCharToDocumentPosition(LParagraphIndex, Min(LRemaining, LLength));
+end;
+
+function TS4YHTMLEditor.TextServiceTextOf(AFirstParagraph, ALastParagraph: Integer): string;
+var
+  LBuilder: TStringBuilder;
+begin
+  Result := '';
+
+  if (AFirstParagraph < 0) or (ALastParagraph >= FDocument.Paragraphs.Count) then
+    Exit;
+
+  LBuilder := TStringBuilder.Create;
+  try
+    for var LParagraphIndex := AFirstParagraph to ALastParagraph do
+    begin
+      if LParagraphIndex > AFirstParagraph then
+        LBuilder.Append(#10);
+
+      for var LRun in FDocument.Paragraphs[LParagraphIndex].Runs do
+      begin
+        if LRun.IsImage or LRun.IsLineBreak or LRun.IsPlaceholder then
+          LBuilder.Append(C_TEXT_SERVICE_OBJECT_CHAR, LRun.Text.Length)
+        else
+          LBuilder.Append(LRun.Text);
+      end;
+    end;
+
+    Result := LBuilder.ToString;
+  finally
+    LBuilder.Free;
+  end;
+end;
+
 procedure TS4YHTMLEditor.DoChanged;
 begin
+  SyncTextService;
+
   if Assigned(FOnChange) then
     FOnChange(Self);
 
@@ -10991,6 +11352,8 @@ end;
 
 procedure TS4YHTMLEditor.DoNotifyState;
 begin
+  SyncTextService;
+
   if Assigned(FOnStateChange) then
     FOnStateChange(Self, GetState);
 end;
