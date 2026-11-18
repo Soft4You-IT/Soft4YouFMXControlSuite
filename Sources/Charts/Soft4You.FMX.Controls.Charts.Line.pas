@@ -207,24 +207,47 @@ procedure TS4YLineChart.DrawArea(const ASeriesIndex: Integer);
 var
   LBaseline: Single;
   LPath: TPathData;
-  LFirst: TPointF;
-  LLast: TPointF;
+  LStart: TPointF;
+  LEnd: TPointF;
+  LCrossing: Single;
 begin
   if DrawnCategoryCount < 2 then
     Exit;
 
+  // The area is made of a convex piece for each segment of the line, side by side in the same path: the GPU canvas
+  // of Android and iOS fills each figure as a fan of triangles from its first point, right only for the convex
+  // figures, and the area under a line that goes up and down is not convex.
   LBaseline := ValueToPosition(0);
-  LFirst := CategoryPoint(0, ASeriesIndex);
-  LLast := CategoryPoint(DrawnCategoryCount - 1, ASeriesIndex);
   LPath := TPathData.Create;
   try
-    LPath.MoveTo(TPointF.Create(LFirst.X, LBaseline));
+    for var LCategory := 0 to DrawnCategoryCount - 2 do
+    begin
+      LStart := CategoryPoint(LCategory, ASeriesIndex);
+      LEnd := CategoryPoint(LCategory + 1, ASeriesIndex);
 
-    for var LCategory := 0 to DrawnCategoryCount - 1 do
-      LPath.LineTo(CategoryPoint(LCategory, ASeriesIndex));
+      // A segment that crosses 0 makes two triangles, which meet where the line crosses the baseline.
+      if (LStart.Y - LBaseline) * (LEnd.Y - LBaseline) < 0 then
+      begin
+        LCrossing := LStart.X + (LEnd.X - LStart.X) * (LBaseline - LStart.Y) / (LEnd.Y - LStart.Y);
+        LPath.MoveTo(TPointF.Create(LStart.X, LBaseline));
+        LPath.LineTo(LStart);
+        LPath.LineTo(TPointF.Create(LCrossing, LBaseline));
+        LPath.ClosePath;
+        LPath.MoveTo(TPointF.Create(LCrossing, LBaseline));
+        LPath.LineTo(LEnd);
+        LPath.LineTo(TPointF.Create(LEnd.X, LBaseline));
+        LPath.ClosePath;
+      end
+      else
+      begin
+        LPath.MoveTo(TPointF.Create(LStart.X, LBaseline));
+        LPath.LineTo(LStart);
+        LPath.LineTo(LEnd);
+        LPath.LineTo(TPointF.Create(LEnd.X, LBaseline));
+        LPath.ClosePath;
+      end;
+    end;
 
-    LPath.LineTo(TPointF.Create(LLast.X, LBaseline));
-    LPath.ClosePath;
     Canvas.Fill.Kind := TBrushKind.Solid;
     Canvas.Fill.Color := GetSeriesColor(ASeriesIndex);
     Canvas.FillPath(LPath, AbsoluteOpacity * FAreaOpacity);
