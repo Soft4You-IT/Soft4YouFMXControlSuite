@@ -15,6 +15,9 @@
         <Projects Include="Badge\S4YBadgeDemo.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="Avatar\S4YAvatarDemo.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="BlockScrollBox\S4YBlockScrollBoxDemo.dproj">
             <Dependencies/>
         </Projects>
@@ -85,6 +88,15 @@
     </Target>
     <Target Name="S4YBadgeDemo:Make">
         <MSBuild Projects="Badge\S4YBadgeDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="S4YAvatarDemo">
+        <MSBuild Projects="Avatar\S4YAvatarDemo.dproj"/>
+    </Target>
+    <Target Name="S4YAvatarDemo:Clean">
+        <MSBuild Projects="Avatar\S4YAvatarDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="S4YAvatarDemo:Make">
+        <MSBuild Projects="Avatar\S4YAvatarDemo.dproj" Targets="Make"/>
     </Target>
     <Target Name="S4YBlockScrollBoxDemo">
         <MSBuild Projects="BlockScrollBox\S4YBlockScrollBoxDemo.dproj"/>
@@ -168,13 +180,13 @@
         <MSBuild Projects="Mobile\S4YMobileGallery.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="S4YHTMLEditorDemo;S4YFlexBoxDemo;S4YExpanderDemo;S4YBadgeDemo;S4YBlockScrollBoxDemo;S4YStepProgressBarDemo;S4YStepProgressBarGallery;S4YGaugesDemo;S4YGaugesGallery;S4YChartsDemo;S4YChartsGallery;S4YGridDemo;S4YMobileGallery"/>
+        <CallTarget Targets="S4YHTMLEditorDemo;S4YFlexBoxDemo;S4YExpanderDemo;S4YBadgeDemo;S4YAvatarDemo;S4YBlockScrollBoxDemo;S4YStepProgressBarDemo;S4YStepProgressBarGallery;S4YGaugesDemo;S4YGaugesGallery;S4YChartsDemo;S4YChartsGallery;S4YGridDemo;S4YMobileGallery"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="S4YHTMLEditorDemo:Clean;S4YFlexBoxDemo:Clean;S4YExpanderDemo:Clean;S4YBadgeDemo:Clean;S4YBlockScrollBoxDemo:Clean;S4YStepProgressBarDemo:Clean;S4YStepProgressBarGallery:Clean;S4YGaugesDemo:Clean;S4YGaugesGallery:Clean;S4YChartsDemo:Clean;S4YChartsGallery:Clean;S4YGridDemo:Clean;S4YMobileGallery:Clean"/>
+        <CallTarget Targets="S4YHTMLEditorDemo:Clean;S4YFlexBoxDemo:Clean;S4YExpanderDemo:Clean;S4YBadgeDemo:Clean;S4YAvatarDemo:Clean;S4YBlockScrollBoxDemo:Clean;S4YStepProgressBarDemo:Clean;S4YStepProgressBarGallery:Clean;S4YGaugesDemo:Clean;S4YGaugesGallery:Clean;S4YChartsDemo:Clean;S4YChartsGallery:Clean;S4YGridDemo:Clean;S4YMobileGallery:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="S4YHTMLEditorDemo:Make;S4YFlexBoxDemo:Make;S4YExpanderDemo:Make;S4YBadgeDemo:Make;S4YBlockScrollBoxDemo:Make;S4YStepProgressBarDemo:Make;S4YStepProgressBarGallery:Make;S4YGaugesDemo:Make;S4YGaugesGallery:Make;S4YChartsDemo:Make;S4YChartsGallery:Make;S4YGridDemo:Make;S4YMobileGallery:Make"/>
+        <CallTarget Targets="S4YHTMLEditorDemo:Make;S4YFlexBoxDemo:Make;S4YExpanderDemo:Make;S4YBadgeDemo:Make;S4YAvatarDemo:Make;S4YBlockScrollBoxDemo:Make;S4YStepProgressBarDemo:Make;S4YStepProgressBarGallery:Make;S4YGaugesDemo:Make;S4YGaugesGallery:Make;S4YChartsDemo:Make;S4YChartsGallery:Make;S4YGridDemo:Make;S4YMobileGallery:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

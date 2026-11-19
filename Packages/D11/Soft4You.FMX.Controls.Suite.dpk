@@ -84,6 +84,8 @@ contains
   Soft4You.FMX.Controls.Grid.Filters in '..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.Filters.pas',
   Soft4You.FMX.Controls.Grid in '..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.pas',
   Soft4You.FMX.Controls.Grid.FilterEditors in '..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.FilterEditors.pas',
-  Soft4You.FMX.Controls.Grid.Style in '..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.Style.pas';
+  Soft4You.FMX.Controls.Grid.Style in '..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.Style.pas',
+  Soft4You.FMX.Controls.Avatar.Types in '..\..\Sources\Avatar\Soft4You.FMX.Controls.Avatar.Types.pas',
+  Soft4You.FMX.Controls.Avatar in '..\..\Sources\Avatar\Soft4You.FMX.Controls.Avatar.pas';
 
 end.

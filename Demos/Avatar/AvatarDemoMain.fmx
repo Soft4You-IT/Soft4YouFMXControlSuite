@@ -1,0 +1,482 @@
+object AvatarDemoForm: TAvatarDemoForm
+  Left = 0
+  Top = 0
+  Caption = 'TS4YAvatar demo'
+  Position = ScreenCenter
+  ClientHeight = 560
+  ClientWidth = 820
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object DemoLayout: TLayout
+    Align = Client
+    Size.Width = 540.000000000000000000
+    Size.Height = 560.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object ProfileAvatar: TS4YAvatar
+      EditButton.Visibility = ebvOnHover
+      Ring.Visible = True
+      Status = avtOnline
+      Text = 'Mario Rossi'
+      OnEditClick = ProfileAvatarEditClick
+      Position.X = 32.000000000000000000
+      Position.Y = 32.000000000000000000
+      Size.Width = 96.000000000000000000
+      Size.Height = 96.000000000000000000
+      Size.PlatformDefault = False
+      object ProfileBadge: TS4YBadge
+        AutoPosition.AutoPosition = bdgpUpRight
+        AutoPosition.OffsetX = bdpoInner
+        AutoPosition.OffsetY = bdpoInner
+        CurrentValue = 3
+        Position.X = 76.000000000000000000
+        Size.Width = 20.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+      end
+    end
+    object ProfileNameLabel: TLabel
+    Position.X = 152.000000000000000000
+    Position.Y = 50.000000000000000000
+    Size.Width = 360.000000000000000000
+    Size.Height = 28.000000000000000000
+    Size.PlatformDefault = False
+    StyledSettings = [Family, FontColor]
+    TextSettings.Font.Size = 20.000000000000000000
+    TextSettings.Font.Style = [fsBold]
+    Text = 'Mario Rossi'
+    TabOrder = 1
+    end
+    object ProfileHintLabel: TLabel
+    Position.X = 152.000000000000000000
+    Position.Y = 82.000000000000000000
+    Size.Width = 360.000000000000000000
+    Size.Height = 40.000000000000000000
+    Size.PlatformDefault = False
+    TextSettings.WordWrap = True
+    Text = 'Move the mouse over the avatar and click the camera to choose a photo.'
+    TabOrder = 2
+    end
+    object ContactsLabel: TLabel
+    Position.X = 32.000000000000000000
+    Position.Y = 160.000000000000000000
+    Size.Width = 300.000000000000000000
+    Size.Height = 20.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Contacts: initials, colors chosen from the names, states'
+    TabOrder = 3
+    end
+    object ContactsLayout: TFlowLayout
+    Position.X = 32.000000000000000000
+    Position.Y = 184.000000000000000000
+    Size.Width = 480.000000000000000000
+    Size.Height = 48.000000000000000000
+    Size.PlatformDefault = False
+    HorizontalGap = 12.000000000000000000
+    TabOrder = 4
+      object AnnaAvatar: TS4YAvatar
+        SizePreset = avzMedium
+        Status = avtOnline
+        Text = 'Anna Verdi'
+        Size.Width = 40.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+      end
+      object LucaAvatar: TS4YAvatar
+        SizePreset = avzMedium
+        Status = avtAway
+        Text = 'Luca Bianchi'
+        Position.X = 52.000000000000000000
+        Size.Width = 40.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+      end
+      object GiuliaAvatar: TS4YAvatar
+        SizePreset = avzMedium
+        Status = avtBusy
+        Text = 'Giulia Neri'
+        Position.X = 104.000000000000000000
+        Size.Width = 40.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+      end
+      object PaoloAvatar: TS4YAvatar
+        SizePreset = avzMedium
+        Status = avtOffline
+        Text = 'Paolo Russo'
+        Position.X = 156.000000000000000000
+        Size.Width = 40.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+      end
+      object SaraAvatar: TS4YAvatar
+        SizePreset = avzMedium
+        Text = 'Sara'
+        Position.X = 208.000000000000000000
+        Size.Width = 40.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+      end
+      object UnknownAvatar: TS4YAvatar
+        SizePreset = avzMedium
+        Position.X = 260.000000000000000000
+        Size.Width = 40.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+      end
+    end
+    object SizesLabel: TLabel
+    Position.X = 32.000000000000000000
+    Position.Y = 256.000000000000000000
+    Size.Width = 300.000000000000000000
+    Size.Height = 20.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'SizePreset: small, medium, large, extra large'
+    TabOrder = 5
+    end
+    object SizesLayout: TFlowLayout
+    Position.X = 32.000000000000000000
+    Position.Y = 280.000000000000000000
+    Size.Width = 480.000000000000000000
+    Size.Height = 84.000000000000000000
+    Size.PlatformDefault = False
+    HorizontalGap = 16.000000000000000000
+    TabOrder = 6
+      object SmallAvatar: TS4YAvatar
+        SizePreset = avzSmall
+        Status = avtOnline
+        Text = 'Elena Galli'
+        Size.Width = 32.000000000000000000
+        Size.Height = 32.000000000000000000
+        Size.PlatformDefault = False
+      end
+      object MediumAvatar: TS4YAvatar
+        Shape = avsRounded
+        SizePreset = avzMedium
+        Status = avtOnline
+        Text = 'Elena Galli'
+        Position.X = 48.000000000000000000
+        Size.Width = 40.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+      end
+      object LargeAvatar: TS4YAvatar
+        Shape = avsSquare
+        SizePreset = avzLarge
+        Status = avtOnline
+        Text = 'Elena Galli'
+        Position.X = 104.000000000000000000
+        Size.Width = 56.000000000000000000
+        Size.Height = 56.000000000000000000
+        Size.PlatformDefault = False
+      end
+      object ExtraLargeAvatar: TS4YAvatar
+        SizePreset = avzExtraLarge
+        Status = avtOnline
+        Text = 'Elena Galli'
+        Position.X = 176.000000000000000000
+        Size.Width = 80.000000000000000000
+        Size.Height = 80.000000000000000000
+        Size.PlatformDefault = False
+      end
+    end
+    object HintLabel: TLabel
+    Align = Bottom
+    Margins.Left = 16.000000000000000000
+    Margins.Right = 16.000000000000000000
+    Margins.Bottom = 16.000000000000000000
+    Position.X = 16.000000000000000000
+    Position.Y = 464.000000000000000000
+    Size.Width = 508.000000000000000000
+    Size.Height = 80.000000000000000000
+    Size.PlatformDefault = False
+    TextSettings.WordWrap = True
+    Text =
+      'The avatar shows the photo of Bitmap, or the image of Images, or the initials of Text on a ' +
+      'color chosen from the text; without both, the outline of a person. The badge with the ' +
+      'notifications is a TS4YBadge placed on the avatar.'
+    TabOrder = 7
+    end
+  end
+  object SettingsPanel: TPanel
+    Align = Right
+    Position.X = 540.000000000000000000
+    Size.Width = 280.000000000000000000
+    Size.Height = 560.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object TextLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 12.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Text (the name of the person)'
+      TabOrder = 0
+    end
+    object TextEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Top
+      TabOrder = 1
+      Text = 'Mario Rossi'
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 40.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      OnChangeTracking = TextEditChangeTracking
+    end
+    object InitialsLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 76.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Initials (empty: taken from Text)'
+      TabOrder = 2
+    end
+    object InitialsEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Top
+      TabOrder = 3
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 104.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      OnChangeTracking = InitialsEditChangeTracking
+    end
+    object ShapeLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 140.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Shape'
+      TabOrder = 4
+    end
+    object ShapeComboBox: TComboBox
+      Align = Top
+      Items.Strings = (
+        'Circle'
+        'Rounded'
+        'Square')
+      ItemIndex = 0
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 168.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 5
+      OnChange = ShapeComboBoxChange
+    end
+    object StatusLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 204.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Status'
+      TabOrder = 6
+    end
+    object StatusComboBox: TComboBox
+      Align = Top
+      Items.Strings = (
+        'None'
+        'Online'
+        'Away'
+        'Busy'
+        'Offline')
+      ItemIndex = 1
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 232.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 7
+      OnChange = StatusComboBoxChange
+    end
+    object StatusPositionLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 268.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'StatusPosition'
+      TabOrder = 8
+    end
+    object StatusPositionComboBox: TComboBox
+      Align = Top
+      Items.Strings = (
+        'Top left'
+        'Top right'
+        'Bottom left'
+        'Bottom right')
+      ItemIndex = 3
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 296.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 9
+      OnChange = StatusPositionComboBoxChange
+    end
+    object EditButtonLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 332.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'EditButton.Visibility'
+      TabOrder = 10
+    end
+    object EditButtonComboBox: TComboBox
+      Align = Top
+      Items.Strings = (
+        'Never'
+        'Always'
+        'On hover')
+      ItemIndex = 2
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 360.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 11
+      OnChange = EditButtonComboBoxChange
+    end
+    object EditPositionLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 396.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'EditButton.Position'
+      TabOrder = 12
+    end
+    object EditPositionComboBox: TComboBox
+      Align = Top
+      Items.Strings = (
+        'Top left'
+        'Top right'
+        'Bottom left'
+        'Bottom right')
+      ItemIndex = 3
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 424.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 13
+      OnChange = EditPositionComboBoxChange
+    end
+    object RingCheckBox: TCheckBox
+      Align = Top
+      IsChecked = True
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 460.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 14
+      Text = 'Ring.Visible'
+      OnChange = RingCheckBoxChange
+    end
+    object NotificationsLabel: TLabel
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 488.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Notifications (TS4YBadge, 0 hides it)'
+      TabOrder = 15
+    end
+    object NotificationsSpinBox: TSpinBox
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Top
+      TabOrder = 16
+      Cursor = crIBeam
+      Max = 120.000000000000000000
+      Value = 3.000000000000000000
+      Margins.Left = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 516.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      OnChange = NotificationsSpinBoxChange
+    end
+    object RemovePhotoButton: TButton
+      Align = Top
+      Margins.Left = 12.000000000000000000
+      Margins.Top = 12.000000000000000000
+      Margins.Right = 12.000000000000000000
+      Position.X = 12.000000000000000000
+      Position.Y = 552.000000000000000000
+      Size.Width = 256.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 17
+      Text = 'Remove the photo'
+      OnClick = RemovePhotoButtonClick
+    end
+  end
+  object PhotoOpenDialog: TOpenDialog
+    Filter = 'Images (*.jpg;*.jpeg;*.png;*.bmp)|*.jpg;*.jpeg;*.png;*.bmp'
+    Title = 'Choose a photo'
+    Left = 64
+    Top = 432
+  end
+end

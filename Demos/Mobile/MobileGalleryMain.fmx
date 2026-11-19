@@ -41,7 +41,7 @@ object MobileGalleryForm: TMobileGalleryForm
         TextSettings.Font.Size = 20
         TextSettings.Font.StyleExt = {00070000000000000004000000}
         TextSettings.HorzAlign = Center
-        Text = 'Editor  1 / 8'
+        Text = 'Editor  1 / 9'
       end
       object SwipeHintLabel: TLabel
         Align = Top
@@ -555,6 +555,132 @@ object MobileGalleryForm: TMobileGalleryForm
               Size.PlatformDefault = False
               Text = 'Starts collapsed: tap the header to open it.'
               TabOrder = 0
+            end
+          end
+        end
+      end
+      object AvatarTab: TTabItem
+        IsSelected = False
+        Text = 'Avatar'
+        object AvatarScrollBox: TVertScrollBox
+          Align = Client
+          Padding.Left = 16
+          Padding.Top = 8
+          Padding.Right = 16
+          Padding.Bottom = 16
+          Size.Width = 400
+          Size.Height = 684
+          Size.PlatformDefault = False
+          TabOrder = 0
+          object AvatarTitleLabel: TLabel
+            Align = Top
+            StyledSettings = [Family, FontColor]
+            Size.Width = 368
+            Size.Height = 28
+            Size.PlatformDefault = False
+            TextSettings.Font.Size = 16
+            TextSettings.Font.StyleExt = {00070000000000000004000000}
+            Text = 'TS4YAvatar'
+          end
+          object ProfileLayout: TLayout
+            Align = Top
+            Margins.Top = 8
+            Size.Width = 368
+            Size.Height = 112
+            Size.PlatformDefault = False
+            TabOrder = 0
+            object ProfileAvatar: TS4YAvatar
+              EditAction = TakePhotoFromLibraryAction
+              EditButton.Visibility = ebvAlways
+              Ring.Visible = True
+              Status = avtOnline
+              Text = 'Mario Rossi'
+              Position.X = 8
+              Position.Y = 8
+              Size.Width = 96
+              Size.Height = 96
+              Size.PlatformDefault = False
+              object ProfileBadge: TS4YBadge
+                AutoPosition.AutoPosition = bdgpUpRight
+                AutoPosition.OffsetX = bdpoInner
+                AutoPosition.OffsetY = bdpoInner
+                CurrentValue = 3
+                Position.X = 76
+                Size.Width = 20
+                Size.Height = 20
+                Size.PlatformDefault = False
+              end
+            end
+            object ProfileHintLabel: TLabel
+              Position.X = 124
+              Position.Y = 24
+              Size.Width = 236
+              Size.Height = 64
+              Size.PlatformDefault = False
+              TextSettings.WordWrap = True
+              Text = 'Tap the camera to choose a photo from the gallery of the phone.'
+              TabOrder = 1
+            end
+          end
+          object ContactsTitleLabel: TLabel
+            Align = Top
+            Margins.Top = 12
+            Size.Width = 368
+            Size.Height = 20
+            Size.PlatformDefault = False
+            Text = 'Contacts: initials and states'
+            TabOrder = 1
+          end
+          object ContactsLayout: TFlowLayout
+            Align = Top
+            Margins.Top = 8
+            Size.Width = 368
+            Size.Height = 48
+            Size.PlatformDefault = False
+            TabOrder = 2
+            HorizontalGap = 12
+            object AnnaAvatar: TS4YAvatar
+              SizePreset = avzMedium
+              Status = avtOnline
+              Text = 'Anna Verdi'
+              Size.Width = 40
+              Size.Height = 40
+              Size.PlatformDefault = False
+            end
+            object LucaAvatar: TS4YAvatar
+              SizePreset = avzMedium
+              Status = avtAway
+              Text = 'Luca Bianchi'
+              Position.X = 52
+              Size.Width = 40
+              Size.Height = 40
+              Size.PlatformDefault = False
+            end
+            object GiuliaAvatar: TS4YAvatar
+              Shape = avsRounded
+              SizePreset = avzMedium
+              Status = avtBusy
+              Text = 'Giulia Neri'
+              Position.X = 104
+              Size.Width = 40
+              Size.Height = 40
+              Size.PlatformDefault = False
+            end
+            object PaoloAvatar: TS4YAvatar
+              SizePreset = avzMedium
+              Status = avtOffline
+              Text = 'Paolo Russo'
+              Position.X = 156
+              Size.Width = 40
+              Size.Height = 40
+              Size.PlatformDefault = False
+            end
+            object UnknownAvatar: TS4YAvatar
+              SizePreset = avzMedium
+              Position.X = 208
+              Size.Width = 40
+              Size.Height = 40
+              Size.PlatformDefault = False
             end
           end
         end
@@ -1115,6 +1241,13 @@ object MobileGalleryForm: TMobileGalleryForm
     OnTimer = ChartsTimerTimer
     Left = 320
     Top = 680
+  end
+  object GalleryActionList: TActionList
+    Left = 320
+    Top = 680
+    object TakePhotoFromLibraryAction: TTakePhotoFromLibraryAction
+      Category = 'Media Library'
+    end
   end
   object GalleryGestureManager: TGestureManager
     Sensitivity = 80
