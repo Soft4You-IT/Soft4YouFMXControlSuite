@@ -1425,6 +1425,8 @@ type
     /// <summary>Draw a one-pixel border around the control.</summary>
     property ShowBorder: Boolean read FShowBorder write FShowBorder default True;
     property Size;
+    property TabOrder;
+    property TabStop;
     /// <summary>Title of the document, written as the title element of FullHTML.</summary>
     property Title: string read FTitle write FTitle;
     property Visible;
