@@ -243,6 +243,8 @@
         <DCCReference Include="..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.pas"/>
         <DCCReference Include="..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.FilterEditors.pas"/>
         <DCCReference Include="..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.Style.pas"/>
+        <DCCReference Include="..\..\Sources\Avatar\Soft4You.FMX.Controls.Avatar.Types.pas"/>
+        <DCCReference Include="..\..\Sources\Avatar\Soft4You.FMX.Controls.Avatar.pas"/>
         <RcCompile Include="..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.Mac.rc">
             <Form>Soft4You.FMX.Controls.Badge.Mac.res</Form>
         </RcCompile>
@@ -386,6 +388,18 @@
         </RcCompile>
         <RcCompile Include="..\..\Sources\Charts\Soft4You.FMX.Controls.Charts.Line.iOS.rc">
             <Form>Soft4You.FMX.Controls.Charts.Line.iOS.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Avatar\Soft4You.FMX.Controls.Avatar.Mac.rc">
+            <Form>Soft4You.FMX.Controls.Avatar.Mac.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Avatar\Soft4You.FMX.Controls.Avatar.Win.rc">
+            <Form>Soft4You.FMX.Controls.Avatar.Win.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Avatar\Soft4You.FMX.Controls.Avatar.Android.rc">
+            <Form>Soft4You.FMX.Controls.Avatar.Android.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Avatar\Soft4You.FMX.Controls.Avatar.iOS.rc">
+            <Form>Soft4You.FMX.Controls.Avatar.iOS.res</Form>
         </RcCompile>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

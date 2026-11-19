@@ -1,0 +1,134 @@
+object TLayout
+  StyleName = 'S4YAvatarStyle'
+  Align = Contents
+  HitTest = False
+  Size.Width = 56.000000000000000000
+  Size.Height = 56.000000000000000000
+  Size.PlatformDefault = False
+  object TRectangle
+    StyleName = 'background'
+    Size.Width = 56.000000000000000000
+    Size.Height = 56.000000000000000000
+    Size.PlatformDefault = False
+    Fill.Color = xFFBDBDBD
+    HitTest = False
+    Stroke.Kind = None
+    XRadius = 28.000000000000000000
+    YRadius = 28.000000000000000000
+  end
+  object TRectangle
+    StyleName = 'image'
+    Size.Width = 56.000000000000000000
+    Size.Height = 56.000000000000000000
+    Size.PlatformDefault = False
+    Fill.Kind = None
+    HitTest = False
+    Stroke.Kind = None
+    XRadius = 28.000000000000000000
+    YRadius = 28.000000000000000000
+  end
+  object TText
+    StyleName = 'text'
+    Size.Width = 56.000000000000000000
+    Size.Height = 56.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'AB'
+    HitTest = False
+    TextSettings.Font.Size = 22.000000000000000000
+    TextSettings.Font.Style = [fsBold]
+    TextSettings.FontColor = xFFFFFFFF
+    TextSettings.WordWrap = False
+    TextSettings.Trimming = None
+  end
+  object TPath
+    StyleName = 'placeholder'
+    Position.X = 11.000000000000000000
+    Position.Y = 11.000000000000000000
+    Size.Width = 34.000000000000000000
+    Size.Height = 34.000000000000000000
+    Size.PlatformDefault = False
+    Data.Data = 'M12 12 C14.21 12 16 10.21 16 8 C16 5.79 14.21 4 12 4 C9.79 4 8 5.79 8 8 C8 10.21 9.79 12 12 12 Z M12 14 C9.33 14 4 15.34 4 18 L4 20 L20 20 L20 18 C20 15.34 14.67 14 12 14 Z'
+    Fill.Color = xFFFFFFFF
+    HitTest = False
+    Stroke.Kind = None
+    WrapMode = Fit
+  end
+  object TRectangle
+    StyleName = 'ring'
+    Size.Width = 56.000000000000000000
+    Size.Height = 56.000000000000000000
+    Size.PlatformDefault = False
+    Fill.Kind = None
+    HitTest = False
+    Stroke.Color = xFF1E88E5
+    Stroke.Thickness = 2.000000000000000000
+    XRadius = 28.000000000000000000
+    YRadius = 28.000000000000000000
+  end
+  object TCircle
+    StyleName = 'status'
+    Position.X = 40.000000000000000000
+    Position.Y = 40.000000000000000000
+    Size.Width = 14.000000000000000000
+    Size.Height = 14.000000000000000000
+    Size.PlatformDefault = False
+    Fill.Color = xFF43A047
+    HitTest = False
+    Stroke.Color = xFFFFFFFF
+    Stroke.Thickness = 2.000000000000000000
+  end
+  object TCircle
+    StyleName = 'editbutton'
+    Position.X = 37.000000000000000000
+    Position.Y = 37.000000000000000000
+    Size.Width = 19.000000000000000000
+    Size.Height = 19.000000000000000000
+    Size.PlatformDefault = False
+    Fill.Color = xFF424242
+    Stroke.Color = xFFFFFFFF
+    Stroke.Thickness = 1.500000000000000000
+    object TPath
+      StyleName = 'editicon'
+      Position.X = 4.000000000000000000
+      Position.Y = 4.000000000000000000
+      Size.Width = 11.000000000000000000
+      Size.Height = 11.000000000000000000
+      Size.PlatformDefault = False
+      Data.Data = 'M9 2 L7.17 4 L4 4 C2.9 4 2 4.9 2 6 L2 18 C2 19.1 2.9 20 4 20 L20 20 C21.1 20 22 19.1 22 18 L22 6 C22 4.9 21.1 4 20 4 L16.83 4 L15 2 Z M12 17 C9.24 17 7 14.76 7 12 C7 9.24 9.24 7 12 7 C14.76 7 17 9.24 17 12 C17 14.76 14.76 17 12 17 Z M12 15.2 C13.77 15.2 15.2 13.77 15.2 12 C15.2 10.23 13.77 8.8 12 8.8 C10.23 8.8 8.8 10.23 8.8 12 C8.8 13.77 10.23 15.2 12 15.2 Z'
+      Fill.Color = xFFFFFFFF
+      HitTest = False
+      Stroke.Kind = None
+      WrapMode = Fit
+    end
+    object TGlyph
+      StyleName = 'editglyph'
+      Position.X = 4.000000000000000000
+      Position.Y = 4.000000000000000000
+      Size.Width = 11.000000000000000000
+      Size.Height = 11.000000000000000000
+      Size.PlatformDefault = False
+      Visible = False
+      AutoHide = False
+    end
+  end
+  object TColorObject
+    StyleName = 'onlinecolor'
+    Color = xFF43A047
+  end
+  object TColorObject
+    StyleName = 'awaycolor'
+    Color = xFFFFB300
+  end
+  object TColorObject
+    StyleName = 'busycolor'
+    Color = xFFE53935
+  end
+  object TColorObject
+    StyleName = 'offlinecolor'
+    Color = xFF9E9E9E
+  end
+  object TColorObject
+    StyleName = 'ringcolor'
+    Color = xFF1E88E5
+  end
+end
