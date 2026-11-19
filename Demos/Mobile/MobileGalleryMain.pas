@@ -24,10 +24,13 @@ uses
   FMX.Grid,
   FMX.Grid.Style,
   FMX.ScrollBox,
+  FMX.ActnList,
+  FMX.MediaLibrary.Actions,
   Soft4You.FMX.Controls.HTMLEditor,
   Soft4You.FMX.Controls.FlexBox,
   Soft4You.FMX.Controls.BlockScrollBox,
   Soft4You.FMX.Controls.Badge,
+  Soft4You.FMX.Controls.Avatar,
   Soft4You.FMX.Controls.Expander,
   Soft4You.FMX.Controls.StepProgressBar,
   Soft4You.FMX.Controls.Gauges,
@@ -124,6 +127,20 @@ type
     DeliveryLabel: TLabel;
     HistoryExpander: TS4YExpander;
     HistoryLabel: TLabel;
+    AvatarTab: TTabItem;
+    AvatarScrollBox: TVertScrollBox;
+    AvatarTitleLabel: TLabel;
+    ProfileLayout: TLayout;
+    ProfileAvatar: TS4YAvatar;
+    ProfileBadge: TS4YBadge;
+    ProfileHintLabel: TLabel;
+    ContactsTitleLabel: TLabel;
+    ContactsLayout: TFlowLayout;
+    AnnaAvatar: TS4YAvatar;
+    LucaAvatar: TS4YAvatar;
+    GiuliaAvatar: TS4YAvatar;
+    PaoloAvatar: TS4YAvatar;
+    UnknownAvatar: TS4YAvatar;
     StepsTab: TTabItem;
     StepsScrollBox: TVertScrollBox;
     HorizontalStepsLabel: TLabel;
@@ -170,6 +187,8 @@ type
     DefaultColorSelector: TS4YColorSelector;
     WarmColorSelector: TS4YColorSelector;
     CoolColorSelector: TS4YColorSelector;
+    GalleryActionList: TActionList;
+    TakePhotoFromLibraryAction: TTakePhotoFromLibraryAction;
     GalleryGestureManager: TGestureManager;
     // Published: the events of the form file are bound to these methods by name.
     procedure BoldButtonClick(Sender: TObject);
@@ -198,6 +217,7 @@ type
     FHeaderPressPoint: TPointF;
     FKeyboardMessageId: Integer;
     FPageChangeTime: Cardinal;
+    FPhotoPermissionRequested: Boolean;
     FTrackingPause: Integer;
     FVisibleCustomers: TList<TGalleryCustomer>;
 
@@ -205,6 +225,7 @@ type
     procedure BuildCustomers;
     function CompareCustomers(const ALeft, ARight: TGalleryCustomer; const AColumn: TColumn): Integer;
     procedure CreateDots;
+    procedure RequestPhotoPermission;
     procedure ShowCustomers;
     procedure ShowPage(const AIndex: Integer);
     procedure UpdatePage;
@@ -219,7 +240,8 @@ implementation
 {$R *.fmx}
 
 uses
-  System.Generics.Defaults;
+  System.Generics.Defaults,
+  System.Permissions;
 
 resourcestring
   S_PAGE_TITLE = '%s  %d / %d';
@@ -254,6 +276,8 @@ const
   C_LAST_NAMES: array[0..9] of string = ('Rossi', 'Bianchi', 'Ferrari', 'Esposito', 'Romano', 'Colombo', 'Ricci',
     'Marino', 'Greco', 'Bruno');
   C_CITIES: array[0..5] of string = ('Milan', 'Rome', 'Turin', 'Naples', 'Florence', 'Bologna');
+  // Permission of Android needed by the action that takes a photo from the gallery.
+  C_READ_STORAGE_PERMISSION = 'android.permission.READ_EXTERNAL_STORAGE';
   C_DOT_SIZE = 8;
   C_DOT_SPACING = 8;
   C_DOT_ACTIVE_COLOR: TAlphaColor = $FF1E88E5;
@@ -511,6 +535,23 @@ begin
   HTMLEditor.ToggleOrderedList;
 end;
 
+procedure TMobileGalleryForm.RequestPhotoPermission;
+begin
+  // On Android the action that takes a photo from the gallery needs the permission to read the storage, which is
+  // asked to the user while the application runs: it is asked once, when the page of the avatar is shown.
+  if FPhotoPermissionRequested then
+    Exit;
+
+  FPhotoPermissionRequested := True;
+  {$IFDEF ANDROID}
+  PermissionsService.RequestPermissions([C_READ_STORAGE_PERMISSION],
+    procedure(const APermissions: TClassicStringDynArray; const AGrantResults: TClassicPermissionStatusDynArray)
+    begin
+      // Nothing: without the permission the camera button of the avatar shows the error of the action.
+    end);
+  {$ENDIF}
+end;
+
 procedure TMobileGalleryForm.ShowCustomers;
 begin
   // The customers that pass the filters...
@@ -645,6 +686,9 @@ begin
   TrackingTimer.Enabled := LTab = StepsTab;
   GaugesTimer.Enabled := LTab = GaugesTab;
   ChartsTimer.Enabled := LTab = ChartsTab;
+
+  if LTab = AvatarTab then
+    RequestPhotoPermission;
 end;
 
 procedure TMobileGalleryForm.VirtualKeyboardChanged(const Sender: TObject; const AMessage: TMessage);
