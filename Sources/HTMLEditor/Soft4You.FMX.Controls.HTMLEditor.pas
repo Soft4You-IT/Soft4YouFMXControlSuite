@@ -471,6 +471,7 @@ type
   /// writes, corrections and suggestions included, goes into the document. A finger scrolls the document, a long press
   /// or a double tap selects a word, with handles and the Cut, Copy and Paste menu of the platform.
   /// </remarks>
+  [ObservableMember('HTML')]
   TS4YHTMLEditor = class(TStyledControl{$IF DEFINED(ANDROID) or DEFINED(IOS)}, ITextInput, IReadOnly,
     IVirtualKeyboardControl, ITextActions{$ENDIF})
   private
@@ -740,6 +741,7 @@ type
     function EndTouch(AX, AY: Single): Boolean;
     function IsTouchInput(Shift: TShiftState): Boolean;
     procedure MoveTouch(AX, AY: Single);
+    procedure ObserverToggle(const AObserver: IObserver; const Value: Boolean);
     procedure PointerDown(Button: TMouseButton; Shift: TShiftState; X, Y: Single);
     procedure SelectionHandleChange(Sender: TObject);
     procedure SelectionHandleMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
@@ -755,8 +757,13 @@ type
     function TextServiceTextOf(AFirstParagraph, ALastParagraph: Integer): string;
 
   protected
+
     procedure DoChanged;
     procedure DoNotifyState;
+
+    // Bindings
+    function CanObserve(const ID: Integer): Boolean; override;
+    procedure ObserverAdded(const ID: Integer; const Observer: IObserver); override;
 
     // Layout & rendering
     procedure DoLayout;
@@ -1346,6 +1353,7 @@ type
     property AutoLoadRemoteImages: Boolean read FAutoLoadRemoteImages write FAutoLoadRemoteImages default True;
     /// <summary>Background color of the editor.</summary>
     property BackgroundColor: TAlphaColor read FBackgroundColor write SetBackgroundColor default claWhite;
+    property CanFocus Default True;
     /// <summary>
     /// Folder of the document, used to resolve relative image paths when ImagePathMode is ipmDocument.
     /// </summary>
@@ -1426,7 +1434,7 @@ type
     property ShowBorder: Boolean read FShowBorder write FShowBorder default True;
     property Size;
     property TabOrder;
-    property TabStop;
+    property TabStop default True;
     /// <summary>Title of the document, written as the title element of FullHTML.</summary>
     property Title: string read FTitle write FTitle;
     property Visible;
@@ -2908,6 +2916,26 @@ procedure TS4YHTMLEditor.InvalidateRender;
 begin
   FRenderDirty := True;
   Repaint;
+end;
+
+procedure TS4YHTMLEditor.ObserverAdded(const ID: Integer; const Observer: IObserver);
+begin
+  if ID = TObserverMapping.EditLinkID then
+    Observer.OnObserverToggle := ObserverToggle;
+end;
+
+procedure TS4YHTMLEditor.ObserverToggle(const AObserver: IObserver; const Value: Boolean);
+var
+  LEditLinkObserver: IEditLinkObserver;
+begin
+  if Value then
+  begin
+    if Supports(AObserver, IEditLinkObserver, LEditLinkObserver) then
+      { disable the editor if the associated field does not support editing }
+      ReadOnly := LEditLinkObserver.IsReadOnly;
+  end
+  else
+    ReadOnly := False;
 end;
 
 procedure TS4YHTMLEditor.OnCaretTick(Sender: TObject);
@@ -5748,6 +5776,17 @@ begin
 end;
 
 // Returns the character to the right of caret position P (#0 if none / not text).
+function TS4YHTMLEditor.CanObserve(const ID: Integer): Boolean;
+begin
+  case ID of
+    TObserverMapping.EditLinkID,      { EditLinkID is the observer that is used for control-to-field links }
+    TObserverMapping.ControlValueID:
+      Result := True;
+  else
+    Result := False;
+  end;
+end;
+
 function TS4YHTMLEditor.CharAtPosition(const APosition: TS4YDocumentPosition): Char;
 var
   LParagraph: TS4YHTMLParagraph;
