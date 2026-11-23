@@ -47,6 +47,8 @@ resourcestring
   S_FONT_SIZE_LARGE      = 'Large';
   S_FONT_SIZE_VERY_LARGE = 'Very large';
   S_FONT_SIZE_HUGE       = 'Huge';
+  S_IMAGE_FILE_NOT_FOUND = 'Image file not found: %s';
+  S_IMAGE_TYPE_UNSUPPORTED = 'Unsupported image file type: %s';
 
 const
   /// <summary>Color of the border of a table cell when the table has borders and the cell does not say otherwise.</summary>
@@ -693,11 +695,21 @@ function PathToFileUrl(const APath: string): string;
 /// <param name="ASource">The image source.</param>
 /// <returns>A file: URL resolved against the current directory when the source is a relative path; anything else unchanged.</returns>
 function ImageSourceToFileUrl(const ASource: string): string;
+/// <summary>
+/// Reads an image file and writes it as a data: URI.
+/// </summary>
+/// <param name="AFileName">Path of an image file: .png, .jpg, .jpeg, .gif, .bmp or .svg.</param>
+/// <returns>The URI, for example data:image/jpeg;base64,... with the bytes of the file as they are and the base64 text on one line.</returns>
+/// <remarks>
+/// The MIME type comes from the extension. An exception is raised when the file does not exist or has another extension.
+/// </remarks>
+function ImageFileToDataURI(const AFileName: string): string;
 
 implementation
 
 uses
-  System.IOUtils;
+  System.IOUtils,
+  System.NetEncoding;
 
 // -----------------------------------------------------------------------------
 // DarkenColor
@@ -972,6 +984,46 @@ begin
 end;
 
 // Relative local path -> file: URL resolved against the current directory; anything else unchanged
+// The image type comes from the extension; the bytes of the file are not changed
+function ImageFileToDataURI(const AFileName: string): string;
+var
+  LExtension: string;
+  LMimeType: string;
+  LBytes: TBytes;
+  LEncoder: TBase64Encoding;
+begin
+  LExtension := LowerCase(TPath.GetExtension(AFileName));
+
+  if LExtension = '.png' then
+    LMimeType := 'image/png'
+  else if (LExtension = '.jpg') or (LExtension = '.jpeg') then
+    LMimeType := 'image/jpeg'
+  else if LExtension = '.gif' then
+    LMimeType := 'image/gif'
+  else if LExtension = '.bmp' then
+    LMimeType := 'image/bmp'
+  else if LExtension = '.svg' then
+    LMimeType := 'image/svg+xml'
+  else
+    raise EArgumentException.CreateFmt(S_IMAGE_TYPE_UNSUPPORTED, [AFileName]);
+
+  if not TFile.Exists(AFileName) then
+    raise EFileNotFoundException.CreateFmt(S_IMAGE_FILE_NOT_FOUND, [AFileName]);
+
+  LBytes := TFile.ReadAllBytes(AFileName);
+  Result := 'data:' + LMimeType + ';base64,';
+
+  if Length(LBytes) = 0 then
+    Exit;
+
+  LEncoder := TBase64Encoding.Create(0);
+  try
+    Result := Result + LEncoder.EncodeBytesToString(@LBytes[0], Length(LBytes));
+  finally
+    LEncoder.Free;
+  end;
+end;
+
 function ImageSourceToFileUrl(const ASource: string): string;
 begin
   Result := ASource;

@@ -965,6 +965,21 @@ type
     /// </remarks>
     procedure InsertInlineImage(const ASource: string; AWidth: Integer = 0; AHeight: Integer = 0; const AAlt: string = '');
     /// <summary>
+    /// Inserts an image file at the caret, stored in the document as a data: URI.
+    /// </summary>
+    /// <param name="AFileName">Image file: .png, .jpg, .jpeg, .gif, .bmp or .svg. A relative path is resolved as for any image source (see ImagePathMode).</param>
+    /// <param name="AWidth">Width in pixels; 0 uses the natural width of the image.</param>
+    /// <param name="AHeight">Height in pixels; 0 uses the natural height of the image.</param>
+    /// <param name="AAlt">Alternative text; empty for none.</param>
+    /// <remarks>
+    /// The bytes of the file are kept as they are, so the document does not depend on the file any more.
+    /// Nothing is inserted when LocalImageAccess or OnBeforeLoadImage (context ilcInsert) refuses the file; the event is fired once, for the file.
+    /// The natural size is read from the file, whatever OnBeforeLoadImage says about data: sources.
+    /// An exception is raised when the file does not exist or has another extension.
+    /// An SVG file is drawn as any other SVG image, with OnRenderSVG or DefaultSVGRenderer.
+    /// </remarks>
+    procedure InsertEmbeddedImage(const AFileName: string; AWidth: Integer = 0; AHeight: Integer = 0; const AAlt: string = '');
+    /// <summary>
     /// Replaces the image at the caret.
     /// </summary>
     /// <param name="ASource">New image source.</param>
@@ -9381,6 +9396,44 @@ end;
 procedure TS4YHTMLEditor.InsertImage(const ASource: string; AWidth: Integer = 0; AHeight: Integer = 0; const AAlt: string = '');
 begin
   InsertInlineImage(ASource, AWidth, AHeight, AAlt);
+end;
+
+procedure TS4YHTMLEditor.InsertEmbeddedImage(const AFileName: string; AWidth: Integer = 0; AHeight: Integer = 0; const AAlt: string = '');
+var
+  LFilePath: string;
+  LDataURI: string;
+  LBitmap: TBitmap;
+  LWidth: Integer;
+  LHeight: Integer;
+begin
+  if not IsImageLoadAllowed(AFileName, ilcInsert) then
+    Exit;
+
+  LFilePath := ResolveImageSource(AFileName);
+  LDataURI := ImageFileToDataURI(LFilePath);
+  LWidth := AWidth;
+  LHeight := AHeight;
+
+  // The natural size comes from the approved file, so that it does not depend on how the
+  // application treats data: sources and the events are not fired again for the new source
+  if (LWidth = 0) or (LHeight = 0) then
+  begin
+    LBitmap := LoadBitmapFromSource(LFilePath);
+    try
+      if Assigned(LBitmap) then
+      begin
+        if LWidth = 0 then
+          LWidth := LBitmap.Width;
+
+        if LHeight = 0 then
+          LHeight := LBitmap.Height;
+      end;
+    finally
+      LBitmap.Free;
+    end;
+  end;
+
+  InsertInlineImage(LDataURI, LWidth, LHeight, AAlt);
 end;
 
 procedure TS4YHTMLEditor.InsertInlineImage(const ASource: string; AWidth: Integer = 0; AHeight: Integer = 0; const AAlt: string = '');
