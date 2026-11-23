@@ -59,7 +59,6 @@ uses
   FMX.Objects,
   System.NetEncoding,
   System.Net.HttpClient,
-  System.Bindings.Helper,
   Data.Bind.Components,
   Soft4You.FMX.Clipboard.Html,
   Soft4You.HTML.Types,
@@ -530,6 +529,8 @@ type
     FImagePathMode: TS4YImagePathMode;
     FLocalImageAccess: TS4YLocalImageAccess;
     FReadOnly: Boolean;
+    // ReadOnly before a link of the LiveBindings set it, restored when the link is removed
+    FReadOnlyBeforeLink: Boolean;
     FKeyboardType: TVirtualKeyboardType;
     FReturnKeyType: TReturnKeyType;
     // The text service of the platform, for the virtual keyboard: it holds the text of the paragraphs from
@@ -687,6 +688,7 @@ type
     // Properties
     function BuildHTML(const AImageSourceConverter: TFunc<string, string>): string;
     function GetHTML: string;
+    procedure ReplaceContent(const AHTML: string);
     procedure SetHTML(const Value: string);
     procedure SetLineSpacing(const Value: Single);
     procedure SetParagraphSpacing(const Value: Single);
@@ -741,6 +743,7 @@ type
     function EndTouch(AX, AY: Single): Boolean;
     function IsTouchInput(Shift: TShiftState): Boolean;
     procedure MoveTouch(AX, AY: Single);
+    procedure NotifyLinkModified;
     procedure ObserverToggle(const AObserver: IObserver; const Value: Boolean);
     procedure PointerDown(Button: TMouseButton; Shift: TShiftState; X, Y: Single);
     procedure SelectionHandleChange(Sender: TObject);
@@ -1371,7 +1374,8 @@ type
     /// </summary>
     /// <remarks>
     /// Reading it generates the HTML from the document each time; an empty document gives an empty string.
-    /// Writing it replaces the content, clears the undo history, moves the caret to the start and does not fire OnChange. It is notified to LiveBindings after every edit.
+    /// Writing it replaces the content, clears the undo history, moves the caret to the start and does not fire OnChange; writing the HTML the editor already has changes nothing.
+    /// A TLinkControlToField receives it after every edit with Track on, else when the editor loses the focus.
     /// </remarks>
     property HTML: string read GetHTML write SetHTML;
     /// <summary>
@@ -2894,6 +2898,13 @@ end;
 
 procedure TS4YHTMLEditor.DoExit;
 begin
+  // A link with Track off receives the HTML here, when the editor loses the focus
+  if Observers.IsObserving(TObserverMapping.EditLinkID) then
+    TLinkObservers.EditLinkUpdate(Observers);
+
+  if Observers.IsObserving(TObserverMapping.ControlValueID) then
+    TLinkObservers.ControlValueUpdate(Observers);
+
   inherited;
 
   if csDesigning in ComponentState then
@@ -2924,18 +2935,41 @@ begin
     Observer.OnObserverToggle := ObserverToggle;
 end;
 
+procedure TS4YHTMLEditor.NotifyLinkModified;
+begin
+  // The source goes into edit mode and takes the HTML at once only with Track on, else in DoExit
+  if Observers.IsObserving(TObserverMapping.EditLinkID) and
+    TLinkObservers.EditLinkEdit(Observers) then
+  begin
+    TLinkObservers.EditLinkModified(Observers);
+    TLinkObservers.EditLinkTrackUpdate(Observers);
+  end;
+
+  if Observers.IsObserving(TObserverMapping.ControlValueID) then
+  begin
+    TLinkObservers.ControlValueModified(Observers);
+    TLinkObservers.ControlValueTrackUpdate(Observers);
+  end;
+end;
+
 procedure TS4YHTMLEditor.ObserverToggle(const AObserver: IObserver; const Value: Boolean);
 var
   LEditLinkObserver: IEditLinkObserver;
 begin
   if Value then
   begin
+    FReadOnlyBeforeLink := FReadOnly;
+
     if Supports(AObserver, IEditLinkObserver, LEditLinkObserver) then
+    begin
       { disable the editor if the associated field does not support editing }
       ReadOnly := LEditLinkObserver.IsReadOnly;
+    end;
   end
   else
-    ReadOnly := False;
+  begin
+    ReadOnly := FReadOnlyBeforeLink;
+  end;
 end;
 
 procedure TS4YHTMLEditor.OnCaretTick(Sender: TObject);
@@ -6753,12 +6787,19 @@ begin
     Exit;
   end;
 
-  // Escape removes the selection; without one the key is left to the form (for example a cancel button)
+  // Escape removes the selection; without one it gives back the value of the field to a link with changes not
+  // passed on yet, else the key is left to the form (for example a cancel button)
   if Key = vkEscape then
   begin
     if FHasSelection then
     begin
       ClearSelection;
+      Key := 0;
+    end
+    else if Observers.IsObserving(TObserverMapping.EditLinkID) and
+      TLinkObservers.EditLinkIsModified(Observers) then
+    begin
+      TLinkObservers.EditLinkReset(Observers);
       Key := 0;
     end;
 
@@ -10658,6 +10699,7 @@ begin
   RebuildPlaceholderList;
   DoLayout;
   InvalidateRender;
+  NotifyLinkModified;
   DoNotifyState;
 end;
 
@@ -10684,6 +10726,7 @@ begin
   RebuildPlaceholderList;
   DoLayout;
   InvalidateRender;
+  NotifyLinkModified;
   DoNotifyState;
 end;
 
@@ -11482,7 +11525,7 @@ begin
   else
     LFragment := Value;
 
-  SetHTML(LFragment);
+  ReplaceContent(LFragment);
 end;
 
 function TS4YHTMLEditor.GetFullHTML: string;
@@ -11560,6 +11603,15 @@ begin
 end;
 
 procedure TS4YHTMLEditor.SetHTML(const Value: string);
+begin
+  // The value a link of the LiveBindings gives back after taking it from the editor keeps caret and undo history
+  if Value = GetHTML then
+    Exit;
+
+  ReplaceContent(Value);
+end;
+
+procedure TS4YHTMLEditor.ReplaceContent(const AHTML: string);
 var
   LParser: TS4YHTMLParser;
   LNewDocument: TS4YHTMLDocument;
@@ -11571,7 +11623,7 @@ begin
   FRefusedImages.Clear;
   LParser := TS4YHTMLParser.Create;
   try
-    LNewDocument := LParser.Parse(Value);
+    LNewDocument := LParser.Parse(AHTML);
 
     if LNewDocument.Paragraphs.Count = 0 then
     begin
@@ -12078,7 +12130,7 @@ begin
   if Assigned(FOnChange) then
     FOnChange(Self);
 
-  TBindings.Notify(Self, 'HTML');
+  NotifyLinkModified;
 end;
 
 procedure TS4YHTMLEditor.DoNotifyState;
