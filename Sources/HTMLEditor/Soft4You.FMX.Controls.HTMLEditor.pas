@@ -6787,19 +6787,12 @@ begin
     Exit;
   end;
 
-  // Escape removes the selection; without one it gives back the value of the field to a link with changes not
-  // passed on yet, else the key is left to the form (for example a cancel button)
+  // Escape removes the selection; without one the key is left to the form (for example a cancel button)
   if Key = vkEscape then
   begin
     if FHasSelection then
     begin
       ClearSelection;
-      Key := 0;
-    end
-    else if Observers.IsObserving(TObserverMapping.EditLinkID) and
-      TLinkObservers.EditLinkIsModified(Observers) then
-    begin
-      TLinkObservers.EditLinkReset(Observers);
       Key := 0;
     end;
 

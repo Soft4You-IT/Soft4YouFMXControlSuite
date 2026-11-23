@@ -35,7 +35,7 @@ Points to know:
 - **Setting the content clears the undo and redo history**, the caret goes to the start, and the scroll position is reset.
 - **Reading `HTML` regenerates it** from the model each time. If you need it often (for example on every `OnChange`), keep it in a variable instead of reading it repeatedly on a large document.
 - An empty document reads back as `''`, not as an empty paragraph.
-- `HTML` can be bound to a field with a `TLinkControlToField`. Each edit puts the source into edit mode; the field receives the HTML after each edit when `Track` of the link is on, else when the editor loses the focus. Esc, with no selection, gives back the value of the field while the changes have not reached it yet. Undo and redo are passed on as edits.
+- `HTML` can be bound to a field with a `TLinkControlToField`. Each edit puts the source into edit mode; the field receives the HTML after each edit when `Track` of the link is on, else when the editor loses the focus. Undo and redo are passed on as edits.
 - Writing in `HTML` the same HTML the editor already has changes nothing: the caret and the undo history stay, so the value a link gives back to the editor does not move the caret to the start.
 
 ---
