@@ -22,6 +22,7 @@ The changes of each release of the Soft4You FMX Control Suite, the newest first.
 
 ### Fixed
 
+- `TS4YHTMLEditor` bound to a field with a `TLinkControlToField` follows `Track` of the link: the field receives the HTML after every edit with `Track` on, else when the editor loses the focus. Before, the field was written after every key, even with `Track` off, without putting the source into edit mode, and the value given back by the link could move the caret to the start and clear the undo history. Undo and redo reach the field, and removing the link gives back the `ReadOnly` the editor had before.
 - `TS4YBadge` and `TS4YExpander` use a style named `S4YBadgeStyle` or `S4YExpanderStyle` in the style book of the form or in the active style, instead of always the style linked into the package. A `StyleLookup` that names no style makes them use their own style: before, they were left without one.
 - `TS4YExpander` no longer raises an access violation when it is destroyed after the icon or the badge of its style has already been freed elsewhere: those parts now tell the expander when they are freed, and it forgets them.
 - On Android `TS4YBadge` and `TS4YExpander` had no style linked into the application and could not be drawn. Every control with a style of its own now links a style for each platform, Windows, macOS, Android and iOS: the four are identical, and the one of a platform can be changed without touching the others.
