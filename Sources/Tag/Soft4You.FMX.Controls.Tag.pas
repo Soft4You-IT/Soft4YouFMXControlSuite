@@ -325,8 +325,6 @@ const
   C_DISABLED_OPACITY = 0.5;
 
   // Height, font size and the spaces, as fractions of the height of the control.
-  C_PRESET_HEIGHTS: array[TS4YTagSizePreset] of Single = (24, 32, 40);
-  C_PRESET_FONT_SIZES: array[TS4YTagSizePreset] of Single = (11, 13, 15);
   C_PADDING_FACTOR = 0.375;
   C_GAP_FACTOR = 0.22;
   C_ICON_FACTOR = 0.55;
@@ -571,8 +569,8 @@ end;
 
 function TS4YCustomTag.CalculateMetrics: TTagMetrics;
 begin
-  Result.Height := C_PRESET_HEIGHTS[FSizePreset];
-  Result.FontSize := C_PRESET_FONT_SIZES[FSizePreset];
+  Result.Height := C_TAG_PRESET_HEIGHTS[FSizePreset];
+  Result.FontSize := C_TAG_PRESET_FONT_SIZES[FSizePreset];
   Result.Padding := Result.Height * C_PADDING_FACTOR;
   Result.Gap := Result.Height * C_GAP_FACTOR;
   Result.IconSize := Result.Height * C_ICON_FACTOR;
@@ -635,7 +633,7 @@ begin
   // The first calls come from the constructor of the ancestors, before the fields exist.
   if Assigned(FTextLayout) then
   begin
-    ANewHeight := C_PRESET_HEIGHTS[FSizePreset];
+    ANewHeight := C_TAG_PRESET_HEIGHTS[FSizePreset];
 
     if FAutoSize then
       ANewWidth := CalculateContentWidth;
@@ -701,7 +699,7 @@ end;
 
 function TS4YCustomTag.GetDefaultSize: TSizeF;
 begin
-  Result := TSizeF.Create(C_PRESET_HEIGHTS[C_DEFAULT_SIZE_PRESET] * 3, C_PRESET_HEIGHTS[C_DEFAULT_SIZE_PRESET]);
+  Result := TSizeF.Create(C_TAG_PRESET_HEIGHTS[C_DEFAULT_SIZE_PRESET] * 3, C_TAG_PRESET_HEIGHTS[C_DEFAULT_SIZE_PRESET]);
 end;
 
 function TS4YCustomTag.GetEffectiveVariant: TS4YTagVariant;
@@ -1228,7 +1226,7 @@ begin
 
   LOldWidth := Width;
   LOldHeight := Height;
-  SetBounds(Position.X, Position.Y, LWidth, C_PRESET_HEIGHTS[FSizePreset]);
+  SetBounds(Position.X, Position.Y, LWidth, C_TAG_PRESET_HEIGHTS[FSizePreset]);
 
   // A parent that places its children, such as a flow layout, is told only about the controls
   // that have an Align: the others have to ask it to place them again, or they overlap.

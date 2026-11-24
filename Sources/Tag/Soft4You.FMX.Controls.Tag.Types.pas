@@ -88,6 +88,43 @@ type
   /// <param name="CanClose">True; set it to False to keep the control, which is hidden otherwise.</param>
   TS4YTagCloseEvent = procedure(Sender: TObject; var CanClose: Boolean) of object;
 
+  /// <summary>
+  /// How the user chooses the chips of a TS4YChipGroup.
+  /// </summary>
+  /// <remarks>
+  /// cgmNone: the chips cannot be chosen.
+  /// cgmSingle: one chip is chosen at a time, as with radio buttons; the default.
+  /// cgmMultiple: any number of chips is chosen.
+  /// </remarks>
+  TS4YChipSelectionMode = (
+    cgmNone,
+    cgmSingle,
+    cgmMultiple
+  );
+
+  /// <summary>
+  /// Event fired by TS4YChipEdit after an item is added or removed by the user or by AddItem and RemoveItem.
+  /// </summary>
+  /// <param name="Sender">The control.</param>
+  /// <param name="Text">The text of the item.</param>
+  /// <param name="Index">The position of the item in Items, where it was added or removed.</param>
+  TS4YChipItemEvent = procedure(Sender: TObject; const Text: string; Index: Integer) of object;
+
+  /// <summary>
+  /// Event fired by TS4YChipEdit before a text becomes an item.
+  /// </summary>
+  /// <param name="Sender">The control.</param>
+  /// <param name="Text">The text, without the spaces around it.</param>
+  /// <param name="Accept">True; set it to False to refuse the text, which stays in the field.</param>
+  /// <param name="Kind">The kind of the chip, the one of ChipKind at first; set it to tgkDanger, for example, to mark a text that is accepted but not valid.</param>
+  TS4YChipValidateEvent = procedure(Sender: TObject; const Text: string; var Accept: Boolean; var Kind: TS4YTagKind) of object;
+
+const
+  /// <summary>Height in pixels of a tag or a chip for each size preset.</summary>
+  C_TAG_PRESET_HEIGHTS: array[TS4YTagSizePreset] of Single = (24, 32, 40);
+  /// <summary>Size in points of the font of a tag or a chip for each size preset.</summary>
+  C_TAG_PRESET_FONT_SIZES: array[TS4YTagSizePreset] of Single = (11, 13, 15);
+
 implementation
 
 end.

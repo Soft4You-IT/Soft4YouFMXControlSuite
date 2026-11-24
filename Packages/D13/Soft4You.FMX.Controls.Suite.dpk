@@ -89,6 +89,9 @@ contains
   Soft4You.FMX.Controls.Avatar in '..\..\Sources\Avatar\Soft4You.FMX.Controls.Avatar.pas',
   Soft4You.FMX.Controls.Tag.Types in '..\..\Sources\Tag\Soft4You.FMX.Controls.Tag.Types.pas',
   Soft4You.FMX.Controls.Tag in '..\..\Sources\Tag\Soft4You.FMX.Controls.Tag.pas',
-  Soft4You.FMX.Controls.Chip in '..\..\Sources\Tag\Soft4You.FMX.Controls.Chip.pas';
+  Soft4You.FMX.Controls.Chip in '..\..\Sources\Tag\Soft4You.FMX.Controls.Chip.pas',
+  Soft4You.FMX.Controls.ChipBox in '..\..\Sources\Tag\Soft4You.FMX.Controls.ChipBox.pas',
+  Soft4You.FMX.Controls.ChipGroup in '..\..\Sources\Tag\Soft4You.FMX.Controls.ChipGroup.pas',
+  Soft4You.FMX.Controls.ChipEdit in '..\..\Sources\Tag\Soft4You.FMX.Controls.ChipEdit.pas';
 
 end.

@@ -21,6 +21,24 @@ uses
   Soft4You.FMX.Controls.Tag;
 
 type
+  TS4YChip = class;
+
+  /// <summary>
+  /// Implemented by a control that holds chips and moves the focus among them with the arrow keys, as TS4YChipGroup and TS4YChipEdit do.
+  /// </summary>
+  /// <remarks>
+  /// A chip looks for it in its parents: the first one that implements it is told what happens to the chip.
+  /// </remarks>
+  IS4YChipNavigator = interface
+    ['{5B1D7E0A-3C64-4F7B-9A52-6D2E8F1C4A93}']
+    /// <summary>Called when a key that moves the focus (arrows, Home, End) is pressed on a chip; returns True when the key is handled.</summary>
+    function ChipKeyDown(const AChip: TS4YChip; var Key: Word; Shift: TShiftState): Boolean;
+    /// <summary>Called when a chip takes the focus.</summary>
+    procedure ChipEntered(const AChip: TS4YChip);
+    /// <summary>Called when a chip loses the focus.</summary>
+    procedure ChipExited(const AChip: TS4YChip);
+  end;
+
   /// <summary>
   /// An interactive label: the user clicks it, chooses it (alone or in a group) or closes it, as in a filter bar or a list of recipients.
   /// </summary>
@@ -38,6 +56,7 @@ type
     FGroupName: string;
     FShowCheckMark: Boolean;
     FOnCheckedChange: TNotifyEvent;
+    function FindNavigator: IS4YChipNavigator;
     procedure SetCheckable(const Value: Boolean);
     procedure SetChecked(const Value: Boolean);
     procedure SetGroupName(const Value: string);
@@ -184,17 +203,40 @@ begin
 end;
 
 procedure TS4YChip.DoEnter;
+var
+  LNavigator: IS4YChipNavigator;
 begin
   inherited;
 
   UpdateParts;
+  LNavigator := FindNavigator;
+
+  if Assigned(LNavigator) then
+    LNavigator.ChipEntered(Self);
 end;
 
 procedure TS4YChip.DoExit;
+var
+  LNavigator: IS4YChipNavigator;
 begin
   inherited;
 
   UpdateParts;
+  LNavigator := FindNavigator;
+
+  if Assigned(LNavigator) then
+    LNavigator.ChipExited(Self);
+end;
+
+function TS4YChip.FindNavigator: IS4YChipNavigator;
+var
+  LParent: TFmxObject;
+begin
+  Result := nil;
+  LParent := Parent;
+
+  while Assigned(LParent) and not Supports(LParent, IS4YChipNavigator, Result) do
+    LParent := LParent.Parent;
 end;
 
 procedure TS4YChip.DoMouseEnter;
@@ -240,7 +282,20 @@ begin
 end;
 
 procedure TS4YChip.KeyDown(var Key: Word; var KeyChar: WideChar; Shift: TShiftState);
+var
+  LNavigator: IS4YChipNavigator;
 begin
+  if (Key in [vkLeft, vkRight, vkUp, vkDown, vkHome, vkEnd]) then
+  begin
+    LNavigator := FindNavigator;
+
+    if Assigned(LNavigator) and LNavigator.ChipKeyDown(Self, Key, Shift) then
+    begin
+      Key := 0;
+      Exit;
+    end;
+  end;
+
   if (Key = vkSpace) or (KeyChar = ' ') then
   begin
     Click;

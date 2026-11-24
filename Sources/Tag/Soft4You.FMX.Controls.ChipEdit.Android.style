@@ -1,0 +1,28 @@
+object TLayout
+  StyleName = 'S4YChipEditStyle'
+  Align = Contents
+  HitTest = False
+  Size.Width = 320.000000000000000000
+  Size.Height = 40.000000000000000000
+  Size.PlatformDefault = False
+  object TRectangle
+    StyleName = 'background'
+    Align = Client
+    Size.Width = 320.000000000000000000
+    Size.Height = 40.000000000000000000
+    Size.PlatformDefault = False
+    Fill.Color = xFFFFFFFF
+    HitTest = False
+    Stroke.Color = xFF9E9E9E
+    XRadius = 4.000000000000000000
+    YRadius = 4.000000000000000000
+  end
+  object TColorObject
+    StyleName = 'bordercolor'
+    Color = xFF9E9E9E
+  end
+  object TColorObject
+    StyleName = 'focusbordercolor'
+    Color = xFF1E88E5
+  end
+end
