@@ -285,6 +285,8 @@ end;
 |---|---|
 | `CharCount` | Total number of text characters in the document (images and placeholders excluded) |
 | `WordCount` | Number of words (whitespace-delimited) in the document |
+| `PlainText` | The whole document as plain text, see [Plain text](#plain-text) |
+| `PlainTextWidth` | Longest line of `PlainText` in characters (0 = no wrapping, the default) |
 | `SelText` | Plain text of the current selection (`''` when no selection) |
 | `SelHTML` | HTML fragment of the current selection (`''` when no selection) |
 
@@ -317,6 +319,31 @@ Search highlights the match via the normal selection. Each successive `FindNext`
 | `OnStateChange` | `procedure(Sender; const State: TS4YEditorState)` | Fired when caret moves or selection changes — use to update toolbar |
 
 ---
+
+## Plain text
+
+`PlainText` (and `TS4YHTMLDocument.ToPlainText`, on which it is built) writes the document as plain text, for example for the text part of an e-mail. Each block is separated from the next by an empty line, except where noted:
+
+| Element | Plain text |
+|---|---|
+| Paragraph, heading | The text, followed by an empty line |
+| Body text (`btBodyText`) | The text; consecutive body text blocks are on consecutive lines |
+| Preformatted text | The lines on consecutive lines, an empty line between two lines is kept |
+| List item | `- ` (bulleted) or `1. ` (numbered), indented by two spaces for each level, on consecutive lines; a bulleted list and a numbered list that follow each other are separated by an empty line |
+| Block quote | `> ` before each line (once more for each level of nesting) |
+| Link | `text (address)`; the address alone when it is the same as the text; `mailto:` is removed |
+| Image | Its alternative text |
+| Horizontal rule | A line of 40 dashes (as wide as `PlainTextWidth`, when it is set) |
+| Line break (`<br>`) | A line break of the text |
+| Placeholder | Its display text, or its text when it has none |
+| Table | One line for each row, with the cells separated by a tab (also empty cells and the positions covered by a merged cell); the paragraphs of a cell, and a table nested in it, are joined by a space; a row without text is skipped |
+| Empty paragraph | Skipped |
+
+The text has no line break at the end.
+
+By default the lines are not wrapped. With `PlainTextWidth` (or the parameter of `ToPlainText`) greater than 0, for example 72 or 78 for the text part of an e-mail, paragraphs, headings, list items and quotes that are longer go to the next line between two words. The prefix of a list item or of a quote counts in the width; a list item continues under its text and a quote repeats `> `. A word longer than the width, such as an address, is never split. Preformatted text and the rows of a table are not wrapped.
+
+> **Maintenance note.** Every change to the tables (new kinds of cells or of content in a cell, merged cells, other ways to lay out or to write a table) must be checked against `ToPlainText` and, if needed, `ToPlainText` must be updated: it reads `TableID`, `TableRow`, `TableCol` and `TableContainers` of the paragraphs, and the cells covered by a merged cell have no paragraph.
 
 ## Images and files
 

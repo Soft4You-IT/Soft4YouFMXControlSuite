@@ -563,6 +563,7 @@ type
     FPlaceholderPrefix: string;
     FPlaceholderSuffix: string;
     FPlaceholderAppearance: TS4YPlaceholderAppearance;
+    FPlainTextWidth: Integer;
     FHoverLinkURL: string;    // URL under mouse cursor ('' = none)
     FClickedLinkURL: string;  // URL at MouseDown, cleared on MouseUp
     FClickedLinkText: string; // visible text of the clicked link
@@ -658,6 +659,7 @@ type
     procedure SetFullHTML(const Value: string);
     function GetSelectionHTML: string;
     function GetSelectionText: string;
+    function GetPlainText: string;
     procedure InsertParagraphBreak;
     procedure InsertLineBreak;
     procedure MergeWithPrevious(AParagraphIndex: Integer);
@@ -1325,6 +1327,24 @@ type
     /// The list is kept in sync with every edit and is read-only: do not change it or its runs from outside.
     /// </remarks>
     property Placeholders: TList<TS4YHTMLRun> read FPlaceholders;
+    /// <summary>
+    /// The whole document as plain text, for example for the text part of an e-mail.
+    /// </summary>
+    /// <remarks>
+    /// Paragraphs are separated by an empty line, lists, links, tables and images have a text form: see
+    /// TS4YHTMLDocument.ToPlainText for the rules. Read-only.
+    /// <para>
+    /// MAINTENANCE: Every change to the tables (new kinds of cells or of content in a cell, merged cells, other ways to lay out or to write a table) must be checked against ToPlainText and, if needed, ToPlainText must be updated: it reads TableID, TableRow, TableCol and TableContainers of the paragraphs, and the cells covered by a merged cell have no paragraph.
+    /// </para>
+    /// </remarks>
+    property PlainText: string read GetPlainText;
+    /// <summary>
+    /// Longest line of PlainText in characters; longer text goes to the next line between two words. 0, the default, never goes to the next line by itself.
+    /// </summary>
+    /// <remarks>
+    /// For the text part of an e-mail 72 or 78 are the usual values. See TS4YHTMLDocument.ToPlainText for what is wrapped.
+    /// </remarks>
+    property PlainTextWidth: Integer read FPlainTextWidth write FPlainTextWidth;
     /// <summary>The selection as an HTML fragment; empty when nothing is selected.</summary>
     property SelHTML: string read GetSelectionHTML;
     /// <summary>The selection as plain text; empty when nothing is selected.</summary>
@@ -7804,6 +7824,11 @@ begin
     LTempDocument.Free;
     LGenerator.Free;
   end;
+end;
+
+function TS4YHTMLEditor.GetPlainText: string;
+begin
+  Result := FDocument.ToPlainText(FPlainTextWidth);
 end;
 
 function TS4YHTMLEditor.GetSelectionText: string;
