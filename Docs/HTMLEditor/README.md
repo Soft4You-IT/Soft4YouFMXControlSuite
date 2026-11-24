@@ -228,6 +228,7 @@ end;
 | `InsertHorizontalRule([Color, Thickness])` | Insert a horizontal rule |
 | `InsertImage(Src[, Width, Height, Alt])` | Insert an image at the caret (currently inserted as an inline run, the same as `InsertInlineImage`) |
 | `InsertInlineImage(Src[, Width, Height, Alt])` | Insert an inline image (as a run inside a paragraph) |
+| `InsertEmbeddedImage(FileName[, Width, Height, Alt])` | Read an image file (`.png`, `.jpg`, `.jpeg`, `.gif`, `.bmp`, `.svg`) and insert it as a `data:` URI with the bytes of the file as they are; nothing is inserted if `LocalImageAccess` or `OnBeforeLoadImage` refuses the file, see [Embedded images](#embedded-images) |
 | `UpdateImage(Src[, Width, Height, Alt])` | Replace the image under the caret (use `State.IsImage` to check) |
 | `InsertTable([Rows, Cols])` | Insert an empty table (default 2×2) |
 | `InsertTableRow` | Insert a new row after the row containing the caret (does nothing in a table with merged cells) |
@@ -330,6 +331,14 @@ Search highlights the match via the normal selection. Each successive `FindNext`
 - Other schemes (for example `cid:`) are not loaded by the editor: supply the bitmap in `OnLoadImage`.
 
 `AutoLoadLocalImages` and `AutoLoadRemoteImages` control whether local and remote images are loaded automatically; `LoadLocalImages` and `LoadRemoteImages` load them on request.
+
+### Embedded images
+
+`InsertEmbeddedImage(FileName[, Width, Height, Alt])` reads an image file and inserts it at the caret as a `data:` URI, so the document does not depend on the file: the saved HTML can be sent or moved anywhere. The image type comes from the extension (`.png`, `.jpg`, `.jpeg`, `.gif`, `.bmp`, `.svg`), the bytes of the file are kept as they are (a JPEG stays a JPEG) and the base64 text is on one line, as it must be inside an attribute. Without `Width` and `Height` the size of the image is used; without `Alt` the image has no alternative text. A relative path is resolved as for any other image source (see `ImagePathMode`).
+
+The file is read only if `LocalImageAccess` and `OnBeforeLoadImage` (context `ilcInsert`) allow it; otherwise nothing is inserted. A file that does not exist or has another extension raises an exception. `OnBeforeLoadImage` is fired once, for the file; the natural size is read from the file, so it does not depend on what the application decides about `data:` sources (which it is asked about again when the image is drawn and saved). An SVG file is drawn with `OnRenderSVG` or `DefaultSVGRenderer`, as in [SVG images](#svg-images).
+
+To get only the URI, for example to build the `<img>` for `InsertHTML`, call the function `ImageFileToDataURI(FileName)` of the unit `Soft4You.HTML.Types`; it makes the same checks of the file and of the extension, but none of `LocalImageAccess`.
 
 ### SVG images
 
