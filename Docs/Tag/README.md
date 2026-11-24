@@ -1,4 +1,4 @@
-# TS4YTag and TS4YChip for FireMonkey
+# TS4YTag, TS4YChip, TS4YChipGroup and TS4YChipEdit for FireMonkey
 
 ![TS4YTag and TS4YChip](../Screenshots/tag.png)
 
@@ -9,11 +9,20 @@ Two small labels, a short text on a colored background that follows the text, wi
 
 Both come from the same base, `TS4YCustomTag`: six meanings (`Kind`) that give the color, three ways to fill it (`Variant`), three shapes, three sizes, the colors from the style, and the same parts of the style.
 
-Units: `Soft4You.FMX.Controls.Tag` (the base and `TS4YTag`) and `Soft4You.FMX.Controls.Chip` (`TS4YChip`), in `Sources\Tag`, with the types in `Soft4You.FMX.Controls.Tag.Types`.
+Two controls hold chips:
+
+- **`TS4YChipGroup`** makes chips from a list of texts, of which the user chooses one, some or none.
+- **`TS4YChipEdit`** is a text field where each entry becomes a chip, as the recipients of an email.
+
+Both wrap the chips on new lines and scroll when a `MaxHeight` is reached. They come from `TS4YCustomChipBox`, a scroll box that keeps a chip for each text of `Items`.
+
+![TS4YChipGroup and TS4YChipEdit](../Screenshots/chipgroup-edit.png)
+
+Units: `Soft4You.FMX.Controls.Tag` (the base and `TS4YTag`), `Soft4You.FMX.Controls.Chip` (`TS4YChip`), `Soft4You.FMX.Controls.ChipBox`, `Soft4You.FMX.Controls.ChipGroup` and `Soft4You.FMX.Controls.ChipEdit`, in `Sources\Tag`, with the types in `Soft4You.FMX.Controls.Tag.Types`.
 
 ## Installation
 
-`TS4YTag` and `TS4YChip` are part of the Soft4You FMX Control Suite. They are built into the runtime package `Soft4You.FMX.Controls.Suite`, and their registration into the design-time package `SuiteD`: see the README in the root of the repository.
+`TS4YTag`, `TS4YChip`, `TS4YChipGroup` and `TS4YChipEdit` are part of the Soft4You FMX Control Suite. They are built into the runtime package `Soft4You.FMX.Controls.Suite`, and their registration into the design-time package `SuiteD`: see the README in the root of the repository.
 
 Add the folder `Sources\Tag` to the Delphi library path to compile your own projects with the units.
 
@@ -23,12 +32,15 @@ Add the folder `Sources\Tag` to the Delphi library path to compile your own proj
 |---|---|
 | `Sources\Tag\Soft4You.FMX.Controls.Tag.pas` | `TS4YCustomTag` (the base, with the protected properties) and `TS4YTag` |
 | `Sources\Tag\Soft4You.FMX.Controls.Chip.pas` | `TS4YChip` |
-| `Sources\Tag\Soft4You.FMX.Controls.Tag.Types.pas` | The enumerated types of the kind, the variant, the shape, the size and the state, and the type of the event `OnClose` |
-| `Sources\Tag\Soft4You.FMX.Controls.Tag.Register.pas` | Registration of both controls in the Tool Palette (design time) |
-| `Sources\Tag\Soft4You.FMX.Controls.Tag.Win.rc` / `.Mac.rc` / `.Android.rc` / `.iOS.rc`, and the same for `Chip` | Resource scripts that link the styles as the resources `S4YTagStyle` and `S4YChipStyle` |
-| `Sources\Tag\Soft4You.FMX.Controls.Tag.Win.style` / `.Mac.style` / `.Android.style` / `.iOS.style`, and the same for `Chip` | Default styles for each platform: they differ in the colors of the kinds |
-| `Graphics\Tag\TS4YTag.svg`, `TS4YChip.svg` | Vector masters of the icons of the Tool Palette |
-| `Graphics\Tag\TS4YTag.bmp`, `TS4YChip.bmp`, `TagDesign.rc` | Icons of the Tool Palette (24x24 bitmaps) and the resource script that links them |
+| `Sources\Tag\Soft4You.FMX.Controls.ChipBox.pas` | `TS4YCustomChipBox`: the scroll box that keeps a chip for each text and wraps them, base of the group and the edit |
+| `Sources\Tag\Soft4You.FMX.Controls.ChipGroup.pas` | `TS4YChipGroup` |
+| `Sources\Tag\Soft4You.FMX.Controls.ChipEdit.pas` | `TS4YChipEdit` |
+| `Sources\Tag\Soft4You.FMX.Controls.Tag.Types.pas` | The enumerated types of the kind, the variant, the shape, the size, the state and the selection mode, the heights and font sizes of the sizes, and the types of the events |
+| `Sources\Tag\Soft4You.FMX.Controls.Tag.Register.pas` | Registration of the four controls in the Tool Palette (design time) |
+| `Sources\Tag\Soft4You.FMX.Controls.Tag.Win.rc` / `.Mac.rc` / `.Android.rc` / `.iOS.rc`, and the same for `Chip` and `ChipEdit` | Resource scripts that link the styles as the resources `S4YTagStyle`, `S4YChipStyle` and `S4YChipEditStyle` |
+| `Sources\Tag\Soft4You.FMX.Controls.Tag.Win.style` / `.Mac.style` / `.Android.style` / `.iOS.style`, and the same for `Chip` and `ChipEdit` | Default styles for each platform: they differ in the colors of the kinds and of the frame |
+| `Graphics\Tag\TS4YTag.svg`, `TS4YChip.svg`, `TS4YChipGroup.svg`, `TS4YChipEdit.svg` | Vector masters of the icons of the Tool Palette |
+| `Graphics\Tag\TS4YTag.bmp`, `TS4YChip.bmp`, `TS4YChipGroup.bmp`, `TS4YChipEdit.bmp`, `TagDesign.rc` | Icons of the Tool Palette (24x24 bitmaps) and the resource script that links them |
 
 The style resources are linked into the package, so the controls look the same without any other file. The packages compile them from the `.rc` files into the folder `Resources`, which your projects need in the search path of the resources, as for the other controls of the suite.
 
@@ -95,6 +107,77 @@ begin
 end;
 ```
 
+## `TS4YChipGroup`
+
+Chips made from a list of texts, one after the other and on a new line when the width ends, of which the user chooses one, some or none. `Items` holds the texts; the group makes, changes and frees the chips (they are not saved in the form) and gives them `Kind`, `Variant`, `Shape` and `SizePreset`.
+
+| Property | Default | Meaning |
+|---|---|---|
+| `Items` | empty | The texts of the chips, one for each chip. Changing the list keeps the choice of the chips that remain, by position |
+| `SelectionMode` | `cgmSingle` | `cgmSingle`: one chip at a time, as radio buttons, and clicking the chosen one keeps it chosen; `cgmMultiple`: any number; `cgmNone`: the chips are not chosen |
+| `ItemIndex` | -1 | Position of the chosen chip, or of the first chosen one in `cgmMultiple`; -1 for none. Setting it chooses that chip and un-chooses the others. It is saved in the form only in `cgmSingle` |
+| `Selected[Index]` | | Whether the chip at that position is chosen (read and write) |
+| `SelectedItems` | | The texts of the chosen chips, in the order of `Items` (read only) |
+| `Kind`, `Variant`, `Shape`, `SizePreset`, `ShowCheckMark` | as the chip | Look of all the chips; the default `Variant` is `tgvOutlined` |
+| `HorizontalGap`, `VerticalGap` | 8 | Space between two chips, and between two lines, in pixels |
+| `AutoSize` | `True` | The height follows the lines of chips, up to `MaxHeight` |
+| `MaxHeight` | 0 | Largest height in pixels when `AutoSize` is `True`: a longer content scrolls vertically, with the mouse wheel and the finger. 0 means no limit |
+| `OnChange` | | After the choice changes, whether by the user, by `ItemIndex` or by `Selected` |
+
+With `AutoSize` set to `False` the height is the one set, and the group scrolls when the chips do not fit.
+
+Keyboard: Tab enters the group on the chosen chip (the first one when none is chosen), the arrow keys, Home and End move the focus among the chips (up and down go to the nearest chip of the line above or under), and Space chooses the chip. The chip that takes the focus is scrolled into view.
+
+Binding: a property link (`TLinkPropertyToField`) can show a field in `ItemIndex`, and the group follows the source. The other way, from the group to the source, is not done by the link: assign the field in `OnChange`. The texts of `Items` cannot be filled by the list links of LiveBindings (`TLinkListControlToField` stops with the error *No list control editor available*: it needs a list control that FMX knows), so fill `Items` in the code.
+
+## `TS4YChipEdit`
+
+A text field where the user types entries that become chips, as the recipients of an email: the chips and the text field share the lines, which wrap at the width of the control. The look is a frame, with the chips of `TS4YChip` (closable) inside it.
+
+| Property | Default | Meaning |
+|---|---|---|
+| `Items` | empty | The texts of the chips, in order. Changing it from the code changes the chips but fires no event |
+| `Separators` | `,;` | The characters that turn the text into a chip, besides Enter |
+| `AllowDuplicates` | `False` | When `False`, a text that is already an item (without case) is dropped |
+| `MaxItems` | 0 | The most chips the control holds; a text that would be one more stays in the field. 0 means no limit |
+| `TextPrompt` | empty | Text shown in the field while it is empty |
+| `Kind`, `Variant`, `Shape`, `SizePreset` | neutral, tonal, pill, as the chip | Look of the chips |
+| `HorizontalGap`, `VerticalGap` | 8 | Space between two chips, and between two lines, in pixels |
+| `AutoSize` | `True` | The height follows the lines, up to `MaxHeight` |
+| `MaxHeight` | 0 | Largest height in pixels, frame included, when `AutoSize` is `True`: a longer content scrolls. 0 means no limit |
+| `EditText` | | The text that the user is typing, not yet a chip; setting it works as typing or pasting it |
+
+| Method | Does |
+|---|---|
+| `AddItem(Text)` | Turns a text into a chip as Enter does: the spaces around it are dropped, `OnValidate` is called, `OnAdd` fires. Returns `False` when the text is refused |
+| `CommitText` | Turns the text of the field into a chip |
+| `RemoveItem(Index)` | Removes the chip and fires `OnRemove` |
+| `FocusEdit` | Gives the focus to the text field |
+
+| Event | When |
+|---|---|
+| `OnValidate(Sender, Text, Accept, Kind)` | Before a text becomes a chip. Set `Accept` to `False` to refuse it: it stays in the field. Set `Kind`, for example to `tgkDanger` for an address that is not valid, to accept it and show it differently; the kind is kept with the item |
+| `OnAdd(Sender, Text, Index)` | After a chip is added by the user, `AddItem` or `CommitText` |
+| `OnRemove(Sender, Text, Index)` | After a chip is removed by the user or `RemoveItem` |
+
+How the user works:
+
+- Enter, a separator, the loss of the focus, and a paste with separators in it turn the text into chips; a text that is only spaces gives no chip.
+- Backspace with the field empty removes the last chip. The left arrow with the cursor at the start of the field moves the focus to the last chip, the arrow keys move it among the chips and the field, and Delete or Backspace on a chip removes it, as its close button does. The chip that takes the focus is scrolled into view.
+- A click on the free space of the control puts the cursor in the field.
+
+```delphi
+procedure TMainForm.RecipientsEditValidate(Sender: TObject; const Text: string; var Accept: Boolean;
+  var Kind: TS4YTagKind);
+begin
+  // The text is accepted, and an address that does not look right is shown as a danger
+  if Pos('@', Text) < 2 then
+    Kind := tgkDanger;
+end;
+```
+
+The frame comes from the style `S4YChipEditStyle` (see below). The text field uses the style `transparentedit` of the active style, so that it has no frame of its own; a style that does not have it shows the default frame of an edit.
+
 ## Style
 
 `TS4YTag` uses the style named by `StyleLookup` or, when it is empty or no style has that name, the one named `S4YTagStyle`; `TS4YChip` the one named `S4YChipStyle`. The style is looked for in the `TStyleBook` of the form, then in the active style, and the one linked into the package is the last resort. The two default styles are the same, except for the name.
@@ -119,13 +202,22 @@ The colors of the background, the border and the text are calculated from the co
 
 The tonal and outlined variants draw their text with a dark version of the color, which is easy to read on a light background and not on a dark one. For a dark style, give the parts `...textcolor` lighter colors: in a `TStyleBook` with a copy of `S4YTagStyle` and `S4YChipStyle` (*Edit Custom Style* in the form designer, or the style files of `Sources\Tag` as a start), change the `Color` of `primarytextcolor` and of the others, for example to the color of the kind made lighter. The default styles give the values the controls calculate, so they look the same as without these parts. `TextColor` still replaces them for a single control.
 
+### Style of `TS4YChipEdit`
+
+`TS4YChipEdit` uses the style named by `StyleLookup` or, when it is empty, `S4YChipEditStyle`, looked for as the others. `TS4YChipGroup` has no style of its own: it is a scroll box that uses the one of the active style.
+
+| Part | Class | Use |
+|---|---|---|
+| `background` | `TRectangle` | The frame: its fill, its radius; the control sets the color and the thickness of the border |
+| `bordercolor`, `focusbordercolor` | `TColorObject` | The colors of the border, without and with the focus (in the text field or on a chip) |
+
 ## Desktop and mobile
 
 - The mouse: hover state and hand cursor on a chip, a round highlight on the close button.
-- The finger: no hover; the close button reacts in an area of at least 44 x 44 pixels, and the default size is the large one.
+- The finger: no hover; the close button reacts in an area of at least 44 x 44 pixels, and the default size is the large one. The group and the edit scroll with the finger when they reach `MaxHeight`.
 
 ## Demo
 
-`Demos\Tag\S4YTagDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows the six kinds and the three variants, chips that choose several or one of a group, recipient chips with a round picture that can be closed and added, tags and chips with an icon from an image list (`Images`, `ImageIndex`) and with a picture (`Bitmap`, `ImageRound`), with the settings of a sample tag on the right. The icons and the pictures are drawn in code, so that the demo needs no image file.
+`Demos\Tag\S4YTagDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows the six kinds and the three variants, chips that choose several or one of a group, recipient chips with a round picture that can be closed and added, tags and chips with an icon from an image list (`Images`, `ImageIndex`) and with a picture (`Bitmap`, `ImageRound`), with the settings of a sample tag on the right. Under them there is a group that chooses one chip and a group that chooses several and scrolls (`MaxHeight`), and a chip edit for recipients where an address that does not look right is shown as a danger. The icons and the pictures are drawn in code, so that the demo needs no image file. The demo scrolls when the window is not high enough.
 
 The page **Chips** of the mobile gallery `Demos\Mobile` has tags, filter chips and closable chips for the phone.
