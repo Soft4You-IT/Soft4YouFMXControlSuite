@@ -101,6 +101,35 @@ type
   TS4YImagePathMode = (ipmApplication, ipmDocument);
 
   /// <summary>
+  /// The kind of an image source.
+  /// </summary>
+  /// <remarks>
+  /// iskLocal: a file system path or a file: URL.
+  /// iskRemote: an http: or https: address.
+  /// iskEmbedded: a data: URI.
+  /// iskOther: any other scheme, for example cid:.
+  /// </remarks>
+  TS4YImageSourceKind = (iskLocal, iskRemote, iskEmbedded, iskOther);
+
+  /// <summary>
+  /// An image of a document, as listed by TS4YHTMLEditor.GetImages.
+  /// </summary>
+  TS4YImageInfo = record
+    /// <summary>The source as written in the document.</summary>
+    Source: string;
+    /// <summary>The kind of the source.</summary>
+    Kind: TS4YImageSourceKind;
+    /// <summary>For a local source, the path of the file according to ImagePathMode and DocumentPath; empty for the other kinds.</summary>
+    FilePath: string;
+    /// <summary>Width in pixels that the document holds for the image: the one in the HTML or the natural one once loaded; 0 when unknown.</summary>
+    Width: Integer;
+    /// <summary>Height in pixels that the document holds for the image: the one in the HTML or the natural one once loaded; 0 when unknown.</summary>
+    Height: Integer;
+    /// <summary>False for a local file that LocalImageAccess does not allow; True for every other image. OnBeforeLoadImage is not asked.</summary>
+    IsAllowed: Boolean;
+  end;
+
+  /// <summary>
   /// Which local files an image source may point to.
   /// </summary>
   /// <remarks>
@@ -659,6 +688,12 @@ function IsRemoteImageSource(const ASource: string): Boolean;
 /// <returns>True for file: URLs and for relative or absolute paths; False for data:, cid: and other schemes.</returns>
 function IsLocalImageSource(const ASource: string): Boolean;
 /// <summary>
+/// Tells the kind of an image source.
+/// </summary>
+/// <param name="ASource">The image source.</param>
+/// <returns>iskLocal, iskRemote, iskEmbedded (data:) or iskOther (any other scheme, such as cid:).</returns>
+function GetImageSourceKind(const ASource: string): TS4YImageSourceKind;
+/// <summary>
 /// Finds the path or URL that an image source is read from.
 /// </summary>
 /// <param name="ASource">The image source as written in the document.</param>
@@ -875,6 +910,18 @@ end;
 function IsLocalImageSource(const ASource: string): Boolean;
 begin
   Result := StartsWithCI(ASource, 'file:') or ((ASource <> '') and not HasUrlScheme(ASource));
+end;
+
+function GetImageSourceKind(const ASource: string): TS4YImageSourceKind;
+begin
+  if IsRemoteImageSource(ASource) then
+    Result := iskRemote
+  else if IsLocalImageSource(ASource) then
+    Result := iskLocal
+  else if StartsWithCI(ASource, 'data:') then
+    Result := iskEmbedded
+  else
+    Result := iskOther;
 end;
 
 function ResolveImagePath(const ASource, ADocumentPath: string; AMode: TS4YImagePathMode): string;
