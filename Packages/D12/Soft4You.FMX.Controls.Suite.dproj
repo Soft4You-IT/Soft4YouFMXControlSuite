@@ -245,6 +245,12 @@
         <DCCReference Include="..\..\Sources\Grid\Soft4You.FMX.Controls.Grid.Style.pas"/>
         <DCCReference Include="..\..\Sources\Avatar\Soft4You.FMX.Controls.Avatar.Types.pas"/>
         <DCCReference Include="..\..\Sources\Avatar\Soft4You.FMX.Controls.Avatar.pas"/>
+        <DCCReference Include="..\..\Sources\Tag\Soft4You.FMX.Controls.Tag.Types.pas"/>
+        <DCCReference Include="..\..\Sources\Tag\Soft4You.FMX.Controls.Tag.pas"/>
+        <DCCReference Include="..\..\Sources\Tag\Soft4You.FMX.Controls.Chip.pas"/>
+        <DCCReference Include="..\..\Sources\Tag\Soft4You.FMX.Controls.ChipBox.pas"/>
+        <DCCReference Include="..\..\Sources\Tag\Soft4You.FMX.Controls.ChipGroup.pas"/>
+        <DCCReference Include="..\..\Sources\Tag\Soft4You.FMX.Controls.ChipEdit.pas"/>
         <RcCompile Include="..\..\Sources\Badge\Soft4You.FMX.Controls.Badge.Mac.rc">
             <Form>Soft4You.FMX.Controls.Badge.Mac.res</Form>
         </RcCompile>
@@ -400,6 +406,42 @@
         </RcCompile>
         <RcCompile Include="..\..\Sources\Avatar\Soft4You.FMX.Controls.Avatar.iOS.rc">
             <Form>Soft4You.FMX.Controls.Avatar.iOS.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Tag\Soft4You.FMX.Controls.Tag.Mac.rc">
+            <Form>Soft4You.FMX.Controls.Tag.Mac.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Tag\Soft4You.FMX.Controls.Tag.Win.rc">
+            <Form>Soft4You.FMX.Controls.Tag.Win.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Tag\Soft4You.FMX.Controls.Tag.Android.rc">
+            <Form>Soft4You.FMX.Controls.Tag.Android.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Tag\Soft4You.FMX.Controls.Tag.iOS.rc">
+            <Form>Soft4You.FMX.Controls.Tag.iOS.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Tag\Soft4You.FMX.Controls.Chip.Mac.rc">
+            <Form>Soft4You.FMX.Controls.Chip.Mac.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Tag\Soft4You.FMX.Controls.Chip.Win.rc">
+            <Form>Soft4You.FMX.Controls.Chip.Win.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Tag\Soft4You.FMX.Controls.Chip.Android.rc">
+            <Form>Soft4You.FMX.Controls.Chip.Android.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Tag\Soft4You.FMX.Controls.Chip.iOS.rc">
+            <Form>Soft4You.FMX.Controls.Chip.iOS.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Tag\Soft4You.FMX.Controls.ChipEdit.Mac.rc">
+            <Form>Soft4You.FMX.Controls.ChipEdit.Mac.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Tag\Soft4You.FMX.Controls.ChipEdit.Win.rc">
+            <Form>Soft4You.FMX.Controls.ChipEdit.Win.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Tag\Soft4You.FMX.Controls.ChipEdit.Android.rc">
+            <Form>Soft4You.FMX.Controls.ChipEdit.Android.res</Form>
+        </RcCompile>
+        <RcCompile Include="..\..\Sources\Tag\Soft4You.FMX.Controls.ChipEdit.iOS.rc">
+            <Form>Soft4You.FMX.Controls.ChipEdit.iOS.res</Form>
         </RcCompile>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

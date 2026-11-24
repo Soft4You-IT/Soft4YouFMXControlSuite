@@ -23,6 +23,7 @@ Supported platforms: **Windows, macOS, iOS, Android**. Developed and tested on W
 |  | `TS4YExpander` | Collapsible panel with an icon in the header, a height animation, a click on the whole header and a badge counter | [Docs\Expander](Docs/Expander/README.md)<br>[Screenshot](Docs/Screenshots/expander.png) |
 |  | `TS4YFlexBox`, `TS4YFlexItem` | Container that lays out its items with the CSS Flexbox model (W3C Level 1) | [Docs\FlexBox](Docs/FlexBox/README.md)<br>[Screenshot](Docs/Screenshots/flexbox.png) |
 | **Content** | `TS4YAvatar` | Picture of a person, or the initials of the name on a color chosen from it, round or square, with a ring, a status dot and a camera button to change the picture | [Docs\Avatar](Docs/Avatar/README.md)<br>[Screenshot](Docs/Screenshots/avatar.png) |
+|  | `TS4YTag`, `TS4YChip`, `TS4YChipGroup`, `TS4YChipEdit` | Short colored labels: the tag classifies; the chip is clicked, chosen alone or in a group, or closed by the user. Six kinds, three variants, an icon or a picture and a close button. The chip group makes chips from a list of texts to choose one, some or none; the chip edit is a text field where each entry becomes a chip, as the recipients of an email | [Docs\Tag](Docs/Tag/README.md)<br>[Screenshot](Docs/Screenshots/tag.png) |
 | **Indicators** | `TS4YBadge` | Badge like the notification counter of a smartphone icon: a number or a short text over another control | [Docs\Badge](Docs/Badge/README.md)<br>[Screenshot](Docs/Screenshots/badge.png) |
 |  | `TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter`, `TS4YCircularMeter`, `TS4YSkinCircularGauge`, `TS4YSkinLinearGauge` | Gauges that show a value in a range as a horizontal or vertical bar, or as a ring or an arc, that fills with the value, with a caption and the value written; the meters add a graduation along the bar or the arc, colored ranges, a target, a needle or a pointer; the look comes from a style, and the skin gauges are made only of the parts of their style, such as a dial and a needle or a thermometer drawn as images | [Docs\Gauges](Docs/Gauges/README.md)<br>[Screenshot](Docs/Screenshots/gauges.png) |
 |  | `TS4YStepProgressBar` | Progress indicator made of steps along a horizontal or vertical line, like the phases of an installation or the pages of a wizard; the look comes from a style | [Docs\StepProgressBar](Docs/StepProgressBar/README.md)<br>[Screenshot](Docs/Screenshots/stepprogressbar.png) |
@@ -42,6 +43,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Sources\BlockScrollBox` | Units of the BlockScrollBox control (`TS4YBlockScrollBox`) and the interfaces of the block flow, used by the FlexBox too |
 | `Sources\Badge` | Units of the Badge control (`TS4YBadge`), with its styles and resource scripts |
 | `Sources\Avatar` | Units of the Avatar control (`TS4YAvatar`) and its types, with its styles and resource scripts |
+| `Sources\Tag` | Units of the tag, the chip, the chip group and the chip edit (`TS4YTag`, `TS4YChip`, `TS4YChipGroup`, `TS4YChipEdit`) and their types, with their styles and resource scripts |
 | `Sources\Expander` | Units of the Expander control (`TS4YExpander`), with its styles and resource scripts |
 | `Sources\ColorSelector` | Units of the ColorSelector control (`TS4YColorSelector`) and the types of its event |
 | `Sources\StepProgressBar` | Units of the StepProgressBar control (`TS4YStepProgressBar`) and its types, with its styles and resource scripts |
@@ -50,7 +52,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Sources\Gauges` | Units of the gauges (`TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter`, `TS4YCircularMeter`, `TS4YSkinCircularGauge`, `TS4YSkinLinearGauge`) and their types, with their styles and resource scripts |
 | `Sources\Design` | Design-time unit shared by all the controls of the suite (IDE splash screen and About box) |
 | `Packages\D11`, `D12`, `D13` | Runtime and design-time packages and their project group, one folder for each Delphi version (11, 12, 13) |
-| `Resources` | Resources compiled by the packages from the `.rc` files (styles of the Badge, the Avatar, the Expander, the StepProgressBar, the gauges and the charts, Tool Palette icons, version information); created when the packages are built, not in the repository |
+| `Resources` | Resources compiled by the packages from the `.rc` files (styles of the Badge, the Avatar, the Tag and the Chip, the Expander, the StepProgressBar, the gauges and the charts, Tool Palette icons, version information); created when the packages are built, not in the repository |
 | `Graphics` | Source artwork: one folder for each control with its Tool Palette icon (24x24 bitmap, its SVG master and the resource script `XxxDesign.rc` compiled into the design-time package); `Soft4YouFMXControlSuite.svg` is the master of the icon of the suite, shown in the IDE splash screen and About box (`S4YSplash.bmp` and `S4YAbout.bmp`, 24x24), compiled with `Soft4You.FMX.Controls.SuiteD.rc` into `Soft4You.FMX.Controls.SuiteD.dcr` of each `Packages` folder |
 | `Demos\HTMLEditor` | Sample FMX applications: `Desktop` (full demo), `Test` (HTML test files), `Icons` (toolbar icons of the desktop demo) |
 | `Demos\FlexBox` | Sample FMX dashboard built with `TS4YFlexBox` |
@@ -61,6 +63,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Demos\StepProgressBar` | Sample FMX application with two `TS4YStepProgressBar`: the steps of an installation, moved by buttons, and the steps of a wizard, chosen with a click |
 | `Demos\Gauges` | Sample FMX applications with `TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter` and `TS4YCircularMeter`: the settings of the gauges and of the meters, and a gallery of examples |
 | `Demos\Charts` | Sample FMX applications with `TS4YPieChart`, `TS4YBarChart` and `TS4YLineChart`: the settings of the charts, and a gallery of examples with a tab for the LiveBindings |
+| `Demos\Tag` | Sample FMX application with `TS4YTag`, `TS4YChip`, `TS4YChipGroup` and `TS4YChipEdit`: the six kinds and the three variants, chips that choose several or one of a group, recipients with a picture that can be closed and added, tags and chips with an icon or a picture, chip groups that choose one or several, a chip edit for recipients, and the settings to change a sample tag |
 | `Demos\Mobile` | Gallery of all the controls for the phones (Android, and Windows to try it on the computer): one page for each family of controls, changed with a swipe, with the HTML editor and the virtual keyboard, the filters of the grid, the expanders and the camera button of the avatar to use by hand, and gauges, charts and steps moved by timers |
 | `Demos\Grid` | Sample FMX application with `TS4YGrid`: a list of objects filtered by the application with the operators of the filters, with the settings of the filter row, of the footer and of the order, a `TFDMemTable` filtered and sorted through the LiveBindings, and a dark style of a style book |
 | `Docs\HTMLEditor` | Documentation of the HTML editor: [`README.md`](Docs/HTMLEditor/README.md) (installation, properties, methods, events), [`DeveloperGuide.md`](Docs/HTMLEditor/DeveloperGuide.md) (how to use the control, behaviour and warnings), `Architecture.md` (internals) |
@@ -69,6 +72,7 @@ All the controls are built into the same two packages and appear in the Tool Pal
 | `Docs\ColorSelector` | Documentation of the ColorSelector control: [`README.md`](Docs/ColorSelector/README.md) |
 | `Docs\Badge` | Documentation of the Badge control: [`README.md`](Docs/Badge/README.md) |
 | `Docs\Avatar` | Documentation of the Avatar control: [`README.md`](Docs/Avatar/README.md) |
+| `Docs\Tag` | Documentation of the tag, the chip, the chip group and the chip edit: [`README.md`](Docs/Tag/README.md) |
 | `Docs\Expander` | Documentation of the Expander control: [`README.md`](Docs/Expander/README.md) |
 | `Docs\StepProgressBar` | Documentation of the StepProgressBar control: [`README.md`](Docs/StepProgressBar/README.md) |
 | `Docs\Gauges` | Documentation of the gauges: [`README.md`](Docs/Gauges/README.md) |
@@ -100,7 +104,7 @@ The suite has two packages, in a folder for each version of Delphi (`Packages\D1
 2. Build the runtime package `Soft4You.FMX.Controls.Suite`.
 3. Build and install the design-time package `Soft4You.FMX.Controls.SuiteD`. It registers the controls, their property editors and the splash screen and About box of the suite.
    The 64-bit IDE (Delphi 12.3 and newer) loads only packages built for Windows 64-bit: select the **Windows 64-bit** platform for both packages, build them, and install `Soft4You.FMX.Controls.SuiteD` from the 64-bit IDE. The 32-bit IDE needs the **Windows 32-bit** build, as before.
-4. Add the folders of the controls you use (`Sources\HTMLEditor`, `Sources\FlexBox`, `Sources\BlockScrollBox`, `Sources\Badge`, `Sources\Avatar`, `Sources\Expander`, `Sources\ColorSelector`, `Sources\StepProgressBar`, `Sources\Gauges`, `Sources\Charts`, `Sources\Grid`) to the Delphi library path; the FlexBox also needs `Sources\BlockScrollBox`, to compile your own projects with their units. Add also the folder `Resources`: the packages compile into it the resources with the styles of the Badge, the Avatar, the Expander, the StepProgressBar, the gauges and the charts, so build the packages before your projects. The demos find the units of the repository through the search path of their project.
+4. Add the folders of the controls you use (`Sources\HTMLEditor`, `Sources\FlexBox`, `Sources\BlockScrollBox`, `Sources\Badge`, `Sources\Avatar`, `Sources\Tag`, `Sources\Expander`, `Sources\ColorSelector`, `Sources\StepProgressBar`, `Sources\Gauges`, `Sources\Charts`, `Sources\Grid`) to the Delphi library path; the FlexBox also needs `Sources\BlockScrollBox`, to compile your own projects with their units. Add also the folder `Resources`: the packages compile into it the resources with the styles of the Badge, the Avatar, the Tag and the Chip, the Expander, the StepProgressBar, the gauges and the charts, so build the packages before your projects. The demos find the units of the repository through the search path of their project.
 
 The compiled units and the demo executables are written in `Bin`; the `.bpl` and `.dcp` files of the packages go to the shared folders of the IDE.
 
@@ -158,7 +162,7 @@ The public API of every control is documented with DocXML comments (`/// <summar
 
 The suite is the work of Carlo Marona (Soft4You), who designs and directs it. Artificial intelligence was used for part of the controls, through [Claude](https://www.anthropic.com/claude) (Anthropic) and Claude Code:
 
-- `TS4YHTMLEditor`, `TS4YFlexBox`, `TS4YStepProgressBar`, `TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter`, `TS4YCircularMeter`, `TS4YSkinCircularGauge`, `TS4YSkinLinearGauge`, `TS4YPieChart`, `TS4YBarChart` and `TS4YLineChart`, `TS4YGrid` and `TS4YAvatar` were developed with the assistance of Claude from the start.
+- `TS4YHTMLEditor`, `TS4YFlexBox`, `TS4YStepProgressBar`, `TS4YLinearGauge`, `TS4YCircularGauge`, `TS4YLinearMeter`, `TS4YCircularMeter`, `TS4YSkinCircularGauge`, `TS4YSkinLinearGauge`, `TS4YPieChart`, `TS4YBarChart` and `TS4YLineChart`, `TS4YGrid`, `TS4YAvatar`, `TS4YTag`, `TS4YChip`, `TS4YChipGroup` and `TS4YChipEdit` were developed with the assistance of Claude from the start.
 - `TS4YBadge`, `TS4YExpander` and `TS4YColorSelector` were first written by Carlo Marona and later refined with the assistance of Claude, mainly `TS4YExpander`.
 
 ---

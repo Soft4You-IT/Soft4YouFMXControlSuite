@@ -685,6 +685,147 @@ object MobileGalleryForm: TMobileGalleryForm
           end
         end
       end
+      object TagsTab: TTabItem
+        IsSelected = False
+        Text = 'Chips'
+        object TagsScrollBox: TVertScrollBox
+          Align = Client
+          Padding.Left = 16
+          Padding.Top = 8
+          Padding.Right = 16
+          Padding.Bottom = 16
+          Size.Width = 400
+          Size.Height = 684
+          Size.PlatformDefault = False
+          TabOrder = 0
+          object TagsTitleLabel: TLabel
+            Align = Top
+            StyledSettings = [Family, FontColor]
+            Size.Width = 368
+            Size.Height = 28
+            Size.PlatformDefault = False
+            TextSettings.Font.Size = 16
+            TextSettings.Font.StyleExt = {00070000000000000004000000}
+            Text = 'TS4YTag and TS4YChip'
+            TabOrder = 0
+          end
+          object TagsLabel: TLabel
+            Align = Top
+            Margins.Top = 12
+            Size.Width = 368
+            Size.Height = 20
+            Size.PlatformDefault = False
+            Text = 'Tags: kinds and variants'
+            TabOrder = 1
+          end
+          object TagsLayout: TFlowLayout
+            Align = Top
+            Margins.Top = 8
+            Size.Width = 368
+            Size.Height = 48
+            Size.PlatformDefault = False
+            TabOrder = 2
+            HorizontalGap = 8
+            VerticalGap = 8
+            object UrgentTag: TS4YTag
+              Kind = tgkDanger
+              Text = 'Urgent'
+              Variant = tgvFilled
+            end
+            object DraftTag: TS4YTag
+              Text = 'Draft'
+            end
+            object DeliveredTag: TS4YTag
+              Kind = tgkSuccess
+              Text = 'Delivered'
+            end
+            object ReviewTag: TS4YTag
+              Kind = tgkWarning
+              Text = 'In review'
+              Variant = tgvOutlined
+            end
+          end
+          object FilterChipsLabel: TLabel
+            Align = Top
+            Margins.Top = 12
+            Size.Width = 368
+            Size.Height = 20
+            Size.PlatformDefault = False
+            Text = 'Chips: choose several'
+            TabOrder = 3
+          end
+          object FilterChipsLayout: TFlowLayout
+            Align = Top
+            Margins.Top = 8
+            Size.Width = 368
+            Size.Height = 48
+            Size.PlatformDefault = False
+            TabOrder = 4
+            HorizontalGap = 8
+            VerticalGap = 8
+            object OpenChip: TS4YChip
+              TabOrder = 0
+              Checkable = True
+              Checked = True
+              Text = 'Open'
+              OnCheckedChange = ChipCheckedChange
+            end
+            object ProgressChip: TS4YChip
+              TabOrder = 1
+              Checkable = True
+              Checked = True
+              Text = 'In progress'
+              OnCheckedChange = ChipCheckedChange
+            end
+            object ClosedChip: TS4YChip
+              TabOrder = 2
+              Checkable = True
+              Text = 'Closed'
+              OnCheckedChange = ChipCheckedChange
+            end
+          end
+          object ChipsResultLabel: TLabel
+            Align = Top
+            Margins.Top = 8
+            Size.Width = 368
+            Size.Height = 20
+            Size.PlatformDefault = False
+            Text = 'Selected: Open, In progress'
+            TabOrder = 5
+          end
+          object RecipientChipsLabel: TLabel
+            Align = Top
+            Margins.Top = 12
+            Size.Width = 368
+            Size.Height = 20
+            Size.PlatformDefault = False
+            Text = 'Chips that can be closed'
+            TabOrder = 6
+          end
+          object RecipientChipsLayout: TFlowLayout
+            Align = Top
+            Margins.Top = 8
+            Size.Width = 368
+            Size.Height = 48
+            Size.PlatformDefault = False
+            TabOrder = 7
+            HorizontalGap = 8
+            VerticalGap = 8
+            object AnnaRecipientChip: TS4YChip
+              TabOrder = 0
+              Closable = True
+              Kind = tgkPrimary
+              Text = 'Anna Verdi'
+            end
+            object LucaRecipientChip: TS4YChip
+              TabOrder = 1
+              Closable = True
+              Kind = tgkPrimary
+              Text = 'Luca Bianchi'
+            end
+          end
+        end
+      end
       object StepsTab: TTabItem
         IsSelected = False
         Text = 'Steps'
