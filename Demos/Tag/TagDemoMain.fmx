@@ -10,7 +10,7 @@ object TagDemoForm: TTagDemoForm
   FormFactor.Devices = [Desktop]
   DesignerMasterStyle = 0
   OnCreate = FormCreate
-  object DemoLayout: TLayout
+  object DemoLayout: TVertScrollBox
     Align = Client
     Size.Width = 540.000000000000000000
     Size.Height = 660.000000000000000000
@@ -284,7 +284,7 @@ object TagDemoForm: TTagDemoForm
       Position.X = 32.000000000000000000
       Position.Y = 548.000000000000000000
       Size.Width = 480.000000000000000000
-      Size.Height = 48.000000000000000000
+      Size.Height = 88.000000000000000000
       Size.PlatformDefault = False
       HorizontalGap = 8.000000000000000000
       VerticalGap = 8.000000000000000000
@@ -323,6 +323,96 @@ object TagDemoForm: TTagDemoForm
         Text = 'Picture'
         Variant = tgvTonal
       end
+    end
+    object GroupLabel: TLabel
+      Position.X = 32.000000000000000000
+      Position.Y = 644.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Chip group: choose one (top) or several (bottom, with scrolling)'
+      TabOrder = 17
+    end
+    object SingleGroup: TS4YChipGroup
+      Position.X = 32.000000000000000000
+      Position.Y = 668.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+      Items.Strings = (
+        'Mail'
+        'Calendar'
+        'Contacts'
+        'Notes'
+        'Tasks')
+      ItemIndex = 0
+      Kind = tgkPrimary
+      OnChange = GroupChange
+    end
+    object MultipleGroup: TS4YChipGroup
+      Position.X = 32.000000000000000000
+      Position.Y = 712.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 80.000000000000000000
+      Size.PlatformDefault = False
+      Items.Strings = (
+        'Red'
+        'Orange'
+        'Yellow'
+        'Green'
+        'Teal'
+        'Blue'
+        'Indigo'
+        'Purple'
+        'Pink'
+        'Brown'
+        'Gray'
+        'Black'
+        'White'
+        'Gold')
+      MaxHeight = 80.000000000000000000
+      SelectionMode = cgmMultiple
+      Variant = tgvTonal
+      OnChange = GroupChange
+    end
+    object GroupResultLabel: TLabel
+      Position.X = 32.000000000000000000
+      Position.Y = 800.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 18
+    end
+    object EditLabel: TLabel
+      Position.X = 32.000000000000000000
+      Position.Y = 836.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Chip edit: type an address and press Enter, comma or semicolon'
+      TabOrder = 19
+    end
+    object RecipientsEdit: TS4YChipEdit
+      Position.X = 32.000000000000000000
+      Position.Y = 860.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      Items.Strings = (
+        'anna@example.com')
+      MaxHeight = 100.000000000000000000
+      TextPrompt = 'Add a recipient'
+      OnAdd = RecipientsEditChange
+      OnRemove = RecipientsEditChange
+      OnValidate = RecipientsEditValidate
+    end
+    object EditResultLabel: TLabel
+      Position.X = 32.000000000000000000
+      Position.Y = 968.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 20
     end
   end
   object SettingsPanel: TPanel

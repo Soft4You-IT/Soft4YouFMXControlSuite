@@ -19,12 +19,15 @@ uses
   FMX.StdCtrls,
   FMX.Edit,
   FMX.ListBox,
+  Soft4You.FMX.Controls.Tag.Types,
   Soft4You.FMX.Controls.Tag,
-  Soft4You.FMX.Controls.Chip;
+  Soft4You.FMX.Controls.Chip,
+  Soft4You.FMX.Controls.ChipGroup,
+  Soft4You.FMX.Controls.ChipEdit;
 
 type
   TTagDemoForm = class(TForm)
-    DemoLayout: TLayout;
+    DemoLayout: TVertScrollBox;
     KindsLabel: TLabel;
     KindsLayout: TFlowLayout;
     NeutralTag: TS4YTag;
@@ -83,14 +86,24 @@ type
     PhotoTag: TS4YTag;
     SquarePhotoChip: TS4YChip;
     IconImageList: TImageList;
+    GroupLabel: TLabel;
+    SingleGroup: TS4YChipGroup;
+    MultipleGroup: TS4YChipGroup;
+    GroupResultLabel: TLabel;
+    EditLabel: TLabel;
+    RecipientsEdit: TS4YChipEdit;
+    EditResultLabel: TLabel;
     procedure AddRecipientButtonClick(Sender: TObject);
     procedure AutoSizeCheckBoxChange(Sender: TObject);
     procedure ClosableCheckBoxChange(Sender: TObject);
     procedure FilterChipCheckedChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure GroupChange(Sender: TObject);
     procedure KindComboBoxChange(Sender: TObject);
     procedure MaxWidthCheckBoxChange(Sender: TObject);
     procedure RecipientChipClose(Sender: TObject; var CanClose: Boolean);
+    procedure RecipientsEditChange(Sender: TObject; const Text: string; Index: Integer);
+    procedure RecipientsEditValidate(Sender: TObject; const Text: string; var Accept: Boolean; var Kind: TS4YTagKind);
     procedure ShapeComboBoxChange(Sender: TObject);
     procedure SizeChipCheckedChange(Sender: TObject);
     procedure SizeComboBoxChange(Sender: TObject);
@@ -106,9 +119,6 @@ var
   TagDemoForm: TTagDemoForm;
 
 implementation
-
-uses
-  Soft4You.FMX.Controls.Tag.Types;
 
 {$R *.fmx}
 
@@ -216,6 +226,21 @@ begin
   DrawPhoto(LucaChip.Bitmap, 'Luca Bianchi', C_PHOTO_COLORS[1]);
   DrawPhoto(PhotoTag.Bitmap, 'Round', C_PHOTO_COLORS[2]);
   DrawPhoto(SquarePhotoChip.Bitmap, 'Picture', C_PHOTO_COLORS[3]);
+  GroupChange(nil);
+  RecipientsEditChange(RecipientsEdit, RecipientsEdit.Items[0], 0);
+end;
+
+procedure TTagDemoForm.GroupChange(Sender: TObject);
+var
+  LSelected: string;
+begin
+  // SelectedItems gives the texts of the chosen chips, whatever the mode of selection
+  LSelected := string.Join(', ', SingleGroup.SelectedItems);
+
+  if LSelected = '' then
+    LSelected := 'none';
+
+  GroupResultLabel.Text := 'Top: ' + LSelected + '. Bottom: ' + IntToStr(Length(MultipleGroup.SelectedItems)) + ' chosen';
 end;
 
 procedure TTagDemoForm.KindComboBoxChange(Sender: TObject);
@@ -312,6 +337,20 @@ begin
     SampleTag.MaxWidth := 100
   else
     SampleTag.MaxWidth := 0;
+end;
+
+procedure TTagDemoForm.RecipientsEditChange(Sender: TObject; const Text: string; Index: Integer);
+begin
+  // OnAdd and OnRemove tell what the user does; Items holds the chips
+  EditResultLabel.Text := IntToStr(RecipientsEdit.Items.Count) + ' recipients, the last change: ' + Text;
+end;
+
+procedure TTagDemoForm.RecipientsEditValidate(Sender: TObject; const Text: string; var Accept: Boolean;
+  var Kind: TS4YTagKind);
+begin
+  // A text that does not look like an address is accepted but shown as a danger, so that the user sees it
+  if (Pos('@', Text) < 2) or (Pos('.', Text, Pos('@', Text)) = 0) then
+    Kind := tgkDanger;
 end;
 
 procedure TTagDemoForm.RecipientChipClose(Sender: TObject; var CanClose: Boolean);
