@@ -1,0 +1,474 @@
+object TagDemoForm: TTagDemoForm
+  Left = 0
+  Top = 0
+  Caption = 'TS4YTag and TS4YChip demo'
+  Position = ScreenCenter
+  ClientHeight = 560
+  ClientWidth = 820
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object DemoLayout: TLayout
+    Align = Client
+    Size.Width = 540.000000000000000000
+    Size.Height = 560.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object KindsLabel: TLabel
+      Position.X = 32.000000000000000000
+      Position.Y = 20.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Tags: the six kinds'
+      TabOrder = 0
+    end
+    object KindsLayout: TFlowLayout
+      Position.X = 32.000000000000000000
+      Position.Y = 44.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      HorizontalGap = 8.000000000000000000
+      VerticalGap = 8.000000000000000000
+      TabOrder = 1
+      object NeutralTag: TS4YTag
+        Text = 'Neutral'
+      end
+      object PrimaryTag: TS4YTag
+        Kind = tgkPrimary
+        Text = 'Primary'
+      end
+      object SuccessTag: TS4YTag
+        Kind = tgkSuccess
+        Text = 'Success'
+      end
+      object WarningTag: TS4YTag
+        Kind = tgkWarning
+        Text = 'Warning'
+      end
+      object DangerTag: TS4YTag
+        Kind = tgkDanger
+        Text = 'Danger'
+      end
+      object InfoTag: TS4YTag
+        Kind = tgkInfo
+        Text = 'Info'
+      end
+    end
+    object VariantsLabel: TLabel
+      Position.X = 32.000000000000000000
+      Position.Y = 96.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Tags: filled, tonal and outlined, and a tag that can be closed'
+      TabOrder = 2
+    end
+    object VariantsLayout: TFlowLayout
+      Position.X = 32.000000000000000000
+      Position.Y = 120.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      HorizontalGap = 8.000000000000000000
+      VerticalGap = 8.000000000000000000
+      TabOrder = 3
+      object FilledTag: TS4YTag
+        Kind = tgkPrimary
+        Text = 'Filled'
+        Variant = tgvFilled
+      end
+      object TonalTag: TS4YTag
+        Kind = tgkPrimary
+        Text = 'Tonal'
+        Variant = tgvTonal
+      end
+      object OutlinedTag: TS4YTag
+        Kind = tgkPrimary
+        Text = 'Outlined'
+        Variant = tgvOutlined
+      end
+      object ClosableTag: TS4YTag
+        Closable = True
+        Kind = tgkSuccess
+        Text = 'Closable'
+        Variant = tgvTonal
+      end
+    end
+    object FilterLabel: TLabel
+      Position.X = 32.000000000000000000
+      Position.Y = 172.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Chips: choose several'
+      TabOrder = 4
+    end
+    object FilterLayout: TFlowLayout
+      Position.X = 32.000000000000000000
+      Position.Y = 196.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      HorizontalGap = 8.000000000000000000
+      VerticalGap = 8.000000000000000000
+      TabOrder = 5
+      object OpenChip: TS4YChip
+        TabOrder = 0
+        Checkable = True
+        Checked = True
+        Text = 'Open'
+        OnCheckedChange = FilterChipCheckedChange
+      end
+      object InProgressChip: TS4YChip
+        TabOrder = 1
+        Checkable = True
+        Checked = True
+        Text = 'In progress'
+        OnCheckedChange = FilterChipCheckedChange
+      end
+      object DoneChip: TS4YChip
+        TabOrder = 2
+        Checkable = True
+        Text = 'Done'
+        OnCheckedChange = FilterChipCheckedChange
+      end
+      object ArchivedChip: TS4YChip
+        TabOrder = 3
+        Checkable = True
+        Text = 'Archived'
+        OnCheckedChange = FilterChipCheckedChange
+      end
+    end
+    object FilterResultLabel: TLabel
+      Position.X = 32.000000000000000000
+      Position.Y = 240.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Selected: Open, In progress'
+      TabOrder = 6
+    end
+    object SizeLabel: TLabel
+      Position.X = 32.000000000000000000
+      Position.Y = 276.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Chips in a group: choose one'
+      TabOrder = 7
+    end
+    object SizeLayout: TFlowLayout
+      Position.X = 32.000000000000000000
+      Position.Y = 300.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      HorizontalGap = 8.000000000000000000
+      VerticalGap = 8.000000000000000000
+      TabOrder = 8
+      object SmallSizeChip: TS4YChip
+        TabOrder = 0
+        Checkable = True
+        GroupName = 'size'
+        Kind = tgkPrimary
+        Text = 'Small'
+        OnCheckedChange = SizeChipCheckedChange
+      end
+      object MediumSizeChip: TS4YChip
+        TabOrder = 1
+        Checkable = True
+        Checked = True
+        GroupName = 'size'
+        Kind = tgkPrimary
+        Text = 'Medium'
+        OnCheckedChange = SizeChipCheckedChange
+      end
+      object LargeSizeChip: TS4YChip
+        TabOrder = 2
+        Checkable = True
+        GroupName = 'size'
+        Kind = tgkPrimary
+        Text = 'Large'
+        OnCheckedChange = SizeChipCheckedChange
+      end
+    end
+    object SizeResultLabel: TLabel
+      Position.X = 32.000000000000000000
+      Position.Y = 344.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Size: Medium'
+      TabOrder = 9
+    end
+    object RecipientsLabel: TLabel
+      Position.X = 32.000000000000000000
+      Position.Y = 380.000000000000000000
+      Size.Width = 500.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Chips that can be closed: click the cross, or focus one and press Delete'
+      TabOrder = 10
+    end
+    object RecipientsLayout: TFlowLayout
+      Position.X = 32.000000000000000000
+      Position.Y = 404.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 40.000000000000000000
+      Size.PlatformDefault = False
+      HorizontalGap = 8.000000000000000000
+      VerticalGap = 8.000000000000000000
+      TabOrder = 11
+      object AnnaChip: TS4YChip
+        TabOrder = 0
+        Closable = True
+        Kind = tgkPrimary
+        Text = 'Anna Verdi'
+        Variant = tgvTonal
+        OnClose = RecipientChipClose
+      end
+      object LucaChip: TS4YChip
+        TabOrder = 1
+        Closable = True
+        Kind = tgkPrimary
+        Text = 'Luca Bianchi'
+        Variant = tgvTonal
+        OnClose = RecipientChipClose
+      end
+    end
+    object NewRecipientEdit: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      TabOrder = 12
+      Text = 'Paolo Russo'
+      Position.X = 32.000000000000000000
+      Position.Y = 452.000000000000000000
+      Size.Width = 240.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+    end
+    object AddRecipientButton: TButton
+      Position.X = 284.000000000000000000
+      Position.Y = 452.000000000000000000
+      Size.Width = 100.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 13
+      Text = 'Add'
+      OnClick = AddRecipientButtonClick
+    end
+    object MessageLabel: TLabel
+      Position.X = 32.000000000000000000
+      Position.Y = 492.000000000000000000
+      Size.Width = 480.000000000000000000
+      Size.Height = 20.000000000000000000
+      Size.PlatformDefault = False
+      Text = ''
+      TabOrder = 14
+    end
+  end
+  object SettingsPanel: TPanel
+    Align = Right
+    Position.X = 540.000000000000000000
+    Size.Width = 280.000000000000000000
+    Size.Height = 560.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object SampleLayout: TLayout
+        Align = Top
+        Position.X = 0.000000000000000000
+        Position.Y = 0.000000000000000000
+        Size.Width = 280.000000000000000000
+        Size.Height = 72.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        object SampleTag: TS4YTag
+          Kind = tgkPrimary
+          Position.X = 12.000000000000000000
+          Position.Y = 20.000000000000000000
+          Text = 'Sample'
+        end
+      end
+      object TextLabel: TLabel
+        Align = Top
+        Margins.Left = 12.000000000000000000
+        Margins.Top = 12.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 72.000000000000000000
+        Size.Width = 256.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Text'
+        TabOrder = 1
+      end
+      object TextEdit: TEdit
+        Align = Top
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        TabOrder = 2
+        Text = 'Sample'
+        Margins.Left = 12.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 104.000000000000000000
+        Size.Width = 256.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        OnChangeTracking = TextEditChangeTracking
+      end
+      object KindSettingLabel: TLabel
+        Align = Top
+        Margins.Left = 12.000000000000000000
+        Margins.Top = 12.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 144.000000000000000000
+        Size.Width = 256.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Kind'
+        TabOrder = 3
+      end
+      object KindComboBox: TComboBox
+        Align = Top
+        Items.Strings = (
+          'Neutral'
+          'Primary'
+          'Success'
+          'Warning'
+          'Danger'
+          'Info')
+        ItemIndex = 1
+        Margins.Left = 12.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 176.000000000000000000
+        Size.Width = 256.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 4
+        OnChange = KindComboBoxChange
+      end
+      object VariantSettingLabel: TLabel
+        Align = Top
+        Margins.Left = 12.000000000000000000
+        Margins.Top = 12.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 216.000000000000000000
+        Size.Width = 256.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Variant'
+        TabOrder = 5
+      end
+      object VariantComboBox: TComboBox
+        Align = Top
+        Items.Strings = (
+          'Filled'
+          'Tonal'
+          'Outlined')
+        ItemIndex = 1
+        Margins.Left = 12.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 248.000000000000000000
+        Size.Width = 256.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 6
+        OnChange = VariantComboBoxChange
+      end
+      object ShapeSettingLabel: TLabel
+        Align = Top
+        Margins.Left = 12.000000000000000000
+        Margins.Top = 12.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 288.000000000000000000
+        Size.Width = 256.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Shape'
+        TabOrder = 7
+      end
+      object ShapeComboBox: TComboBox
+        Align = Top
+        Items.Strings = (
+          'Pill'
+          'Rounded'
+          'Square')
+        ItemIndex = 0
+        Margins.Left = 12.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 320.000000000000000000
+        Size.Width = 256.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 8
+        OnChange = ShapeComboBoxChange
+      end
+      object SizeSettingLabel: TLabel
+        Align = Top
+        Margins.Left = 12.000000000000000000
+        Margins.Top = 12.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 360.000000000000000000
+        Size.Width = 256.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'Size'
+        TabOrder = 9
+      end
+      object SizeComboBox: TComboBox
+        Align = Top
+        Items.Strings = (
+          'Small'
+          'Medium'
+          'Large')
+        ItemIndex = 1
+        Margins.Left = 12.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 392.000000000000000000
+        Size.Width = 256.000000000000000000
+        Size.Height = 28.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 10
+        OnChange = SizeComboBoxChange
+      end
+      object ClosableCheckBox: TCheckBox
+        Align = Top
+        Margins.Left = 12.000000000000000000
+        Margins.Top = 8.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 436.000000000000000000
+        Size.Width = 256.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 11
+        Text = 'Closable'
+        OnChange = ClosableCheckBoxChange
+      end
+      object AutoSizeCheckBox: TCheckBox
+        Align = Top
+        IsChecked = True
+        Margins.Left = 12.000000000000000000
+        Margins.Top = 8.000000000000000000
+        Margins.Right = 12.000000000000000000
+        Position.X = 12.000000000000000000
+        Position.Y = 464.000000000000000000
+        Size.Width = 256.000000000000000000
+        Size.Height = 20.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 12
+        Text = 'Width follows the text'
+        OnChange = AutoSizeCheckBoxChange
+      end
+  end
+end

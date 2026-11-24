@@ -31,6 +31,8 @@ uses
   Soft4You.FMX.Controls.BlockScrollBox,
   Soft4You.FMX.Controls.Badge,
   Soft4You.FMX.Controls.Avatar,
+  Soft4You.FMX.Controls.Tag,
+  Soft4You.FMX.Controls.Chip,
   Soft4You.FMX.Controls.Expander,
   Soft4You.FMX.Controls.StepProgressBar,
   Soft4You.FMX.Controls.Gauges,
@@ -141,6 +143,25 @@ type
     GiuliaAvatar: TS4YAvatar;
     PaoloAvatar: TS4YAvatar;
     UnknownAvatar: TS4YAvatar;
+    TagsTab: TTabItem;
+    TagsScrollBox: TVertScrollBox;
+    TagsTitleLabel: TLabel;
+    TagsLabel: TLabel;
+    TagsLayout: TFlowLayout;
+    UrgentTag: TS4YTag;
+    DraftTag: TS4YTag;
+    DeliveredTag: TS4YTag;
+    ReviewTag: TS4YTag;
+    FilterChipsLabel: TLabel;
+    FilterChipsLayout: TFlowLayout;
+    OpenChip: TS4YChip;
+    ProgressChip: TS4YChip;
+    ClosedChip: TS4YChip;
+    ChipsResultLabel: TLabel;
+    RecipientChipsLabel: TLabel;
+    RecipientChipsLayout: TFlowLayout;
+    AnnaRecipientChip: TS4YChip;
+    LucaRecipientChip: TS4YChip;
     StepsTab: TTabItem;
     StepsScrollBox: TVertScrollBox;
     HorizontalStepsLabel: TLabel;
@@ -194,6 +215,7 @@ type
     procedure BoldButtonClick(Sender: TObject);
     procedure BulletsButtonClick(Sender: TObject);
     procedure ChartsTimerTimer(Sender: TObject);
+    procedure ChipCheckedChange(Sender: TObject);
     procedure CustomersGridFilter(Sender: TObject);
     procedure CustomersGridGetValue(Sender: TObject; const ACol, ARow: Integer; var Value: TValue);
     procedure CustomersGridSort(Sender: TObject);
@@ -387,6 +409,30 @@ begin
       C_DOT_SIZE);
     FDots[I] := LDot;
   end;
+end;
+
+procedure TMobileGalleryForm.ChipCheckedChange(Sender: TObject);
+var
+  LChip: TS4YChip;
+  LSelected: string;
+begin
+  LSelected := '';
+
+  for LChip in [OpenChip, ProgressChip, ClosedChip] do
+  begin
+    if LChip.Checked then
+    begin
+      if LSelected <> '' then
+        LSelected := LSelected + ', ';
+
+      LSelected := LSelected + LChip.Text;
+    end;
+  end;
+
+  if LSelected = '' then
+    LSelected := 'none';
+
+  ChipsResultLabel.Text := 'Selected: ' + LSelected;
 end;
 
 procedure TMobileGalleryForm.CustomersGridFilter(Sender: TObject);
