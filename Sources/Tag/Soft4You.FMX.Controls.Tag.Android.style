@@ -1,0 +1,119 @@
+object TLayout
+  StyleName = 'S4YTagStyle'
+  Align = Contents
+  HitTest = False
+  Size.Width = 96.000000000000000000
+  Size.Height = 32.000000000000000000
+  Size.PlatformDefault = False
+  object TRectangle
+    StyleName = 'background'
+    Size.Width = 96.000000000000000000
+    Size.Height = 32.000000000000000000
+    Size.PlatformDefault = False
+    Fill.Color = x29757575
+    HitTest = False
+    Stroke.Kind = None
+    XRadius = 16.000000000000000000
+    YRadius = 16.000000000000000000
+  end
+  object TRectangle
+    StyleName = 'image'
+    Position.X = 12.000000000000000000
+    Position.Y = 7.200000000000000000
+    Size.Width = 17.600000000000000000
+    Size.Height = 17.600000000000000000
+    Size.PlatformDefault = False
+    Fill.Kind = None
+    HitTest = False
+    Stroke.Kind = None
+    Visible = False
+    XRadius = 8.800000000000000000
+    YRadius = 8.800000000000000000
+  end
+  object TGlyph
+    StyleName = 'icon'
+    Position.X = 12.000000000000000000
+    Position.Y = 7.200000000000000000
+    Size.Width = 17.600000000000000000
+    Size.Height = 17.600000000000000000
+    Size.PlatformDefault = False
+    Visible = False
+    AutoHide = False
+  end
+  object TPath
+    StyleName = 'check'
+    Position.X = 13.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 16.000000000000000000
+    Size.Height = 16.000000000000000000
+    Size.PlatformDefault = False
+    Data.Data = 'M9 16.17 L4.83 12 L3.41 13.41 L9 19 L21 7 L19.59 5.59 Z'
+    Fill.Color = xFF212121
+    HitTest = False
+    Stroke.Kind = None
+    Visible = False
+    WrapMode = Fit
+  end
+  object TText
+    StyleName = 'text'
+    Position.X = 12.000000000000000000
+    Size.Width = 60.000000000000000000
+    Size.Height = 32.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Tag'
+    HitTest = False
+    TextSettings.Font.Size = 13.000000000000000000
+    TextSettings.FontColor = xFF212121
+    TextSettings.HorzAlign = Leading
+    TextSettings.WordWrap = False
+    TextSettings.Trimming = Character
+  end
+  object TCircle
+    StyleName = 'close'
+    Position.X = 71.000000000000000000
+    Position.Y = 6.400000000000000000
+    Size.Width = 19.200000000000000000
+    Size.Height = 19.200000000000000000
+    Size.PlatformDefault = False
+    Fill.Color = x00000000
+    Stroke.Kind = None
+    Visible = False
+    object TPath
+      StyleName = 'closeicon'
+      Position.X = 4.200000000000000000
+      Position.Y = 4.200000000000000000
+      Size.Width = 10.800000000000000000
+      Size.Height = 10.800000000000000000
+      Size.PlatformDefault = False
+      Data.Data = 'M19 6.41 L17.59 5 L12 10.59 L6.41 5 L5 6.41 L10.59 12 L5 17.59 L6.41 19 L12 13.41 L17.59 19 L19 17.59 L13.41 12 Z'
+      Fill.Color = xFF212121
+      HitTest = False
+      Stroke.Kind = None
+      WrapMode = Fit
+    end
+  end
+  object TColorObject
+    StyleName = 'neutralcolor'
+    Color = xFF757575
+  end
+  object TColorObject
+    StyleName = 'primarycolor'
+    Color = xFF1E88E5
+  end
+  object TColorObject
+    StyleName = 'successcolor'
+    Color = xFF43A047
+  end
+  object TColorObject
+    StyleName = 'warningcolor'
+    Color = xFFFB8C00
+  end
+  object TColorObject
+    StyleName = 'dangercolor'
+    Color = xFFE53935
+  end
+  object TColorObject
+    StyleName = 'infocolor'
+    Color = xFF00ACC1
+  end
+end
