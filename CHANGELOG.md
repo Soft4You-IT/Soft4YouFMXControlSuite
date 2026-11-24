@@ -22,6 +22,7 @@ The changes of each release of the Soft4You FMX Control Suite, the newest first.
 
 ### Fixed
 
+- `TS4YHTMLEditor` reads the named HTML entities of Latin-1 and the most common others, such as `&egrave;`, `&euro;`, the typographic quotes, `&bull;` and the arrows, which were left in the text as written when the HTML was not made by the editor; an unknown entity stays as written. `&mdash;` and `&ndash;` now become the characters of the long and the short dash, instead of `--` and `-`.
 - `TS4YHTMLEditor` bound to a field with a `TLinkControlToField` follows `Track` of the link: the field receives the HTML after every edit with `Track` on, else when the editor loses the focus. Before, the field was written after every key, even with `Track` off, without putting the source into edit mode, and the value given back by the link could move the caret to the start and clear the undo history. Undo and redo reach the field, and removing the link gives back the `ReadOnly` the editor had before.
 - `TS4YBadge` and `TS4YExpander` use a style named `S4YBadgeStyle` or `S4YExpanderStyle` in the style book of the form or in the active style, instead of always the style linked into the package. A `StyleLookup` that names no style makes them use their own style: before, they were left without one.
 - `TS4YExpander` no longer raises an access violation when it is destroyed after the icon or the badge of its style has already been freed elsewhere: those parts now tell the expander when they are freed, and it forgets them.

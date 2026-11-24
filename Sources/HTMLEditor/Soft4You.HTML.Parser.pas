@@ -182,8 +182,161 @@ type
 
 implementation
 
+type
+  // A named HTML entity and the character it stands for
+  TNamedEntity = record
+    Name: string;
+    Code: Integer;
+  end;
+
 const
   C_MAXIMUM_TABLE_SPAN = 100;
+
+  // Names are case sensitive: &Egrave; and &egrave; are different characters
+  C_NAMED_ENTITIES: array[0..135] of TNamedEntity = (
+    // Markup characters
+    (Name: 'amp'; Code: $0026),
+    (Name: 'lt'; Code: $003C),
+    (Name: 'gt'; Code: $003E),
+    (Name: 'quot'; Code: $0022),
+    (Name: 'apos'; Code: $0027),
+    // Latin-1, codes 160 to 255
+    (Name: 'nbsp'; Code: $00A0),
+    (Name: 'iexcl'; Code: $00A1),
+    (Name: 'cent'; Code: $00A2),
+    (Name: 'pound'; Code: $00A3),
+    (Name: 'curren'; Code: $00A4),
+    (Name: 'yen'; Code: $00A5),
+    (Name: 'brvbar'; Code: $00A6),
+    (Name: 'sect'; Code: $00A7),
+    (Name: 'uml'; Code: $00A8),
+    (Name: 'copy'; Code: $00A9),
+    (Name: 'ordf'; Code: $00AA),
+    (Name: 'laquo'; Code: $00AB),
+    (Name: 'not'; Code: $00AC),
+    (Name: 'shy'; Code: $00AD),
+    (Name: 'reg'; Code: $00AE),
+    (Name: 'macr'; Code: $00AF),
+    (Name: 'deg'; Code: $00B0),
+    (Name: 'plusmn'; Code: $00B1),
+    (Name: 'sup2'; Code: $00B2),
+    (Name: 'sup3'; Code: $00B3),
+    (Name: 'acute'; Code: $00B4),
+    (Name: 'micro'; Code: $00B5),
+    (Name: 'para'; Code: $00B6),
+    (Name: 'middot'; Code: $00B7),
+    (Name: 'cedil'; Code: $00B8),
+    (Name: 'sup1'; Code: $00B9),
+    (Name: 'ordm'; Code: $00BA),
+    (Name: 'raquo'; Code: $00BB),
+    (Name: 'frac14'; Code: $00BC),
+    (Name: 'frac12'; Code: $00BD),
+    (Name: 'frac34'; Code: $00BE),
+    (Name: 'iquest'; Code: $00BF),
+    (Name: 'Agrave'; Code: $00C0),
+    (Name: 'Aacute'; Code: $00C1),
+    (Name: 'Acirc'; Code: $00C2),
+    (Name: 'Atilde'; Code: $00C3),
+    (Name: 'Auml'; Code: $00C4),
+    (Name: 'Aring'; Code: $00C5),
+    (Name: 'AElig'; Code: $00C6),
+    (Name: 'Ccedil'; Code: $00C7),
+    (Name: 'Egrave'; Code: $00C8),
+    (Name: 'Eacute'; Code: $00C9),
+    (Name: 'Ecirc'; Code: $00CA),
+    (Name: 'Euml'; Code: $00CB),
+    (Name: 'Igrave'; Code: $00CC),
+    (Name: 'Iacute'; Code: $00CD),
+    (Name: 'Icirc'; Code: $00CE),
+    (Name: 'Iuml'; Code: $00CF),
+    (Name: 'ETH'; Code: $00D0),
+    (Name: 'Ntilde'; Code: $00D1),
+    (Name: 'Ograve'; Code: $00D2),
+    (Name: 'Oacute'; Code: $00D3),
+    (Name: 'Ocirc'; Code: $00D4),
+    (Name: 'Otilde'; Code: $00D5),
+    (Name: 'Ouml'; Code: $00D6),
+    (Name: 'times'; Code: $00D7),
+    (Name: 'Oslash'; Code: $00D8),
+    (Name: 'Ugrave'; Code: $00D9),
+    (Name: 'Uacute'; Code: $00DA),
+    (Name: 'Ucirc'; Code: $00DB),
+    (Name: 'Uuml'; Code: $00DC),
+    (Name: 'Yacute'; Code: $00DD),
+    (Name: 'THORN'; Code: $00DE),
+    (Name: 'szlig'; Code: $00DF),
+    (Name: 'agrave'; Code: $00E0),
+    (Name: 'aacute'; Code: $00E1),
+    (Name: 'acirc'; Code: $00E2),
+    (Name: 'atilde'; Code: $00E3),
+    (Name: 'auml'; Code: $00E4),
+    (Name: 'aring'; Code: $00E5),
+    (Name: 'aelig'; Code: $00E6),
+    (Name: 'ccedil'; Code: $00E7),
+    (Name: 'egrave'; Code: $00E8),
+    (Name: 'eacute'; Code: $00E9),
+    (Name: 'ecirc'; Code: $00EA),
+    (Name: 'euml'; Code: $00EB),
+    (Name: 'igrave'; Code: $00EC),
+    (Name: 'iacute'; Code: $00ED),
+    (Name: 'icirc'; Code: $00EE),
+    (Name: 'iuml'; Code: $00EF),
+    (Name: 'eth'; Code: $00F0),
+    (Name: 'ntilde'; Code: $00F1),
+    (Name: 'ograve'; Code: $00F2),
+    (Name: 'oacute'; Code: $00F3),
+    (Name: 'ocirc'; Code: $00F4),
+    (Name: 'otilde'; Code: $00F5),
+    (Name: 'ouml'; Code: $00F6),
+    (Name: 'divide'; Code: $00F7),
+    (Name: 'oslash'; Code: $00F8),
+    (Name: 'ugrave'; Code: $00F9),
+    (Name: 'uacute'; Code: $00FA),
+    (Name: 'ucirc'; Code: $00FB),
+    (Name: 'uuml'; Code: $00FC),
+    (Name: 'yacute'; Code: $00FD),
+    (Name: 'thorn'; Code: $00FE),
+    (Name: 'yuml'; Code: $00FF),
+    // Punctuation, symbols and arrows
+    (Name: 'OElig'; Code: $0152),
+    (Name: 'oelig'; Code: $0153),
+    (Name: 'Scaron'; Code: $0160),
+    (Name: 'scaron'; Code: $0161),
+    (Name: 'Yuml'; Code: $0178),
+    (Name: 'circ'; Code: $02C6),
+    (Name: 'tilde'; Code: $02DC),
+    (Name: 'ensp'; Code: $2002),
+    (Name: 'emsp'; Code: $2003),
+    (Name: 'thinsp'; Code: $2009),
+    (Name: 'ndash'; Code: $2013),
+    (Name: 'mdash'; Code: $2014),
+    (Name: 'lsquo'; Code: $2018),
+    (Name: 'rsquo'; Code: $2019),
+    (Name: 'sbquo'; Code: $201A),
+    (Name: 'ldquo'; Code: $201C),
+    (Name: 'rdquo'; Code: $201D),
+    (Name: 'bdquo'; Code: $201E),
+    (Name: 'dagger'; Code: $2020),
+    (Name: 'bull'; Code: $2022),
+    (Name: 'hellip'; Code: $2026),
+    (Name: 'permil'; Code: $2030),
+    (Name: 'lsaquo'; Code: $2039),
+    (Name: 'rsaquo'; Code: $203A),
+    (Name: 'euro'; Code: $20AC),
+    (Name: 'trade'; Code: $2122),
+    (Name: 'larr'; Code: $2190),
+    (Name: 'uarr'; Code: $2191),
+    (Name: 'rarr'; Code: $2192),
+    (Name: 'darr'; Code: $2193),
+    (Name: 'minus'; Code: $2212),
+    (Name: 'infin'; Code: $221E),
+    (Name: 'ne'; Code: $2260),
+    (Name: 'le'; Code: $2264),
+    (Name: 'ge'; Code: $2265)
+  );
+
+var
+  NamedEntityTable: TDictionary<string, Char>;
 
 // -----------------------------------------------------------------------------
 // TS4YHTMLParser
@@ -2382,6 +2535,7 @@ var
   LScanPosition, LEntityEnd: Integer;
   LEntity: string;
   LCode: Integer;
+  LCharacter: Char;
 begin
   if not AText.Contains('&') then
     Exit(AText);
@@ -2402,31 +2556,7 @@ begin
       begin
         LEntity := AText.Substring(LScanPosition - Low(AText) + 1, LEntityEnd - LScanPosition - 1);
 
-        if LEntity = 'amp' then
-          Result := Result + '&'
-        else if LEntity = 'lt' then
-          Result := Result + '<'
-        else if LEntity = 'gt' then
-          Result := Result + '>'
-        else if LEntity = 'quot' then
-          Result := Result + '"'
-        else if LEntity = 'apos' then
-          Result := Result + ''''
-        else if LEntity = 'nbsp' then
-          Result := Result + #$00A0
-        else if LEntity = 'copy' then
-          Result := Result + #$00A9
-        else if LEntity = 'reg' then
-          Result := Result + #$00AE
-        else if LEntity = 'trade' then
-          Result := Result + #$2122
-        else if LEntity = 'mdash' then
-          Result := Result + '--'
-        else if LEntity = 'ndash' then
-          Result := Result + '-'
-        else if LEntity = 'hellip' then
-          Result := Result + #$2026
-        else if (LEntity <> '') and (LEntity[Low(LEntity)] = '#') then
+        if (LEntity <> '') and (LEntity[Low(LEntity)] = '#') then
         begin
           try
             if (LEntity.Length > 1) and CharInSet(LEntity[Low(LEntity) + 1], ['x', 'X']) then
@@ -2445,6 +2575,8 @@ begin
             Result := Result + '&' + LEntity + ';';
           end;
         end
+        else if NamedEntityTable.TryGetValue(LEntity, LCharacter) then
+          Result := Result + LCharacter
         else
           Result := Result + '&' + LEntity + ';';
 
@@ -2568,5 +2700,21 @@ begin
     FCurrentParagraph.Free;
   end;
 end;
+
+procedure FillNamedEntityTable;
+var
+  LEntity: TNamedEntity;
+begin
+  NamedEntityTable := TDictionary<string, Char>.Create(Length(C_NAMED_ENTITIES));
+
+  for LEntity in C_NAMED_ENTITIES do
+    NamedEntityTable.Add(LEntity.Name, Char(LEntity.Code));
+end;
+
+initialization
+  FillNamedEntityTable;
+
+finalization
+  NamedEntityTable.Free;
 
 end.

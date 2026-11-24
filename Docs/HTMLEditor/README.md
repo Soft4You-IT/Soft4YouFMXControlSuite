@@ -103,7 +103,7 @@ end;
 
 ### HTML entities
 
-`&amp;` `&lt;` `&gt;` `&quot;` `&apos;` `&nbsp;` `&copy;` `&reg;` `&trade;` `&mdash;` `&ndash;` `&hellip;` `&#N;` `&#xN;`
+`&amp;` `&lt;` `&gt;` `&quot;` `&apos;`, the named entities of Latin-1 (`&nbsp;` to `&yuml;`, such as `&egrave;`, `&copy;`, `&reg;`), `&euro;`, `&trade;`, `&hellip;`, `&mdash;`, `&ndash;`, `&bull;`, the typographic quotes (`&lsquo;` `&rsquo;` `&sbquo;` `&ldquo;` `&rdquo;` `&bdquo;`), `&dagger;`, `&permil;`, `&lsaquo;`, `&rsaquo;`, `&OElig;`, `&oelig;`, `&Scaron;`, `&scaron;`, `&Yuml;`, `&circ;`, `&tilde;`, `&ensp;`, `&emsp;`, `&thinsp;`, the arrows `&larr;` `&uarr;` `&rarr;` `&darr;`, `&minus;`, `&infin;`, `&ne;`, `&le;`, `&ge;`, and the numeric ones `&#N;` `&#xN;`. Names are case sensitive (`&Egrave;` and `&egrave;` are different) and an entity is decoded once, so `&amp;egrave;` is the text `&egrave;`. An unknown entity stays as written.
 
 ---
 
