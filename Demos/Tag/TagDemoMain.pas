@@ -5,8 +5,14 @@ interface
 uses
   System.SysUtils,
   System.Classes,
+  System.Types,
+  System.UITypes,
+  System.Math.Vectors,
   FMX.Types,
   FMX.Controls,
+  FMX.Graphics,
+  FMX.ImgList,
+  FMX.MultiResBitmap,
   FMX.Forms,
   FMX.Layouts,
   FMX.Controls.Presentation,
@@ -68,10 +74,19 @@ type
     SizeComboBox: TComboBox;
     ClosableCheckBox: TCheckBox;
     AutoSizeCheckBox: TCheckBox;
+    PicturesLabel: TLabel;
+    PicturesLayout: TFlowLayout;
+    DoneIconTag: TS4YTag;
+    UrgentIconTag: TS4YTag;
+    FavoriteChip: TS4YChip;
+    PhotoTag: TS4YTag;
+    SquarePhotoChip: TS4YChip;
+    IconImageList: TImageList;
     procedure AddRecipientButtonClick(Sender: TObject);
     procedure AutoSizeCheckBoxChange(Sender: TObject);
     procedure ClosableCheckBoxChange(Sender: TObject);
     procedure FilterChipCheckedChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure KindComboBoxChange(Sender: TObject);
     procedure RecipientChipClose(Sender: TObject; var CanClose: Boolean);
     procedure ShapeComboBoxChange(Sender: TObject);
@@ -79,6 +94,10 @@ type
     procedure SizeComboBoxChange(Sender: TObject);
     procedure TextEditChangeTracking(Sender: TObject);
     procedure VariantComboBoxChange(Sender: TObject);
+  private
+    function AddIcon(const ABitmap: TBitmap): Integer;
+    function MakeIcon(const AKind: Integer): TBitmap;
+    procedure DrawPhoto(const ATarget: TBitmap; const AName: string; const AColor: TAlphaColor);
   end;
 
 var
@@ -90,6 +109,31 @@ uses
   Soft4You.FMX.Controls.Tag.Types;
 
 {$R *.fmx}
+
+const
+  // Colors of the pictures made for the recipients, one after the other
+  C_PHOTO_COLORS: array[0..3] of TAlphaColor = ($FF1E88E5, $FF43A047, $FF8E24AA, $FFF4511E);
+
+function TTagDemoForm.AddIcon(const ABitmap: TBitmap): Integer;
+var
+  LBitmapItem: TCustomBitmapItem;
+  LDestination: TCustomDestinationItem;
+  LLayer: TLayer;
+  LSource: TCustomSourceItem;
+begin
+  // An item of the image list is a source with the bitmap and a destination with a layer that
+  // points to the source by its name.
+  LSource := IconImageList.Source.Add;
+  LSource.Name := 'Icon' + IntToStr(IconImageList.Source.Count);
+  LBitmapItem := LSource.MultiResBitmap.Add;
+  LBitmapItem.Scale := 1;
+  LBitmapItem.Bitmap.Assign(ABitmap);
+  LDestination := IconImageList.Destination.Add;
+  LLayer := LDestination.Layers.Add;
+  LLayer.Name := LSource.Name;
+  LLayer.SourceRect.Rect := TRectF.Create(0, 0, ABitmap.Width, ABitmap.Height);
+  Result := LDestination.Index;
+end;
 
 procedure TTagDemoForm.AddRecipientButtonClick(Sender: TObject);
 var
@@ -105,6 +149,8 @@ begin
   LChip.Kind := tgkPrimary;
   LChip.Variant := tgvTonal;
   LChip.Closable := True;
+  LChip.ImageRound := True;
+  DrawPhoto(LChip.Bitmap, LChip.Text, C_PHOTO_COLORS[RecipientsLayout.ControlsCount mod Length(C_PHOTO_COLORS)]);
   LChip.OnClose := RecipientChipClose;
   NewRecipientEdit.Text := '';
   MessageLabel.Text := 'Added ' + LChip.Text;
@@ -148,10 +194,113 @@ begin
   FilterResultLabel.Text := 'Selected: ' + LSelected;
 end;
 
+procedure TTagDemoForm.FormCreate(Sender: TObject);
+var
+  LIcon: TBitmap;
+  LIndex: Integer;
+begin
+  // The icons of the image list and the pictures are drawn here, so that the demo needs no image file.
+  for LIndex := 0 to 2 do
+  begin
+    LIcon := MakeIcon(LIndex);
+    try
+      AddIcon(LIcon);
+    finally
+      LIcon.Free;
+    end;
+  end;
+
+  DrawPhoto(AnnaChip.Bitmap, 'Anna Verdi', C_PHOTO_COLORS[0]);
+  DrawPhoto(LucaChip.Bitmap, 'Luca Bianchi', C_PHOTO_COLORS[1]);
+  DrawPhoto(PhotoTag.Bitmap, 'Round', C_PHOTO_COLORS[2]);
+  DrawPhoto(SquarePhotoChip.Bitmap, 'Picture', C_PHOTO_COLORS[3]);
+end;
+
 procedure TTagDemoForm.KindComboBoxChange(Sender: TObject);
 begin
   // The items follow the order of TS4YTagKind
   SampleTag.Kind := TS4YTagKind(KindComboBox.ItemIndex);
+end;
+
+function TTagDemoForm.MakeIcon(const AKind: Integer): TBitmap;
+const
+  C_SIZE = 32;
+  C_STAR_POINTS = 5;
+var
+  LAngle: Single;
+  LIndex: Integer;
+  LPolygon: TPolygon;
+  LRadius: Single;
+begin
+  // 0: a check on a green disc, 1: a yellow star, 2: an exclamation mark on a red disc
+  Result := TBitmap.Create(C_SIZE, C_SIZE);
+  Result.Canvas.BeginScene;
+  try
+    Result.Canvas.Clear(TAlphaColors.Null);
+    Result.Canvas.Stroke.Kind := TBrushKind.Solid;
+    Result.Canvas.Stroke.Thickness := 3;
+    Result.Canvas.Stroke.Cap := TStrokeCap.Round;
+    Result.Canvas.Stroke.Join := TStrokeJoin.Round;
+
+    case AKind of
+      0:
+        begin
+          Result.Canvas.Fill.Color := $FF43A047;
+          Result.Canvas.FillEllipse(TRectF.Create(1, 1, C_SIZE - 1, C_SIZE - 1), 1);
+          Result.Canvas.Stroke.Color := TAlphaColors.White;
+          Result.Canvas.DrawLine(PointF(9, 17), PointF(14, 22), 1);
+          Result.Canvas.DrawLine(PointF(14, 22), PointF(23, 10), 1);
+        end;
+      1:
+        begin
+          SetLength(LPolygon, C_STAR_POINTS * 2);
+
+          for LIndex := 0 to C_STAR_POINTS * 2 - 1 do
+          begin
+            if Odd(LIndex) then
+              LRadius := 6.5
+            else
+              LRadius := 15;
+
+            LAngle := -Pi / 2 + LIndex * Pi / C_STAR_POINTS;
+            LPolygon[LIndex] := PointF(C_SIZE / 2 + LRadius * Cos(LAngle), C_SIZE / 2 + 1 + LRadius * Sin(LAngle));
+          end;
+
+          Result.Canvas.Fill.Color := $FFFFB300;
+          Result.Canvas.FillPolygon(LPolygon, 1);
+        end;
+    else
+      begin
+        Result.Canvas.Fill.Color := $FFE53935;
+        Result.Canvas.FillEllipse(TRectF.Create(1, 1, C_SIZE - 1, C_SIZE - 1), 1);
+        Result.Canvas.Stroke.Color := TAlphaColors.White;
+        Result.Canvas.DrawLine(PointF(C_SIZE / 2, 8), PointF(C_SIZE / 2, 18), 1);
+        Result.Canvas.Fill.Color := TAlphaColors.White;
+        Result.Canvas.FillEllipse(TRectF.Create(C_SIZE / 2 - 2, 22, C_SIZE / 2 + 2, 26), 1);
+      end;
+    end;
+  finally
+    Result.Canvas.EndScene;
+  end;
+end;
+
+procedure TTagDemoForm.DrawPhoto(const ATarget: TBitmap; const AName: string; const AColor: TAlphaColor);
+const
+  C_SIZE = 96;
+begin
+  // A square picture with the first letter of the name; the control shows it with the corners
+  // rounded or, with ImageRound, as a circle.
+  ATarget.SetSize(C_SIZE, C_SIZE);
+  ATarget.Canvas.BeginScene;
+  try
+    ATarget.Canvas.Clear(AColor);
+    ATarget.Canvas.Fill.Color := TAlphaColors.White;
+    ATarget.Canvas.Font.Size := 56;
+    ATarget.Canvas.FillText(TRectF.Create(0, 0, C_SIZE, C_SIZE), UpperCase(Copy(Trim(AName), 1, 1)), False, 1, [],
+      TTextAlign.Center, TTextAlign.Center);
+  finally
+    ATarget.Canvas.EndScene;
+  end;
 end;
 
 procedure TTagDemoForm.RecipientChipClose(Sender: TObject; var CanClose: Boolean);

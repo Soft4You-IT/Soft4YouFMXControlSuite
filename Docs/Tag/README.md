@@ -120,6 +120,6 @@ The colors of the background, the border and the text are calculated from the co
 
 ## Demo
 
-`Demos\Tag\S4YTagDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows the six kinds and the three variants, chips that choose several or one of a group, and recipient chips that can be closed and added, with the settings of a sample tag on the right.
+`Demos\Tag\S4YTagDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows the six kinds and the three variants, chips that choose several or one of a group, recipient chips with a round picture that can be closed and added, tags and chips with an icon from an image list (`Images`, `ImageIndex`) and with a picture (`Bitmap`, `ImageRound`), with the settings of a sample tag on the right. The icons and the pictures are drawn in code, so that the demo needs no image file.
 
 The page **Chips** of the mobile gallery `Demos\Mobile` has tags, filter chips and closable chips for the phone.
