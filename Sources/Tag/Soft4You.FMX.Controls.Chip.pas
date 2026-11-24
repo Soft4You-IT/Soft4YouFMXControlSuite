@@ -96,6 +96,7 @@ type
     property Images;
     property Kind;
     property Margins;
+    property MaxWidth;
     property Opacity;
     property PopupMenu;
     property Position;

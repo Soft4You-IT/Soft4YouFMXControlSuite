@@ -74,6 +74,7 @@ type
     SizeComboBox: TComboBox;
     ClosableCheckBox: TCheckBox;
     AutoSizeCheckBox: TCheckBox;
+    MaxWidthCheckBox: TCheckBox;
     PicturesLabel: TLabel;
     PicturesLayout: TFlowLayout;
     DoneIconTag: TS4YTag;
@@ -88,6 +89,7 @@ type
     procedure FilterChipCheckedChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure KindComboBoxChange(Sender: TObject);
+    procedure MaxWidthCheckBoxChange(Sender: TObject);
     procedure RecipientChipClose(Sender: TObject; var CanClose: Boolean);
     procedure ShapeComboBoxChange(Sender: TObject);
     procedure SizeChipCheckedChange(Sender: TObject);
@@ -301,6 +303,15 @@ begin
   finally
     ATarget.Canvas.EndScene;
   end;
+end;
+
+procedure TTagDemoForm.MaxWidthCheckBoxChange(Sender: TObject);
+begin
+  // With AutoSize the width follows the text up to MaxWidth; a longer text is cut, with an ellipsis. 0 is no limit.
+  if MaxWidthCheckBox.IsChecked then
+    SampleTag.MaxWidth := 100
+  else
+    SampleTag.MaxWidth := 0;
 end;
 
 procedure TTagDemoForm.RecipientChipClose(Sender: TObject; var CanClose: Boolean);

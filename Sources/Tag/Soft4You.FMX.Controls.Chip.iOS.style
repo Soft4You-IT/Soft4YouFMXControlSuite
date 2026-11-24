@@ -116,4 +116,28 @@ object TLayout
     StyleName = 'infocolor'
     Color = xFF5AC8FA
   end
+  object TColorObject
+    StyleName = 'neutraltextcolor'
+    Color = xFF5C5C60
+  end
+  object TColorObject
+    StyleName = 'primarytextcolor'
+    Color = xFF004FA6
+  end
+  object TColorObject
+    StyleName = 'successtextcolor'
+    Color = xFF22813A
+  end
+  object TColorObject
+    StyleName = 'warningtextcolor'
+    Color = xFFA66100
+  end
+  object TColorObject
+    StyleName = 'dangertextcolor'
+    Color = xFFA6261F
+  end
+  object TColorObject
+    StyleName = 'infotextcolor'
+    Color = xFF3A82A2
+  end
 end

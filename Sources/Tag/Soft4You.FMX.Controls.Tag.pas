@@ -71,6 +71,7 @@ type
     FImageLink: TGlyphImageLink;
     FImageRound: Boolean;
     FKind: TS4YTagKind;
+    FMaxWidth: Single;
     FShape: TS4YTagShape;
     FSizePreset: TS4YTagSizePreset;
     FStyleBackground: TRectangle;
@@ -80,6 +81,7 @@ type
     FStyleIcon: TGlyph;
     FStyleImage: TRectangle;
     FStyleKindColors: array[TS4YTagKind] of TAlphaColor;
+    FStyleKindTextColors: array[TS4YTagKind] of TAlphaColor;
     FStyleText: TText;
     FText: string;
     FTextColor: TAlphaColor;
@@ -99,6 +101,8 @@ type
     function GetImageIndex: TImageIndex;
     function GetImageList: TBaseImageList;
     function GetImages: TCustomImageList;
+    function GetKindTextColor(const AAccentColor: TAlphaColor): TAlphaColor;
+    function MaxWidthStored: Boolean;
     function MeasureTextWidth(const AFontSize: Single): Single;
     procedure SetAutoSize(const Value: Boolean);
     procedure SetBackgroundColor(const Value: TAlphaColor);
@@ -111,6 +115,7 @@ type
     procedure SetImageRound(const Value: Boolean);
     procedure SetImages(const Value: TCustomImageList);
     procedure SetKind(const Value: TS4YTagKind);
+    procedure SetMaxWidth(const Value: Single);
     procedure SetShape(const Value: TS4YTagShape);
     procedure SetSizePreset(const Value: TS4YTagSizePreset);
     procedure SetText(const Value: string);
@@ -182,6 +187,8 @@ type
     property Images: TCustomImageList read GetImages write SetImages;
     /// <summary>Meaning of the control, which gives it its color. The default is tgkNeutral.</summary>
     property Kind: TS4YTagKind read FKind write SetKind default C_DEFAULT_KIND;
+    /// <summary>Largest width of the control in pixels when AutoSize is True: a text that would make it wider is cut, with an ellipsis. The default, 0, means no limit.</summary>
+    property MaxWidth: Single read FMaxWidth write SetMaxWidth stored MaxWidthStored nodefault;
     /// <summary>Shape of the control: pill (the default), rounded corners or square.</summary>
     property Shape: TS4YTagShape read FShape write SetShape default C_DEFAULT_SHAPE;
     /// <summary>Size chosen among the ready ones: small (24 pixels high), medium (32) or large (40).</summary>
@@ -230,6 +237,7 @@ type
     property Images;
     property Kind;
     property Margins;
+    property MaxWidth;
     property Opacity;
     property PopupMenu;
     property Position;
@@ -287,6 +295,12 @@ const
   C_STYLE_SUCCESS_COLOR = 'successcolor';
   C_STYLE_TEXT = 'text';
   C_STYLE_WARNING_COLOR = 'warningcolor';
+  C_STYLE_NEUTRAL_TEXT_COLOR = 'neutraltextcolor';
+  C_STYLE_PRIMARY_TEXT_COLOR = 'primarytextcolor';
+  C_STYLE_SUCCESS_TEXT_COLOR = 'successtextcolor';
+  C_STYLE_WARNING_TEXT_COLOR = 'warningtextcolor';
+  C_STYLE_DANGER_TEXT_COLOR = 'dangertextcolor';
+  C_STYLE_INFO_TEXT_COLOR = 'infotextcolor';
 
   // Colors used when the style does not give them.
   C_FALLBACK_KIND_COLORS: array[TS4YTagKind] of TAlphaColor = (
@@ -466,6 +480,15 @@ begin
   FindStyleColor(C_STYLE_DANGER_COLOR, C_FALLBACK_KIND_COLORS[tgkDanger], FStyleKindColors[tgkDanger]);
   FindStyleColor(C_STYLE_INFO_COLOR, C_FALLBACK_KIND_COLORS[tgkInfo], FStyleKindColors[tgkInfo]);
 
+  // The colors of the text of the tonal and outlined variants are optional: a style that does not give
+  // them gets the color of the kind made darker, so that a dark style can give lighter ones.
+  FindStyleColor(C_STYLE_NEUTRAL_TEXT_COLOR, TAlphaColors.Null, FStyleKindTextColors[tgkNeutral]);
+  FindStyleColor(C_STYLE_PRIMARY_TEXT_COLOR, TAlphaColors.Null, FStyleKindTextColors[tgkPrimary]);
+  FindStyleColor(C_STYLE_SUCCESS_TEXT_COLOR, TAlphaColors.Null, FStyleKindTextColors[tgkSuccess]);
+  FindStyleColor(C_STYLE_WARNING_TEXT_COLOR, TAlphaColors.Null, FStyleKindTextColors[tgkWarning]);
+  FindStyleColor(C_STYLE_DANGER_TEXT_COLOR, TAlphaColors.Null, FStyleKindTextColors[tgkDanger]);
+  FindStyleColor(C_STYLE_INFO_TEXT_COLOR, TAlphaColors.Null, FStyleKindTextColors[tgkInfo]);
+
   // The picture is prepared again for the new part, and the width depends on the font of the style.
   FCoverInvalid := True;
   UpdateSize;
@@ -501,12 +524,12 @@ begin
     tgvTonal:
       begin
         AFillColor := WithAlpha(LAccentColor, C_TONAL_ALPHAS[LState]);
-        ATextColor := ShadeOf(LAccentColor, C_TEXT_SHADE);
+        ATextColor := GetKindTextColor(LAccentColor);
       end;
   else
     begin
       AFillColor := WithAlpha(LAccentColor, C_OUTLINED_ALPHAS[LState]);
-      ATextColor := ShadeOf(LAccentColor, C_TEXT_SHADE);
+      ATextColor := GetKindTextColor(LAccentColor);
       AStrokeColor := LAccentColor;
     end;
   end;
@@ -539,6 +562,9 @@ begin
     Result := Result + LMetrics.Gap + LMetrics.CloseSize + LMetrics.ClosePadding
   else
     Result := Result + LMetrics.Padding;
+
+  if FMaxWidth > 0 then
+    Result := System.Math.Min(Result, FMaxWidth);
 
   Result := System.Math.Max(Result, LMetrics.Height);
 end;
@@ -683,6 +709,15 @@ begin
   Result := FVariant;
 end;
 
+function TS4YCustomTag.GetKindTextColor(const AAccentColor: TAlphaColor): TAlphaColor;
+begin
+  // The text color of the style for the kind; without one, the color of the kind made darker
+  Result := FStyleKindTextColors[FKind];
+
+  if Result = TAlphaColors.Null then
+    Result := ShadeOf(AAccentColor, C_TEXT_SHADE);
+end;
+
 function TS4YCustomTag.GetImageIndex: TImageIndex;
 begin
   Result := FImageLink.ImageIndex;
@@ -747,6 +782,11 @@ begin
 
   UpdateSize;
   UpdateParts;
+end;
+
+function TS4YCustomTag.MaxWidthStored: Boolean;
+begin
+  Result := FMaxWidth <> 0;
 end;
 
 function TS4YCustomTag.MeasureTextWidth(const AFontSize: Single): Single;
@@ -855,6 +895,16 @@ begin
     Exit;
 
   FKind := Value;
+  UpdateParts;
+end;
+
+procedure TS4YCustomTag.SetMaxWidth(const Value: Single);
+begin
+  if SameValue(FMaxWidth, Value) then
+    Exit;
+
+  FMaxWidth := System.Math.Max(0, Value);
+  UpdateSize;
   UpdateParts;
 end;
 

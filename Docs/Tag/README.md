@@ -53,7 +53,8 @@ The style resources are linked into the package, so the controls look the same w
 | `Shape` | `tgsPill` | `tgsPill` (the short sides are half circles), `tgsRounded` (corners with the radius of `CornerRadius`), `tgsSquare` |
 | `CornerRadius` | 6 | Radius of the corners with `tgsRounded`, in pixels |
 | `SizePreset` | `tgzMedium` | `tgzSmall` (24 pixels high), `tgzMedium` (32), `tgzLarge` (40); on Android and iOS the default is `tgzLarge` |
-| `AutoSize` | `True` | The width follows the content: the text, the icon and the close button. With `False` the width is the one set, and a text that does not fit is cut |
+| `AutoSize` | `True` | The width follows the content: the text, the icon and the close button. With `False` the width is the one set, and a text that does not fit is cut, with an ellipsis |
+| `MaxWidth` | 0 | Largest width in pixels when `AutoSize` is `True`: a text that would make the control wider is cut, with an ellipsis. 0 means no limit; the control is never narrower than its height |
 | `BackgroundColor`, `TextColor`, `BorderColor` | `Null` | Colors that replace the ones that come from `Kind` and `Variant`; `Null` keeps them |
 
 The height always follows `SizePreset`; the font and the spaces follow the height. The text takes its font family and style from the part `text` of the style.
@@ -110,8 +111,13 @@ The controls place and size the parts of the style themselves, so they must be d
 | `close` | `TShape`, usually a `TCircle` | The close button: its area reacts to the mouse and to the finger; the control draws a round background on it while the mouse is over |
 | `closeicon` | `TShape`, usually a `TPath`, child of `close` | The cross |
 | `neutralcolor`, `primarycolor`, `successcolor`, `warningcolor`, `dangercolor`, `infocolor` | `TColorObject` | The colors of the kinds |
+| `neutraltextcolor`, `primarytextcolor`, `successtextcolor`, `warningtextcolor`, `dangertextcolor`, `infotextcolor` | `TColorObject` | The colors of the text and of the icons of the tonal and outlined variants. Optional: without them the control uses the color of the kind made darker |
 
-The colors of the background, the border and the text are calculated from the color of the kind and the variant: filled uses the color and a white or dark text, whichever is easier to read; tonal uses the color at 16 percent and a darker text; outlined uses the color for the border and a darker text. The states hover and pressed make a filled background darker and a tonal or outlined one more opaque.
+The colors of the background, the border and the text are calculated from the color of the kind and the variant: filled uses the color and a white or dark text, whichever is easier to read; tonal uses the color at 16 percent and the text color of the kind; outlined uses the color for the border and the text color of the kind. The text color of a kind is the one of the part `...textcolor` of the style and, when the style has none, the color of the kind made 35 percent darker. The states hover and pressed make a filled background darker and a tonal or outlined one more opaque.
+
+### Dark styles
+
+The tonal and outlined variants draw their text with a dark version of the color, which is easy to read on a light background and not on a dark one. For a dark style, give the parts `...textcolor` lighter colors: in a `TStyleBook` with a copy of `S4YTagStyle` and `S4YChipStyle` (*Edit Custom Style* in the form designer, or the style files of `Sources\Tag` as a start), change the `Color` of `primarytextcolor` and of the others, for example to the color of the kind made lighter. The default styles give the values the controls calculate, so they look the same as without these parts. `TextColor` still replaces them for a single control.
 
 ## Desktop and mobile
 
