@@ -328,6 +328,32 @@ type
     /// </summary>
     /// <returns>A new document that the caller owns.</returns>
     function Clone: TS4YHTMLDocument;
+    /// <summary>
+    /// Writes the document as plain text.
+    /// </summary>
+    /// <param name="AWidth">Longest line in characters; text that is longer goes to the next line between two words. 0, the default, never goes to the next line by itself.</param>
+    /// <returns>The text, with sLineBreak between the lines and no line break at the end.</returns>
+    /// <remarks>
+    /// Paragraphs, headings, block quotes, tables, horizontal rules and images are separated by an empty line.
+    /// Body text blocks, the lines of preformatted text and the items of a list follow each other on consecutive lines;
+    /// a bulleted list and a numbered list that follow each other are separated by an empty line.
+    /// A list item starts with "- " or with its number and ". ", indented by two spaces for each level of IndentLevel
+    /// (starting from 0); a block quote starts with "> " (once more for each level of nesting); a horizontal rule is a line of
+    /// dashes; an image is replaced by its alternative text; a line break of a paragraph is a line break of the text.
+    /// A link is written as "text (address)", with the address alone when it is the same as the text and without "mailto:".
+    /// The cells of a row of a table are separated by a tab, also the empty ones and the positions that a merged cell
+    /// covers; the paragraphs of a cell and a table nested in it are joined by a space, and a row without text is skipped.
+    /// Empty paragraphs are skipped, except an empty line between two lines of preformatted text.
+    /// A placeholder is written with its DisplayText, or with its Text when it has none.
+    /// With AWidth greater than 0, paragraphs, headings, list items and quotes go to the next line between two words
+    /// (the prefix of a list item or of a quote counts in the width; a list item continues under its text and a quote
+    /// repeats "> "), a word that is longer than the width is not split, the horizontal rule is AWidth dashes long,
+    /// and preformatted text and the rows of a table are never wrapped.
+    /// <para>
+    /// MAINTENANCE: Every change to the tables (new kinds of cells or of content in a cell, merged cells, other ways to lay out or to write a table) must be checked against ToPlainText and, if needed, ToPlainText must be updated: it reads TableID, TableRow, TableCol and TableContainers of the paragraphs, and the cells covered by a merged cell have no paragraph.
+    /// </para>
+    /// </remarks>
+    function ToPlainText(AWidth: Integer = 0): string;
 
     /// <summary>Blocks of the document in order. The document owns them.</summary>
     property Paragraphs: TObjectList<TS4YHTMLParagraph> read FParagraphs;
@@ -554,6 +580,408 @@ destructor TS4YHTMLDocument.Destroy;
 begin
   FParagraphs.Free;
   inherited;
+end;
+
+type
+  // How a block of plain text joins the block before it: the blocks of the same group other than
+  // ptgSeparate follow each other on consecutive lines, anything else is separated by an empty line
+  TS4YPlainTextGroup = (ptgSeparate, ptgBodyText, ptgPreformatted, ptgBulletList, ptgNumberedList);
+
+  // Collects the blocks of the plain text of a document
+  TS4YPlainTextWriter = class
+  private
+    FBuilder: TStringBuilder;
+    FHasText: Boolean;
+    FPreviousGroup: TS4YPlainTextGroup;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure AddBlock(const AText: string; AGroup: TS4YPlainTextGroup);
+    function ToString: string; override;
+
+    property PreviousGroup: TS4YPlainTextGroup read FPreviousGroup;
+  end;
+
+const
+  C_PLAIN_TEXT_RULE_LENGTH = 40;
+  C_PLAIN_TEXT_INDENT_WIDTH = 2;
+  C_PLAIN_TEXT_MAILTO = 'mailto:';
+
+constructor TS4YPlainTextWriter.Create;
+begin
+  inherited Create;
+  FBuilder := TStringBuilder.Create;
+  FPreviousGroup := ptgSeparate;
+end;
+
+destructor TS4YPlainTextWriter.Destroy;
+begin
+  FBuilder.Free;
+  inherited;
+end;
+
+procedure TS4YPlainTextWriter.AddBlock(const AText: string; AGroup: TS4YPlainTextGroup);
+begin
+  if FHasText then
+  begin
+    FBuilder.Append(sLineBreak);
+
+    if (AGroup = ptgSeparate) or (AGroup <> FPreviousGroup) then
+      FBuilder.Append(sLineBreak);
+  end;
+
+  FBuilder.Append(AText);
+  FHasText := True;
+  FPreviousGroup := AGroup;
+end;
+
+function TS4YPlainTextWriter.ToString: string;
+begin
+  Result := FBuilder.ToString;
+end;
+
+// A link is written as "text (address)", the address alone when it is the same as the text
+function FormatPlainTextLink(const AText, AURL: string): string;
+var
+  LAddress: string;
+  LText: string;
+begin
+  if AURL = '' then
+    Exit(AText);
+
+  LAddress := AURL;
+
+  if StartsWithCI(LAddress, C_PLAIN_TEXT_MAILTO) then
+    LAddress := LAddress.Substring(Length(C_PLAIN_TEXT_MAILTO));
+
+  LText := AText.Trim;
+
+  if LText = '' then
+    Result := LAddress
+  else if SameText(LText, LAddress) or SameText(LText, AURL) then
+    Result := AText
+  else
+    Result := AText + ' (' + LAddress + ')';
+end;
+
+// The text of the runs of a paragraph, with the links written out
+function RunsToPlainText(AParagraph: TS4YHTMLParagraph): string;
+var
+  LRun: TS4YHTMLRun;
+  LPiece: string;
+  LURL: string;
+  LPendingText: string;
+  LPendingURL: string;
+begin
+  Result := '';
+  LPendingText := '';
+  LPendingURL := '';
+
+  for LRun in AParagraph.Runs do
+  begin
+    LURL := '';
+
+    if LRun.IsLineBreak then
+      LPiece := sLineBreak
+    else
+    begin
+      LURL := LRun.Style.LinkURL;
+
+      if LRun.IsImage then
+        LPiece := LRun.ImageAlt
+      else if LRun.IsPlaceholder and (LRun.DisplayText <> '') then
+        LPiece := LRun.DisplayText
+      else
+        LPiece := LRun.Text;
+    end;
+
+    if LURL <> LPendingURL then
+    begin
+      Result := Result + FormatPlainTextLink(LPendingText, LPendingURL);
+      LPendingText := '';
+      LPendingURL := LURL;
+    end;
+
+    LPendingText := LPendingText + LPiece;
+  end;
+
+  Result := Result + FormatPlainTextLink(LPendingText, LPendingURL);
+end;
+
+function ParagraphToPlainText(AParagraph: TS4YHTMLParagraph): string;
+begin
+  case AParagraph.BlockType of
+    btImage: Result := AParagraph.ImageAlt;
+    btHR: Result := '';
+  else
+    Result := RunsToPlainText(AParagraph);
+  end;
+end;
+
+// Splits a line that is longer than the width between two words; a word longer than the
+// width stays whole. A line that fits is not changed
+function WrapPlainTextLine(const ALine: string; AWidth: Integer): TArray<string>;
+var
+  LWords: TArray<string>;
+  LLines: TList<string>;
+  LCurrent: string;
+  LWord: string;
+begin
+  if (AWidth <= 0) or (Length(ALine) <= AWidth) then
+    Exit(TArray<string>.Create(ALine));
+
+  LWords := ALine.Split([' '], TStringSplitOptions.ExcludeEmpty);
+  LLines := TList<string>.Create;
+  try
+    LCurrent := '';
+
+    for LWord in LWords do
+    begin
+      if LCurrent = '' then
+        LCurrent := LWord
+      else if Length(LCurrent) + 1 + Length(LWord) <= AWidth then
+        LCurrent := LCurrent + ' ' + LWord
+      else
+      begin
+        LLines.Add(LCurrent);
+        LCurrent := LWord;
+      end;
+    end;
+
+    if (LCurrent <> '') or (LLines.Count = 0) then
+      LLines.Add(LCurrent);
+
+    Result := LLines.ToArray;
+  finally
+    LLines.Free;
+  end;
+end;
+
+// Puts a prefix before the first line and another one before each other line of a text, and
+// wraps the lines at AWidth characters, the prefix included (0 = no wrapping)
+function PrefixLines(const AText, AFirstPrefix, AOtherPrefix: string; AWidth: Integer): string;
+var
+  LSourceLines: TArray<string>;
+  LPieces: TArray<string>;
+  LResultLines: TList<string>;
+  LAvailable: Integer;
+  I: Integer;
+  J: Integer;
+begin
+  LSourceLines := AText.Replace(#13#10, #10).Replace(#13, #10).Split([#10]);
+  LResultLines := TList<string>.Create;
+  try
+    LAvailable := 0;
+
+    if AWidth > 0 then
+    begin
+      LAvailable := AWidth - Length(AFirstPrefix);
+
+      if LAvailable < 1 then
+        LAvailable := 1;
+    end;
+
+    for I := 0 to High(LSourceLines) do
+    begin
+      LPieces := WrapPlainTextLine(LSourceLines[I], LAvailable);
+
+      for J := 0 to High(LPieces) do
+      begin
+        if (I = 0) and (J = 0) then
+          LResultLines.Add(AFirstPrefix + LPieces[J])
+        else
+          LResultLines.Add(AOtherPrefix + LPieces[J]);
+      end;
+    end;
+
+    Result := string.Join(sLineBreak, LResultLines.ToArray);
+  finally
+    LResultLines.Free;
+  end;
+end;
+
+// A table as lines of text: the cells of a row separated by a tab. AFirstIndex..ALastIndex are
+// the paragraphs of the table, those of the tables nested in its cells included
+function TableToPlainText(ADocument: TS4YHTMLDocument; AFirstIndex, ALastIndex: Integer): string;
+var
+  LTableID: Integer;
+  LRows: TObjectDictionary<Integer, TDictionary<Integer, string>>;
+  LCells: TDictionary<Integer, string>;
+  LRowNumbers: TList<Integer>;
+  LParagraph: TS4YHTMLParagraph;
+  LRow: Integer;
+  LColumn: Integer;
+  LLastColumn: Integer;
+  LCellText: string;
+  LExistingText: string;
+  LRowText: string;
+  LFields: TArray<string>;
+  LLines: TList<string>;
+  I: Integer;
+begin
+  LTableID := ADocument.Paragraphs[AFirstIndex].TableID;
+  LRows := TObjectDictionary<Integer, TDictionary<Integer, string>>.Create([doOwnsValues]);
+  LRowNumbers := TList<Integer>.Create;
+  LLines := TList<string>.Create;
+  try
+    for I := AFirstIndex to ALastIndex do
+    begin
+      LParagraph := ADocument.Paragraphs[I];
+
+      if LParagraph.TryGetCellIn(LTableID, LRow, LColumn) then
+      begin
+        if not LRows.TryGetValue(LRow, LCells) then
+        begin
+          LCells := TDictionary<Integer, string>.Create;
+          LRows.Add(LRow, LCells);
+        end;
+
+        LCellText := ParagraphToPlainText(LParagraph).Replace(#13#10, ' ').Replace(#10, ' ').Replace(#13, ' ').Trim;
+
+        if not LCells.TryGetValue(LColumn, LExistingText) then
+          LExistingText := '';
+
+        if (LExistingText <> '') and (LCellText <> '') then
+          LExistingText := LExistingText + ' ';
+
+        LCells.AddOrSetValue(LColumn, LExistingText + LCellText);
+      end;
+    end;
+
+    LRowNumbers.AddRange(LRows.Keys);
+    LRowNumbers.Sort;
+
+    for LRow in LRowNumbers do
+    begin
+      LCells := LRows[LRow];
+      LLastColumn := 0;
+
+      for LColumn in LCells.Keys do
+        if LColumn > LLastColumn then
+          LLastColumn := LColumn;
+
+      SetLength(LFields, LLastColumn + 1);
+
+      for LColumn := 0 to LLastColumn do
+      begin
+        if not LCells.TryGetValue(LColumn, LFields[LColumn]) then
+          LFields[LColumn] := '';
+      end;
+
+      LRowText := string.Join(#9, LFields);
+
+      if LRowText.Replace(#9, '').Trim <> '' then
+        LLines.Add(LRowText);
+    end;
+
+    Result := string.Join(sLineBreak, LLines.ToArray);
+  finally
+    LLines.Free;
+    LRowNumbers.Free;
+    LRows.Free;
+  end;
+end;
+
+function TS4YHTMLDocument.ToPlainText(AWidth: Integer = 0): string;
+var
+  LWriter: TS4YPlainTextWriter;
+  LWidth: Integer;
+  LMarker: string;
+  LParagraph: TS4YHTMLParagraph;
+  LText: string;
+  LPrefix: string;
+  LTableText: string;
+  LTableID: Integer;
+  LDepth: Integer;
+  LIndex: Integer;
+  LStart: Integer;
+begin
+  LWidth := AWidth;
+
+  if LWidth < 0 then
+    LWidth := 0;
+
+  LWriter := TS4YPlainTextWriter.Create;
+  try
+    LIndex := 0;
+
+    while LIndex < FParagraphs.Count do
+    begin
+      LParagraph := FParagraphs[LIndex];
+
+      if LParagraph.TableID <> 0 then
+      begin
+        LTableID := LParagraph.TableID;
+        LStart := LIndex;
+
+        while (LIndex < FParagraphs.Count) and FParagraphs[LIndex].BelongsToTable(LTableID) do
+          Inc(LIndex);
+
+        LTableText := TableToPlainText(Self, LStart, LIndex - 1);
+
+        if LTableText <> '' then
+          LWriter.AddBlock(LTableText, ptgSeparate);
+      end
+      else
+      begin
+        LText := ParagraphToPlainText(LParagraph);
+
+        case LParagraph.BlockType of
+          btHR:
+            begin
+              if LWidth > 0 then
+                LWriter.AddBlock(StringOfChar('-', LWidth), ptgSeparate)
+              else
+                LWriter.AddBlock(StringOfChar('-', C_PLAIN_TEXT_RULE_LENGTH), ptgSeparate);
+            end;
+          btLI:
+            if LText.Trim <> '' then
+            begin
+              LPrefix := StringOfChar(' ', C_PLAIN_TEXT_INDENT_WIDTH * LParagraph.IndentLevel);
+
+              if LParagraph.ListOrdered then
+                LMarker := IntToStr(LParagraph.ListIndex) + '. '
+              else
+                LMarker := '- ';
+
+              LText := PrefixLines(LText, LPrefix + LMarker, LPrefix + StringOfChar(' ', Length(LMarker)), LWidth);
+
+              if LParagraph.ListOrdered then
+                LWriter.AddBlock(LText, ptgNumberedList)
+              else
+                LWriter.AddBlock(LText, ptgBulletList);
+            end;
+          btBlockquote:
+            if LText.Trim <> '' then
+            begin
+              LDepth := LParagraph.IndentLevel;
+
+              if LDepth < 1 then
+                LDepth := 1;
+
+              LPrefix := string.Create('>', LDepth).Replace('>', '> ');
+              LWriter.AddBlock(PrefixLines(LText, LPrefix, LPrefix, LWidth), ptgSeparate);
+            end;
+          btPre:
+            if (LText <> '') or (LWriter.PreviousGroup = ptgPreformatted) then
+              LWriter.AddBlock(LText, ptgPreformatted);
+          btBodyText:
+            if LText.Trim <> '' then
+              LWriter.AddBlock(PrefixLines(LText, '', '', LWidth), ptgBodyText);
+        else
+          if LText.Trim <> '' then
+            LWriter.AddBlock(PrefixLines(LText, '', '', LWidth), ptgSeparate);
+        end;
+
+        Inc(LIndex);
+      end;
+    end;
+
+    Result := LWriter.ToString;
+  finally
+    LWriter.Free;
+  end;
 end;
 
 procedure TS4YHTMLDocument.Clear;
