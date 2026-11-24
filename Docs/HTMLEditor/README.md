@@ -387,6 +387,33 @@ TS4YHTMLEditor.DefaultSVGRenderer :=
 
 To draw SVG images as "not found" again (for example to compare), leave `OnRenderSVG` empty and set `TS4YHTMLEditor.DefaultSVGRenderer := nil`.
 
+### Listing and rewriting the image sources
+
+To know which images a document uses, for example before sending it, and to rewrite their `src` without changing the document:
+
+- `GetImages` returns one `TS4YImageInfo` for each different source, in the order of the document: `Source` as written, `Kind` (`iskLocal` for paths and `file:` URLs, `iskRemote` for `http:` and `https:`, `iskEmbedded` for `data:`, `iskOther` for other schemes such as `cid:`), `FilePath` (for a local source, the file according to `ImagePathMode` and `DocumentPath`), `Width` and `Height` as the document holds them (the size in the HTML or the natural size once loaded, 0 if unknown, 200 x 120 for an image that is not loaded automatically and has no size in the HTML) and `IsAllowed`. Nothing is loaded and no event is fired.
+- `IsAllowed` is `False` for a local file that `LocalImageAccess` does not allow, `True` for everything else; `OnBeforeLoadImage` is not asked. When the HTML comes from others, attach or read only the images with `IsAllowed = True`: the list would otherwise give the application a way to read files that the editor itself refuses to load.
+- `HasRemoteImages` tells whether at least one image comes from an `http:` or `https:` address.
+- `GetHTMLWithImageSources(Converter)` and `GetFullHTMLWithImageSources(Converter)` return the same text as `HTML` and `FullHTML`, with each `src` replaced by what the `Converter` function returns for it. The function receives the source as it is in the document, even a relative path, and its result is written as it is, with no HTML escaping. The document is not changed.
+
+```delphi
+var
+  LAttachments: TList<TS4YImageInfo>;
+begin
+  for var LImage in HTMLEditor.GetImages do
+  begin
+    if LImage.IsAllowed and (LImage.Kind in [iskLocal, iskEmbedded]) then
+      LAttachments.Add(LImage);
+  end;
+
+  LHTML := HTMLEditor.GetFullHTMLWithImageSources(
+    function(ASource: string): string
+    begin
+      Result := ContentIdOf(ASource); // for example 'cid:image1'
+    end);
+end;
+```
+
 ### Relative paths: `ImagePathMode`
 
 | Mode | A relative `src` is resolved against |

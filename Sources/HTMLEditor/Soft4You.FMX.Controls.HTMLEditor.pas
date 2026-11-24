@@ -618,6 +618,7 @@ type
     function IsLocalImageAccessAllowed(const ASource: string): Boolean;
     function LoadAllowedBitmap(const ASource: string; AContext: TS4YImageLoadContext; AWidth: Integer = 0; AHeight: Integer = 0): TBitmap;
     procedure LoadDeferredImages(ALocal: Boolean);
+    procedure AddImageInfo(const ASource: string; AWidth, AHeight: Integer; AImages: TList<TS4YImageInfo>; ASeen: TDictionary<string, Boolean>);
     procedure PreloadImages;
     procedure PrepareImageDimensions;
 
@@ -1236,6 +1237,37 @@ type
     /// <param name="ASource">The image source as written in the document.</param>
     /// <returns>The file path or URL, according to ImagePathMode and DocumentPath.</returns>
     function ResolveImageSource(const ASource: string): string;
+    /// <summary>
+    /// Lists the images of the document.
+    /// </summary>
+    /// <returns>One entry for each different source, in the order of the document, with its kind, the path of a local file, the size and whether LocalImageAccess allows it.</returns>
+    /// <remarks>
+    /// The size is the one of the first image with that source, as the document holds it: the one in the HTML or the natural one once loaded; 0 when unknown, and 200 x 120 for an image of a kind that is not loaded automatically (AutoLoadLocalImages, AutoLoadRemoteImages) and has no size in the HTML. Nothing is loaded and no event is fired.
+    /// </remarks>
+    function GetImages: TArray<TS4YImageInfo>;
+    /// <summary>
+    /// Tells whether the document has images loaded from http: or https: addresses.
+    /// </summary>
+    /// <returns>True when at least one image source is remote.</returns>
+    function HasRemoteImages: Boolean;
+    /// <summary>
+    /// Gets the HTML of the document with the source of each image replaced.
+    /// </summary>
+    /// <param name="AConverter">Function that receives each source as it is in the document and returns the text to write in the src attribute, for example a cid: reference. The text is written as it is, with no HTML escaping.</param>
+    /// <returns>The HTML, in the same format as the HTML property.</returns>
+    /// <remarks>
+    /// The document is not changed. With nil the result is the same as HTML.
+    /// </remarks>
+    function GetHTMLWithImageSources(const AConverter: TFunc<string, string>): string;
+    /// <summary>
+    /// Gets the whole HTML page of the document with the source of each image replaced.
+    /// </summary>
+    /// <param name="AConverter">Function that receives each source as it is in the document and returns the text to write in the src attribute. The text is written as it is, with no HTML escaping.</param>
+    /// <returns>The HTML, in the same format as the FullHTML property.</returns>
+    /// <remarks>
+    /// The document is not changed. With nil the result is the same as FullHTML.
+    /// </remarks>
+    function GetFullHTMLWithImageSources(const AConverter: TFunc<string, string>): string;
 
     // -- Files --------------------------------------------------------------
     /// <summary>
@@ -3733,6 +3765,82 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TS4YHTMLEditor.AddImageInfo(const ASource: string; AWidth, AHeight: Integer; AImages: TList<TS4YImageInfo>; ASeen: TDictionary<string, Boolean>);
+var
+  LInfo: TS4YImageInfo;
+begin
+  if (ASource = '') or ASeen.ContainsKey(ASource) then
+    Exit;
+
+  ASeen.Add(ASource, True);
+  LInfo.Source := ASource;
+  LInfo.Kind := GetImageSourceKind(ASource);
+  LInfo.Width := AWidth;
+  LInfo.Height := AHeight;
+  LInfo.FilePath := '';
+  LInfo.IsAllowed := True;
+
+  if LInfo.Kind = iskLocal then
+  begin
+    LInfo.FilePath := ResolveImageSource(ASource);
+    LInfo.IsAllowed := IsLocalImageAccessAllowed(ASource);
+  end;
+
+  AImages.Add(LInfo);
+end;
+
+function TS4YHTMLEditor.GetImages: TArray<TS4YImageInfo>;
+var
+  LImages: TList<TS4YImageInfo>;
+  LSeen: TDictionary<string, Boolean>;
+  LParagraph: TS4YHTMLParagraph;
+  LRun: TS4YHTMLRun;
+begin
+  LImages := TList<TS4YImageInfo>.Create;
+  LSeen := TDictionary<string, Boolean>.Create;
+  try
+    for LParagraph in FDocument.Paragraphs do
+    begin
+      if LParagraph.BlockType = btImage then
+        AddImageInfo(LParagraph.ImageSource, LParagraph.ImageWidth, LParagraph.ImageHeight, LImages, LSeen);
+
+      for LRun in LParagraph.Runs do
+      begin
+        if LRun.IsImage then
+          AddImageInfo(LRun.ImageSource, LRun.ImageWidth, LRun.ImageHeight, LImages, LSeen);
+      end;
+    end;
+
+    Result := LImages.ToArray;
+  finally
+    LSeen.Free;
+    LImages.Free;
+  end;
+end;
+
+function TS4YHTMLEditor.HasRemoteImages: Boolean;
+var
+  LImage: TS4YImageInfo;
+begin
+  Result := False;
+
+  for LImage in GetImages do
+  begin
+    if LImage.Kind = iskRemote then
+      Exit(True);
+  end;
+end;
+
+function TS4YHTMLEditor.GetHTMLWithImageSources(const AConverter: TFunc<string, string>): string;
+begin
+  Result := BuildHTML(AConverter);
+end;
+
+function TS4YHTMLEditor.GetFullHTMLWithImageSources(const AConverter: TFunc<string, string>): string;
+begin
+  Result := BuildFullHTML(AConverter);
 end;
 
 procedure TS4YHTMLEditor.LoadLocalImages;
