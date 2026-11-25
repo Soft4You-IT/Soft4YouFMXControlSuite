@@ -218,6 +218,16 @@ type
   // ===========================================================================
 
   /// <summary>
+  /// How the placeholders are written in the generated HTML.
+  /// </summary>
+  /// <remarks>
+  /// phsChip: as an element with the look of the chip (colors, border, padding), as the editor shows it.
+  /// phsNone: as plain text, like any other text of the document: no element of its own and no bold or colors of the
+  /// chip, only the emphasis and the colors that the user gave to the placeholder.
+  /// </remarks>
+  TS4YPlaceholderHTMLStyle = (phsChip, phsNone);
+
+  /// <summary>
   /// Appearance of the placeholders in the generated HTML.
   /// </summary>
   /// <remarks>
@@ -238,7 +248,9 @@ type
     VerticalPadding: Single;
     /// <summary>Draw the placeholder text in bold.</summary>
     Bold: Boolean;
-    /// <summary>Clears all fields (colors claNull, sizes 0, not bold).</summary>
+    /// <summary>How the placeholders are written: with the look of the chip or as plain text.</summary>
+    HTMLStyle: TS4YPlaceholderHTMLStyle;
+    /// <summary>Clears all fields (colors claNull, sizes 0, not bold, written as a chip).</summary>
     procedure Init;
   end;
 
@@ -1125,6 +1137,7 @@ begin
   HorizontalPadding := 0;
   VerticalPadding := 0;
   Bold := False;
+  HTMLStyle := phsChip;
 end;
 
 // -----------------------------------------------------------------------------
