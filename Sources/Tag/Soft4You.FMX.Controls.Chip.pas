@@ -110,6 +110,7 @@ type
     property GroupName: string read FGroupName write SetGroupName;
     property Height;
     property HitTest;
+    property HorizontalPadding;
     property ImageIndex;
     property ImageRound;
     property Images;
@@ -127,11 +128,13 @@ type
     property ShowCheckMark: Boolean read FShowCheckMark write SetShowCheckMark default True;
     property Size;
     property SizePreset;
+    property StyledSettings;
     property StyleLookup;
     property TabOrder;
     property TabStop;
     property Text;
     property TextColor;
+    property TextSettings;
     property Variant default tgvOutlined;
     property Visible;
     property Width;
@@ -389,5 +392,9 @@ begin
     end;
   end;
 end;
+
+initialization
+  // The chip is a part of the styles of the chip group and the chip edit, which the style loads by its class name
+  RegisterFmxClasses([TS4YChip]);
 
 end.

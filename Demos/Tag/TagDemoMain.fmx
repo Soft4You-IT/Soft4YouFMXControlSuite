@@ -372,7 +372,6 @@ object TagDemoForm: TTagDemoForm
         'Gold')
       MaxHeight = 80.000000000000000000
       SelectionMode = cgmMultiple
-      Variant = tgvTonal
       OnChange = GroupChange
     end
     object GroupResultLabel: TLabel

@@ -65,11 +65,13 @@ type
   /// tgzSmall: 24 pixels high.
   /// tgzMedium: 32 pixels high, the default on the desktop.
   /// tgzLarge: 40 pixels high, the default on Android and iOS.
+  /// tgzCustom: the height is the one set (Height of a tag or a chip, ChipHeight of a group or a chip edit), from 16 pixels; the font and the spaces follow it.
   /// </remarks>
   TS4YTagSizePreset = (
     tgzSmall,
     tgzMedium,
-    tgzLarge
+    tgzLarge,
+    tgzCustom
   );
 
   /// <summary>
@@ -121,10 +123,39 @@ type
 
 const
   /// <summary>Height in pixels of a tag or a chip for each size preset.</summary>
-  C_TAG_PRESET_HEIGHTS: array[TS4YTagSizePreset] of Single = (24, 32, 40);
+  C_TAG_PRESET_HEIGHTS: array[TS4YTagSizePreset] of Single = (24, 32, 40, 32);
   /// <summary>Size in points of the font of a tag or a chip for each size preset.</summary>
-  C_TAG_PRESET_FONT_SIZES: array[TS4YTagSizePreset] of Single = (11, 13, 15);
+  C_TAG_PRESET_FONT_SIZES: array[TS4YTagSizePreset] of Single = (11, 13, 15, 13);
+  /// <summary>Least height of a tag or a chip with tgzCustom, in pixels.</summary>
+  C_TAG_MIN_HEIGHT = 16;
+  /// <summary>Least size of the font of a tag or a chip, in points.</summary>
+  C_TAG_MIN_FONT_SIZE = 8;
+
+/// <summary>Returns the height of a tag or a chip: the one of the preset, or ACustomHeight, not less than C_TAG_MIN_HEIGHT, with tgzCustom.</summary>
+function TagHeightOf(const APreset: TS4YTagSizePreset; const ACustomHeight: Single): Single;
+/// <summary>Returns the size of the font for a height: it is the one of the presets (11, 13 and 15 points at 24, 32 and 40 pixels) and goes on in the same line, not below C_TAG_MIN_FONT_SIZE.</summary>
+function TagFontSizeOf(const AHeight: Single): Single;
 
 implementation
+
+function TagHeightOf(const APreset: TS4YTagSizePreset; const ACustomHeight: Single): Single;
+begin
+  if APreset = tgzCustom then
+    Result := ACustomHeight
+  else
+    Result := C_TAG_PRESET_HEIGHTS[APreset];
+
+  if Result < C_TAG_MIN_HEIGHT then
+    Result := C_TAG_MIN_HEIGHT;
+end;
+
+function TagFontSizeOf(const AHeight: Single): Single;
+begin
+  // 11, 13 and 15 points at 24, 32 and 40 pixels: a quarter of a point for every pixel
+  Result := 11 + (AHeight - 24) * 0.25;
+
+  if Result < C_TAG_MIN_FONT_SIZE then
+    Result := C_TAG_MIN_FONT_SIZE;
+end;
 
 end.

@@ -19,6 +19,7 @@ uses
   System.UITypes,
   FMX.Types,
   FMX.Controls,
+  FMX.Graphics,
   FMX.Layouts,
   Soft4You.FMX.Controls.Tag.Types,
   Soft4You.FMX.Controls.Chip;
@@ -26,9 +27,21 @@ uses
 type
   TS4YCustomChipBox = class;
 
+  /// <summary>
+  /// List of the controls that Tab goes through, which also takes the chips and the controls that TS4YChipGroup and TS4YChipEdit make themselves.
+  /// </summary>
+  /// <remarks>
+  /// The list of FMX leaves out the controls that are not saved in the form (Stored False), and these are not: they are made by the control, so they would never be reached with Tab. It takes only these controls and not the parts of the style.
+  /// </remarks>
+  TS4YChipTabList = class(TTabList)
+  protected
+    function IsAddable(const TabStop: IControl): Boolean; override;
+  end;
+
   /// <summary>Content of TS4YCustomChipBox: it places the children with the wrapping flow instead of the alignment of FMX.</summary>
   TS4YChipBoxContent = class(TScrollContent)
   protected
+    function GetTabListClass: TTabListClass; override;
     procedure DoRealign; override;
   end;
 
@@ -55,6 +68,14 @@ type
   private
     FArranging: Boolean;
     FAutoSize: Boolean;
+    FChipCornerRadius: Single;
+    FChipFontApplied: Boolean;
+    FChipFontSizeOverride: Single;
+    FChipHeight: Single;
+    FChipPadding: Single;
+    FChipStyledSettings: TStyledSettings;
+    FChipStyleLookup: string;
+    FChipTextSettings: TTextSettings;
     FChips: TList<TS4YChip>;
     FFillControl: TControl;
     FFillMinWidth: Single;
@@ -71,9 +92,12 @@ type
     procedure CollectFocusTargets(const ATargets: TList<TControl>);
     function FindVerticalNeighbor(const ATargets: TList<TControl>; const ACurrent: TControl; ADown: Boolean): TControl;
     function GetItems: TStrings;
+    function ChipHeightStored: Boolean;
     function MaxHeightStored: Boolean;
     procedure ItemsChanged(Sender: TObject);
     procedure SetAutoSize(const Value: Boolean);
+    procedure SetChipHeight(const Value: Single);
+    procedure SetChipStyleLookup(const Value: string);
     procedure SetFillControl(const Value: TControl);
     procedure SetHorizontalGap(const Value: Single);
     procedure SetItems(const Value: TStrings);
@@ -86,8 +110,16 @@ type
     function VerticalGapStored: Boolean;
     function HorizontalGapStored: Boolean;
   protected
+    /// <summary>Returns the list of Tab that takes the chips.</summary>
+    function GetTabListClass: TTabListClass; override;
     /// <summary>Returns the name of the style of a scroll box: the control has none of its own, and the name made from its class would find no style, so the content would not be placed in the area that shows it.</summary>
     function GetDefaultStyleLookupName: string; override;
+    /// <summary>Returns the height of the chips: the one of SizePreset, or ChipHeight with tgzCustom.</summary>
+    function GetCurrentChipHeight: Single;
+    /// <summary>Returns the size of the font of the chips: the one given, or the one that goes with their height.</summary>
+    function GetCurrentChipFontSize: Single;
+    /// <summary>Takes the look of the chips from a chip, which a style gives as a model: shape, variant, size, font, padding, corner radius and style. With nil the settings stay as they are. Makes the chips again with the new look.</summary>
+    procedure ApplyChipTemplate(const ATemplate: TS4YChip);
     /// <summary>Places the chips again once the style, which gives the area that shows the content, is applied: a box that is out of view gets its style when it comes into view.</summary>
     procedure ApplyStyle; override;
     /// <summary>Places the children one after the other, wrapping at the width of the content, and gives the content its height.</summary>
@@ -130,6 +162,10 @@ type
 
     /// <summary>When True, the default, the height follows the content up to MaxHeight.</summary>
     property AutoSize: Boolean read FAutoSize write SetAutoSize default True;
+    /// <summary>Height of the chips in pixels when SizePreset is tgzCustom, not less than 16. The default is 32.</summary>
+    property ChipHeight: Single read FChipHeight write SetChipHeight stored ChipHeightStored nodefault;
+    /// <summary>Name of the style of the chips, to give them a size of font or a space at the sides that differ from the ones of the chips of the rest of the application. The default, empty, is the style S4YChipStyle.</summary>
+    property ChipStyleLookup: string read FChipStyleLookup write SetChipStyleLookup;
     /// <summary>Space between two chips on a line, in pixels.</summary>
     property HorizontalGap: Single read FHorizontalGap write SetHorizontalGap stored HorizontalGapStored nodefault;
     /// <summary>The texts of the chips, one for each chip.</summary>
@@ -140,7 +176,7 @@ type
     property MaxHeight: Single read FMaxHeight write SetMaxHeight stored MaxHeightStored nodefault;
     /// <summary>Shape of the chips. The default is tgsPill.</summary>
     property Shape: TS4YTagShape read FShape write SetShape default C_DEFAULT_SHAPE;
-    /// <summary>Size of the chips. The default is tgzMedium, tgzLarge on Android and iOS.</summary>
+    /// <summary>Size of the chips. The default is tgzMedium, tgzLarge on Android and iOS; tgzCustom takes the height from ChipHeight.</summary>
     property SizePreset: TS4YTagSizePreset read FSizePreset write SetSizePreset default C_DEFAULT_SIZE_PRESET;
     /// <summary>How the color fills the chips: filled, tonal or outlined. The default of TS4YCustomChipBox is tgvOutlined.</summary>
     property Variant: TS4YTagVariant read FVariant write SetVariant;
@@ -157,13 +193,34 @@ implementation
 
 uses
   System.Math,
-  System.SysUtils;
+  System.SysUtils,
+  FMX.Edit;
 
 const
   // Style of a TScrollBox
   C_STYLE_NAME = 'scrollboxstyle';
 
+{ TS4YChipTabList }
+
+function TS4YChipTabList.IsAddable(const TabStop: IControl): Boolean;
+var
+  LObject: TFmxObject;
+begin
+  LObject := TabStop.GetObject;
+
+  // Only the chips, the text field and the box of chips, which the controls make and do not store. Nothing else:
+  // the parts of a style are controls too, FMX puts them in the list while it applies the style and frees them when the
+  // style changes, and a list that keeps them holds references to controls that no longer exist.
+  Result := not Supports(TabStop, IContent) and
+    ((LObject is TS4YChip) or (LObject is TEdit) or (LObject is TS4YCustomChipBox));
+end;
+
 { TS4YChipBoxContent }
+
+function TS4YChipBoxContent.GetTabListClass: TTabListClass;
+begin
+  Result := TS4YChipTabList;
+end;
 
 procedure TS4YChipBoxContent.DoRealign;
 begin
@@ -180,9 +237,12 @@ begin
   inherited;
 
   FChips := TList<TS4YChip>.Create;
+  FChipTextSettings := TTextSettings.Create(Self);
   FItems := TStringList.Create;
   FItems.OnChange := ItemsChanged;
   FAutoSize := True;
+  FChipHeight := C_TAG_PRESET_HEIGHTS[tgzMedium];
+  FChipCornerRadius := TS4YChip.C_DEFAULT_CORNER_RADIUS;
   FFillMinWidth := 80;
   FHorizontalGap := C_DEFAULT_GAP;
   FKind := C_DEFAULT_KIND;
@@ -197,7 +257,7 @@ begin
   {$ENDIF}
 
   Width := 320;
-  Height := C_TAG_PRESET_HEIGHTS[FSizePreset];
+  Height := GetCurrentChipHeight;
 end;
 
 destructor TS4YCustomChipBox.Destroy;
@@ -205,7 +265,34 @@ begin
   inherited;
   // After inherited: the destruction of the chips, which the control owns, may still remove them
   FreeAndNil(FChips);
+  FreeAndNil(FChipTextSettings);
   FreeAndNil(FItems);
+end;
+
+procedure TS4YCustomChipBox.ApplyChipTemplate(const ATemplate: TS4YChip);
+begin
+  if Assigned(ATemplate) then
+  begin
+    FVariant := ATemplate.Variant;
+    FShape := ATemplate.Shape;
+    FSizePreset := ATemplate.SizePreset;
+    FChipHeight := ATemplate.Height;
+    FChipFontApplied := True;
+    FChipTextSettings.Assign(ATemplate.TextSettings);
+    FChipStyledSettings := ATemplate.StyledSettings;
+
+    // The size of the model is the one of the chips, unless the model leaves it to its style
+    if TStyledSetting.Size in ATemplate.StyledSettings then
+      FChipFontSizeOverride := 0
+    else
+      FChipFontSizeOverride := ATemplate.TextSettings.Font.Size;
+
+    FChipPadding := ATemplate.HorizontalPadding;
+    FChipCornerRadius := ATemplate.CornerRadius;
+    FChipStyleLookup := ATemplate.StyleLookup;
+  end;
+
+  SyncChips;
 end;
 
 procedure TS4YCustomChipBox.ApplyStyle;
@@ -289,7 +376,7 @@ begin
     if FAutoSize then
     begin
       // The control is as high as its lines, never less than one chip and never more than MaxHeight
-      LDesiredHeight := Max(LBottom, C_TAG_PRESET_HEIGHTS[FSizePreset] + Padding.Top + Padding.Bottom);
+      LDesiredHeight := Max(LBottom, GetCurrentChipHeight + Padding.Top + Padding.Bottom);
 
       if FMaxHeight > 0 then
         LDesiredHeight := Min(LDesiredHeight, FMaxHeight);
@@ -383,6 +470,20 @@ begin
   AChip.Variant := FVariant;
   AChip.Shape := FShape;
   AChip.SizePreset := FSizePreset;
+  AChip.StyleLookup := FChipStyleLookup;
+
+  if FChipFontApplied then
+  begin
+    AChip.TextSettings.Assign(FChipTextSettings);
+    AChip.StyledSettings := FChipStyledSettings;
+    AChip.FontSizeOverride := FChipFontSizeOverride;
+  end;
+
+  AChip.HorizontalPadding := FChipPadding;
+  AChip.CornerRadius := FChipCornerRadius;
+
+  if FSizePreset = tgzCustom then
+    AChip.Height := FChipHeight;
 end;
 
 procedure TS4YCustomChipBox.ContentAddObject(const AObject: TFmxObject);
@@ -478,6 +579,11 @@ begin
   Result := not SameValue(FHorizontalGap, C_DEFAULT_GAP);
 end;
 
+function TS4YCustomChipBox.GetTabListClass: TTabListClass;
+begin
+  Result := TS4YChipTabList;
+end;
+
 function TS4YCustomChipBox.GetDefaultStyleLookupName: string;
 begin
   Result := C_STYLE_NAME;
@@ -498,6 +604,24 @@ begin
   inherited;
 
   SyncChips;
+end;
+
+function TS4YCustomChipBox.ChipHeightStored: Boolean;
+begin
+  Result := not SameValue(FChipHeight, C_TAG_PRESET_HEIGHTS[tgzMedium]);
+end;
+
+function TS4YCustomChipBox.GetCurrentChipFontSize: Single;
+begin
+  if FChipFontSizeOverride > 0 then
+    Result := FChipFontSizeOverride
+  else
+    Result := TagFontSizeOf(GetCurrentChipHeight);
+end;
+
+function TS4YCustomChipBox.GetCurrentChipHeight: Single;
+begin
+  Result := TagHeightOf(FSizePreset, FChipHeight);
 end;
 
 function TS4YCustomChipBox.MaxHeightStored: Boolean;
@@ -531,6 +655,26 @@ begin
 
   FAutoSize := Value;
   ArrangeChips;
+end;
+
+procedure TS4YCustomChipBox.SetChipHeight(const Value: Single);
+begin
+  if SameValue(FChipHeight, Value) then
+    Exit;
+
+  FChipHeight := Value;
+
+  if FSizePreset = tgzCustom then
+    SyncChips;
+end;
+
+procedure TS4YCustomChipBox.SetChipStyleLookup(const Value: string);
+begin
+  if FChipStyleLookup = Value then
+    Exit;
+
+  FChipStyleLookup := Value;
+  SyncChips;
 end;
 
 procedure TS4YCustomChipBox.SetFillControl(const Value: TControl);
@@ -638,9 +782,12 @@ begin
       DisposeChip(LChip);
     end;
 
-    // The control that takes the rest of the line stays after the chips
+    // The control that takes the rest of the line stays after the chips, also for Tab
     if Assigned(FFillControl) then
+    begin
       FFillControl.BringToFront;
+      FFillControl.TabOrder := FChips.Count;
+    end;
   finally
     FSyncing := False;
   end;

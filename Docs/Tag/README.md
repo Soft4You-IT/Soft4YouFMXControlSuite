@@ -18,7 +18,7 @@ Both wrap the chips on new lines and scroll when a `MaxHeight` is reached. They 
 
 ![TS4YChipGroup and TS4YChipEdit](../Screenshots/chipgroup-edit.png)
 
-Units: `Soft4You.FMX.Controls.Tag` (the base and `TS4YTag`), `Soft4You.FMX.Controls.Chip` (`TS4YChip`), `Soft4You.FMX.Controls.ChipBox`, `Soft4You.FMX.Controls.ChipGroup` and `Soft4You.FMX.Controls.ChipEdit`, in `Sources\Tag`, with the types in `Soft4You.FMX.Controls.Tag.Types`.
+Units: `Soft4You.FMX.Controls.Tag` (the base and `TS4YTag`), `Soft4You.FMX.Controls.Chip` (`TS4YChip`), `Soft4You.FMX.Controls.ChipBox`, `Soft4You.FMX.Controls.ChipHost`, `Soft4You.FMX.Controls.ChipGroup` and `Soft4You.FMX.Controls.ChipEdit`, in `Sources\Tag`, with the types in `Soft4You.FMX.Controls.Tag.Types`.
 
 ## Installation
 
@@ -33,12 +33,13 @@ Add the folder `Sources\Tag` to the Delphi library path to compile your own proj
 | `Sources\Tag\Soft4You.FMX.Controls.Tag.pas` | `TS4YCustomTag` (the base, with the protected properties) and `TS4YTag` |
 | `Sources\Tag\Soft4You.FMX.Controls.Chip.pas` | `TS4YChip` |
 | `Sources\Tag\Soft4You.FMX.Controls.ChipBox.pas` | `TS4YCustomChipBox`: the scroll box that keeps a chip for each text and wraps them, base of the group and the edit |
+| `Sources\Tag\Soft4You.FMX.Controls.ChipHost.pas` | `TS4YCustomChipHost`: the control with a style that holds the box of chips and takes the look of the chips from the part `chip` of the style, base of the group and the edit |
 | `Sources\Tag\Soft4You.FMX.Controls.ChipGroup.pas` | `TS4YChipGroup` |
 | `Sources\Tag\Soft4You.FMX.Controls.ChipEdit.pas` | `TS4YChipEdit` |
 | `Sources\Tag\Soft4You.FMX.Controls.Tag.Types.pas` | The enumerated types of the kind, the variant, the shape, the size, the state and the selection mode, the heights and font sizes of the sizes, and the types of the events |
 | `Sources\Tag\Soft4You.FMX.Controls.Tag.Register.pas` | Registration of the four controls in the Tool Palette (design time) |
-| `Sources\Tag\Soft4You.FMX.Controls.Tag.Win.rc` / `.Mac.rc` / `.Android.rc` / `.iOS.rc`, and the same for `Chip` and `ChipEdit` | Resource scripts that link the styles as the resources `S4YTagStyle`, `S4YChipStyle` and `S4YChipEditStyle` |
-| `Sources\Tag\Soft4You.FMX.Controls.Tag.Win.style` / `.Mac.style` / `.Android.style` / `.iOS.style`, and the same for `Chip` and `ChipEdit` | Default styles for each platform: they differ in the colors of the kinds and of the frame |
+| `Sources\Tag\Soft4You.FMX.Controls.Tag.Win.rc` / `.Mac.rc` / `.Android.rc` / `.iOS.rc`, and the same for `Chip`, `ChipGroup` and `ChipEdit` | Resource scripts that link the styles as the resources `S4YTagStyle`, `S4YChipStyle`, `S4YChipGroupStyle` and `S4YChipEditStyle` |
+| `Sources\Tag\Soft4You.FMX.Controls.Tag.Win.style` / `.Mac.style` / `.Android.style` / `.iOS.style`, and the same for `Chip`, `ChipGroup` and `ChipEdit` | Default styles for each platform: they differ in the colors of the kinds and of the frame, and in the size of the chips |
 | `Graphics\Tag\TS4YTag.svg`, `TS4YChip.svg`, `TS4YChipGroup.svg`, `TS4YChipEdit.svg` | Vector masters of the icons of the Tool Palette |
 | `Graphics\Tag\TS4YTag.bmp`, `TS4YChip.bmp`, `TS4YChipGroup.bmp`, `TS4YChipEdit.bmp`, `TagDesign.rc` | Icons of the Tool Palette (24x24 bitmaps) and the resource script that links them |
 
@@ -64,12 +65,15 @@ The style resources are linked into the package, so the controls look the same w
 | `Variant` | `tgvTonal` (`tgvOutlined` for a chip) | `tgvFilled`: the background has the color and the text is white or dark; `tgvTonal`: a light background of the color and text of the color; `tgvOutlined`: no background, a border and text of the color |
 | `Shape` | `tgsPill` | `tgsPill` (the short sides are half circles), `tgsRounded` (corners with the radius of `CornerRadius`), `tgsSquare` |
 | `CornerRadius` | 6 | Radius of the corners with `tgsRounded`, in pixels |
-| `SizePreset` | `tgzMedium` | `tgzSmall` (24 pixels high), `tgzMedium` (32), `tgzLarge` (40); on Android and iOS the default is `tgzLarge` |
+| `SizePreset` | `tgzMedium` | `tgzSmall` (24 pixels high), `tgzMedium` (32), `tgzLarge` (40); on Android and iOS the default is `tgzLarge`. With `tgzCustom` the height is the one set in `Height`, from 16 pixels |
+| `TextSettings` | | The font of the text: `Font.Family` and `Font.Style` (bold, italic) for the settings that are not in `StyledSettings`. `Font.Size` is not used, see below. Only `Font` is published: the color comes from `Kind` and `Variant`, and the control places and trims the text itself |
+| `StyledSettings` | all but `Size` | Which settings of the font come from the part `text` of the style and which from `TextSettings`, as in a `TLabel`. With `Family` or `Style` in it the font is the one of the style |
+| `HorizontalPadding` | 0 | Space at the left and at the right of the content in pixels; 0 takes it from the height |
 | `AutoSize` | `True` | The width follows the content: the text, the icon and the close button. With `False` the width is the one set, and a text that does not fit is cut, with an ellipsis |
 | `MaxWidth` | 0 | Largest width in pixels when `AutoSize` is `True`: a text that would make the control wider is cut, with an ellipsis. 0 means no limit; the control is never narrower than its height |
 | `BackgroundColor`, `TextColor`, `BorderColor` | `Null` | Colors that replace the ones that come from `Kind` and `Variant`; `Null` keeps them |
 
-The height always follows `SizePreset`; the font and the spaces follow the height. The text takes its font family and style from the part `text` of the style.
+The height follows `SizePreset`, or `Height` with `tgzCustom`; the font and the spaces follow the height (the font is 11, 13 and 15 points at 24, 32 and 40 pixels, and goes on in the same line, never under 8 points). The size of the font follows the height unless `Size` is in `StyledSettings` or the control has a style of its own (`StyleLookup` that is not the default one): then it is the size of the part `text` of the style. The family and the style of the font come from the part `text` of the style, or from `TextSettings` when they are not in `StyledSettings`: a tag in italic needs `Style` out of `StyledSettings` and `Font.Style` with italic.
 
 ### Events
 
@@ -109,7 +113,7 @@ end;
 
 ## `TS4YChipGroup`
 
-Chips made from a list of texts, one after the other and on a new line when the width ends, of which the user chooses one, some or none. `Items` holds the texts; the group makes, changes and frees the chips (they are not saved in the form) and gives them `Kind`, `Variant`, `Shape` and `SizePreset`.
+Chips made from a list of texts, one after the other and on a new line when the width ends, of which the user chooses one, some or none. `Items` holds the texts; the group makes, changes and frees the chips (they are not saved in the form) and gives them `Kind`; their look comes from the style.
 
 | Property | Default | Meaning |
 |---|---|---|
@@ -118,7 +122,7 @@ Chips made from a list of texts, one after the other and on a new line when the 
 | `ItemIndex` | -1 | Position of the chosen chip, or of the first chosen one in `cgmMultiple`; -1 for none. Setting it chooses that chip and un-chooses the others. It is saved in the form only in `cgmSingle` |
 | `Selected[Index]` | | Whether the chip at that position is chosen (read and write) |
 | `SelectedItems` | | The texts of the chosen chips, in the order of `Items` (read only) |
-| `Kind`, `Variant`, `Shape`, `SizePreset`, `ShowCheckMark` | as the chip | Look of all the chips; the default `Variant` is `tgvOutlined` |
+| `Kind`, `ShowCheckMark` | neutral, `True` | Color of all the chips and check mark of a chosen chip. The size, the font, the variant and the rest of the look come from the chip of the style (see below) |
 | `HorizontalGap`, `VerticalGap` | 8 | Space between two chips, and between two lines, in pixels |
 | `AutoSize` | `True` | The height follows the lines of chips, up to `MaxHeight` |
 | `MaxHeight` | 0 | Largest height in pixels when `AutoSize` is `True`: a longer content scrolls vertically, with the mouse wheel and the finger. 0 means no limit |
@@ -126,7 +130,7 @@ Chips made from a list of texts, one after the other and on a new line when the 
 
 With `AutoSize` set to `False` the height is the one set, and the group scrolls when the chips do not fit.
 
-Keyboard: Tab enters the group on the chosen chip (the first one when none is chosen), the arrow keys, Home and End move the focus among the chips (up and down go to the nearest chip of the line above or under), and Space chooses the chip. The chip that takes the focus is scrolled into view.
+Keyboard: Tab enters the group on one chip, the chosen one in `cgmSingle` or else the first, and goes on to the next control; the arrow keys, Home and End move the focus among the chips (up and down go to the nearest chip of the line above or under), and Space chooses the chip. The chip that takes the focus is scrolled into view.
 
 Binding: a property link (`TLinkPropertyToField`) can show a field in `ItemIndex`, and the group follows the source. The other way, from the group to the source, is not done by the link: assign the field in `OnChange`. The texts of `Items` cannot be filled by the list links of LiveBindings (`TLinkListControlToField` stops with the error *No list control editor available*: it needs a list control that FMX knows), so fill `Items` in the code.
 
@@ -141,9 +145,9 @@ A text field where the user types entries that become chips, as the recipients o
 | `AllowDuplicates` | `False` | When `False`, a text that is already an item (without case) is dropped |
 | `MaxItems` | 0 | The most chips the control holds; a text that would be one more stays in the field. 0 means no limit |
 | `TextPrompt` | empty | Text shown in the field while it is empty |
-| `Kind`, `Variant`, `Shape`, `SizePreset` | neutral, tonal, pill, as the chip | Look of the chips |
+| `Kind` | neutral | Color of the chips. The size, the font, the variant and the rest of the look come from the chip of the style (see below); the text field is as high as the chips and has their font |
 | `HorizontalGap`, `VerticalGap` | 8 | Space between two chips, and between two lines, in pixels |
-| `AutoSize` | `True` | The height follows the lines, up to `MaxHeight` |
+| `AutoSize` | `True` | The height is the one of the lines, up to `MaxHeight`: the height set in the designer or in the code is replaced by it. With `False` the height is the one set, the chips keep their height and start from the top, and what does not fit is clipped inside the frame and scrolls |
 | `MaxHeight` | 0 | Largest height in pixels, frame included, when `AutoSize` is `True`: a longer content scrolls. 0 means no limit |
 | `EditText` | | The text that the user is typing, not yet a chip; setting it works as typing or pasting it |
 
@@ -163,6 +167,7 @@ A text field where the user types entries that become chips, as the recipients o
 How the user works:
 
 - Enter, a separator, the loss of the focus, and a paste with separators in it turn the text into chips; a text that is only spaces gives no chip.
+- Tab goes through the text field only; the chips are reached with the arrow keys.
 - Backspace with the field empty removes the last chip. The left arrow with the cursor at the start of the field moves the focus to the last chip, the arrow keys move it among the chips and the field, and Delete or Backspace on a chip removes it, as its close button does. The chip that takes the focus is scrolled into view.
 - A click on the free space of the control puts the cursor in the field.
 
@@ -176,7 +181,7 @@ begin
 end;
 ```
 
-The frame comes from the style `S4YChipEditStyle` (see below). The text field uses the style `transparentedit` of the active style, so that it has no frame of its own; a style that does not have it shows the default frame of an edit.
+The frame comes from the style `S4YChipEditStyle` (see below). The text field uses the style `transparentedit` of the active style, for its font and its colors; the control hides the `background` part of that style, so the field has neither a frame nor a focus rectangle of its own, and the frame of the control shows the focus.
 
 ## Style
 
@@ -202,14 +207,43 @@ The colors of the background, the border and the text are calculated from the co
 
 The tonal and outlined variants draw their text with a dark version of the color, which is easy to read on a light background and not on a dark one. For a dark style, give the parts `...textcolor` lighter colors: in a `TStyleBook` with a copy of `S4YTagStyle` and `S4YChipStyle` (*Edit Custom Style* in the form designer, or the style files of `Sources\Tag` as a start), change the `Color` of `primarytextcolor` and of the others, for example to the color of the kind made lighter. The default styles give the values the controls calculate, so they look the same as without these parts. `TextColor` still replaces them for a single control.
 
-### Style of `TS4YChipEdit`
+### The chips of the group and the edit
 
-`TS4YChipEdit` uses the style named by `StyleLookup` or, when it is empty, `S4YChipEditStyle`, looked for as the others. `TS4YChipGroup` has no style of its own: it is a scroll box that uses the one of the active style.
+The group and the edit do not publish the look of their chips (size, font, padding, shape, variant, corner radius, style). It comes from their style, as the badge of the `TS4YExpander` does: the style has a part `chip`, a `TS4YChip` that is not seen, and the control copies its settings to every chip it makes. To change the chips of a group or an edit, change that chip in the style, in the style designer (*Edit Custom Style* in the form designer), with its properties in the Object Inspector.
+
+| Property of the chip of the style | Effect on the chips |
+|---|---|
+| `SizePreset`, `Height` | The size; with `tgzCustom` the height is `Height`, from 16 pixels |
+| `TextSettings`, `StyledSettings` | The font of the chips. With `Size` out of `StyledSettings`, the default, the size is `TextSettings.Font.Size` of the chip of the style, whatever the height; with `Size` in `StyledSettings` it is the size of the part `text` of the style of the chips. The family and the style of the font are the ones of `TextSettings` when they are not in `StyledSettings` |
+| `HorizontalPadding` | The space at the left and at the right in pixels; 0 takes it from the height |
+| `Variant`, `Shape`, `CornerRadius` | The way the color fills the chip, its form and the radius of its corners |
+| `StyleLookup` | The style of the chips, when they must have one that is not `S4YChipStyle` |
+
+The color (`Kind`), the check mark of the group and the other settings that the control publishes are not taken from the chip of the style.
+
+### A small chip edit with a readable text
+
+In a low control the chips need their own font size: the default styles give 13 points on the desktop and 15 on Android and iOS, for the chips of 32 and 40 pixels. To have a chip edit 28 pixels high with a font of 14 points, in a `TStyleBook` of the form:
+
+1. Copy `S4YChipEditStyle` as `S4YSmallChipEditStyle`.
+2. In the copy, change the margins of the part `content` to 8 on the left and the right and 2 above and under.
+3. In the part `chip` of the copy, set `SizePreset` to `tgzCustom`, `Height` to 24, `TextSettings.Font.Size` to 14 and `HorizontalPadding` to 8.
+4. In the part `edit` of the copy, set `TextSettings.Font.Size` to 14 as well, so that the text field has the same size.
+5. On the control, set `StyleLookup` to `S4YSmallChipEditStyle`. The height of the control is then 28 with one line.
+
+The chips and the text field can have different fonts: for chips in italic and a text field that is not, take `Style` out of `StyledSettings` in the part `chip` and set `Font.Style` to italic; the same with `Family` for another family. `HorizontalPadding` and `TextSettings` are also properties of a `TS4YTag` and a `TS4YChip` alone.
+
+### Style of `TS4YChipEdit` and `TS4YChipGroup`
+
+`TS4YChipEdit` uses the style named by `StyleLookup` or, when it is empty, `S4YChipEditStyle`; `TS4YChipGroup` `S4YChipGroupStyle`. Both are looked for in the style book, in the active style and, when they are not found, the one linked into the package. The parts are the same, except for the colors of the border, which only the edit has:
 
 | Part | Class | Use |
 |---|---|---|
-| `background` | `TRectangle` | The frame: its fill, its radius; the control sets the color and the thickness of the border |
-| `bordercolor`, `focusbordercolor` | `TColorObject` | The colors of the border, without and with the focus (in the text field or on a chip) |
+| `background` | `TRectangle` | The frame: its fill, its radius; the edit sets the color and the thickness of the border. In the group it has no fill and no border |
+| `content` | `TLayout` | Only its margins count: the space between the frame and the chips. The default is 8 pixels on the left and the right and 4 above and under in the edit, none in the group |
+| `chip` | `TS4YChip`, not visible | The model of the chips, see above |
+| `edit` | `TEdit`, not visible | Only in the edit: the model of the text field. It takes its `TextSettings` and `StyledSettings` and its `StyleLookup`; the default is `transparentedit`. Without this part the text field has the font size of the chips |
+| `bordercolor`, `focusbordercolor` | `TColorObject` | Only in the edit: the colors of the border, without and with the focus (in the text field or on a chip) |
 
 ## Desktop and mobile
 
