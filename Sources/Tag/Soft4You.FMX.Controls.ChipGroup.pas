@@ -14,12 +14,13 @@ interface
 
 uses
   System.Classes,
+  System.Types,
   System.UITypes,
   FMX.Types,
   FMX.Controls,
   Soft4You.FMX.Controls.Tag.Types,
   Soft4You.FMX.Controls.Chip,
-  Soft4You.FMX.Controls.ChipBox;
+  Soft4You.FMX.Controls.ChipHost;
 
 type
   /// <summary>
@@ -28,12 +29,12 @@ type
   /// <remarks>
   /// SelectionMode says how: cgmSingle, the default, chooses one at a time as radio buttons do and clicking the chosen chip keeps it chosen; cgmMultiple lets the user choose any number; cgmNone shows the chips without choosing.
   /// The choice is read with ItemIndex (the first chosen chip, -1 for none), Selected and SelectedItems, and set with ItemIndex and Selected. OnChange fires after every change of the choice, whoever makes it. A property link can show a field in ItemIndex; the control does not send the choice back to the field, which OnChange can do, and the texts of Items cannot be filled by a list link.
-  /// Tab enters the group on the chosen chip (the first one when none is chosen) and the arrow keys, Home and End move the focus among the chips; Space chooses the chip.
+  /// Tab enters the group on the chosen chip (the first one when none is chosen, or in the other modes) and the arrow keys, Home and End move the focus among the chips; Space chooses the chip.
   /// With AutoSize True the height follows the lines of chips up to MaxHeight and a longer content scrolls; the same with AutoSize False and the height set.
-  /// Kind, Variant, Shape and SizePreset are the ones of all the chips; the chips are made and freed by the group and are not saved in the form.
-  /// Changing Items keeps the choice of the chips that remain, by position.
+  /// The look comes from the style S4YChipGroupStyle: the frame (the part background, which has no fill and no border at first), the space inside it (the margins of the part content) and the chips, which take the look of the part chip, a TS4YChip of the style: change it to change the size, the font, the padding, the shape and the variant of the chips. Kind and ShowCheckMark are the ones of all the chips.
+  /// The chips are made and freed by the group and are not saved in the form. Changing Items keeps the choice of the chips that remain, by position.
   /// </remarks>
-  TS4YChipGroup = class(TS4YCustomChipBox)
+  TS4YChipGroup = class(TS4YCustomChipHost)
   public const
     /// <summary>Name given to the chips of the group in cgmSingle, which makes them a group of radio buttons.</summary>
     C_RADIO_GROUP_NAME = 'S4YChipGroup';
@@ -54,12 +55,12 @@ type
     procedure SetShowCheckMark(const Value: Boolean);
     procedure UpdateTabStops;
   protected
-    /// <summary>Gives the chip its text, its settings and what the mode of selection asks of it.</summary>
+    /// <summary>Gives the chip what the mode of selection asks of it.</summary>
     procedure ConfigureChip(const AChip: TS4YChip; AIndex: Integer); override;
+    /// <summary>Gives the new chip the event that tells the group when its choice changes.</summary>
+    procedure ChipCreated(const AChip: TS4YChip); override;
     /// <summary>Gives the chips the tab stops that the mode of selection asks for.</summary>
     procedure ChipsSynced; override;
-    /// <summary>Creates a chip that tells the group when its choice changes.</summary>
-    function CreateChip: TS4YChip; override;
     /// <summary>Fires OnChange.</summary>
     procedure DoChange; virtual;
     /// <summary>Applies the ItemIndex of the file.</summary>
@@ -93,12 +94,10 @@ type
     property Scale;
     /// <summary>How the user chooses the chips: none, one at a time or any number. The default is cgmSingle.</summary>
     property SelectionMode: TS4YChipSelectionMode read FSelectionMode write SetSelectionMode default cgmSingle;
-    property Shape;
     /// <summary>When True, the default, a chosen chip shows a check mark in place of its icon.</summary>
     property ShowCheckMark: Boolean read FShowCheckMark write SetShowCheckMark default True;
     property Size;
-    property SizePreset;
-    property Variant default tgvOutlined;
+    property StyleLookup;
     property VerticalGap;
     property Visible;
     property Width;
@@ -113,6 +112,16 @@ uses
   System.Math,
   System.SysUtils;
 
+{$IF DEFINED(IOS)}
+{$R *.ios.res}
+{$ELSEIF DEFINED(MACOS)}
+{$R *.mac.res}
+{$ELSEIF DEFINED(ANDROID)}
+{$R *.android.res}
+{$ELSEIF DEFINED(MSWINDOWS)}
+{$R *.win.res}
+{$ENDIF}
+
 constructor TS4YChipGroup.Create(AOwner: TComponent);
 begin
   inherited;
@@ -120,6 +129,9 @@ begin
   FPendingItemIndex := -1;
   FSelectionMode := cgmSingle;
   FShowCheckMark := True;
+  // The group has no frame: no space around the chips, as in its style
+  Box.Margins.Rect := TRectF.Empty;
+  UpdateHeight;
 end;
 
 procedure TS4YChipGroup.ChipCheckedChange(Sender: TObject);
@@ -136,10 +148,18 @@ begin
   DoChange;
 end;
 
+procedure TS4YChipGroup.ChipCreated(const AChip: TS4YChip);
+begin
+  AChip.OnCheckedChange := ChipCheckedChange;
+end;
+
+procedure TS4YChipGroup.ChipsSynced;
+begin
+  UpdateTabStops;
+end;
+
 procedure TS4YChipGroup.ConfigureChip(const AChip: TS4YChip; AIndex: Integer);
 begin
-  inherited;
-
   AChip.ShowCheckMark := FShowCheckMark;
   AChip.Checkable := FSelectionMode <> cgmNone;
 
@@ -150,19 +170,6 @@ begin
 
   if (FSelectionMode = cgmNone) and AChip.Checked then
     AChip.Checked := False;
-end;
-
-procedure TS4YChipGroup.ChipsSynced;
-begin
-  inherited;
-
-  UpdateTabStops;
-end;
-
-function TS4YChipGroup.CreateChip: TS4YChip;
-begin
-  Result := inherited;
-  Result.OnCheckedChange := ChipCheckedChange;
 end;
 
 procedure TS4YChipGroup.DoChange;
@@ -178,26 +185,26 @@ begin
 
   Result := -1;
 
-  for var LIndex := 0 to Chips.Count - 1 do
+  for var LIndex := 0 to Box.Chips.Count - 1 do
   begin
-    if Chips[LIndex].Checked then
+    if Box.Chips[LIndex].Checked then
       Exit(LIndex);
   end;
 end;
 
 function TS4YChipGroup.GetSelected(Index: Integer): Boolean;
 begin
-  Result := Chips[Index].Checked;
+  Result := Box.Chips[Index].Checked;
 end;
 
 function TS4YChipGroup.GetSelectedItems: TArray<string>;
 begin
   Result := nil;
 
-  for var LIndex := 0 to Chips.Count - 1 do
+  for var LIndex := 0 to Box.Chips.Count - 1 do
   begin
-    if Chips[LIndex].Checked then
-      Result := Result + [Items[LIndex]];
+    if Box.Chips[LIndex].Checked then
+      Result := Result + [Box.Items[LIndex]];
   end;
 end;
 
@@ -228,7 +235,7 @@ begin
 
   LOldIndex := GetItemIndex;
 
-  if (Value < 0) or (Value >= Chips.Count) or (FSelectionMode = cgmNone) then
+  if (Value < 0) or (Value >= Box.Chips.Count) or (FSelectionMode = cgmNone) then
   begin
     if LOldIndex < 0 then
       Exit;
@@ -237,13 +244,13 @@ begin
   FUpdating := True;
   try
     // The chip to choose first: in cgmSingle it un-chooses the others by itself
-    if (Value >= 0) and (Value < Chips.Count) and (FSelectionMode <> cgmNone) then
-      Chips[Value].Checked := True;
+    if (Value >= 0) and (Value < Box.Chips.Count) and (FSelectionMode <> cgmNone) then
+      Box.Chips[Value].Checked := True;
 
-    for var LIndex := 0 to Chips.Count - 1 do
+    for var LIndex := 0 to Box.Chips.Count - 1 do
     begin
       if LIndex <> Value then
-        Chips[LIndex].Checked := False;
+        Box.Chips[LIndex].Checked := False;
     end;
   finally
     FUpdating := False;
@@ -261,7 +268,7 @@ begin
   if FSelectionMode = cgmNone then
     Exit;
 
-  Chips[Index].Checked := Value;
+  Box.Chips[Index].Checked := Value;
 end;
 
 procedure TS4YChipGroup.SetSelectionMode(const Value: TS4YChipSelectionMode);
@@ -275,7 +282,7 @@ begin
   FUpdating := True;
   try
     FSelectionMode := Value;
-    SyncChips;
+    Box.RefreshChips;
   finally
     FUpdating := False;
   end;
@@ -292,27 +299,25 @@ begin
     Exit;
 
   FShowCheckMark := Value;
-  SyncChips;
+  Box.RefreshChips;
 end;
 
 procedure TS4YChipGroup.UpdateTabStops;
 var
   LChosen: Integer;
 begin
-  // In cgmSingle Tab enters the group on one chip, the chosen one or the first, as with radio buttons;
-  // the arrow keys reach the others.
-  LChosen := GetItemIndex;
+  // Tab enters the group on one chip, the chosen one in cgmSingle or else the first, as with radio buttons, and goes
+  // on to the next control; the arrow keys reach the other chips.
+  LChosen := -1;
+
+  if FSelectionMode = cgmSingle then
+    LChosen := GetItemIndex;
 
   if LChosen < 0 then
     LChosen := 0;
 
-  for var LIndex := 0 to Chips.Count - 1 do
-  begin
-    if FSelectionMode = cgmSingle then
-      Chips[LIndex].TabStop := LIndex = LChosen
-    else
-      Chips[LIndex].TabStop := True;
-  end;
+  for var LIndex := 0 to Box.Chips.Count - 1 do
+    Box.Chips[LIndex].TabStop := LIndex = LChosen;
 end;
 
 end.

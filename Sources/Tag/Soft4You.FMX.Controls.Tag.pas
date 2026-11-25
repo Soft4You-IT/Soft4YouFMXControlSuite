@@ -28,11 +28,19 @@ uses
 
 type
   /// <summary>
+  /// The settings of the text of a tag or a chip. Only Font is published, because it is the only setting that the control reads from them: the color of the text comes from Kind and Variant, and the control places and trims the text itself.
+  /// </summary>
+  TS4YTagTextSettings = class(TTextSettings)
+  published
+    property Font;
+  end;
+
+  /// <summary>
   /// Base of TS4YTag and TS4YChip: a short text on a colored background, with an icon or a picture on the left and a close button on the right.
   /// </summary>
   /// <remarks>
   /// All the behavior is here, with protected properties: TS4YTag and TS4YChip publish the ones that make sense for them.
-  /// The control is as wide as its content (AutoSize) and as high as its SizePreset says.
+  /// The control is as wide as its content (AutoSize) and as high as its SizePreset says; with tgzCustom the height is the one set in Height, and the font and the spaces follow it.
   /// The look comes from the style: for a TS4YTag the one named S4YTagStyle, for a TS4YChip S4YChipStyle, in the style book, in the active style or, when they are not found, the one linked into the package. The parts of both styles have the same names: background, image, icon, check, text, close and closeicon, and the colors neutralcolor, primarycolor, successcolor, warningcolor, dangercolor and infocolor.
   /// </remarks>
   TS4YCustomTag = class(TStyledControl, IGlyph, IFreeNotification)
@@ -68,6 +76,10 @@ type
     FCornerRadius: Single;
     FCoverBitmap: TBitmap;
     FCoverInvalid: Boolean;
+    FFontSizeOverride: Single;
+    FHorizontalPadding: Single;
+    FInternalSize: Boolean;
+    FRequestedHeight: Single;
     FImageLink: TGlyphImageLink;
     FImageRound: Boolean;
     FKind: TS4YTagKind;
@@ -75,6 +87,10 @@ type
     FShape: TS4YTagShape;
     FSizePreset: TS4YTagSizePreset;
     FStyleBackground: TRectangle;
+    FStyleFontFamily: string;
+    FStyleFontSize: Single;
+    FStyleFontStyle: TFontStyles;
+    FStyledSettings: TStyledSettings;
     FStyleCheck: TShape;
     FStyleClose: TShape;
     FStyleCloseIcon: TShape;
@@ -86,22 +102,29 @@ type
     FText: string;
     FTextColor: TAlphaColor;
     FTextLayout: TTextLayout;
+    FTextSettings: TS4YTagTextSettings;
     FVariant: TS4YTagVariant;
     FOnClose: TS4YTagCloseEvent;
+    procedure ApplyFont(const AFont: TFont);
     procedure ApplyRadius(const APart: TControl; const ARadius: Single);
     procedure BitmapChanged(Sender: TObject);
     procedure CalculateColors(out AFillColor, ATextColor, AStrokeColor: TAlphaColor);
     function CalculateContentWidth: Single;
     function CalculateMetrics: TTagMetrics;
     procedure CloseClick(Sender: TObject);
+    function GetCustomHeight: Single;
     procedure CloseMouseChanged(Sender: TObject);
     function CornerRadiusStored: Boolean;
     procedure FindStyleColor(const AStyleName: string; const ADefaultColor: TAlphaColor; out AColor: TAlphaColor);
     function GetAccentColor: TAlphaColor;
+    function GetEffectiveFontSize(const AHeight: Single): Single;
     function GetImageIndex: TImageIndex;
     function GetImageList: TBaseImageList;
     function GetImages: TCustomImageList;
     function GetKindTextColor(const AAccentColor: TAlphaColor): TAlphaColor;
+    function HorizontalPaddingStored: Boolean;
+    function IsCustomStyle: Boolean;
+    function IsStyledSettingsStored: Boolean;
     function MaxWidthStored: Boolean;
     function MeasureTextWidth(const AFontSize: Single): Single;
     procedure SetAutoSize(const Value: Boolean);
@@ -109,6 +132,8 @@ type
     procedure SetBitmap(const Value: TBitmap);
     procedure SetBorderColor(const Value: TAlphaColor);
     procedure SetClosable(const Value: Boolean);
+    procedure SetFontSizeOverride(const Value: Single);
+    procedure SetHorizontalPadding(const Value: Single);
     procedure SetCornerRadius(const Value: Single);
     procedure SetImageIndex(const Value: TImageIndex);
     procedure SetImageList(const Value: TBaseImageList);
@@ -118,10 +143,13 @@ type
     procedure SetMaxWidth(const Value: Single);
     procedure SetShape(const Value: TS4YTagShape);
     procedure SetSizePreset(const Value: TS4YTagSizePreset);
+    procedure SetStyledSettings(const Value: TStyledSettings);
     procedure SetText(const Value: string);
     procedure SetTextColor(const Value: TAlphaColor);
+    procedure SetTextSettings(const Value: TS4YTagTextSettings);
     procedure SetVariant(const Value: TS4YTagVariant);
     procedure StyleResourceFreed(AObject: TObject);
+    procedure TextSettingsChanged(Sender: TObject);
     procedure UpdateCoverBitmap(const ASide: Single);
     { IGlyph }
     function IGlyph.GetImages = GetImageList;
@@ -137,7 +165,7 @@ type
     procedure DoMouseLeave; override;
     /// <summary>Places the parts of the style after the size of the control changes.</summary>
     procedure DoRealign; override;
-    /// <summary>Gives the control the width of its content when AutoSize is True, and the height of SizePreset.</summary>
+    /// <summary>Gives the control the width of its content when AutoSize is True, and the height of SizePreset (the one set, not less than 16 pixels, with tgzCustom).</summary>
     function DoSetSize(const ASize: TControlSize; const NewPlatformDefault: Boolean; ANewWidth, ANewHeight: Single;
       var ALastWidth, ALastHeight: Single): Boolean; override;
     /// <summary>Redraws the control with the look of the enabled or disabled state.</summary>
@@ -179,6 +207,8 @@ type
     property Closable: Boolean read FClosable write SetClosable default False;
     /// <summary>Radius of the corners when Shape is tgsRounded, in pixels. The default is 6.</summary>
     property CornerRadius: Single read FCornerRadius write SetCornerRadius stored CornerRadiusStored nodefault;
+    /// <summary>Space at the left and at the right of the content, in pixels. The default, 0, takes it from the height.</summary>
+    property HorizontalPadding: Single read FHorizontalPadding write SetHorizontalPadding stored HorizontalPaddingStored nodefault;
     /// <summary>Index in Images of the icon on the left. The default is -1, no icon.</summary>
     property ImageIndex: TImageIndex read GetImageIndex write SetImageIndex default -1;
     /// <summary>When True the Bitmap is drawn round. The default is False: its corners are rounded a little.</summary>
@@ -193,10 +223,14 @@ type
     property Shape: TS4YTagShape read FShape write SetShape default C_DEFAULT_SHAPE;
     /// <summary>Size chosen among the ready ones: small (24 pixels high), medium (32) or large (40).</summary>
     property SizePreset: TS4YTagSizePreset read FSizePreset write SetSizePreset default C_DEFAULT_SIZE_PRESET;
+    /// <summary>Which settings of the font come from the style and which from TextSettings. The default is every setting except Size: the family and the style of the font come from the style, and the size is the one that goes with the height. See TextSettings.</summary>
+    property StyledSettings: TStyledSettings read FStyledSettings write SetStyledSettings stored IsStyledSettingsStored;
     /// <summary>Text of the control.</summary>
     property Text: string read FText write SetText;
     /// <summary>Color of the text and the icons. The default, Null, takes it from Kind and Variant.</summary>
     property TextColor: TAlphaColor read FTextColor write SetTextColor default TAlphaColors.Null;
+    /// <summary>The font of the text, for the settings that are not in StyledSettings: Font.Family and Font.Style. Font.Size is not used by the control: with Size in StyledSettings, or with a style that is not the default one, the size is the one of the part text of the style; otherwise it goes with the height, 11, 13 and 15 points at 24, 32 and 40 pixels, and the same line for other heights. Only Font is published: the color of the text, the alignment, the wrapping and the trimming are the control's own.</summary>
+    property TextSettings: TS4YTagTextSettings read FTextSettings write SetTextSettings;
     /// <summary>How the color fills the control: tgvFilled, tgvTonal or tgvOutlined.</summary>
     property Variant: TS4YTagVariant read FVariant write SetVariant default C_DEFAULT_VARIANT;
     /// <summary>Fires when the user clicks the close button; CanClose can stop the control from being hidden.</summary>
@@ -208,6 +242,9 @@ type
 
     /// <summary>Returns True when the control shows a picture on the left: Bitmap, or the image ImageIndex of Images.</summary>
     function HasPicture: Boolean;
+
+    /// <summary>Size of the font in points that wins over every other rule, for the controls that hold chips and give them the size of the chip that is their model. The default, 0, leaves the rules of TextSettings.</summary>
+    property FontSizeOverride: Single read FFontSizeOverride write SetFontSizeOverride;
   end;
 
   /// <summary>
@@ -232,6 +269,7 @@ type
     property Enabled;
     property Height;
     property HitTest;
+    property HorizontalPadding;
     property ImageIndex;
     property ImageRound;
     property Images;
@@ -247,9 +285,11 @@ type
     property Shape;
     property Size;
     property SizePreset;
+    property StyledSettings;
     property StyleLookup;
     property Text;
     property TextColor;
+    property TextSettings;
     property Variant;
     property Visible;
     property Width;
@@ -342,6 +382,10 @@ const
   // Width and height given to a text while it is measured: large enough for any text.
   C_MEASURE_SIZE = 10000;
 
+  // Every setting of the font comes from the style, except the size, which goes with the height.
+  C_DEFAULT_STYLED_SETTINGS: TStyledSettings = [TStyledSetting.Family, TStyledSetting.Style, TStyledSetting.FontColor,
+    TStyledSetting.Other];
+
 function IsMobilePlatform: Boolean;
 begin
   {$IF DEFINED(ANDROID) or DEFINED(IOS)}
@@ -395,6 +439,9 @@ begin
   FTextColor := TAlphaColors.Null;
   FVariant := C_DEFAULT_VARIANT;
   FCoverInvalid := True;
+  FStyledSettings := C_DEFAULT_STYLED_SETTINGS;
+  FTextSettings := TS4YTagTextSettings.Create(Self);
+  FTextSettings.OnChanged := TextSettingsChanged;
 
   if IsMobilePlatform then
     FSizePreset := tgzLarge
@@ -410,12 +457,33 @@ end;
 
 destructor TS4YCustomTag.Destroy;
 begin
+  FreeAndNil(FTextSettings);
   FreeAndNil(FTextLayout);
   FreeAndNil(FImageLink);
   FreeAndNil(FCoverBitmap);
   FreeAndNil(FBitmap);
 
   inherited;
+end;
+
+procedure TS4YCustomTag.ApplyFont(const AFont: TFont);
+begin
+  // A setting that is in StyledSettings is the one of the part text of the style; the others are the ones of TextSettings
+  if TStyledSetting.Family in FStyledSettings then
+  begin
+    if Assigned(FStyleText) then
+      AFont.Family := FStyleFontFamily;
+  end
+  else
+    AFont.Family := FTextSettings.Font.Family;
+
+  if TStyledSetting.Style in FStyledSettings then
+  begin
+    if Assigned(FStyleText) then
+      AFont.Style := FStyleFontStyle;
+  end
+  else
+    AFont.Style := FTextSettings.Font.Style;
 end;
 
 procedure TS4YCustomTag.ApplyRadius(const APart: TControl; const ARadius: Single);
@@ -463,12 +531,19 @@ begin
 
   if Assigned(FStyleText) then
   begin
+    // The font of the part is kept before the control changes it, so that the settings can always go back to it
+    FStyleFontFamily := FStyleText.TextSettings.Font.Family;
+    FStyleFontSize := FStyleText.TextSettings.Font.Size;
+    FStyleFontStyle := FStyleText.TextSettings.Font.Style;
     FStyleText.HitTest := False;
     FStyleText.TextSettings.HorzAlign := TTextAlign.Leading;
     FStyleText.TextSettings.VertAlign := TTextAlign.Center;
     FStyleText.TextSettings.WordWrap := False;
     FStyleText.TextSettings.Trimming := TTextTrimming.Character;
   end;
+
+  if not Assigned(FStyleText) then
+    FStyleFontSize := 0;
 
   // The colors of the style are kept, so that the settings of the control can always go back to them.
   FindStyleColor(C_STYLE_NEUTRAL_COLOR, C_FALLBACK_KIND_COLORS[tgkNeutral], FStyleKindColors[tgkNeutral]);
@@ -569,13 +644,27 @@ end;
 
 function TS4YCustomTag.CalculateMetrics: TTagMetrics;
 begin
-  Result.Height := C_TAG_PRESET_HEIGHTS[FSizePreset];
-  Result.FontSize := C_TAG_PRESET_FONT_SIZES[FSizePreset];
+  Result.Height := TagHeightOf(FSizePreset, GetCustomHeight);
+  Result.FontSize := GetEffectiveFontSize(Result.Height);
   Result.Padding := Result.Height * C_PADDING_FACTOR;
+
+  // What is set wins over what comes from the height
+  if FHorizontalPadding > 0 then
+    Result.Padding := FHorizontalPadding;
+
   Result.Gap := Result.Height * C_GAP_FACTOR;
   Result.IconSize := Result.Height * C_ICON_FACTOR;
   Result.CloseSize := Result.Height * C_CLOSE_FACTOR;
   Result.ClosePadding := Result.Padding * C_CLOSE_PADDING_FACTOR;
+end;
+
+function TS4YCustomTag.GetCustomHeight: Single;
+begin
+  // The height that was asked for, or the one the control has when none was
+  if FRequestedHeight > 0 then
+    Result := FRequestedHeight
+  else
+    Result := Height;
 end;
 
 procedure TS4YCustomTag.CloseClick(Sender: TObject);
@@ -633,7 +722,12 @@ begin
   // The first calls come from the constructor of the ancestors, before the fields exist.
   if Assigned(FTextLayout) then
   begin
-    ANewHeight := C_TAG_PRESET_HEIGHTS[FSizePreset];
+    // The height that was asked for is kept, whatever the size: with tgzCustom it is the height, and it can come
+    // before the size is set when the control is copied (a style gives a chip that is cloned)
+    if not FInternalSize then
+      FRequestedHeight := ANewHeight;
+
+    ANewHeight := TagHeightOf(FSizePreset, ANewHeight);
 
     if FAutoSize then
       ANewWidth := CalculateContentWidth;
@@ -782,6 +876,32 @@ begin
   UpdateParts;
 end;
 
+function TS4YCustomTag.GetEffectiveFontSize(const AHeight: Single): Single;
+begin
+  if FFontSizeOverride > 0 then
+    Result := FFontSizeOverride
+  else if ((TStyledSetting.Size in FStyledSettings) or IsCustomStyle) and (FStyleFontSize > 0) then
+    // The size of the style: asked for with Size in StyledSettings, or given by a style that is not the default one
+    Result := FStyleFontSize
+  else
+    Result := TagFontSizeOf(AHeight);
+end;
+
+function TS4YCustomTag.HorizontalPaddingStored: Boolean;
+begin
+  Result := FHorizontalPadding <> 0;
+end;
+
+function TS4YCustomTag.IsCustomStyle: Boolean;
+begin
+  Result := (StyleLookup <> '') and not SameText(StyleLookup, GetDefaultStyleLookupName);
+end;
+
+function TS4YCustomTag.IsStyledSettingsStored: Boolean;
+begin
+  Result := FStyledSettings <> C_DEFAULT_STYLED_SETTINGS;
+end;
+
 function TS4YCustomTag.MaxWidthStored: Boolean;
 begin
   Result := FMaxWidth <> 0;
@@ -799,6 +919,7 @@ begin
     if Assigned(FStyleText) then
       FTextLayout.Font.Assign(FStyleText.TextSettings.Font);
 
+    ApplyFont(FTextLayout.Font);
     FTextLayout.Font.Size := AFontSize;
     FTextLayout.Text := FText;
     FTextLayout.TopLeft := TPointF.Create(0, 0);
@@ -896,6 +1017,26 @@ begin
   UpdateParts;
 end;
 
+procedure TS4YCustomTag.SetFontSizeOverride(const Value: Single);
+begin
+  if SameValue(FFontSizeOverride, Value) then
+    Exit;
+
+  FFontSizeOverride := System.Math.Max(0, Value);
+  UpdateSize;
+  UpdateParts;
+end;
+
+procedure TS4YCustomTag.SetHorizontalPadding(const Value: Single);
+begin
+  if SameValue(FHorizontalPadding, Value) then
+    Exit;
+
+  FHorizontalPadding := System.Math.Max(0, Value);
+  UpdateSize;
+  UpdateParts;
+end;
+
 procedure TS4YCustomTag.SetMaxWidth(const Value: Single);
 begin
   if SameValue(FMaxWidth, Value) then
@@ -939,6 +1080,16 @@ begin
   UpdateParts;
 end;
 
+procedure TS4YCustomTag.SetStyledSettings(const Value: TStyledSettings);
+begin
+  if FStyledSettings = Value then
+    Exit;
+
+  FStyledSettings := Value;
+  UpdateSize;
+  UpdateParts;
+end;
+
 procedure TS4YCustomTag.SetText(const Value: string);
 begin
   if FText = Value then
@@ -958,12 +1109,23 @@ begin
   UpdateParts;
 end;
 
+procedure TS4YCustomTag.SetTextSettings(const Value: TS4YTagTextSettings);
+begin
+  FTextSettings.Assign(Value);
+end;
+
 procedure TS4YCustomTag.SetVariant(const Value: TS4YTagVariant);
 begin
   if FVariant = Value then
     Exit;
 
   FVariant := Value;
+  UpdateParts;
+end;
+
+procedure TS4YCustomTag.TextSettingsChanged(Sender: TObject);
+begin
+  UpdateSize;
   UpdateParts;
 end;
 
@@ -1201,6 +1363,7 @@ begin
     FStyleText.Visible := FText <> '';
     FStyleText.SetBounds(LLeft, 0, System.Math.Max(0, LRight - LLeft), Height);
     FStyleText.Text := FText;
+    ApplyFont(FStyleText.TextSettings.Font);
     FStyleText.TextSettings.Font.Size := LMetrics.FontSize;
     FStyleText.TextSettings.FontColor := LTextColor;
   end;
@@ -1226,7 +1389,12 @@ begin
 
   LOldWidth := Width;
   LOldHeight := Height;
-  SetBounds(Position.X, Position.Y, LWidth, C_TAG_PRESET_HEIGHTS[FSizePreset]);
+  FInternalSize := True;
+  try
+    SetBounds(Position.X, Position.Y, LWidth, TagHeightOf(FSizePreset, GetCustomHeight));
+  finally
+    FInternalSize := False;
+  end;
 
   // A parent that places its children, such as a flow layout, is told only about the controls
   // that have an Align: the others have to ask it to place them again, or they overlap.

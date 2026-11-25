@@ -91,6 +91,7 @@ contains
   Soft4You.FMX.Controls.Tag in '..\..\Sources\Tag\Soft4You.FMX.Controls.Tag.pas',
   Soft4You.FMX.Controls.Chip in '..\..\Sources\Tag\Soft4You.FMX.Controls.Chip.pas',
   Soft4You.FMX.Controls.ChipBox in '..\..\Sources\Tag\Soft4You.FMX.Controls.ChipBox.pas',
+  Soft4You.FMX.Controls.ChipHost in '..\..\Sources\Tag\Soft4You.FMX.Controls.ChipHost.pas',
   Soft4You.FMX.Controls.ChipGroup in '..\..\Sources\Tag\Soft4You.FMX.Controls.ChipGroup.pas',
   Soft4You.FMX.Controls.ChipEdit in '..\..\Sources\Tag\Soft4You.FMX.Controls.ChipEdit.pas';
 
