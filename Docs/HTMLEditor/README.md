@@ -118,7 +118,7 @@ end;
 | `AutoLoadRemoteImages` | `Boolean` | `True` | Load images whose `src` is `http://` or `https://`. When `False` they are drawn as placeholders until `LoadRemoteImages` is called |
 | `BackgroundColor` | `TAlphaColor` | `claWhite` | Editor canvas background color |
 | `DocumentPath` | `string` | `''` | Folder that relative image paths are resolved against when `ImagePathMode = ipmDocument`. Set by `LoadFromFile`; see [Images and files](#images-and-files) |
-| `Font` | `TFont` | platform default | Default font for new text |
+| `Font` | `TFont` | platform default, 12 pt | Base font of the document: the text without a font of its own, also when loaded from HTML, and the text typed into an empty document; the generated HTML does not repeat it |
 | `FontColor` | `TAlphaColor` | `claBlack` | Default text color, used where a run has no color of its own |
 | `ImagePathMode` | `TS4YImagePathMode` | `ipmApplication` | How relative local image paths are resolved: `ipmApplication` (process working directory) or `ipmDocument` (relative to `DocumentPath`) |
 | `KeyboardType` | `TVirtualKeyboardType` | `Default` | Virtual keyboard shown on Android and iOS (letters, numbers, e-mail address, ...) |
@@ -200,7 +200,7 @@ end;
 | `ToggleStrikeOut` | Toggle strikethrough |
 | `ToggleSuperscript` | Toggle superscript |
 | `ToggleSubscript` | Toggle subscript |
-| `IncreaseFontSize` | Increase font size one step |
+| `IncreaseFontSize` | Increase font size one step (the steps are percentages of `Font.Size`: 67%, 83%, 100%, 117%, 150%, 200%) |
 | `DecreaseFontSize` | Decrease font size one step |
 | `SetCurrentFontName(Name)` | Apply font family to selection or caret |
 | `SetCurrentFontSize(Size)` | Apply font size (pt) to selection or caret |

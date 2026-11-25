@@ -21,17 +21,13 @@ uses
   System.UIConsts;
 
 const
-  /// <summary>Default font family of the editor. Empty means the platform default font (Segoe UI, Helvetica Neue, Roboto).</summary>
-  S_EDITOR_FONT_NAME = ''; // '' = platform default (Segoe UI / Helvetica / Roboto)
-  /// <summary>Default font size of the editor, in points.</summary>
-  C_EDITOR_FONT_SIZE = 12.0; // pt
-
-  // Preset font sizes
+  // Preset font sizes, for a base font of 12 pt (C_FONT_SIZE_MEDIUM): they are also the unit of the proportions of the
+  // headings and of the steps of the font size to the base font
   /// <summary>Preset font size: very small, in points.</summary>
   C_FONT_SIZE_VERY_SMALL = 8.0;
   /// <summary>Preset font size: small, in points.</summary>
   C_FONT_SIZE_SMALL      = 10.0;
-  /// <summary>Preset font size: medium (the default size), in points.</summary>
+  /// <summary>Preset font size: medium, in points. It is the size the other presets and the sizes of the headings are in proportion to.</summary>
   C_FONT_SIZE_MEDIUM     = 12.0;
   /// <summary>Preset font size: large, in points.</summary>
   C_FONT_SIZE_LARGE      = 14.0;
@@ -203,8 +199,12 @@ type
     BackgroundColor: TAlphaColor; // claNull = transparent
     /// <summary>Target of the hyperlink the text belongs to. Empty means the text is not a link.</summary>
     LinkURL: string;
-    /// <summary>Sets the style to the editor defaults: default font and size, no emphasis, no colors, no link.</summary>
-    procedure Init;
+    /// <summary>Sets the style to the default font of the platform (family and size of a new TFont), no emphasis, no colors, no link.</summary>
+    procedure Init; overload;
+    /// <summary>Sets the style to the given base font: no emphasis, no colors, no link.</summary>
+    /// <param name="AFontName">Font family of the base style. Empty means the default font of the platform.</param>
+    /// <param name="AFontSize">Font size of the base style, in points.</param>
+    procedure Init(const AFontName: string; AFontSize: Single); overload;
     /// <summary>
     /// Compares two styles.
     /// </summary>
@@ -634,12 +634,30 @@ type
   end;
 
 /// <summary>
-/// Returns the standard font size presets, from very small to huge.
+/// Gives the default font of the platform: family and size of a new TFont.
+/// </summary>
+/// <param name="AFontName">The font family.</param>
+/// <param name="AFontSize">The font size, in points.</param>
+procedure GetDefaultBaseFont(out AFontName: string; out AFontSize: Single);
+
+/// <summary>
+/// Returns the standard font size presets, from very small to huge, for a base font of 12 pt.
 /// </summary>
 /// <remarks>
 /// The captions are localizable resource strings.
 /// </remarks>
-function FontSizePresets: TArray<TS4YFontSizePreset>;
+function FontSizePresets: TArray<TS4YFontSizePreset>; overload;
+
+/// <summary>
+/// Returns the font size presets, from very small to huge, in proportion to a base font size.
+/// </summary>
+/// <param name="ABaseFontSize">Size of the base font, in points: it is the size of the normal preset.</param>
+/// <remarks>
+/// The sizes are the standard ones (8, 10, 12, 14, 18 and 24 pt for a base of 12 pt) multiplied by the base size and
+/// divided by 12, as percentages of the base font (67%, 83%, 100%, 117%, 150% and 200%), rounded to whole points
+/// because the HTML has no fraction of a point. The captions are localizable resource strings.
+/// </remarks>
+function FontSizePresets(ABaseFontSize: Single): TArray<TS4YFontSizePreset>; overload;
 
 // ===========================================================================
 // Helpers
@@ -744,7 +762,8 @@ implementation
 
 uses
   System.IOUtils,
-  System.NetEncoding;
+  System.NetEncoding,
+  FMX.Graphics;
 
 // -----------------------------------------------------------------------------
 // DarkenColor
@@ -1093,15 +1112,36 @@ end;
 // FontSizePresets
 // -----------------------------------------------------------------------------
 
+procedure GetDefaultBaseFont(out AFontName: string; out AFontSize: Single);
+var
+  LFont: TFont;
+begin
+  LFont := TFont.Create;
+  try
+    AFontName := LFont.Family;
+    AFontSize := LFont.Size;
+  finally
+    LFont.Free;
+  end;
+end;
+
 function FontSizePresets: TArray<TS4YFontSizePreset>;
 begin
+  Result := FontSizePresets(C_FONT_SIZE_MEDIUM);
+end;
+
+function FontSizePresets(ABaseFontSize: Single): TArray<TS4YFontSizePreset>;
+var
+  LScale: Single;
+begin
+  LScale := ABaseFontSize / C_FONT_SIZE_MEDIUM;
   Result := [
-    TS4YFontSizePreset.Create(C_FONT_SIZE_VERY_SMALL, S_FONT_SIZE_VERY_SMALL),
-    TS4YFontSizePreset.Create(C_FONT_SIZE_SMALL,       S_FONT_SIZE_SMALL),
-    TS4YFontSizePreset.Create(C_FONT_SIZE_MEDIUM,      S_FONT_SIZE_MEDIUM),
-    TS4YFontSizePreset.Create(C_FONT_SIZE_LARGE,       S_FONT_SIZE_LARGE),
-    TS4YFontSizePreset.Create(C_FONT_SIZE_VERY_LARGE,  S_FONT_SIZE_VERY_LARGE),
-    TS4YFontSizePreset.Create(C_FONT_SIZE_HUGE,        S_FONT_SIZE_HUGE)
+    TS4YFontSizePreset.Create(Round(C_FONT_SIZE_VERY_SMALL * LScale), S_FONT_SIZE_VERY_SMALL),
+    TS4YFontSizePreset.Create(Round(C_FONT_SIZE_SMALL * LScale),      S_FONT_SIZE_SMALL),
+    TS4YFontSizePreset.Create(Round(C_FONT_SIZE_MEDIUM * LScale),     S_FONT_SIZE_MEDIUM),
+    TS4YFontSizePreset.Create(Round(C_FONT_SIZE_LARGE * LScale),      S_FONT_SIZE_LARGE),
+    TS4YFontSizePreset.Create(Round(C_FONT_SIZE_VERY_LARGE * LScale), S_FONT_SIZE_VERY_LARGE),
+    TS4YFontSizePreset.Create(Round(C_FONT_SIZE_HUGE * LScale),       S_FONT_SIZE_HUGE)
   ];
 end;
 
@@ -1132,9 +1172,18 @@ end;
 // -----------------------------------------------------------------------------
 
 procedure TS4YHTMLTextStyle.Init;
+var
+  LFontName: string;
+  LFontSize: Single;
 begin
-  FontName := S_EDITOR_FONT_NAME;
-  FontSize := C_EDITOR_FONT_SIZE;
+  GetDefaultBaseFont(LFontName, LFontSize);
+  Init(LFontName, LFontSize);
+end;
+
+procedure TS4YHTMLTextStyle.Init(const AFontName: string; AFontSize: Single);
+begin
+  FontName := AFontName;
+  FontSize := AFontSize;
   Bold := False;
   Italic := False;
   Underline := False;

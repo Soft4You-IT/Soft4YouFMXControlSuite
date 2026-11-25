@@ -31,6 +31,8 @@ type
   /// <summary>Converts a TS4YHTMLDocument into HTML text.</summary>
   TS4YHTMLGenerator = class
   private
+    FBaseFontName: string;
+    FBaseFontSize: Single;
     FPretty: Boolean;
     FImageSourceConverter: TFunc<string, string>;
     FPlaceholderStyle: TS4YPlaceholderGeneratorStyle;
@@ -40,6 +42,7 @@ type
     function BorderSideToCSS(const ASide: TS4YTableBorderSide): string;
     function StyleDiff(const ACurrentStyle, ABaseStyle: TS4YHTMLTextStyle): string;
   public
+    constructor Create;
     /// <summary>
     /// Writes the document as HTML.
     /// </summary>
@@ -47,6 +50,10 @@ type
     /// <returns>The HTML of the content, without the html and body elements.</returns>
     function Generate(ADocument: TS4YHTMLDocument): string;
 
+    /// <summary>Font family of the base text, the one that is written without a font-family. Empty means the default font of the editor.</summary>
+    property BaseFontName: string read FBaseFontName write FBaseFontName;
+    /// <summary>Font size, in points, of the base text, the one that is written without a font-size.</summary>
+    property BaseFontSize: Single read FBaseFontSize write FBaseFontSize;
     /// <summary>
     /// Function that maps the source of each image to the value written in its src attribute.
     /// </summary>
@@ -75,6 +82,12 @@ implementation
 // -----------------------------------------------------------------------------
 // TS4YHTMLGenerator
 // -----------------------------------------------------------------------------
+
+constructor TS4YHTMLGenerator.Create;
+begin
+  inherited;
+  GetDefaultBaseFont(FBaseFontName, FBaseFontSize);
+end;
 
 function TS4YHTMLGenerator.ConvertImageSource(const ASource: string): string;
 begin
@@ -767,7 +780,7 @@ var
   end;
 
 begin
-  LBase.Init;
+  LBase.Init(FBaseFontName, FBaseFontSize);
   LStringBuilder := TStringBuilder.Create;
   LParagraphIndex := 0;
 
