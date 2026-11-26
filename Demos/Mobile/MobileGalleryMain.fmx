@@ -725,6 +725,7 @@ object MobileGalleryForm: TMobileGalleryForm
             Size.Height = 48
             Size.PlatformDefault = False
             TabOrder = 2
+            OnResized = FlowLayoutResized
             HorizontalGap = 8
             VerticalGap = 8
             object UrgentTag: TS4YTag
@@ -761,6 +762,7 @@ object MobileGalleryForm: TMobileGalleryForm
             Size.Height = 48
             Size.PlatformDefault = False
             TabOrder = 4
+            OnResized = FlowLayoutResized
             HorizontalGap = 8
             VerticalGap = 8
             object OpenChip: TS4YChip
@@ -809,6 +811,7 @@ object MobileGalleryForm: TMobileGalleryForm
             Size.Height = 48
             Size.PlatformDefault = False
             TabOrder = 7
+            OnResized = FlowLayoutResized
             HorizontalGap = 8
             VerticalGap = 8
             object AnnaRecipientChip: TS4YChip
@@ -823,6 +826,102 @@ object MobileGalleryForm: TMobileGalleryForm
               Kind = tgkPrimary
               Text = 'Luca Bianchi'
             end
+          end
+          object SingleGroupLabel: TLabel
+            Align = Top
+            Margins.Top = 12
+            Size.Width = 368
+            Size.Height = 20
+            Size.PlatformDefault = False
+            Text = 'Chip group: choose one'
+            TabOrder = 8
+          end
+          object SingleChipGroup: TS4YChipGroup
+            Align = Top
+            Margins.Top = 8
+            Size.Width = 368
+            Size.Height = 40
+            Size.PlatformDefault = False
+            Items.Strings = (
+              'Mail'
+              'Calendar'
+              'Contacts'
+              'Notes'
+              'Tasks')
+            ItemIndex = 0
+            Kind = tgkPrimary
+            OnChange = ChipGroupChange
+          end
+          object MultipleGroupLabel: TLabel
+            Align = Top
+            Margins.Top = 12
+            Size.Width = 368
+            Size.Height = 20
+            Size.PlatformDefault = False
+            Text = 'Chip group: choose several'
+            TabOrder = 10
+          end
+          object MultipleChipGroup: TS4YChipGroup
+            Align = Top
+            Margins.Top = 8
+            Size.Width = 368
+            Size.Height = 96
+            Size.PlatformDefault = False
+            Items.Strings = (
+              'Red'
+              'Orange'
+              'Yellow'
+              'Green'
+              'Teal'
+              'Blue'
+              'Indigo'
+              'Purple'
+              'Pink'
+              'Brown')
+            MaxHeight = 96
+            SelectionMode = cgmMultiple
+            OnChange = ChipGroupChange
+          end
+          object ChipGroupResultLabel: TLabel
+            Align = Top
+            Margins.Top = 8
+            Size.Width = 368
+            Size.Height = 20
+            Size.PlatformDefault = False
+            Text = 'One: Mail. Several: 0 chosen'
+            TabOrder = 12
+          end
+          object RecipientsEditLabel: TLabel
+            Align = Top
+            Margins.Top = 12
+            Size.Width = 368
+            Size.Height = 20
+            Size.PlatformDefault = False
+            Text = 'Chip edit: type an address and press Enter or comma'
+            TabOrder = 13
+          end
+          object RecipientsChipEdit: TS4YChipEdit
+            Align = Top
+            Margins.Top = 8
+            Size.Width = 368
+            Size.Height = 48
+            Size.PlatformDefault = False
+            Items.Strings = (
+              'anna@example.com')
+            MaxHeight = 120
+            TextPrompt = 'Add a recipient'
+            OnAdd = RecipientsChipEditChange
+            OnRemove = RecipientsChipEditChange
+            OnValidate = RecipientsChipEditValidate
+          end
+          object RecipientsChipEditResultLabel: TLabel
+            Align = Top
+            Margins.Top = 8
+            Size.Width = 368
+            Size.Height = 20
+            Size.PlatformDefault = False
+            Text = '1 recipient'
+            TabOrder = 15
           end
         end
       end

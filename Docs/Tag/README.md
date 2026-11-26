@@ -254,4 +254,4 @@ The chips and the text field can have different fonts: for chips in italic and a
 
 `Demos\Tag\S4YTagDemo.dproj` (also part of the project group `Demos\Soft4You.FMX.Controls.Demos.groupproj`) shows the six kinds and the three variants, chips that choose several or one of a group, recipient chips with a round picture that can be closed and added, tags and chips with an icon from an image list (`Images`, `ImageIndex`) and with a picture (`Bitmap`, `ImageRound`), with the settings of a sample tag on the right. Under them there is a group that chooses one chip and a group that chooses several and scrolls (`MaxHeight`), and a chip edit for recipients where an address that does not look right is shown as a danger. The icons and the pictures are drawn in code, so that the demo needs no image file. The demo scrolls when the window is not high enough.
 
-The page **Chips** of the mobile gallery `Demos\Mobile` has tags, filter chips and closable chips for the phone.
+The page **Chips** of the mobile gallery `Demos\Mobile` has tags, filter chips, closable chips, a group of chips with one choice and one with several, and a chip edit for the recipients, for the phone.
