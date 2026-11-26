@@ -261,6 +261,8 @@ type
     FPlaceholderBold: Boolean;
     FPlaceholderGetLabel: TS4YGetPlaceholderLabelEvent;
     FPlaceholderSender: TObject;
+    FBaseFontName: string;
+    FBaseFontSize: Single;
     FLineSpacing: Single;
     FParagraphSpacing: Single;
     procedure SetupFont(ATextStyle: TS4YHTMLTextStyle);
@@ -276,10 +278,13 @@ type
     constructor Create;
     destructor Destroy; override;
     procedure ClearMeasureCache;
+    function BaseTextStyle: TS4YHTMLTextStyle;
     procedure DoLayout(ADocument: TS4YHTMLDocument; AAvailableWidth: Single; out ALines: TArray<TS4YLayoutLine>;
       out AFragments: TArray<TS4YLayoutFragment>; out ACells: TArray<TS4YLayoutCell>; out ATotalHeight: Single);
     function MeasureCharOffset(const AText: string; ACharIndex: Integer; ATextStyle: TS4YHTMLTextStyle): Single;
     function CharAtX(const AText: string; AX: Single; ATextStyle: TS4YHTMLTextStyle): Integer;
+    property BaseFontName: string read FBaseFontName write FBaseFontName;
+    property BaseFontSize: Single read FBaseFontSize write FBaseFontSize;
     property LineSpacing: Single read FLineSpacing write FLineSpacing;
     property ParagraphSpacing: Single read FParagraphSpacing write FParagraphSpacing;
     property PlaceholderBold: Boolean read FPlaceholderBold write FPlaceholderBold;
@@ -560,6 +565,8 @@ type
     FFontColor: TAlphaColor;
     FLayouting: Boolean; // re-entry guard for DoLayout
     FFont: TFont; // default font (configurable from Object Inspector)
+    FBaseFontName: string; // font family and size the document is currently based on (that of FFont when last applied)
+    FBaseFontSize: Single;
     FPlaceholderPrefix: string;
     FPlaceholderSuffix: string;
     FPlaceholderAppearance: TS4YPlaceholderAppearance;
@@ -706,6 +713,10 @@ type
     procedure SetFontColor(const Value: TAlphaColor);
     procedure SetFont(const Value: TFont);
     procedure FontChanged(Sender: TObject);
+    function BaseTextStyle: TS4YHTMLTextStyle;
+    function CreateGenerator: TS4YHTMLGenerator;
+    function CreateParser: TS4YHTMLParser;
+    procedure RebaseDocumentFont(const AOldFontName: string; AOldFontSize: Single);
 
     // Placeholder
     procedure SetPlaceholderPrefix(const Value: string);
@@ -878,9 +889,9 @@ type
     procedure ToggleSuperscript;
     /// <summary>Toggles subscript on the selection or, with no selection, at the caret.</summary>
     procedure ToggleSubscript;
-    /// <summary>Decreases the font size of the selection or of the caret by one step.</summary>
+    /// <summary>Decreases the font size of the selection or of the caret by one step of the sizes in proportion to Font.Size.</summary>
     procedure DecreaseFontSize;
-    /// <summary>Increases the font size of the selection or of the caret by one step.</summary>
+    /// <summary>Increases the font size of the selection or of the caret by one step of the sizes in proportion to Font.Size.</summary>
     procedure IncreaseFontSize;
     /// <summary>
     /// Applies a font family to the selection or, with no selection, at the caret.
@@ -1431,7 +1442,12 @@ type
     /// LoadFromFile sets it. Changing it reloads the images.
     /// </remarks>
     property DocumentPath: string read FDocumentPath write SetDocumentPath;
-    /// <summary>Default font of the editor, used for text that has no font of its own.</summary>
+    /// <summary>Base font of the document: family and size of the text that has no font of its own.</summary>
+    /// <remarks>
+    /// It is also the font of the text typed into an empty document, and the HTML written by the editor has no
+    /// font-family and no font-size for it. Changing it changes the text that used the previous base font, redraws the
+    /// document, and leaves the text that has a font or a size of its own. The default is the default font of the platform (a new TFont).
+    /// </remarks>
     property Font: TFont read FFont write SetFont;
     /// <summary>Default text color, used for text that has no color of its own.</summary>
     property FontColor: TAlphaColor read FFontColor write SetFontColor default claBlack;
@@ -1750,6 +1766,7 @@ begin
   inherited;
   FMeasure := TTextLayoutManager.DefaultTextLayout.Create;
   FMeasureCache := TDictionary<string, TSizeF>.Create;
+  GetDefaultBaseFont(FBaseFontName, FBaseFontSize);
   FLineSpacing := C_EDITOR_LINE_SPACING;
   FParagraphSpacing := C_EDITOR_PARA_SPACING;
 end;
@@ -1764,6 +1781,11 @@ end;
 procedure TS4YLayoutEngine.ClearMeasureCache;
 begin
   FMeasureCache.Clear;
+end;
+
+function TS4YLayoutEngine.BaseTextStyle: TS4YHTMLTextStyle;
+begin
+  Result.Init(FBaseFontName, FBaseFontSize);
 end;
 
 procedure TS4YLayoutEngine.SetupFont(ATextStyle: TS4YHTMLTextStyle);
@@ -1782,6 +1804,7 @@ end;
 
 function TS4YLayoutEngine.HeadingSize(ABlockType: TS4YHTMLBlockType): Single;
 begin
+  // The sizes are those of the editor font of 12 pt (24, 20, 16, 14, 12, 10), in proportion to the base font
   case ABlockType of
     btH1:
       Result := 24;
@@ -1798,6 +1821,8 @@ begin
   else
     Result := 0; // not a heading
   end;
+
+  Result := Result * FBaseFontSize / C_FONT_SIZE_MEDIUM;
 end;
 
 function TS4YLayoutEngine.MeasureStr(const AText: string; ATextStyle: TS4YHTMLTextStyle): TSizeF;
@@ -2136,7 +2161,7 @@ begin
 
   if AParagraph.Runs.Count = 0 then
   begin
-    LEmptyStyle.Init;
+    LEmptyStyle := BaseTextStyle;
     LEmptyHeight := MeasureStr(' ', LEmptyStyle).Height;
     LEmptyFragment := Default(TS4YLayoutFragment);
     LEmptyFragment.ParagraphIndex := AParagraphIndex;
@@ -2329,7 +2354,7 @@ begin
   else if (Length(ALines) = 0) or ((AParagraph.Runs.Count > 0) and not LIsFirstLine) then
   begin
     LLastRunIndex2 := AParagraph.Runs.Count - 1;
-    LEmptyStyle2.Init;
+    LEmptyStyle2 := BaseTextStyle;
 
     if AParagraph.Runs.Count > 0 then
       LEmptyStyle2 := AParagraph.Runs[LLastRunIndex2].Style;
@@ -2876,17 +2901,16 @@ begin
   FCaretPosition := TS4YDocumentPosition.Invalid;
   FSelectionStart := TS4YDocumentPosition.Invalid;
   FSelectionEnd := TS4YDocumentPosition.Invalid;
-  FInsertStyle.Init;
-
-  // Default font - exposed as a published property so the developer can
-  // configure it from the Object Inspector.  Family='' means "FMX platform
-  // default" (Segoe UI on Windows, Helvetica Neue on macOS, Roboto on Android).
+  // Base font of the document - exposed as a published property so the developer can
+  // configure it from the Object Inspector.  A new TFont is the default font of the
+  // platform (Segoe UI on Windows, Helvetica Neue on macOS, Roboto on Android).
   // OnChanged is attached *after* the initial values are set so the callback
   // is not fired spuriously during construction.
   FFont := TFont.Create;
-  FFont.Family := S_EDITOR_FONT_NAME;
-  FFont.Size := C_EDITOR_FONT_SIZE;
+  FBaseFontName := FFont.Family;
+  FBaseFontSize := FFont.Size;
   FFont.OnChanged := FontChanged;
+  FInsertStyle := BaseTextStyle;
 
   // Vertical scrollbar - created only at runtime so it never shows up in the
   // Form Designer as an accessible child component (same behaviour as TMemo).
@@ -3083,6 +3107,8 @@ begin
   FLayouting := True;
   try
     // Propagate metrics to the layout engine before each pass
+    FLayoutEngine.BaseFontName := FFont.Family;
+    FLayoutEngine.BaseFontSize := FFont.Size;
     FLayoutEngine.LineSpacing := FLineSpacing;
     FLayoutEngine.ParagraphSpacing := FParagraphSpacing;
     FLayoutEngine.PlaceholderPaddingH := FPlaceholderAppearance.HorizontalPadding;
@@ -3240,7 +3266,7 @@ var
           begin
             LMarkerX := FFrags[LFragmentIndex].X + ContentLeft - C_EDITOR_LIST_INDENT;
             LMarkerY := FFrags[LFragmentIndex].Y + ContentTop;
-            LTextStyle.Init;
+            LTextStyle := BaseTextStyle;
 
             if LListParagraph.Runs.Count > 0 then
               LTextStyle := LListParagraph.Runs[0].Style;
@@ -4553,7 +4579,7 @@ begin
         Exit;
       end;
 
-      LTextStyle.Init;
+      LTextStyle := BaseTextStyle;
 
       if (LFragment.RunIndex >= 0) and (LFragment.RunIndex < LParagraph.Runs.Count) then
         LTextStyle := LParagraph.Runs[LFragment.RunIndex].Style;
@@ -7212,13 +7238,13 @@ begin
   // Style of character at (or just before) caret
   if not FCaretPosition.IsValid then
   begin
-    Result.Init;
+    Result := BaseTextStyle;
     Exit;
   end;
 
   if FCaretPosition.ParagraphIndex >= FDocument.Paragraphs.Count then
   begin
-    Result.Init;
+    Result := BaseTextStyle;
     Exit;
   end;
 
@@ -7242,7 +7268,7 @@ begin
       Result := LParagraph.Runs[FCaretPosition.RunIndex - 1].Style;
   end
   else
-    Result.Init;
+    Result := BaseTextStyle;
 end;
 
 procedure TS4YHTMLEditor.SplitRunAt(AParagraphIndex, ARunIndex, ACharIndex: Integer);
@@ -7904,7 +7930,7 @@ begin
     Exit;
 
   LTempDocument := TS4YHTMLDocument.Create;
-  LGenerator := TS4YHTMLGenerator.Create;
+  LGenerator := CreateGenerator;
   try
     for LParagraphIndex := LSelectionStart.ParagraphIndex to LSelectionEnd.ParagraphIndex do
       LTempDocument.Paragraphs.Add(FDocument.Paragraphs[LParagraphIndex].Clone);
@@ -9007,7 +9033,7 @@ var
   LCurrent: Single;
   LIndex: Integer;
 begin
-  LPresets := FontSizePresets;
+  LPresets := FontSizePresets(FFont.Size);
   LCurrent := StyleAtCaret.FontSize;
   LIndex := High(LPresets);
 
@@ -9023,7 +9049,7 @@ var
   LCurrent: Single;
   LIndex: Integer;
 begin
-  LPresets := FontSizePresets;
+  LPresets := FontSizePresets(FFont.Size);
   LCurrent := StyleAtCaret.FontSize;
   LIndex := 0;
 
@@ -9060,7 +9086,7 @@ var
   LSelectionEndAbsChar: Integer;
   LCaretAbsChar: Integer;
 begin
-  LTextStyle.Init;
+  LTextStyle := BaseTextStyle;
 
   if not FHasSelection then
   begin
@@ -10686,7 +10712,7 @@ begin
   if FHasSelection then
     DeleteSelection;
 
-  LParser := TS4YHTMLParser.Create;
+  LParser := CreateParser;
   try
     LInsertedDocument := LParser.Parse(AHTML);
   finally
@@ -11762,7 +11788,7 @@ begin
     (FDocument.Paragraphs[0].IndentLevel = 0) and (FDocument.Paragraphs[0].Alignment = haLeft) then
     Exit('');
 
-  LGenerator := TS4YHTMLGenerator.Create;
+  LGenerator := CreateGenerator;
   try
     LGenerator.Pretty := FPrettyHTML;
     LGenerator.ImageSourceConverter := AImageSourceConverter;
@@ -11800,7 +11826,7 @@ begin
   FRedoStack.Clear;
   FImageCache.Clear;
   FRefusedImages.Clear;
-  LParser := TS4YHTMLParser.Create;
+  LParser := CreateParser;
   try
     LNewDocument := LParser.Parse(AHTML);
 
@@ -12517,13 +12543,72 @@ begin
   // FontChanged fires automatically via FFont.OnChanged
 end;
 
-procedure TS4YHTMLEditor.FontChanged(Sender: TObject);
+function TS4YHTMLEditor.BaseTextStyle: TS4YHTMLTextStyle;
 begin
-  // Keep FInsertStyle in sync so that new text typed into an empty/default
-  // document reflects the font chosen in the Object Inspector.
-  FInsertStyle.FontName := FFont.Family;
-  FInsertStyle.FontSize := FFont.Size;
-  FInsertStyleSet := False;
+  Result.Init(FFont.Family, FFont.Size);
+end;
+
+function TS4YHTMLEditor.CreateGenerator: TS4YHTMLGenerator;
+begin
+  Result := TS4YHTMLGenerator.Create;
+  Result.BaseFontName := FFont.Family;
+  Result.BaseFontSize := FFont.Size;
+end;
+
+function TS4YHTMLEditor.CreateParser: TS4YHTMLParser;
+begin
+  Result := TS4YHTMLParser.Create;
+  Result.BaseFontName := FFont.Family;
+  Result.BaseFontSize := FFont.Size;
+end;
+
+procedure TS4YHTMLEditor.RebaseDocumentFont(const AOldFontName: string; AOldFontSize: Single);
+var
+  LParagraph: TS4YHTMLParagraph;
+  LRun: TS4YHTMLRun;
+  LTextStyle: TS4YHTMLTextStyle;
+begin
+  // The text that used the old base font follows the new one; the text with a font or a size of its own stays
+  for LParagraph in FDocument.Paragraphs do
+    for LRun in LParagraph.Runs do
+    begin
+      LTextStyle := LRun.Style;
+
+      if (LTextStyle.FontName = AOldFontName) and SameValue(LTextStyle.FontSize, AOldFontSize, 0.01) then
+      begin
+        LTextStyle.FontName := FFont.Family;
+        LTextStyle.FontSize := FFont.Size;
+        LRun.Style := LTextStyle;
+      end;
+    end;
+
+  if (FInsertStyle.FontName = AOldFontName) and SameValue(FInsertStyle.FontSize, AOldFontSize, 0.01) then
+  begin
+    FInsertStyle.FontName := FFont.Family;
+    FInsertStyle.FontSize := FFont.Size;
+  end;
+end;
+
+procedure TS4YHTMLEditor.FontChanged(Sender: TObject);
+var
+  LOldFontName: string;
+  LOldFontSize: Single;
+begin
+  // Only the family and the size are the base font of the document
+  if (FBaseFontName = FFont.Family) and SameValue(FBaseFontSize, FFont.Size, 0.01) then
+    Exit;
+
+  LOldFontName := FBaseFontName;
+  LOldFontSize := FBaseFontSize;
+  FBaseFontName := FFont.Family;
+  FBaseFontSize := FFont.Size;
+
+  if FDocument <> nil then
+    RebaseDocumentFont(LOldFontName, LOldFontSize);
+
+  FLayoutEngine.ClearMeasureCache;
+  DoLayout;
+  InvalidateRender;
 end;
 
 end.

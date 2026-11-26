@@ -83,6 +83,8 @@ type
     FPosition: Integer;
     FLength: Integer;
     FDocument: TS4YHTMLDocument;
+    FBaseFontName: string;
+    FBaseFontSize: Single;
     FStyleStack: TList<TS4YHTMLTextStyle>;
     FBorderColorStack: TList<TAlphaColor>;
     FCurrentParagraph: TS4YHTMLParagraph;
@@ -172,12 +174,18 @@ type
     function HtmlDecode(const AText: string): string;
     function BaseStyle: TS4YHTMLTextStyle;
   public
+    constructor Create;
     /// <summary>
     /// Parses a fragment of HTML.
     /// </summary>
     /// <param name="AHTML">HTML to parse.</param>
     /// <returns>A new document that the caller owns and must free. It has at least one paragraph, also for an empty input.</returns>
     function Parse(const AHTML: string): TS4YHTMLDocument;
+
+    /// <summary>Font family of the text that has no font of its own. Empty means the default font of the editor.</summary>
+    property BaseFontName: string read FBaseFontName write FBaseFontName;
+    /// <summary>Font size, in points, of the text that has no size of its own. Sizes in relative units are computed from it.</summary>
+    property BaseFontSize: Single read FBaseFontSize write FBaseFontSize;
   end;
 
 implementation
@@ -342,9 +350,15 @@ var
 // TS4YHTMLParser
 // -----------------------------------------------------------------------------
 
+constructor TS4YHTMLParser.Create;
+begin
+  inherited;
+  GetDefaultBaseFont(FBaseFontName, FBaseFontSize);
+end;
+
 function TS4YHTMLParser.BaseStyle: TS4YHTMLTextStyle;
 begin
-  Result.Init;
+  Result.Init(FBaseFontName, FBaseFontSize);
 end;
 
 function TS4YHTMLParser.TopStyle: TS4YHTMLTextStyle;
@@ -1959,6 +1973,7 @@ begin
     EnsureParagraph;
     LLineBreakRun := TS4YHTMLRun.Create;
     LLineBreakRun.IsLineBreak := True;
+    LLineBreakRun.Style := BaseStyle;
     FCurrentParagraph.Runs.Add(LLineBreakRun);
     Exit;
   end;
