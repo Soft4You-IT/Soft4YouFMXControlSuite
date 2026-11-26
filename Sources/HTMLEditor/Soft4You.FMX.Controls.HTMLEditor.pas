@@ -570,6 +570,7 @@ type
     FPlaceholderPrefix: string;
     FPlaceholderSuffix: string;
     FPlaceholderAppearance: TS4YPlaceholderAppearance;
+    FPlaceholderHTMLStyle: TS4YPlaceholderHTMLStyle;
     FPlainTextWidth: Integer;
     FHoverLinkURL: string;    // URL under mouse cursor ('' = none)
     FClickedLinkURL: string;  // URL at MouseDown, cleared on MouseUp
@@ -1489,6 +1490,13 @@ type
     property ParagraphSpacing: Single read FParagraphSpacing write SetParagraphSpacing;
     /// <summary>Visual style of the placeholder chips.</summary>
     property PlaceholderAppearance: TS4YPlaceholderAppearance read FPlaceholderAppearance write FPlaceholderAppearance;
+    /// <summary>How the placeholders are written in the HTML of the document.</summary>
+    /// <remarks>
+    /// phsChip (the default) writes each placeholder as an element with the look of PlaceholderAppearance. phsNone
+    /// writes only its text, as in the document, with the bold and the colors that the user gave it and without the
+    /// element and the bold of the chip, for the HTML that a template engine fills in. The look in the editor does not change.
+    /// </remarks>
+    property PlaceholderHTMLStyle: TS4YPlaceholderHTMLStyle read FPlaceholderHTMLStyle write FPlaceholderHTMLStyle default phsChip;
     /// <summary>
     /// Text that starts a placeholder in the HTML.
     /// </summary>
@@ -11800,6 +11808,7 @@ begin
     LPlaceholderStyle.HorizontalPadding := FPlaceholderAppearance.HorizontalPadding;
     LPlaceholderStyle.VerticalPadding := FPlaceholderAppearance.VerticalPadding;
     LPlaceholderStyle.Bold := FPlaceholderAppearance.Bold;
+    LPlaceholderStyle.HTMLStyle := FPlaceholderHTMLStyle;
     LGenerator.PlaceholderStyle := LPlaceholderStyle;
     Result := LGenerator.Generate(FDocument);
   finally

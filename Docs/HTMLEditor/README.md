@@ -127,6 +127,7 @@ end;
 | `LocalImageAccess` | `TS4YLocalImageAccess` | `liaAnywhere` | Which local files images may be read from: `liaAnywhere` (any readable file) or `liaDocumentFolder` (only inside `DocumentPath`); see [Images and files](#images-and-files) |
 | `ParagraphSpacing` | `Single` | `6.0` | Extra vertical space in px added between block elements |
 | `PlaceholderAppearance` | `TS4YPlaceholderAppearance` | — | Visual style of placeholder chips |
+| `PlaceholderHTMLStyle` | `TS4YPlaceholderHTMLStyle` | `phsChip` | How the placeholders are written in `HTML`: `phsChip` as an element with the look of the chip, `phsNone` as plain text (only the bold and the colors that the user gave the placeholder), for the HTML that a template engine fills in. The look in the editor does not change |
 | `PlaceholderPrefix` | `string` | `''` | Prefix that identifies a placeholder run in raw text |
 | `PlaceholderSuffix` | `string` | `''` | Suffix that identifies a placeholder run in raw text |
 | `PrettyHTML` | `Boolean` | `False` | Emit indented HTML from the generator |

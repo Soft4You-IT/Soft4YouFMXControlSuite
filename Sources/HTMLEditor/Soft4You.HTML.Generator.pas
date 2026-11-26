@@ -166,7 +166,7 @@ var
   begin
     for var LEmitRun in AParagraph.Runs do
     begin
-      if LEmitRun.IsPlaceholder then
+      if LEmitRun.IsPlaceholder and (FPlaceholderStyle.HTMLStyle = phsChip) then
       begin
         if LEmitRun.Style.BackgroundColor <> claNull then
           LFillColor := LEmitRun.Style.BackgroundColor
