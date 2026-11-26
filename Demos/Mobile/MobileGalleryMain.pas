@@ -32,7 +32,10 @@ uses
   Soft4You.FMX.Controls.Badge,
   Soft4You.FMX.Controls.Avatar,
   Soft4You.FMX.Controls.Tag,
+  Soft4You.FMX.Controls.Tag.Types,
   Soft4You.FMX.Controls.Chip,
+  Soft4You.FMX.Controls.ChipGroup,
+  Soft4You.FMX.Controls.ChipEdit,
   Soft4You.FMX.Controls.Expander,
   Soft4You.FMX.Controls.StepProgressBar,
   Soft4You.FMX.Controls.Gauges,
@@ -162,6 +165,14 @@ type
     RecipientChipsLayout: TFlowLayout;
     AnnaRecipientChip: TS4YChip;
     LucaRecipientChip: TS4YChip;
+    SingleGroupLabel: TLabel;
+    SingleChipGroup: TS4YChipGroup;
+    MultipleGroupLabel: TLabel;
+    MultipleChipGroup: TS4YChipGroup;
+    ChipGroupResultLabel: TLabel;
+    RecipientsEditLabel: TLabel;
+    RecipientsChipEdit: TS4YChipEdit;
+    RecipientsChipEditResultLabel: TLabel;
     StepsTab: TTabItem;
     StepsScrollBox: TVertScrollBox;
     HorizontalStepsLabel: TLabel;
@@ -216,9 +227,11 @@ type
     procedure BulletsButtonClick(Sender: TObject);
     procedure ChartsTimerTimer(Sender: TObject);
     procedure ChipCheckedChange(Sender: TObject);
+    procedure ChipGroupChange(Sender: TObject);
     procedure CustomersGridFilter(Sender: TObject);
     procedure CustomersGridGetValue(Sender: TObject; const ACol, ARow: Integer; var Value: TValue);
     procedure CustomersGridSort(Sender: TObject);
+    procedure FlowLayoutResized(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormGesture(Sender: TObject; const EventInfo: TGestureEventInfo; var Handled: Boolean);
@@ -228,6 +241,9 @@ type
     procedure HeaderLayoutMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
     procedure ItalicButtonClick(Sender: TObject);
     procedure NumbersButtonClick(Sender: TObject);
+    procedure RecipientsChipEditChange(Sender: TObject; const Text: string; Index: Integer);
+    procedure RecipientsChipEditValidate(Sender: TObject; const Text: string; var Accept: Boolean;
+      var Kind: TS4YTagKind);
     procedure StepsTimerTimer(Sender: TObject);
     procedure TableButtonClick(Sender: TObject);
     procedure TrackingTimerTimer(Sender: TObject);
@@ -247,6 +263,8 @@ type
     procedure BuildCustomers;
     function CompareCustomers(const ALeft, ARight: TGalleryCustomer; const AColumn: TColumn): Integer;
     procedure CreateDots;
+    procedure FitFlowLayout(const ALayout: TFlowLayout);
+    procedure FitFlowLayouts;
     procedure RequestPhotoPermission;
     procedure ShowCustomers;
     procedure ShowPage(const AIndex: Integer);
@@ -435,6 +453,19 @@ begin
   ChipsResultLabel.Text := 'Selected: ' + LSelected;
 end;
 
+procedure TMobileGalleryForm.ChipGroupChange(Sender: TObject);
+var
+  LSelected: string;
+begin
+  LSelected := string.Join(', ', SingleChipGroup.SelectedItems);
+
+  if LSelected = '' then
+    LSelected := 'none';
+
+  ChipGroupResultLabel.Text := 'One: ' + LSelected + '. Several: ' +
+    IntToStr(Length(MultipleChipGroup.SelectedItems)) + ' chosen';
+end;
+
 procedure TMobileGalleryForm.CustomersGridFilter(Sender: TObject);
 begin
   ShowCustomers;
@@ -462,6 +493,40 @@ end;
 procedure TMobileGalleryForm.CustomersGridSort(Sender: TObject);
 begin
   ShowCustomers;
+end;
+
+procedure TMobileGalleryForm.FitFlowLayout(const ALayout: TFlowLayout);
+var
+  LBottom: Single;
+  LChild: TControl;
+begin
+  // A flow layout wraps its controls on more lines but keeps the height it has: the height is brought to the bottom
+  // of the lowest control, so that what is below moves with it.
+  LBottom := 0;
+
+  for LChild in ALayout.Controls do
+  begin
+    if LChild.Visible then
+      LBottom := Max(LBottom, LChild.Position.Y + LChild.Height + LChild.Margins.Bottom);
+  end;
+
+  LBottom := LBottom + ALayout.Padding.Top + ALayout.Padding.Bottom;
+
+  if (LBottom > 0) and not SameValue(LBottom, ALayout.Height) then
+    ALayout.Height := LBottom;
+end;
+
+procedure TMobileGalleryForm.FitFlowLayouts;
+begin
+  FitFlowLayout(TagsLayout);
+  FitFlowLayout(FilterChipsLayout);
+  FitFlowLayout(RecipientChipsLayout);
+end;
+
+procedure TMobileGalleryForm.FlowLayoutResized(Sender: TObject);
+begin
+  // Fires after the controls are placed in the new width
+  FitFlowLayout(TFlowLayout(Sender));
 end;
 
 procedure TMobileGalleryForm.FormCreate(Sender: TObject);
@@ -579,6 +644,19 @@ end;
 procedure TMobileGalleryForm.NumbersButtonClick(Sender: TObject);
 begin
   HTMLEditor.ToggleOrderedList;
+end;
+
+procedure TMobileGalleryForm.RecipientsChipEditChange(Sender: TObject; const Text: string; Index: Integer);
+begin
+  RecipientsChipEditResultLabel.Text := IntToStr(RecipientsChipEdit.Items.Count) + ' recipients, the last change: ' + Text;
+end;
+
+procedure TMobileGalleryForm.RecipientsChipEditValidate(Sender: TObject; const Text: string; var Accept: Boolean;
+  var Kind: TS4YTagKind);
+begin
+  // A text that does not look like an address is accepted but shown as a danger
+  if (Pos('@', Text) < 2) or (Pos('.', Text, Pos('@', Text)) = 0) then
+    Kind := tgkDanger;
 end;
 
 procedure TMobileGalleryForm.RequestPhotoPermission;
@@ -735,6 +813,17 @@ begin
 
   if LTab = AvatarTab then
     RequestPhotoPermission;
+
+  // The tags and the chips take their width from the style, which is applied when the page is shown: the lines of the
+  // flow layouts are known only after that.
+  if LTab = TagsTab then
+  begin
+    TThread.ForceQueue(nil,
+      procedure
+      begin
+        FitFlowLayouts;
+      end);
+  end;
 end;
 
 procedure TMobileGalleryForm.VirtualKeyboardChanged(const Sender: TObject; const AMessage: TMessage);
